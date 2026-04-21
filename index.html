@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分點籌碼觀察站 · Chip Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg-2: #0f1525;
+  --bg-3: #151d33;
+  --line: #1f2a48;
+  --line-2: #2a3756;
+  --text: #e8edf7;
+  --text-2: #9aa4bd;
+  --text-3: #5c6680;
+  --gold: #d4af37;
+  --gold-bright: #f0c850;
+  --red: #ef4444;
+  --green: #10b981;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(212, 175, 55, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 45%);
+}
+
+/* ===== HEADER ===== */
+header {
+  border-bottom: 1px solid var(--line);
+  background: rgba(10, 14, 26, 0.85);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.logo-cn {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.logo-en {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.auto-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--green);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.auto-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.btn {
+  background: var(--bg-3);
+  color: var(--text);
+  border: 1px solid var(--line-2);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover {
+  background: var(--line-2);
+  border-color: var(--gold);
+}
+
+/* ===== MAIN ===== */
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.status-bar {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.status-info {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+.status-info .label {
+  color: var(--text-3);
+  margin-right: 6px;
+}
+.status-info .val {
+  color: var(--gold-bright);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+.tab {
+  padding: 12px 20px;
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: inherit;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  color: var(--gold-bright);
+  border-bottom-color: var(--gold);
+}
+.tab-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-3);
+  margin-right: 6px;
+}
+.tab.active .tab-num { color: var(--gold); }
+
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.controls {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.control-group { display: flex; align-items: center; gap: 8px; }
+.control-label { font-size: 12px; color: var(--text-3); letter-spacing: 0.05em; }
+
+select, input[type="text"], input[type="number"] {
+  background: var(--bg-3);
+  color: var(--text);
+  border: 1px solid var(--line-2);
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 120px;
+}
+select:focus, input:focus { outline: none; border-color: var(--gold); }
+
+.mode-switch {
+  display: inline-flex;
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  padding: 2px;
+}
+.mode-btn {
+  background: transparent;
+  color: var(--text-2);
+  border: none;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.mode-btn.active {
+  background: var(--gold);
+  color: #0a0e1a;
+  font-weight: 700;
+}
+
+.section-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(to bottom, var(--gold-bright), var(--gold));
+  border-radius: 2px;
+}
+.section-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 400;
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: 8px;
+}
+
+.table-wrap {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead {
+  background: var(--bg-3);
+  border-bottom: 1px solid var(--line-2);
+}
+th {
+  text-align: left;
+  padding: 12px 14px;
+  color: var(--text-3);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+th.num { text-align: right; }
+td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(212, 175, 55, 0.03); }
+td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
+.pos { color: var(--red); }
+.neg { color: var(--green); }
+.stock-cell { display: flex; flex-direction: column; gap: 2px; }
+.stock-name { font-weight: 500; color: var(--text); }
+.stock-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.master-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  font-size: 11px;
+  color: var(--text-2);
+  margin: 2px;
+}
+.master-tag.hl {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+.badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  background: linear-gradient(135deg, var(--red) 0%, #dc2626 100%);
+  color: white;
+}
+.badge.gold {
+  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 100%);
+  color: #0a0e1a;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 16px;
+}
+.branch-card {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+.branch-card:hover {
+  border-color: var(--line-2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.branch-card.highlighted {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold), 0 4px 16px rgba(212, 175, 55, 0.15);
+}
+.branch-header {
+  padding: 14px 16px;
+  background: var(--bg-3);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.branch-name {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.branch-meta {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+}
+.branch-master-name {
+  color: var(--gold-bright);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+.branch-stocks { padding: 8px 0; }
+.stock-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 16px;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.stock-row:hover { background: rgba(212, 175, 55, 0.05); }
+.stock-row .left { display: flex; flex-direction: column; }
+.stock-row .sname { font-size: 13px; color: var(--text); font-weight: 500; }
+.stock-row .scode {
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+}
+.stock-row .right { text-align: right; font-family: 'JetBrains Mono', monospace; }
+.stock-row .net { font-weight: 700; font-size: 13px; }
+.stock-row .amt { font-size: 10px; color: var(--text-3); }
+
+.empty {
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 14px;
+}
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.3;
+}
+
+.loading {
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--text-2);
+}
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--line-2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat-box {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+  border-radius: 8px;
+}
+.stat-box .label {
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.stat-box .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+
+.hot {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  padding: 1px 6px;
+  background: var(--red);
+  color: white;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.watchlist-config {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.watchlist-config h3 {
+  font-size: 13px;
+  color: var(--text-3);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.master-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 6px 12px;
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-2);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.chip:hover { border-color: var(--gold); color: var(--text); }
+.chip.selected {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  font-weight: 500;
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 15, 0.75);
+  z-index: 200;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s;
+}
+.overlay.show { display: block; }
+.drawer {
+  position: fixed;
+  top: 0; right: 0;
+  width: min(520px, 100%);
+  height: 100vh;
+  background: var(--bg-2);
+  border-left: 1px solid var(--gold);
+  z-index: 201;
+  overflow-y: auto;
+  display: none;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+.drawer.show { display: block; transform: translateX(0); }
+.drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.drawer-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+.drawer-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+.close-btn {
+  background: transparent;
+  border: 1px solid var(--line-2);
+  color: var(--text-2);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+.close-btn:hover { border-color: var(--gold); color: var(--text); }
+.drawer-body { padding: 20px 24px; }
+.drawer-section { margin-bottom: 24px; }
+.drawer-section h4 {
+  font-size: 12px;
+  color: var(--text-3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.error-banner {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.help-card {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.help-card h3 {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  margin-bottom: 10px;
+}
+.help-card p, .help-card li {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.8;
+}
+.help-card ul, .help-card ol { padding-left: 20px; }
+.help-card code {
+  background: var(--bg-3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--gold-bright);
+}
+
+@media (max-width: 768px) {
+  .cards-grid { grid-template-columns: 1fr; }
+  .header-inner { padding: 14px 16px; }
+  main { padding: 16px; }
+  .controls { padding: 12px; gap: 10px; }
+  .logo-cn { font-size: 18px; }
+  .status-info { gap: 12px; font-size: 12px; }
+  th, td { padding: 8px 10px; font-size: 12px; }
+  .drawer { width: 100%; border-left: none; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-cn">分點籌碼觀察站</div>
+      <div class="logo-en">Chip Radar</div>
+      <span class="auto-badge" id="autoBadge">AUTO · LIVE</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn" onclick="reloadData()">🔄 重新載入</button>
+      <button class="btn" onclick="toggleHelp()">❓ 說明</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="status-bar">
+    <div class="status-info">
+      <div><span class="label">資料日期</span><span class="val" id="tradeDate">—</span></div>
+      <div><span class="label">最後更新</span><span class="val" id="lastUpdate">—</span></div>
+      <div><span class="label">分點數</span><span class="val" id="branchCount">0</span></div>
+      <div><span class="label">歷史天數</span><span class="val" id="dayCount">0</span></div>
+    </div>
+    <div class="control-group">
+      <span class="control-label">查看日期</span>
+      <select id="dateSelect" onchange="onDateChange()"></select>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="overview"><span class="tab-num">01</span>共買榜</button>
+    <button class="tab" data-tab="branches"><span class="tab-num">02</span>分點動態</button>
+    <button class="tab" data-tab="stock"><span class="tab-num">03</span>個股追蹤</button>
+    <button class="tab" data-tab="master"><span class="tab-num">04</span>高手偏好</button>
+    <button class="tab" data-tab="watchlist"><span class="tab-num">05</span>關注設定</button>
+  </div>
+
+  <!-- PANEL 1 -->
+  <div class="panel active" id="panel-overview">
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">檢視模式</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-mode="all" onclick="setOverviewMode('all')">全部分點</button>
+          <button class="mode-btn" data-mode="watch" onclick="setOverviewMode('watch')">僅關注分點</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">最少共買數</span>
+        <select id="minOverlap" onchange="renderOverview()">
+          <option value="2" selected>≥ 2 個分點</option>
+          <option value="3">≥ 3 個分點</option>
+          <option value="4">≥ 4 個分點</option>
+          <option value="5">≥ 5 個分點</option>
+          <option value="1">全部</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <span class="control-label">排序</span>
+        <select id="sortBy" onchange="renderOverview()">
+          <option value="count">依共買分點數</option>
+          <option value="amount">依總淨買金額</option>
+        </select>
+      </div>
+    </div>
+    <div class="section-title">
+      當日共同買超個股
+      <span class="section-sub" id="overviewSubtitle"></span>
+    </div>
+    <div id="overviewResult"><div class="loading"><div class="loading-spinner"></div>正在載入資料...</div></div>
+  </div>
+
+  <!-- PANEL 2 -->
+  <div class="panel" id="panel-branches">
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">顯示範圍</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-mode="watch" onclick="setBranchMode('watch')">僅關注分點</button>
+          <button class="mode-btn" data-mode="all" onclick="setBranchMode('all')">全部分點</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">排序</span>
+        <select id="branchSort" onchange="renderBranches()">
+          <option value="master">依高手</option>
+          <option value="netamt">依總淨買金額</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <span class="control-label">搜尋</span>
+        <input type="text" id="branchSearch" placeholder="分點或高手名..." oninput="renderBranches()">
+      </div>
+    </div>
+    <div class="section-title">
+      分點當日買超前 30 名
+      <span class="section-sub" id="branchSubtitle"></span>
+    </div>
+    <div id="branchResult"></div>
+  </div>
+
+  <!-- PANEL 3 -->
+  <div class="panel" id="panel-stock">
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">輸入股票</span>
+        <input type="text" id="stockSearchInput" placeholder="代號或名稱（如 2330 或 台積電）" oninput="renderStockTrace()" style="min-width:220px;">
+      </div>
+      <div class="control-group">
+        <span class="control-label">範圍</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-mode="watch" onclick="setStockMode('watch')">僅關注分點</button>
+          <button class="mode-btn" data-mode="all" onclick="setStockMode('all')">全部分點</button>
+        </div>
+      </div>
+    </div>
+    <div id="stockTraceResult"></div>
+  </div>
+
+  <!-- PANEL 4 -->
+  <div class="panel" id="panel-master">
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">選擇分點</span>
+        <select id="masterSelect" onchange="renderMasterPref()"></select>
+      </div>
+      <div class="control-group">
+        <span class="control-label">觀察天數</span>
+        <select id="masterDays" onchange="renderMasterPref()">
+          <option value="3">近 3 日</option>
+          <option value="5" selected>近 5 日</option>
+          <option value="10">近 10 日</option>
+          <option value="999">全部</option>
+        </select>
+      </div>
+    </div>
+    <div id="masterResult"></div>
+  </div>
+
+  <!-- PANEL 5 -->
+  <div class="panel" id="panel-watchlist">
+    <div class="help-card">
+      <h3>🎯 設定重點關注的分點</h3>
+      <p>點擊分點標籤切換關注狀態。被關注的分點會在其他頁的「僅關注分點」模式中優先顯示。設定自動儲存在瀏覽器中。</p>
+    </div>
+    <div class="watchlist-config">
+      <h3>★ 目前關注的分點 <span id="watchCount" style="color:var(--gold-bright);"></span></h3>
+      <div class="master-chips" id="selectedChips"></div>
+    </div>
+    <div class="watchlist-config">
+      <h3>全部分點清單</h3>
+      <div class="master-chips" id="allBranchChips"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:10px;">
+      <button class="btn" onclick="selectAllBranches()">全選</button>
+      <button class="btn" onclick="clearAllBranches()">全部清除</button>
+    </div>
+  </div>
+
+  <!-- HELP PANEL -->
+  <div class="panel" id="panel-help" style="display:none;">
+    <div class="help-card">
+      <h3>🤖 關於自動化</h3>
+      <p>本網站資料<strong>每個交易日自動更新</strong>。GitHub Actions 會在每天台灣時間下午 5 點自動爬取富邦券商分點資料，您打開網站就是最新的。</p>
+      <p>資料來源：<code>fubon-ebrokerdj.fbs.com.tw</code> 券商分點進出排行</p>
+    </div>
+    <div class="help-card">
+      <h3>📖 功能說明</h3>
+      <ol>
+        <li><strong>共買榜</strong>：列出當日被多位分點同時買超的個股，越多分點共買排越前面</li>
+        <li><strong>分點動態</strong>：逐一看各關注分點今日的買超前 30 名</li>
+        <li><strong>個股追蹤</strong>：輸入股票代號或名稱，看歷史上哪些分點進出過</li>
+        <li><strong>高手偏好</strong>：查看指定分點近期最常買的股票</li>
+        <li><strong>關注設定</strong>：自訂您重點關注的分點清單</li>
+      </ol>
+    </div>
+    <div class="help-card">
+      <h3>⌨️ 快捷鍵</h3>
+      <p>
+        <kbd>1</kbd> ~ <kbd>5</kbd> 切換分頁　<kbd>ESC</kbd> 關閉個股詳情
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-title" id="drawerTitle">—</div>
+      <div class="drawer-sub" id="drawerSub">—</div>
+    </div>
+    <button class="close-btn" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<script>
+// ========== 設定區 ==========
+// 注意：部署到 GitHub Pages 後，data 路徑會相對於 index.html 所在目錄
+// 所以這裡用相對路徑即可
+const DATA_BASE = './data';
+
+// ========== 狀態 ==========
+let CURRENT_DATA = null;       // 當前顯示日期的資料
+let AVAILABLE_DATES = [];      // 所有可用日期
+let ALL_HISTORY = {};          // { 日期: data }，快取載入過的日期
+let WATCHLIST = new Set();     // 關注的分點 code
+let overviewMode = 'all';
+let branchMode = 'watch';
+let stockMode = 'watch';
+
+// ========== 載入資料 ==========
+async function loadIndex() {
+  try {
+    const r = await fetch(`${DATA_BASE}/index.json?t=${Date.now()}`);
+    if (!r.ok) throw new Error('index.json 讀取失敗');
+    const idx = await r.json();
+    AVAILABLE_DATES = idx.dates || [];
+    
+    // 填充日期選擇器
+    const sel = document.getElementById('dateSelect');
+    sel.innerHTML = AVAILABLE_DATES.map(d => 
+      `<option value="${d}">${formatDate(d)}</option>`
+    ).join('');
+    
+    document.getElementById('dayCount').textContent = AVAILABLE_DATES.length;
+    
+    return idx.latest || AVAILABLE_DATES[0];
+  } catch (e) {
+    console.error('載入 index 失敗', e);
+    return null;
+  }
+}
+
+async function loadDate(date) {
+  if (ALL_HISTORY[date]) {
+    return ALL_HISTORY[date];
+  }
+  try {
+    const r = await fetch(`${DATA_BASE}/${date}.json?t=${Date.now()}`);
+    if (!r.ok) throw new Error(`${date}.json 讀取失敗`);
+    const data = await r.json();
+    ALL_HISTORY[date] = data;
+    return data;
+  } catch (e) {
+    console.error('載入日期失敗', date, e);
+    return null;
+  }
+}
+
+async function init() {
+  const latestDate = await loadIndex();
+  
+  if (!latestDate) {
+    document.getElementById('overviewResult').innerHTML = `
+      <div class="error-banner">
+        ⚠️ 找不到資料檔案。可能是首次部署，請確認 GitHub Actions 已執行過一次。
+        <br><br>
+        您可以：
+        <ul style="margin-top:8px;">
+          <li>到 GitHub repo 的 Actions 分頁手動觸發一次爬蟲</li>
+          <li>或等到下一個交易日下午 5 點自動執行</li>
+        </ul>
+      </div>`;
+    return;
+  }
+  
+  document.getElementById('dateSelect').value = latestDate;
+  await showDate(latestDate);
+  
+  // 填充關注設定
+  loadWatchlist();
+  renderWatchlistPanel();
+}
+
+async function showDate(date) {
+  document.getElementById('overviewResult').innerHTML = 
+    '<div class="loading"><div class="loading-spinner"></div>載入 ' + formatDate(date) + '...</div>';
+  
+  const data = await loadDate(date);
+  if (!data) {
+    document.getElementById('overviewResult').innerHTML = 
+      '<div class="error-banner">載入 ' + date + ' 失敗</div>';
+    return;
+  }
+  
+  CURRENT_DATA = data;
+  
+  // 更新狀態列
+  document.getElementById('tradeDate').textContent = formatDate(data.trade_date);
+  document.getElementById('lastUpdate').textContent = 
+    data.crawled_at ? data.crawled_at.slice(5, 16).replace('T', ' ') : '—';
+  document.getElementById('branchCount').textContent = data.success + '/' + data.branches.length;
+  
+  // 填充分點選擇器
+  const masterSel = document.getElementById('masterSelect');
+  masterSel.innerHTML = data.branches
+    .filter(b => b.buys && b.buys.length > 0)
+    .map(b => `<option value="${b.code}">${b.master} | ${b.name}</option>`).join('');
+  
+  renderAll();
+}
+
+async function onDateChange() {
+  const date = document.getElementById('dateSelect').value;
+  await showDate(date);
+}
+
+async function reloadData() {
+  ALL_HISTORY = {}; // 清快取
+  const btn = event.target;
+  btn.textContent = '⏳ 載入中...';
+  btn.disabled = true;
+  await init();
+  btn.textContent = '🔄 重新載入';
+  btn.disabled = false;
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  if (d.length === 8) return `${d.slice(0,4)}/${d.slice(4,6)}/${d.slice(6,8)}`;
+  return d;
+}
+
+// ========== Watchlist ==========
+function loadWatchlist() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('chipradar_watch') || 'null');
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      WATCHLIST = new Set(saved);
+    } else if (CURRENT_DATA) {
+      // 預設：所有有資料的分點全關注
+      CURRENT_DATA.branches.forEach(b => {
+        if (b.buys && b.buys.length > 0) WATCHLIST.add(b.code);
+      });
+      saveWatchlist();
+    }
+  } catch(e) { WATCHLIST = new Set(); }
+}
+function saveWatchlist() {
+  localStorage.setItem('chipradar_watch', JSON.stringify(Array.from(WATCHLIST)));
+}
+function toggleWatch(code) {
+  if (WATCHLIST.has(code)) WATCHLIST.delete(code);
+  else WATCHLIST.add(code);
+  saveWatchlist();
+  renderWatchlistPanel();
+  renderAll();
+}
+function selectAllBranches() {
+  if (!CURRENT_DATA) return;
+  CURRENT_DATA.branches.forEach(b => WATCHLIST.add(b.code));
+  saveWatchlist();
+  renderWatchlistPanel();
+  renderAll();
+}
+function clearAllBranches() {
+  WATCHLIST.clear();
+  saveWatchlist();
+  renderWatchlistPanel();
+  renderAll();
+}
+function renderWatchlistPanel() {
+  if (!CURRENT_DATA) return;
+  const branches = CURRENT_DATA.branches;
+  const watched = branches.filter(b => WATCHLIST.has(b.code));
+  
+  document.getElementById('watchCount').textContent = `(${watched.length}/${branches.length})`;
+  
+  const watchEl = document.getElementById('selectedChips');
+  if (watched.length === 0) {
+    watchEl.innerHTML = '<span style="color:var(--text-3);font-size:12px;">尚未選擇任何分點</span>';
+  } else {
+    watchEl.innerHTML = watched.map(b => 
+      `<button class="chip selected" onclick="toggleWatch('${b.code}')" title="點擊取消關注">
+        ★ ${b.master} ｜ ${b.name} <span style="color:var(--text-3);font-family:monospace;font-size:10px;">[${b.code}]</span>
+      </button>`
+    ).join('');
+  }
+  
+  const allEl = document.getElementById('allBranchChips');
+  allEl.innerHTML = branches.map(b => {
+    const sel = WATCHLIST.has(b.code) ? 'selected' : '';
+    const dimStyle = (!b.buys || b.buys.length === 0) ? 'opacity:0.4;' : '';
+    return `<button class="chip ${sel}" onclick="toggleWatch('${b.code}')" style="${dimStyle}">
+      ${b.master} ｜ ${b.name}<span style="color:var(--text-3);font-family:monospace;font-size:10px;margin-left:4px;">[${b.code}]</span>
+    </button>`;
+  }).join('');
+}
+
+// ========== Tabs ==========
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    document.getElementById('panel-help').style.display = 'none';
+  });
+});
+function toggleHelp() {
+  const help = document.getElementById('panel-help');
+  const isOpen = help.style.display === 'block';
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (!isOpen) {
+    help.style.display = 'block';
+  } else {
+    help.style.display = 'none';
+    document.querySelector('.tab[data-tab="overview"]').classList.add('active');
+    document.getElementById('panel-overview').classList.add('active');
+  }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key >= '1' && e.key <= '5') {
+    const idx = parseInt(e.key) - 1;
+    const tabs = document.querySelectorAll('.tab');
+    if (tabs[idx]) tabs[idx].click();
+  } else if (e.key === 'Escape') {
+    closeDrawer();
+  }
+});
+
+// ========== Mode switches ==========
+function setOverviewMode(m) {
+  overviewMode = m;
+  document.querySelectorAll('#panel-overview .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderOverview();
+}
+function setBranchMode(m) {
+  branchMode = m;
+  document.querySelectorAll('#panel-branches .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderBranches();
+}
+function setStockMode(m) {
+  stockMode = m;
+  document.querySelectorAll('#panel-stock .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderStockTrace();
+}
+
+// ========== Render ==========
+function renderAll() {
+  if (!CURRENT_DATA) return;
+  renderOverview();
+  renderBranches();
+  renderStockTrace();
+  renderMasterPref();
+}
+
+// 建立股票 -> 分點的索引
+function buildStockIndex(branches, onlyWatched = false) {
+  const map = new Map();
+  for (const br of branches) {
+    if (onlyWatched && !WATCHLIST.has(br.code)) continue;
+    if (!br.buys) continue;
+    for (const s of br.buys) {
+      const key = s.code + '::' + s.name;
+      if (!map.has(key)) {
+        map.set(key, {
+          code: s.code, name: s.name,
+          branches: [], totalNet: 0, totalBuy: 0,
+        });
+      }
+      const obj = map.get(key);
+      obj.branches.push({
+        master: br.master, branch: br.name, branchCode: br.code,
+        net: s.net, buy: s.buy, sell: s.sell
+      });
+      obj.totalNet += s.net;
+      obj.totalBuy += s.buy;
+    }
+  }
+  return map;
+}
+
+// PANEL 1: 共買榜
+function renderOverview() {
+  const el = document.getElementById('overviewResult');
+  if (!CURRENT_DATA) return;
+  
+  document.getElementById('overviewSubtitle').textContent = 
+    formatDate(CURRENT_DATA.trade_date) + ' · ' + (overviewMode === 'watch' ? '僅關注' : '全部');
+  
+  const minOverlap = parseInt(document.getElementById('minOverlap').value);
+  const sortBy = document.getElementById('sortBy').value;
+  
+  const stockMap = buildStockIndex(CURRENT_DATA.branches, overviewMode === 'watch');
+  let list = Array.from(stockMap.values()).filter(s => s.branches.length >= minOverlap);
+  
+  if (sortBy === 'count') {
+    list.sort((a,b) => b.branches.length - a.branches.length || b.totalNet - a.totalNet);
+  } else {
+    list.sort((a,b) => b.totalNet - a.totalNet);
+  }
+  
+  if (list.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>當日沒有符合條件的共買個股</div>';
+    return;
+  }
+  
+  const statsHTML = `
+    <div class="stat-row">
+      <div class="stat-box"><div class="label">共買個股</div><div class="val">${list.length}</div></div>
+      <div class="stat-box"><div class="label">最多共買</div><div class="val">${list[0].branches.length}</div></div>
+      <div class="stat-box"><div class="label">合計淨買</div><div class="val">${fmtAmt(list.reduce((s,x)=>s+x.totalNet,0))}</div></div>
+      <div class="stat-box"><div class="label">最熱門</div><div class="val" style="font-size:14px;">${list[0].name}</div></div>
+    </div>`;
+  
+  const rowsHTML = list.slice(0, 100).map((s, i) => {
+    const badge = s.branches.length >= 4 ? '<span class="hot">🔥</span>' : '';
+    const branchTags = s.branches.map(b => {
+      const hl = WATCHLIST.has(b.branchCode) ? 'hl' : '';
+      return `<span class="master-tag ${hl}" title="${b.master}（${b.branch}）淨買 ${fmtAmt(b.net)} 仟元">${b.master}</span>`;
+    }).join('');
+    
+    return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
+      <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
+      <td><div class="stock-cell">
+        <span class="stock-name">${s.name}${badge}</span>
+        <span class="stock-code">${s.code}</span>
+      </div></td>
+      <td class="num"><span class="badge ${s.branches.length>=4?'':'gold'}">${s.branches.length} 分點</span></td>
+      <td class="num pos">${fmtAmt(s.totalNet)}</td>
+      <td>${branchTags}</td>
+    </tr>`;
+  }).join('');
+  
+  el.innerHTML = statsHTML + `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="num" style="width:60px;">#</th>
+          <th>個股</th>
+          <th class="num">共買分點</th>
+          <th class="num">合計淨買</th>
+          <th>分點明細</th>
+        </tr></thead>
+        <tbody>${rowsHTML}</tbody>
+      </table>
+    </div>`;
+}
+
+// PANEL 2: 分點動態
+function renderBranches() {
+  const el = document.getElementById('branchResult');
+  if (!CURRENT_DATA) return;
+  document.getElementById('branchSubtitle').textContent = formatDate(CURRENT_DATA.trade_date);
+  
+  const search = document.getElementById('branchSearch').value.toLowerCase();
+  const sortBy = document.getElementById('branchSort').value;
+  
+  let branches = CURRENT_DATA.branches.filter(b => b.buys && b.buys.length > 0);
+  
+  if (branchMode === 'watch') {
+    branches = branches.filter(b => WATCHLIST.has(b.code));
+  }
+  
+  if (search) {
+    branches = branches.filter(b => 
+      b.name.toLowerCase().includes(search) || 
+      b.master.toLowerCase().includes(search) ||
+      b.code.toLowerCase().includes(search)
+    );
+  }
+  
+  if (sortBy === 'netamt') {
+    branches.sort((a,b) => {
+      const sa = a.buys.reduce((s,x) => s + x.net, 0);
+      const sb = b.buys.reduce((s,x) => s + x.net, 0);
+      return sb - sa;
+    });
+  } else {
+    branches.sort((a,b) => (a.master||'').localeCompare(b.master||'', 'zh-Hant'));
+  }
+  
+  if (branches.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>沒有符合條件的分點</div>';
+    return;
+  }
+  
+  const cardsHTML = branches.map(b => {
+    const isWatch = WATCHLIST.has(b.code);
+    // 顯示前 15 名
+    const stocksHTML = b.buys.slice(0, 15).map(s => {
+      const netClass = s.net > 0 ? 'pos' : 'neg';
+      return `<div class="stock-row" onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
+        <div class="left">
+          <span class="sname">${s.name}</span>
+          <span class="scode">${s.code}</span>
+        </div>
+        <div class="right">
+          <div class="net ${netClass}">▲ ${fmtAmt(s.net)}</div>
+          <div class="amt">買 ${fmtAmt(s.buy)} / 賣 ${fmtAmt(s.sell)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    
+    return `<div class="branch-card ${isWatch ? 'highlighted' : ''}">
+      <div class="branch-header">
+        <div>
+          <div class="branch-name">${isWatch ? '★' : '　'} ${b.name}</div>
+          <div class="branch-master-name">${b.master}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="branch-meta">${b.code}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${b.buys.length} 檔</div>
+        </div>
+      </div>
+      <div class="branch-stocks">${stocksHTML}</div>
+    </div>`;
+  }).join('');
+  
+  el.innerHTML = `<div class="cards-grid">${cardsHTML}</div>`;
+}
+
+// PANEL 3: 個股追蹤（跨日期）
+async function renderStockTrace() {
+  const el = document.getElementById('stockTraceResult');
+  if (!CURRENT_DATA) return;
+  
+  const q = document.getElementById('stockSearchInput').value.trim().toLowerCase();
+  if (!q) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🔎</div>請輸入股票代號或名稱開始搜尋</div>';
+    return;
+  }
+  
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>載入多日歷史...</div>';
+  
+  // 確保所有日期的資料都載入
+  const datesToLoad = AVAILABLE_DATES.slice(0, 30); // 最近 30 天
+  await Promise.all(datesToLoad.map(d => loadDate(d)));
+  
+  // 匯總所有日期的資料
+  const matched = [];
+  for (const date of datesToLoad) {
+    const dayData = ALL_HISTORY[date];
+    if (!dayData) continue;
+    for (const br of dayData.branches) {
+      if (!br.buys) continue;
+      if (stockMode === 'watch' && !WATCHLIST.has(br.code)) continue;
+      for (const s of br.buys) {
+        if (s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)) {
+          matched.push({
+            date, master: br.master, branch: br.name, branchCode: br.code,
+            ...s
+          });
+        }
+      }
+    }
+  }
+  
+  if (matched.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🤷</div>查無此股票的進出紀錄</div>';
+    return;
+  }
+  
+  // 按股票聚合
+  const stockMap = new Map();
+  for (const m of matched) {
+    const key = m.code + '::' + m.name;
+    if (!stockMap.has(key)) stockMap.set(key, { code: m.code, name: m.name, records: [] });
+    stockMap.get(key).records.push(m);
+  }
+  
+  let parts = [];
+  for (const [, stock] of stockMap) {
+    stock.records.sort((a,b) => b.date.localeCompare(a.date));
+    const branches = new Set(stock.records.map(r => r.branchCode));
+    const totalNet = stock.records.reduce((s,r) => s + r.net, 0);
+    
+    const rowsHTML = stock.records.slice(0, 100).map(r => {
+      const isWatch = WATCHLIST.has(r.branchCode);
+      return `<tr>
+        <td style="color:var(--text-2);font-family:monospace;">${formatDate(r.date)}</td>
+        <td><span style="color:${isWatch?'var(--gold-bright)':'var(--text-2)'};">${isWatch?'★ ':''}${r.master}</span>
+          <div style="font-size:11px;color:var(--text-3);">${r.branch}</div></td>
+        <td class="num">${fmtAmt(r.buy)}</td>
+        <td class="num">${fmtAmt(r.sell)}</td>
+        <td class="num pos" style="font-weight:600;">▲ ${fmtAmt(r.net)}</td>
+      </tr>`;
+    }).join('');
+    
+    parts.push(`
+      <div style="margin-bottom:24px;">
+        <div class="section-title" style="font-size:18px;">
+          ${stock.name} <span style="color:var(--text-3);font-family:monospace;font-size:14px;font-weight:400;">(${stock.code})</span>
+        </div>
+        <div class="stat-row">
+          <div class="stat-box"><div class="label">出現次數</div><div class="val">${stock.records.length}</div></div>
+          <div class="stat-box"><div class="label">涉及分點</div><div class="val">${branches.size}</div></div>
+          <div class="stat-box"><div class="label">累計淨買</div><div class="val pos">${fmtAmt(totalNet)}</div></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>日期</th><th>分點</th><th class="num">買進</th><th class="num">賣出</th><th class="num">淨買(仟元)</th>
+            </tr></thead>
+            <tbody>${rowsHTML}</tbody>
+          </table>
+        </div>
+      </div>`);
+  }
+  
+  el.innerHTML = parts.join('');
+}
+
+// PANEL 4: 高手偏好
+async function renderMasterPref() {
+  const el = document.getElementById('masterResult');
+  if (!CURRENT_DATA) return;
+  
+  const branchCode = document.getElementById('masterSelect').value;
+  const days = parseInt(document.getElementById('masterDays').value);
+  
+  if (!branchCode) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div>請選擇分點</div>';
+    return;
+  }
+  
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>載入歷史...</div>';
+  
+  // 載入最近 N 天的資料
+  const datesToLoad = AVAILABLE_DATES.slice(0, days);
+  await Promise.all(datesToLoad.map(d => loadDate(d)));
+  
+  // 匯總指定分點近期的買超
+  const stockMap = new Map();
+  let activeDays = 0;
+  
+  for (const date of datesToLoad) {
+    const dayData = ALL_HISTORY[date];
+    if (!dayData) continue;
+    const br = dayData.branches.find(b => b.code === branchCode);
+    if (!br || !br.buys || br.buys.length === 0) continue;
+    activeDays++;
+    
+    for (const s of br.buys) {
+      const key = s.code + '::' + s.name;
+      if (!stockMap.has(key)) {
+        stockMap.set(key, {
+          code: s.code, name: s.name, dates: [], totalNet: 0, totalBuy: 0
+        });
+      }
+      const o = stockMap.get(key);
+      o.dates.push({ date, net: s.net });
+      o.totalNet += s.net;
+      o.totalBuy += s.buy;
+    }
+  }
+  
+  if (stockMap.size === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🤷</div>此分點近期無資料</div>';
+    return;
+  }
+  
+  const list = Array.from(stockMap.values()).sort((a,b) => b.totalNet - a.totalNet);
+  const branchInfo = CURRENT_DATA.branches.find(b => b.code === branchCode);
+  
+  const statsHTML = `
+    <div class="stat-row">
+      <div class="stat-box"><div class="label">分點</div><div class="val" style="font-size:14px;">${branchInfo?.name || '—'}</div></div>
+      <div class="stat-box"><div class="label">活動天數</div><div class="val">${activeDays}</div></div>
+      <div class="stat-box"><div class="label">交易檔數</div><div class="val">${stockMap.size}</div></div>
+      <div class="stat-box"><div class="label">累計淨買</div><div class="val pos">${fmtAmt(list.reduce((s,x)=>s+x.totalNet,0))}</div></div>
+    </div>`;
+  
+  const rowsHTML = list.slice(0, 50).map((s, i) => {
+    const timeline = s.dates.sort((a,b) => a.date.localeCompare(b.date))
+      .map(d => `<span style="color:var(--red);font-family:monospace;font-size:11px;margin-right:4px;" title="${formatDate(d.date)}: 淨買 ${fmtAmt(d.net)}">▲</span>`).join('');
+    
+    return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
+      <td class="num" style="color:var(--gold-bright);">#${i+1}</td>
+      <td><div class="stock-cell">
+        <span class="stock-name">${s.name}</span>
+        <span class="stock-code">${s.code}</span>
+      </div></td>
+      <td class="num">${s.dates.length}</td>
+      <td>${timeline}</td>
+      <td class="num pos" style="font-weight:600;">${fmtAmt(s.totalNet)}</td>
+    </tr>`;
+  }).join('');
+  
+  el.innerHTML = statsHTML + `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="num" style="width:60px;">#</th>
+          <th>個股</th>
+          <th class="num">進出次數</th>
+          <th>時間軸</th>
+          <th class="num">累計淨買</th>
+        </tr></thead>
+        <tbody>${rowsHTML}</tbody>
+      </table>
+    </div>`;
+}
+
+// ========== Stock Detail Drawer ==========
+async function showStockDetail(code, name) {
+  document.getElementById('drawerTitle').textContent = name;
+  document.getElementById('drawerSub').textContent = code + ' · 載入中...';
+  document.getElementById('drawerBody').innerHTML = '<div class="loading"><div class="loading-spinner"></div>載入歷史紀錄...</div>';
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('drawer').classList.add('show');
+  
+  // 載入最近 20 天
+  const datesToLoad = AVAILABLE_DATES.slice(0, 20);
+  await Promise.all(datesToLoad.map(d => loadDate(d)));
+  
+  const records = [];
+  for (const date of datesToLoad) {
+    const dayData = ALL_HISTORY[date];
+    if (!dayData) continue;
+    for (const br of dayData.branches) {
+      if (!br.buys) continue;
+      for (const s of br.buys) {
+        if (s.code === code) {
+          records.push({ date, master: br.master, branch: br.name, branchCode: br.code, ...s });
+        }
+      }
+    }
+  }
+  
+  records.sort((a,b) => b.date.localeCompare(a.date));
+  
+  document.getElementById('drawerSub').textContent = code + ' · ' + records.length + ' 筆歷史';
+  
+  if (records.length === 0) {
+    document.getElementById('drawerBody').innerHTML = '<div class="empty">無歷史記錄</div>';
+    return;
+  }
+  
+  // 聚合分點
+  const masterMap = new Map();
+  for (const r of records) {
+    if (!masterMap.has(r.master)) masterMap.set(r.master, { count: 0, net: 0 });
+    masterMap.get(r.master).count++;
+    masterMap.get(r.master).net += r.net;
+  }
+  const mList = Array.from(masterMap.entries()).sort((a,b) => b[1].net - a[1].net);
+  
+  const mHTML = mList.map(([m, o]) => `
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);">
+      <span style="color:var(--text);">${m}</span>
+      <div style="text-align:right;">
+        <span style="color:var(--text-3);font-size:11px;font-family:monospace;">${o.count}次</span>
+        <span class="pos" style="font-family:monospace;margin-left:10px;font-weight:600;">${fmtAmt(o.net)}</span>
+      </div>
+    </div>`).join('');
+  
+  const rHTML = records.slice(0, 30).map(r => `
+    <div style="padding:8px 0;border-bottom:1px solid var(--line);font-size:12px;">
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:var(--text-2);font-family:monospace;">${formatDate(r.date)}</span>
+        <span class="pos" style="font-family:monospace;font-weight:600;">▲ ${fmtAmt(r.net)}</span>
+      </div>
+      <div style="color:var(--text-3);font-size:11px;margin-top:2px;">${r.master} · ${r.branch} · 買${fmtAmt(r.buy)}/賣${fmtAmt(r.sell)}</div>
+    </div>`).join('');
+  
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="drawer-section">
+      <h4>📊 涉及分點（按累計淨買排序）</h4>
+      ${mHTML}
+    </div>
+    <div class="drawer-section">
+      <h4>🕐 近期進出記錄</h4>
+      ${rHTML}
+    </div>`;
+}
+
+function closeDrawer() {
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('drawer').classList.remove('show');
+}
+
+// ========== Utils ==========
+function fmtAmt(v) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  const n = Number(v);
+  // 資料是「仟元」，換成萬元顯示比較直觀
+  const wan = n / 10;
+  if (Math.abs(wan) >= 10000) return (wan / 10000).toFixed(2) + '億';
+  if (Math.abs(wan) >= 1) return Math.round(wan).toLocaleString() + '萬';
+  return n.toLocaleString() + '仟';
+}
+
+// ========== Start ==========
+init();
+</script>
+
+</body>
+</html>
