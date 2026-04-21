@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>分點籌碼觀察站 · Chip Radar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,6 +41,169 @@ body {
     radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 45%);
 }
 
+/* ===== LOGIN OVERLAY ===== */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  background-image: 
+    radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.12) 0%, transparent 50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeInBg 0.3s ease;
+}
+@keyframes fadeInBg {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.login-card {
+  background: rgba(15, 21, 37, 0.95);
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  padding: 40px 36px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(212, 175, 55, 0.1);
+  backdrop-filter: blur(20px);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #0a0e1a;
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3);
+}
+
+.login-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.login-sub {
+  text-align: center;
+  color: var(--text-3);
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.1em;
+  margin-bottom: 32px;
+  text-transform: uppercase;
+}
+
+.login-input-wrap {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.login-input {
+  width: 100%;
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  color: var(--text);
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.login-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.login-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+  color: #0a0e1a;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  transition: all 0.2s;
+}
+.login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+}
+.login-btn:active {
+  transform: translateY(0);
+}
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-error {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+  display: none;
+}
+.login-error.show { display: block; }
+
+.login-info {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.7;
+}
+
+.login-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(10, 14, 26, 0.3);
+  border-top-color: #0a0e1a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+/* hide main content until unlocked */
+.app-content {
+  display: none;
+}
+.app-content.unlocked { display: block; }
+
 /* ===== HEADER ===== */
 header {
   border-bottom: 1px solid var(--line);
@@ -59,11 +223,7 @@ header {
   gap: 16px;
   flex-wrap: wrap;
 }
-.logo {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
+.logo { display: flex; align-items: baseline; gap: 12px; }
 .logo-cn {
   font-family: 'Noto Serif TC', serif;
   font-size: 24px;
@@ -106,11 +266,17 @@ header {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
-.header-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
+.lock-badge {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-bright);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  border: 1px solid rgba(212, 175, 55, 0.3);
 }
+.header-actions { display: flex; gap: 10px; align-items: center; }
 .btn {
   background: var(--bg-3);
   color: var(--text);
@@ -126,17 +292,11 @@ header {
   align-items: center;
   gap: 6px;
 }
-.btn:hover {
-  background: var(--line-2);
-  border-color: var(--gold);
-}
+.btn:hover { background: var(--line-2); border-color: var(--gold); }
+.btn.danger { color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); }
+.btn.danger:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--red); }
 
-/* ===== MAIN ===== */
-main {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px;
-}
+main { max-width: 1400px; margin: 0 auto; padding: 24px; }
 
 .status-bar {
   background: var(--bg-2);
@@ -150,22 +310,13 @@ main {
   gap: 16px;
   flex-wrap: wrap;
 }
-.status-info {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-  font-size: 13px;
-}
-.status-info .label {
-  color: var(--text-3);
-  margin-right: 6px;
-}
+.status-info { display: flex; gap: 24px; flex-wrap: wrap; font-size: 13px; }
+.status-info .label { color: var(--text-3); margin-right: 6px; }
 .status-info .val {
   color: var(--gold-bright);
   font-family: 'JetBrains Mono', monospace;
   font-weight: 500;
 }
-
 .tabs {
   display: flex;
   gap: 2px;
@@ -189,10 +340,7 @@ main {
   font-family: inherit;
 }
 .tab:hover { color: var(--text); }
-.tab.active {
-  color: var(--gold-bright);
-  border-bottom-color: var(--gold);
-}
+.tab.active { color: var(--gold-bright); border-bottom-color: var(--gold); }
 .tab-num {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
@@ -254,11 +402,7 @@ select:focus, input:focus { outline: none; border-color: var(--gold); }
   font-family: inherit;
   transition: all 0.2s;
 }
-.mode-btn.active {
-  background: var(--gold);
-  color: #0a0e1a;
-  font-weight: 700;
-}
+.mode-btn.active { background: var(--gold); color: #0a0e1a; font-weight: 700; }
 
 .section-title {
   font-family: 'Noto Serif TC', serif;
@@ -294,10 +438,7 @@ select:focus, input:focus { outline: none; border-color: var(--gold); }
   overflow-x: auto;
 }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead {
-  background: var(--bg-3);
-  border-bottom: 1px solid var(--line-2);
-}
+thead { background: var(--bg-3); border-bottom: 1px solid var(--line-2); }
 th {
   text-align: left;
   padding: 12px 14px;
@@ -351,10 +492,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   background: linear-gradient(135deg, var(--red) 0%, #dc2626 100%);
   color: white;
 }
-.badge.gold {
-  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 100%);
-  color: #0a0e1a;
-}
+.badge.gold { background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 100%); color: #0a0e1a; }
 
 .cards-grid {
   display: grid;
@@ -368,11 +506,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   overflow: hidden;
   transition: all 0.2s;
 }
-.branch-card:hover {
-  border-color: var(--line-2);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-}
+.branch-card:hover { border-color: var(--line-2); transform: translateY(-2px); box-shadow: var(--shadow); }
 .branch-card.highlighted {
   border-color: var(--gold);
   box-shadow: 0 0 0 1px var(--gold), 0 4px 16px rgba(212, 175, 55, 0.15);
@@ -394,17 +528,8 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   align-items: center;
   gap: 8px;
 }
-.branch-meta {
-  font-size: 11px;
-  color: var(--text-3);
-  font-family: 'JetBrains Mono', monospace;
-}
-.branch-master-name {
-  color: var(--gold-bright);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-}
+.branch-meta { font-size: 11px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+.branch-master-name { color: var(--gold-bright); font-size: 12px; font-weight: 500; letter-spacing: 0.05em; }
 .branch-stocks { padding: 8px 0; }
 .stock-row {
   display: flex;
@@ -417,32 +542,15 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 .stock-row:hover { background: rgba(212, 175, 55, 0.05); }
 .stock-row .left { display: flex; flex-direction: column; }
 .stock-row .sname { font-size: 13px; color: var(--text); font-weight: 500; }
-.stock-row .scode {
-  font-size: 10px;
-  color: var(--text-3);
-  font-family: 'JetBrains Mono', monospace;
-}
+.stock-row .scode { font-size: 10px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
 .stock-row .right { text-align: right; font-family: 'JetBrains Mono', monospace; }
 .stock-row .net { font-weight: 700; font-size: 13px; }
 .stock-row .amt { font-size: 10px; color: var(--text-3); }
 
-.empty {
-  padding: 48px 20px;
-  text-align: center;
-  color: var(--text-3);
-  font-size: 14px;
-}
-.empty-icon {
-  font-size: 40px;
-  margin-bottom: 12px;
-  opacity: 0.3;
-}
+.empty { padding: 48px 20px; text-align: center; color: var(--text-3); font-size: 14px; }
+.empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
 
-.loading {
-  padding: 80px 20px;
-  text-align: center;
-  color: var(--text-2);
-}
+.loading { padding: 80px 20px; text-align: center; color: var(--text-2); }
 .loading-spinner {
   width: 40px;
   height: 40px;
@@ -647,21 +755,50 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   .status-info { gap: 12px; font-size: 12px; }
   th, td { padding: 8px 10px; font-size: 12px; }
   .drawer { width: 100%; border-left: none; }
+  .login-card { padding: 32px 24px; }
 }
 </style>
 </head>
 <body>
+
+<!-- ===== 登入畫面 ===== -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-icon">🔒</div>
+    <div class="login-title">分點籌碼觀察站</div>
+    <div class="login-sub">CHIP RADAR · SECURE ACCESS</div>
+    
+    <div class="login-input-wrap">
+      <input type="password" class="login-input" id="passwordInput" placeholder="請輸入存取密碼" autofocus autocomplete="off">
+    </div>
+    
+    <button class="login-btn" id="unlockBtn" onclick="attemptUnlock()">解 鎖</button>
+    
+    <div class="login-error" id="loginError">密碼錯誤，請重試</div>
+    
+    <div class="login-info">
+      🛡️ 您的資料已使用 AES-256 加密<br>
+      無密碼無法解開、本網站不記錄密碼<br>
+      每次關閉視窗都需要重新輸入
+    </div>
+  </div>
+</div>
+
+<!-- ===== 主要內容（解鎖後顯示）===== -->
+<div class="app-content" id="appContent">
 
 <header>
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
       <div class="logo-en">Chip Radar</div>
-      <span class="auto-badge" id="autoBadge">AUTO · LIVE</span>
+      <span class="auto-badge">AUTO · LIVE</span>
+      <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
     <div class="header-actions">
       <button class="btn" onclick="reloadData()">🔄 重新載入</button>
       <button class="btn" onclick="toggleHelp()">❓ 說明</button>
+      <button class="btn danger" onclick="lockApp()">🔒 鎖定</button>
     </div>
   </div>
 </header>
@@ -688,7 +825,6 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <button class="tab" data-tab="watchlist"><span class="tab-num">05</span>關注設定</button>
   </div>
 
-  <!-- PANEL 1 -->
   <div class="panel active" id="panel-overview">
     <div class="controls">
       <div class="control-group">
@@ -716,14 +852,10 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
         </select>
       </div>
     </div>
-    <div class="section-title">
-      當日共同買超個股
-      <span class="section-sub" id="overviewSubtitle"></span>
-    </div>
-    <div id="overviewResult"><div class="loading"><div class="loading-spinner"></div>正在載入資料...</div></div>
+    <div class="section-title">當日共同買超個股<span class="section-sub" id="overviewSubtitle"></span></div>
+    <div id="overviewResult"><div class="loading"><div class="loading-spinner"></div>解密資料中...</div></div>
   </div>
 
-  <!-- PANEL 2 -->
   <div class="panel" id="panel-branches">
     <div class="controls">
       <div class="control-group">
@@ -745,14 +877,10 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
         <input type="text" id="branchSearch" placeholder="分點或高手名..." oninput="renderBranches()">
       </div>
     </div>
-    <div class="section-title">
-      分點當日買超前 30 名
-      <span class="section-sub" id="branchSubtitle"></span>
-    </div>
+    <div class="section-title">分點當日買超前 30 名<span class="section-sub" id="branchSubtitle"></span></div>
     <div id="branchResult"></div>
   </div>
 
-  <!-- PANEL 3 -->
   <div class="panel" id="panel-stock">
     <div class="controls">
       <div class="control-group">
@@ -770,7 +898,6 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="stockTraceResult"></div>
   </div>
 
-  <!-- PANEL 4 -->
   <div class="panel" id="panel-master">
     <div class="controls">
       <div class="control-group">
@@ -790,11 +917,10 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="masterResult"></div>
   </div>
 
-  <!-- PANEL 5 -->
   <div class="panel" id="panel-watchlist">
     <div class="help-card">
       <h3>🎯 設定重點關注的分點</h3>
-      <p>點擊分點標籤切換關注狀態。被關注的分點會在其他頁的「僅關注分點」模式中優先顯示。設定自動儲存在瀏覽器中。</p>
+      <p>點擊分點標籤切換關注狀態。設定自動儲存在瀏覽器中（不含密碼資訊）。</p>
     </div>
     <div class="watchlist-config">
       <h3>★ 目前關注的分點 <span id="watchCount" style="color:var(--gold-bright);"></span></h3>
@@ -810,28 +936,30 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     </div>
   </div>
 
-  <!-- HELP PANEL -->
   <div class="panel" id="panel-help" style="display:none;">
     <div class="help-card">
-      <h3>🤖 關於自動化</h3>
-      <p>本網站資料<strong>每個交易日自動更新</strong>。GitHub Actions 會在每天台灣時間下午 5 點自動爬取富邦券商分點資料，您打開網站就是最新的。</p>
-      <p>資料來源：<code>fubon-ebrokerdj.fbs.com.tw</code> 券商分點進出排行</p>
+      <h3>🔒 安全機制說明</h3>
+      <p>本網站使用 <strong>AES-256-GCM</strong> 加密保護所有分點資料：</p>
+      <ul>
+        <li>資料來自 GitHub Pages 公開倉庫，但 JSON 內容完全加密</li>
+        <li>密碼<strong>不存於程式碼</strong>，僅存於 GitHub Secrets（您可掌控）</li>
+        <li>網站<strong>絕不記錄密碼</strong>，每次關閉瀏覽器都需重新輸入</li>
+        <li>解密在您本機瀏覽器中進行，密碼不傳輸到任何伺服器</li>
+      </ul>
+    </div>
+    <div class="help-card">
+      <h3>🤖 自動化機制</h3>
+      <p>每個交易日台灣時間 18:30，GitHub Actions 自動爬取資料並用您的密碼加密後儲存。</p>
     </div>
     <div class="help-card">
       <h3>📖 功能說明</h3>
       <ol>
-        <li><strong>共買榜</strong>：列出當日被多位分點同時買超的個股，越多分點共買排越前面</li>
-        <li><strong>分點動態</strong>：逐一看各關注分點今日的買超前 30 名</li>
-        <li><strong>個股追蹤</strong>：輸入股票代號或名稱，看歷史上哪些分點進出過</li>
-        <li><strong>高手偏好</strong>：查看指定分點近期最常買的股票</li>
-        <li><strong>關注設定</strong>：自訂您重點關注的分點清單</li>
+        <li><strong>共買榜</strong>：當日被多分點同時買超的個股</li>
+        <li><strong>分點動態</strong>：各分點當日買超前 30 名</li>
+        <li><strong>個股追蹤</strong>：跨日歷史進出查詢</li>
+        <li><strong>高手偏好</strong>：分點近期持續買進偏好</li>
+        <li><strong>關注設定</strong>：自訂重點分點清單</li>
       </ol>
-    </div>
-    <div class="help-card">
-      <h3>⌨️ 快捷鍵</h3>
-      <p>
-        <kbd>1</kbd> ~ <kbd>5</kbd> 切換分頁　<kbd>ESC</kbd> 關閉個股詳情
-      </p>
     </div>
   </div>
 
@@ -849,20 +977,137 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   <div class="drawer-body" id="drawerBody"></div>
 </div>
 
+</div><!-- /app-content -->
+
 <script>
-// ========== 設定區 ==========
-// 注意：部署到 GitHub Pages 後，data 路徑會相對於 index.html 所在目錄
-// 所以這裡用相對路徑即可
-const DATA_BASE = './data';
+// ========== 加密解密邏輯 ==========
+const PBKDF2_ITERATIONS = 100000;
+
+// Base64 → Uint8Array
+function b64ToBytes(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+// 從密碼推導 AES key
+async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey(
+    'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    baseKey,
+    { name: 'AES-GCM', length: 256 },
+    false, ['decrypt']
+  );
+}
+
+// 解密 base64 token (salt[16] + iv[12] + ciphertext)
+async function decryptToken(token, password) {
+  const raw = b64ToBytes(token);
+  const salt = raw.slice(0, 16);
+  const iv = raw.slice(16, 28);
+  const ct = raw.slice(28);
+  const key = await deriveKey(password, salt);
+  const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+  return new TextDecoder().decode(plainBuf);
+}
 
 // ========== 狀態 ==========
-let CURRENT_DATA = null;       // 當前顯示日期的資料
-let AVAILABLE_DATES = [];      // 所有可用日期
-let ALL_HISTORY = {};          // { 日期: data }，快取載入過的日期
-let WATCHLIST = new Set();     // 關注的分點 code
+const DATA_BASE = './data';
+let CURRENT_DATA = null;
+let AVAILABLE_DATES = [];
+let ALL_HISTORY = {};
+let WATCHLIST = new Set();
 let overviewMode = 'all';
 let branchMode = 'watch';
 let stockMode = 'watch';
+let SESSION_PASSWORD = null; // 僅存於記憶體，關閉視窗即消失
+
+// ========== 登入流程 ==========
+async function attemptUnlock() {
+  const input = document.getElementById('passwordInput');
+  const btn = document.getElementById('unlockBtn');
+  const errEl = document.getElementById('loginError');
+  const password = input.value;
+  
+  if (!password) {
+    errEl.textContent = '請輸入密碼';
+    errEl.classList.add('show');
+    return;
+  }
+  
+  btn.disabled = true;
+  btn.innerHTML = '<span class="login-spinner"></span>解密驗證中...';
+  errEl.classList.remove('show');
+  
+  try {
+    // 試解密 latest.json 來驗證密碼
+    const r = await fetch(`${DATA_BASE}/latest.json?t=${Date.now()}`);
+    if (!r.ok) {
+      errEl.textContent = '找不到資料檔案，請確認 GitHub Actions 已執行';
+      errEl.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = '解 鎖';
+      return;
+    }
+    const enc = await r.json();
+    if (!enc.encrypted || !enc.data) {
+      errEl.textContent = '資料格式不正確（可能是舊版未加密資料）';
+      errEl.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = '解 鎖';
+      return;
+    }
+    
+    // 嘗試解密
+    const plain = await decryptToken(enc.data, password);
+    const data = JSON.parse(plain);
+    
+    // 解密成功！
+    SESSION_PASSWORD = password;
+    ALL_HISTORY[enc.trade_date || data.trade_date] = data;
+    
+    // 隱藏登入畫面，顯示主畫面
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('appContent').classList.add('unlocked');
+    
+    // 清空密碼輸入框（安全起見）
+    input.value = '';
+    
+    // 載入主畫面
+    await init();
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = '密碼錯誤，請重試';
+    errEl.classList.add('show');
+    input.value = '';
+    input.focus();
+    btn.disabled = false;
+    btn.textContent = '解 鎖';
+  }
+}
+
+// 鎖定（清除狀態並重新顯示登入畫面）
+function lockApp() {
+  if (!confirm('確定要鎖定？再次查看需要重新輸入密碼。')) return;
+  SESSION_PASSWORD = null;
+  CURRENT_DATA = null;
+  ALL_HISTORY = {};
+  AVAILABLE_DATES = [];
+  WATCHLIST = new Set();
+  document.getElementById('appContent').classList.remove('unlocked');
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('passwordInput').focus();
+}
+
+// Enter 鍵觸發登入
+document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') attemptUnlock();
+});
 
 // ========== 載入資料 ==========
 async function loadIndex() {
@@ -872,82 +1117,67 @@ async function loadIndex() {
     const idx = await r.json();
     AVAILABLE_DATES = idx.dates || [];
     
-    // 填充日期選擇器
     const sel = document.getElementById('dateSelect');
     sel.innerHTML = AVAILABLE_DATES.map(d => 
       `<option value="${d}">${formatDate(d)}</option>`
     ).join('');
     
     document.getElementById('dayCount').textContent = AVAILABLE_DATES.length;
-    
     return idx.latest || AVAILABLE_DATES[0];
   } catch (e) {
-    console.error('載入 index 失敗', e);
     return null;
   }
 }
 
 async function loadDate(date) {
-  if (ALL_HISTORY[date]) {
-    return ALL_HISTORY[date];
-  }
+  if (ALL_HISTORY[date]) return ALL_HISTORY[date];
+  if (!SESSION_PASSWORD) return null;
+  
   try {
     const r = await fetch(`${DATA_BASE}/${date}.json?t=${Date.now()}`);
-    if (!r.ok) throw new Error(`${date}.json 讀取失敗`);
-    const data = await r.json();
+    if (!r.ok) return null;
+    const enc = await r.json();
+    if (!enc.encrypted || !enc.data) return null;
+    const plain = await decryptToken(enc.data, SESSION_PASSWORD);
+    const data = JSON.parse(plain);
     ALL_HISTORY[date] = data;
     return data;
   } catch (e) {
-    console.error('載入日期失敗', date, e);
+    console.error('解密失敗', date, e);
     return null;
   }
 }
 
 async function init() {
   const latestDate = await loadIndex();
-  
   if (!latestDate) {
     document.getElementById('overviewResult').innerHTML = `
-      <div class="error-banner">
-        ⚠️ 找不到資料檔案。可能是首次部署，請確認 GitHub Actions 已執行過一次。
-        <br><br>
-        您可以：
-        <ul style="margin-top:8px;">
-          <li>到 GitHub repo 的 Actions 分頁手動觸發一次爬蟲</li>
-          <li>或等到下一個交易日下午 5 點自動執行</li>
-        </ul>
-      </div>`;
+      <div class="error-banner">⚠️ 找不到資料檔案。請先到 GitHub Actions 手動執行一次爬蟲。</div>`;
     return;
   }
-  
   document.getElementById('dateSelect').value = latestDate;
   await showDate(latestDate);
-  
-  // 填充關注設定
   loadWatchlist();
   renderWatchlistPanel();
 }
 
 async function showDate(date) {
   document.getElementById('overviewResult').innerHTML = 
-    '<div class="loading"><div class="loading-spinner"></div>載入 ' + formatDate(date) + '...</div>';
+    '<div class="loading"><div class="loading-spinner"></div>解密 ' + formatDate(date) + '...</div>';
   
   const data = await loadDate(date);
   if (!data) {
     document.getElementById('overviewResult').innerHTML = 
-      '<div class="error-banner">載入 ' + date + ' 失敗</div>';
+      '<div class="error-banner">解密 ' + date + ' 失敗</div>';
     return;
   }
   
   CURRENT_DATA = data;
-  
-  // 更新狀態列
   document.getElementById('tradeDate').textContent = formatDate(data.trade_date);
   document.getElementById('lastUpdate').textContent = 
     data.crawled_at ? data.crawled_at.slice(5, 16).replace('T', ' ') : '—';
   document.getElementById('branchCount').textContent = data.success + '/' + data.branches.length;
   
-  // 填充分點選擇器
   const masterSel = document.getElementById('masterSelect');
   masterSel.innerHTML = data.branches
     .filter(b => b.buys && b.buys.length > 0)
@@ -962,7 +1192,7 @@ async function onDateChange() {
 }
 
 async function reloadData() {
-  ALL_HISTORY = {}; // 清快取
+  ALL_HISTORY = {};
   const btn = event.target;
   btn.textContent = '⏳ 載入中...';
   btn.disabled = true;
@@ -984,7 +1214,6 @@ function loadWatchlist() {
     if (saved && Array.isArray(saved) && saved.length > 0) {
       WATCHLIST = new Set(saved);
     } else if (CURRENT_DATA) {
-      // 預設：所有有資料的分點全關注
       CURRENT_DATA.branches.forEach(b => {
         if (b.buys && b.buys.length > 0) WATCHLIST.add(b.code);
       });
@@ -1019,7 +1248,6 @@ function renderWatchlistPanel() {
   if (!CURRENT_DATA) return;
   const branches = CURRENT_DATA.branches;
   const watched = branches.filter(b => WATCHLIST.has(b.code));
-  
   document.getElementById('watchCount').textContent = `(${watched.length}/${branches.length})`;
   
   const watchEl = document.getElementById('selectedChips');
@@ -1067,6 +1295,8 @@ function toggleHelp() {
   }
 }
 document.addEventListener('keydown', (e) => {
+  // 在登入畫面只處理 Enter
+  if (!SESSION_PASSWORD) return;
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.key >= '1' && e.key <= '5') {
     const idx = parseInt(e.key) - 1;
@@ -1077,7 +1307,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// ========== Mode switches ==========
 function setOverviewMode(m) {
   overviewMode = m;
   document.querySelectorAll('#panel-overview .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
@@ -1094,7 +1323,6 @@ function setStockMode(m) {
   renderStockTrace();
 }
 
-// ========== Render ==========
 function renderAll() {
   if (!CURRENT_DATA) return;
   renderOverview();
@@ -1103,7 +1331,6 @@ function renderAll() {
   renderMasterPref();
 }
 
-// 建立股票 -> 分點的索引
 function buildStockIndex(branches, onlyWatched = false) {
   const map = new Map();
   for (const br of branches) {
@@ -1112,16 +1339,10 @@ function buildStockIndex(branches, onlyWatched = false) {
     for (const s of br.buys) {
       const key = s.code + '::' + s.name;
       if (!map.has(key)) {
-        map.set(key, {
-          code: s.code, name: s.name,
-          branches: [], totalNet: 0, totalBuy: 0,
-        });
+        map.set(key, { code: s.code, name: s.name, branches: [], totalNet: 0, totalBuy: 0 });
       }
       const obj = map.get(key);
-      obj.branches.push({
-        master: br.master, branch: br.name, branchCode: br.code,
-        net: s.net, buy: s.buy, sell: s.sell
-      });
+      obj.branches.push({ master: br.master, branch: br.name, branchCode: br.code, net: s.net, buy: s.buy, sell: s.sell });
       obj.totalNet += s.net;
       obj.totalBuy += s.buy;
     }
@@ -1129,17 +1350,14 @@ function buildStockIndex(branches, onlyWatched = false) {
   return map;
 }
 
-// PANEL 1: 共買榜
 function renderOverview() {
   const el = document.getElementById('overviewResult');
   if (!CURRENT_DATA) return;
-  
   document.getElementById('overviewSubtitle').textContent = 
     formatDate(CURRENT_DATA.trade_date) + ' · ' + (overviewMode === 'watch' ? '僅關注' : '全部');
   
   const minOverlap = parseInt(document.getElementById('minOverlap').value);
   const sortBy = document.getElementById('sortBy').value;
-  
   const stockMap = buildStockIndex(CURRENT_DATA.branches, overviewMode === 'watch');
   let list = Array.from(stockMap.values()).filter(s => s.branches.length >= minOverlap);
   
@@ -1166,9 +1384,8 @@ function renderOverview() {
     const badge = s.branches.length >= 4 ? '<span class="hot">🔥</span>' : '';
     const branchTags = s.branches.map(b => {
       const hl = WATCHLIST.has(b.branchCode) ? 'hl' : '';
-      return `<span class="master-tag ${hl}" title="${b.master}（${b.branch}）淨買 ${fmtAmt(b.net)} 仟元">${b.master}</span>`;
+      return `<span class="master-tag ${hl}" title="${b.master}（${b.branch}）淨買 ${fmtAmt(b.net)}">${b.master}</span>`;
     }).join('');
-    
     return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
       <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
       <td><div class="stock-cell">
@@ -1196,7 +1413,6 @@ function renderOverview() {
     </div>`;
 }
 
-// PANEL 2: 分點動態
 function renderBranches() {
   const el = document.getElementById('branchResult');
   if (!CURRENT_DATA) return;
@@ -1206,11 +1422,7 @@ function renderBranches() {
   const sortBy = document.getElementById('branchSort').value;
   
   let branches = CURRENT_DATA.branches.filter(b => b.buys && b.buys.length > 0);
-  
-  if (branchMode === 'watch') {
-    branches = branches.filter(b => WATCHLIST.has(b.code));
-  }
-  
+  if (branchMode === 'watch') branches = branches.filter(b => WATCHLIST.has(b.code));
   if (search) {
     branches = branches.filter(b => 
       b.name.toLowerCase().includes(search) || 
@@ -1218,7 +1430,6 @@ function renderBranches() {
       b.code.toLowerCase().includes(search)
     );
   }
-  
   if (sortBy === 'netamt') {
     branches.sort((a,b) => {
       const sa = a.buys.reduce((s,x) => s + x.net, 0);
@@ -1236,21 +1447,16 @@ function renderBranches() {
   
   const cardsHTML = branches.map(b => {
     const isWatch = WATCHLIST.has(b.code);
-    // 顯示前 15 名
     const stocksHTML = b.buys.slice(0, 15).map(s => {
       const netClass = s.net > 0 ? 'pos' : 'neg';
       return `<div class="stock-row" onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
-        <div class="left">
-          <span class="sname">${s.name}</span>
-          <span class="scode">${s.code}</span>
-        </div>
+        <div class="left"><span class="sname">${s.name}</span><span class="scode">${s.code}</span></div>
         <div class="right">
           <div class="net ${netClass}">▲ ${fmtAmt(s.net)}</div>
           <div class="amt">買 ${fmtAmt(s.buy)} / 賣 ${fmtAmt(s.sell)}</div>
         </div>
       </div>`;
     }).join('');
-    
     return `<div class="branch-card ${isWatch ? 'highlighted' : ''}">
       <div class="branch-header">
         <div>
@@ -1265,11 +1471,9 @@ function renderBranches() {
       <div class="branch-stocks">${stocksHTML}</div>
     </div>`;
   }).join('');
-  
   el.innerHTML = `<div class="cards-grid">${cardsHTML}</div>`;
 }
 
-// PANEL 3: 個股追蹤（跨日期）
 async function renderStockTrace() {
   const el = document.getElementById('stockTraceResult');
   if (!CURRENT_DATA) return;
@@ -1280,13 +1484,11 @@ async function renderStockTrace() {
     return;
   }
   
-  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>載入多日歷史...</div>';
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密多日歷史...</div>';
   
-  // 確保所有日期的資料都載入
-  const datesToLoad = AVAILABLE_DATES.slice(0, 30); // 最近 30 天
+  const datesToLoad = AVAILABLE_DATES.slice(0, 30);
   await Promise.all(datesToLoad.map(d => loadDate(d)));
   
-  // 匯總所有日期的資料
   const matched = [];
   for (const date of datesToLoad) {
     const dayData = ALL_HISTORY[date];
@@ -1296,10 +1498,7 @@ async function renderStockTrace() {
       if (stockMode === 'watch' && !WATCHLIST.has(br.code)) continue;
       for (const s of br.buys) {
         if (s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)) {
-          matched.push({
-            date, master: br.master, branch: br.name, branchCode: br.code,
-            ...s
-          });
+          matched.push({ date, master: br.master, branch: br.name, branchCode: br.code, ...s });
         }
       }
     }
@@ -1310,7 +1509,6 @@ async function renderStockTrace() {
     return;
   }
   
-  // 按股票聚合
   const stockMap = new Map();
   for (const m of matched) {
     const key = m.code + '::' + m.name;
@@ -1348,19 +1546,15 @@ async function renderStockTrace() {
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr>
-              <th>日期</th><th>分點</th><th class="num">買進</th><th class="num">賣出</th><th class="num">淨買(仟元)</th>
-            </tr></thead>
+            <thead><tr><th>日期</th><th>分點</th><th class="num">買進</th><th class="num">賣出</th><th class="num">淨買</th></tr></thead>
             <tbody>${rowsHTML}</tbody>
           </table>
         </div>
       </div>`);
   }
-  
   el.innerHTML = parts.join('');
 }
 
-// PANEL 4: 高手偏好
 async function renderMasterPref() {
   const el = document.getElementById('masterResult');
   if (!CURRENT_DATA) return;
@@ -1373,13 +1567,11 @@ async function renderMasterPref() {
     return;
   }
   
-  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>載入歷史...</div>';
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密歷史...</div>';
   
-  // 載入最近 N 天的資料
   const datesToLoad = AVAILABLE_DATES.slice(0, days);
   await Promise.all(datesToLoad.map(d => loadDate(d)));
   
-  // 匯總指定分點近期的買超
   const stockMap = new Map();
   let activeDays = 0;
   
@@ -1393,9 +1585,7 @@ async function renderMasterPref() {
     for (const s of br.buys) {
       const key = s.code + '::' + s.name;
       if (!stockMap.has(key)) {
-        stockMap.set(key, {
-          code: s.code, name: s.name, dates: [], totalNet: 0, totalBuy: 0
-        });
+        stockMap.set(key, { code: s.code, name: s.name, dates: [], totalNet: 0, totalBuy: 0 });
       }
       const o = stockMap.get(key);
       o.dates.push({ date, net: s.net });
@@ -1423,7 +1613,6 @@ async function renderMasterPref() {
   const rowsHTML = list.slice(0, 50).map((s, i) => {
     const timeline = s.dates.sort((a,b) => a.date.localeCompare(b.date))
       .map(d => `<span style="color:var(--red);font-family:monospace;font-size:11px;margin-right:4px;" title="${formatDate(d.date)}: 淨買 ${fmtAmt(d.net)}">▲</span>`).join('');
-    
     return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
       <td class="num" style="color:var(--gold-bright);">#${i+1}</td>
       <td><div class="stock-cell">
@@ -1451,15 +1640,13 @@ async function renderMasterPref() {
     </div>`;
 }
 
-// ========== Stock Detail Drawer ==========
 async function showStockDetail(code, name) {
   document.getElementById('drawerTitle').textContent = name;
-  document.getElementById('drawerSub').textContent = code + ' · 載入中...';
-  document.getElementById('drawerBody').innerHTML = '<div class="loading"><div class="loading-spinner"></div>載入歷史紀錄...</div>';
+  document.getElementById('drawerSub').textContent = code + ' · 解密中...';
+  document.getElementById('drawerBody').innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密歷史紀錄...</div>';
   document.getElementById('overlay').classList.add('show');
   document.getElementById('drawer').classList.add('show');
   
-  // 載入最近 20 天
   const datesToLoad = AVAILABLE_DATES.slice(0, 20);
   await Promise.all(datesToLoad.map(d => loadDate(d)));
   
@@ -1476,7 +1663,6 @@ async function showStockDetail(code, name) {
       }
     }
   }
-  
   records.sort((a,b) => b.date.localeCompare(a.date));
   
   document.getElementById('drawerSub').textContent = code + ' · ' + records.length + ' 筆歷史';
@@ -1486,7 +1672,6 @@ async function showStockDetail(code, name) {
     return;
   }
   
-  // 聚合分點
   const masterMap = new Map();
   for (const r of records) {
     if (!masterMap.has(r.master)) masterMap.set(r.master, { count: 0, net: 0 });
@@ -1529,19 +1714,16 @@ function closeDrawer() {
   document.getElementById('drawer').classList.remove('show');
 }
 
-// ========== Utils ==========
 function fmtAmt(v) {
   if (v === null || v === undefined || isNaN(v)) return '—';
   const n = Number(v);
-  // 資料是「仟元」，換成萬元顯示比較直觀
   const wan = n / 10;
   if (Math.abs(wan) >= 10000) return (wan / 10000).toFixed(2) + '億';
   if (Math.abs(wan) >= 1) return Math.round(wan).toLocaleString() + '萬';
   return n.toLocaleString() + '仟';
 }
 
-// ========== Start ==========
-init();
+// 不自動 init()，等使用者輸入密碼後才開始
 </script>
 
 </body>
