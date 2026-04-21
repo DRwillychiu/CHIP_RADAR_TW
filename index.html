@@ -2961,6 +2961,10 @@ function closeDrawer() {
 }
 
 // ========== 格式化 ==========
+function escHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 function fmtAmt(v) {
   if (v === null || v === undefined || isNaN(v)) return '—';
   const n = Number(v);
