@@ -2,13 +2,10 @@ name: Daily Chip Data Crawl
 
 on:
   # 每個交易日台灣時間 18:30 自動執行 (UTC 10:30)
-  # 選 18:30 是因為券商分點資料通常要等收盤 (13:30) 後 5 小時才完整
   schedule:
     - cron: '30 10 * * 1-5'
-  # 允許手動觸發
   workflow_dispatch:
 
-# 給 Action 寫入權限以 commit 資料
 permissions:
   contents: write
 
@@ -29,9 +26,11 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install requests
+          pip install requests cryptography
       
       - name: Run crawler
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
         run: |
           python crawler.py
         continue-on-error: true
@@ -44,6 +43,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "📊 Update chip data $(date -u +%Y-%m-%d)"
+            git commit -m "🔒 Update encrypted chip data $(date -u +%Y-%m-%d)"
             git push
           fi
