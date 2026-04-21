@@ -10,7 +10,14 @@ import os
 import sys
 import random
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+# 台灣時區 (UTC+8)
+TW_TZ = timezone(timedelta(hours=8))
+
+def now_tw():
+    """取得台灣現在時間"""
+    return datetime.now(TW_TZ)
 
 # ========== 設定區（您可以編輯這裡增減分點） ==========
 
