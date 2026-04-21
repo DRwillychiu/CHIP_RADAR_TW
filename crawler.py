@@ -1,6 +1,6 @@
 """
-分點籌碼觀察站 - 自動爬蟲
-每日抓取指定分點的買超/賣超前 N 名，輸出 data/latest.json + data/YYYYMMDD.json
+分點籌碼觀察站 - 自動爬蟲（加密版）
+每日抓取指定分點的買超/賣超前 N 名，輸出加密後的 JSON
 """
 import requests
 import re
@@ -9,19 +9,21 @@ import time
 import os
 import sys
 import random
+import base64
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
- 
-# 台灣時區 (UTC+8)
-TW_TZ = timezone(timedelta(hours=8))
- 
-def now_tw():
-    """取得台灣現在時間"""
-    return datetime.now(TW_TZ)
- 
-# ========== 設定區（您可以編輯這裡增減分點） ==========
 
-# 您要關注的分點（從歷史資料整理出來，可自行增刪）
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+TW_TZ = timezone(timedelta(hours=8))
+
+def now_tw():
+    return datetime.now(TW_TZ)
+
+# ========== 設定區 ==========
+
 WATCHED_BRANCHES = [
     {"code": "9B25", "name": "台新-五權西",     "master": "民哥"},
     {"code": "9666", "name": "富邦-南屯",     "master": "民哥"},
@@ -40,12 +42,12 @@ WATCHED_BRANCHES = [
     {"code": "9300", "name": "華南永昌證券",  "master": "陳族元"},
     {"code": "9661", "name": "富邦-新店",     "master": "陳族元"},
     {"code": "9A9g", "name": "永豐金-內湖",   "master": "陳族元"},
-    {"code": "700c", "name": "兆豐-民生",     "master": "陳族元"},
-    {"code": "8450", "name": "康和總公司",    "master": "陳族元"},
-    {"code": "9A9R", "name": "永豐金-信義",   "master": "陳族元"},
-    {"code": "585c", "name": "統一-仁愛",     "master": "陳族元"},
+    {"code": "700c", "name": "兆豐-民生",     "master": "陳律師"},
+    {"code": "8450", "name": "康和總公司",    "master": "陳律師"},
+    {"code": "9A9R", "name": "永豐金-信義",   "master": "陳律師"},
+    {"code": "585c", "name": "統一-仁愛",     "master": "陳律師"},
     {"code": "9217", "name": "凱基-松山",     "master": "迷你哥/松山哥"},
-    {"code": "9200", "name": "凱基證券",          "master": "迷你哥/松山哥"},
+    {"code": "9200", "name": "凱基證券",      "master": "迷你哥/松山哥"},
     {"code": "9600", "name": "富邦證券",      "master": "迷你哥/松山哥"},
     {"code": "9A8F", "name": "永豐金-敦南",   "master": "布哥/n_nchang"},
     {"code": "9B2r", "name": "台新-城東",     "master": "強森"},
@@ -59,10 +61,6 @@ WATCHED_BRANCHES = [
     {"code": "9227", "name": "凱基-城中",     "master": "蔣承翰"},
     {"code": "9B18", "name": "台新-建北",     "master": "蔣承翰"},
     {"code": "8563", "name": "新光-新竹",     "master": "大牌分析師"},
-    {"code": "585c", "name": "統一-仁愛",     "master": "陳律師"},
-    {"code": "700c", "name": "兆豐-民生",     "master": "陳律師"},
-    {"code": "8450", "name": "康和證券",     "master": "陳律師"},
-    {"code": "9A9R", "name": "永豐金-信義",     "master": "陳律師"},
     {"code": "9874", "name": "元大-雙和",     "master": "東億資本"},
     {"code": "884F", "name": "玉山-桃園",     "master": "Krenz(再多一位數本人)"},
 ]
@@ -87,7 +85,7 @@ UA_POOL = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
 ]
- 
+
 ROW_PATTERN = re.compile(
     r"<tr>\s*<td[^>]*id=\"oAddCheckbox\"[^>]*>\s*"
     r"(?:"
@@ -103,6 +101,19 @@ ROW_PATTERN = re.compile(
 )
  
  
+# ========== 加密函式 ==========
+PBKDF2_ITERATIONS = 100000
+
+def encrypt_data(plaintext: str, password: str) -> str:
+    salt = os.urandom(16)
+    iv = os.urandom(12)
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=PBKDF2_ITERATIONS)
+    key = kdf.derive(password.encode("utf-8"))
+    aesgcm = AESGCM(key)
+    ct = aesgcm.encrypt(iv, plaintext.encode("utf-8"), None)
+    return base64.b64encode(salt + iv + ct).decode("ascii")
+
+
 def parse_region(html):
     rows = []
     for m in ROW_PATTERN.finditer(html):
@@ -114,13 +125,10 @@ def parse_region(html):
             net = int(m.group(7).replace(",", ""))
         except ValueError:
             continue
-        rows.append({
-            "code": code, "name": name,
-            "buy": buy, "sell": sell, "net": net,
-        })
+        rows.append({"code": code, "name": name, "buy": buy, "sell": sell, "net": net})
     return rows
- 
- 
+
+
 def fetch_branch(branch_code, max_retries=3):
     url = URL_TPL.format(code=branch_code)
     last_err = None
@@ -143,7 +151,7 @@ def fetch_branch(branch_code, max_retries=3):
             html = r.content.decode("big5", errors="replace")
             
             if len(html) < 5000:
-                last_err = f"頁面過小 ({len(html)}b)，可能被擋"
+                last_err = f"頁面過小 ({len(html)}b)"
                 time.sleep(5 + attempt * 3)
                 continue
             
@@ -165,19 +173,27 @@ def fetch_branch(branch_code, max_retries=3):
             time.sleep(3 + attempt * 3)
     
     return {"date": None, "buys": [], "sells": [], "error": last_err}
- 
- 
+
+
 def main():
-    print(f"[{now_tw().strftime('%Y-%m-%d %H:%M:%S')}] 開始爬取 {len(WATCHED_BRANCHES)} 個分點")
+    password = os.environ.get("CHIP_RADAR_PASSWORD", "").strip()
+    if not password:
+        print("❌ 環境變數 CHIP_RADAR_PASSWORD 未設定！")
+        print("   請到 GitHub repo Settings → Secrets and variables → Actions")
+        print("   新增 Secret 名稱: CHIP_RADAR_PASSWORD")
+        sys.exit(1)
     
-    # 去除重複的分點代號
+    if len(password) < 6:
+        print("⚠️  警告：密碼太短（< 6 字元），建議至少 8 字元")
+    
+    print(f"[{now_tw().strftime('%Y-%m-%d %H:%M:%S')}] 開始爬取 {len(WATCHED_BRANCHES)} 個分點 (🔒 加密模式)")
+    
     seen = set()
     unique_branches = []
     for b in WATCHED_BRANCHES:
         if b["code"] not in seen:
             seen.add(b["code"])
             unique_branches.append(b)
-    
     if len(unique_branches) < len(WATCHED_BRANCHES):
         print(f"  （偵測到 {len(WATCHED_BRANCHES) - len(unique_branches)} 個重複分點，自動去重）")
     
@@ -215,7 +231,7 @@ def main():
         
         if i < len(unique_branches) - 1:
             if (i + 1) % COOL_DOWN_EVERY == 0:
-                print(f"    ⏸  休息 {COOL_DOWN_SECONDS} 秒避免 rate limit...")
+                print(f"    ⏸  休息 {COOL_DOWN_SECONDS} 秒...")
                 time.sleep(COOL_DOWN_SECONDS)
             else:
                 time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))
@@ -223,7 +239,7 @@ def main():
     if not trade_date:
         trade_date = now_tw().strftime("%Y%m%d")
     
-    output = {
+    raw_output = {
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "success": success_count,
@@ -232,16 +248,31 @@ def main():
         "branches": results,
     }
     
+    plaintext = json.dumps(raw_output, ensure_ascii=False)
+    print(f"\n[加密] 原始大小: {len(plaintext)/1024:.1f} KB")
+    encrypted_token = encrypt_data(plaintext, password)
+    print(f"[加密] 加密後大小: {len(encrypted_token)/1024:.1f} KB")
+    
+    encrypted_output = {
+        "encrypted": True,
+        "algorithm": "AES-256-GCM",
+        "kdf": "PBKDF2-SHA256",
+        "iterations": PBKDF2_ITERATIONS,
+        "trade_date": trade_date,
+        "crawled_at": now_tw().isoformat(),
+        "data": encrypted_token,
+    }
+    
     data_dir = Path(__file__).parent / "data"
     data_dir.mkdir(exist_ok=True)
     
     dated_file = data_dir / f"{trade_date}.json"
     with open(dated_file, "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
+        json.dump(encrypted_output, f, ensure_ascii=False, indent=2)
     
     latest_file = data_dir / "latest.json"
     with open(latest_file, "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
+        json.dump(encrypted_output, f, ensure_ascii=False, indent=2)
     
     index_file = data_dir / "index.json"
     existing_dates = []
@@ -264,17 +295,19 @@ def main():
             "latest": trade_date,
             "updated_at": now_tw().isoformat(),
             "branches_count": len(unique_branches),
+            "encrypted": True,
         }, f, ensure_ascii=False, indent=2)
     
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] 完成！")
     print(f"  資料日期: {trade_date}")
     print(f"  成功: {success_count}, 失敗: {fail_count}, 無資料: {empty_count}")
     print(f"  歷史共 {len(all_dates)} 天")
+    print(f"  🔒 資料已加密 (需密碼解密)")
     
     if success_count == 0:
         print("⚠️  全部失敗，可能是假日或被擋")
         sys.exit(1)
- 
- 
+
+
 if __name__ == "__main__":
     main()
