@@ -2042,9 +2042,20 @@ function renderMasterViewInit() {
   if (!sel) return;
   const masters = Object.entries(CURRENT_DATA.master_summaries)
     .sort((a,b) => b[1].total_buy_amt - a[1].total_buy_amt);
-  sel.innerHTML = masters.map(([name, m]) => 
-    `<option value="${name}">${name}（${m.branches.length} 分點）</option>`
-  ).join('');
+  // 關鍵：如果已經有 options 且值沒壞，不要重建（否則 <select> 的 value 會被重置）
+  const existingValue = sel.value;
+  const existingCount = sel.options.length;
+  const needRebuild = existingCount !== masters.length || 
+    !masters.some(([name]) => name === existingValue);
+  if (needRebuild) {
+    sel.innerHTML = masters.map(([name, m]) => 
+      `<option value="${name}">${name}（${m.branches.length} 分點）</option>`
+    ).join('');
+    // 嘗試恢復之前的選擇
+    if (existingValue && masters.some(([name]) => name === existingValue)) {
+      sel.value = existingValue;
+    }
+  }
 }
 
 function renderMasterView() {
