@@ -21,19 +21,18 @@
   --gold: #d4af37;
   --gold-bright: #f0c850;
   --red: #ef4444;
+  --red-dim: #dc2626;
   --green: #10b981;
+  --green-dim: #059669;
   --blue: #3b82f6;
   --purple: #a855f7;
   --shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Noto Sans TC', sans-serif;
-  font-weight: 400;
   line-height: 1.6;
   min-height: 100vh;
   background-image: 
@@ -41,7 +40,7 @@ body {
     radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 45%);
 }
 
-/* ===== LOGIN OVERLAY ===== */
+/* ===== 登入畫面 ===== */
 .login-overlay {
   position: fixed;
   inset: 0;
@@ -54,13 +53,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  animation: fadeInBg 0.3s ease;
 }
-@keyframes fadeInBg {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 .login-card {
   background: rgba(15, 21, 37, 0.95);
   border: 1px solid var(--line-2);
@@ -76,10 +69,8 @@ body {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 .login-icon {
-  width: 64px;
-  height: 64px;
+  width: 64px; height: 64px;
   margin: 0 auto 20px;
   background: linear-gradient(135deg, var(--gold-bright), var(--gold));
   border-radius: 16px;
@@ -90,7 +81,6 @@ body {
   color: #0a0e1a;
   box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3);
 }
-
 .login-title {
   font-family: 'Noto Serif TC', serif;
   font-size: 22px;
@@ -102,7 +92,6 @@ body {
   background-clip: text;
   margin-bottom: 6px;
 }
-
 .login-sub {
   text-align: center;
   color: var(--text-3);
@@ -112,12 +101,6 @@ body {
   margin-bottom: 32px;
   text-transform: uppercase;
 }
-
-.login-input-wrap {
-  position: relative;
-  margin-bottom: 20px;
-}
-
 .login-input {
   width: 100%;
   background: var(--bg-3);
@@ -127,15 +110,9 @@ body {
   border-radius: 10px;
   font-family: inherit;
   font-size: 15px;
-  letter-spacing: 0.05em;
-  transition: all 0.2s;
+  margin-bottom: 20px;
 }
-.login-input:focus {
-  outline: none;
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
-}
-
+.login-input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15); }
 .login-btn {
   width: 100%;
   background: linear-gradient(135deg, var(--gold-bright), var(--gold));
@@ -150,19 +127,8 @@ body {
   letter-spacing: 0.1em;
   transition: all 0.2s;
 }
-.login-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
-}
-.login-btn:active {
-  transform: translateY(0);
-}
-.login-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
+.login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35); }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 .login-error {
   margin-top: 14px;
   padding: 10px 14px;
@@ -175,7 +141,6 @@ body {
   display: none;
 }
 .login-error.show { display: block; }
-
 .login-info {
   margin-top: 24px;
   padding-top: 20px;
@@ -185,11 +150,9 @@ body {
   color: var(--text-3);
   line-height: 1.7;
 }
-
 .login-spinner {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: 14px; height: 14px;
   border: 2px solid rgba(10, 14, 26, 0.3);
   border-top-color: #0a0e1a;
   border-radius: 50%;
@@ -197,14 +160,10 @@ body {
   vertical-align: middle;
   margin-right: 6px;
 }
-
-/* hide main content until unlocked */
-.app-content {
-  display: none;
-}
+.app-content { display: none; }
 .app-content.unlocked { display: block; }
 
-/* ===== HEADER ===== */
+/* ===== Header ===== */
 header {
   border-bottom: 1px solid var(--line);
   background: rgba(10, 14, 26, 0.85);
@@ -223,13 +182,13 @@ header {
   gap: 16px;
   flex-wrap: wrap;
 }
-.logo { display: flex; align-items: baseline; gap: 12px; }
+.logo { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .logo-cn {
   font-family: 'Noto Serif TC', serif;
   font-size: 24px;
   font-weight: 900;
   letter-spacing: 0.05em;
-  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 100%);
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -241,15 +200,16 @@ header {
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
-.auto-badge {
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--green);
+.auto-badge, .lock-badge {
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
-  letter-spacing: 0.05em;
+}
+.auto-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--green);
   border: 1px solid rgba(16, 185, 129, 0.3);
   display: inline-flex;
   align-items: center;
@@ -262,21 +222,9 @@ header {
   border-radius: 50%;
   animation: pulse 2s infinite;
 }
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-.lock-badge {
-  background: rgba(212, 175, 55, 0.15);
-  color: var(--gold-bright);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-}
-.header-actions { display: flex; gap: 10px; align-items: center; }
+.lock-badge { background: rgba(212, 175, 55, 0.15); color: var(--gold-bright); border: 1px solid rgba(212, 175, 55, 0.3); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .btn {
   background: var(--bg-3);
   color: var(--text);
@@ -284,7 +232,7 @@ header {
   padding: 8px 14px;
   border-radius: 6px;
   cursor: pointer;
-  font-family: 'Noto Sans TC', sans-serif;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   transition: all 0.2s;
@@ -317,6 +265,7 @@ main { max-width: 1400px; margin: 0 auto; padding: 24px; }
   font-family: 'JetBrains Mono', monospace;
   font-weight: 500;
 }
+
 .tabs {
   display: flex;
   gap: 2px;
@@ -416,8 +365,7 @@ select:focus, input:focus { outline: none; border-color: var(--gold); }
 }
 .section-title::before {
   content: '';
-  width: 4px;
-  height: 20px;
+  width: 4px; height: 20px;
   background: linear-gradient(to bottom, var(--gold-bright), var(--gold));
   border-radius: 2px;
 }
@@ -450,23 +398,20 @@ th {
   white-space: nowrap;
 }
 th.num { text-align: right; }
-td {
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--line);
-  white-space: nowrap;
-}
+td { padding: 11px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover { background: rgba(212, 175, 55, 0.03); }
 td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
+
+/* 紅=正, 綠=負（台股配色） */
 .pos { color: var(--red); }
 .neg { color: var(--green); }
+.pos-strong { color: var(--red); font-weight: 700; }
+.neg-strong { color: var(--green); font-weight: 700; }
+
 .stock-cell { display: flex; flex-direction: column; gap: 2px; }
 .stock-name { font-weight: 500; color: var(--text); }
-.stock-code {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--text-3);
-}
+.stock-code { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-3); }
 .master-tag {
   display: inline-block;
   padding: 2px 8px;
@@ -477,11 +422,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   color: var(--text-2);
   margin: 2px;
 }
-.master-tag.hl {
-  background: rgba(212, 175, 55, 0.12);
-  border-color: var(--gold);
-  color: var(--gold-bright);
-}
+.master-tag.hl { background: rgba(212, 175, 55, 0.12); border-color: var(--gold); color: var(--gold-bright); }
 .badge {
   display: inline-block;
   padding: 3px 9px;
@@ -489,14 +430,14 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   font-size: 11px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
-  background: linear-gradient(135deg, var(--red) 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--red), var(--red-dim));
   color: white;
 }
-.badge.gold { background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 100%); color: #0a0e1a; }
+.badge.gold { background: linear-gradient(135deg, var(--gold-bright), var(--gold)); color: #0a0e1a; }
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
   gap: 16px;
 }
 .branch-card {
@@ -507,10 +448,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   transition: all 0.2s;
 }
 .branch-card:hover { border-color: var(--line-2); transform: translateY(-2px); box-shadow: var(--shadow); }
-.branch-card.highlighted {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 1px var(--gold), 0 4px 16px rgba(212, 175, 55, 0.15);
-}
+.branch-card.highlighted { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 4px 16px rgba(212, 175, 55, 0.15); }
 .branch-header {
   padding: 14px 16px;
   background: var(--bg-3);
@@ -530,30 +468,69 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 }
 .branch-meta { font-size: 11px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
 .branch-master-name { color: var(--gold-bright); font-size: 12px; font-weight: 500; letter-spacing: 0.05em; }
+
+/* PnL 小徽章 */
+.branch-pnl-row {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(15, 21, 37, 0.4);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.pnl-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+.pnl-pill .pnl-label {
+  font-size: 9px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.pnl-pill .pnl-val {
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+
 .branch-stocks { padding: 8px 0; }
 .stock-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 7px 16px;
+  padding: 9px 16px;
   transition: background 0.15s;
   cursor: pointer;
+  border-top: 1px solid rgba(31, 42, 72, 0.3);
 }
+.stock-row:first-child { border-top: none; }
 .stock-row:hover { background: rgba(212, 175, 55, 0.05); }
-.stock-row .left { display: flex; flex-direction: column; }
+.stock-row .left { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .stock-row .sname { font-size: 13px; color: var(--text); font-weight: 500; }
 .stock-row .scode { font-size: 10px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
-.stock-row .right { text-align: right; font-family: 'JetBrains Mono', monospace; }
+.stock-row .middle {
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-3);
+  min-width: 110px;
+  padding-right: 10px;
+}
+.stock-row .right { text-align: right; font-family: 'JetBrains Mono', monospace; min-width: 80px; }
 .stock-row .net { font-weight: 700; font-size: 13px; }
 .stock-row .amt { font-size: 10px; color: var(--text-3); }
+.stock-row .lot-line { font-size: 10px; color: var(--text-3); margin-top: 1px; }
 
 .empty { padding: 48px 20px; text-align: center; color: var(--text-3); font-size: 14px; }
 .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
 
 .loading { padding: 80px 20px; text-align: center; color: var(--text-2); }
 .loading-spinner {
-  width: 40px;
-  height: 40px;
+  width: 40px; height: 40px;
   border: 3px solid var(--line-2);
   border-top-color: var(--gold);
   border-radius: 50%;
@@ -574,19 +551,8 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   padding: 14px 16px;
   border-radius: 8px;
 }
-.stat-box .label {
-  font-size: 11px;
-  color: var(--text-3);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.stat-box .val {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--gold-bright);
-}
+.stat-box .label { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+.stat-box .val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--gold-bright); }
 
 .hot {
   display: inline-block;
@@ -600,6 +566,125 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   font-weight: 700;
   vertical-align: middle;
 }
+
+/* 風格徽章 */
+.style-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+  margin-left: 6px;
+}
+.style-badge.daytrader { background: rgba(239,68,68,0.18); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.style-badge.swing { background: rgba(59,130,246,0.18); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+.style-badge.mixed { background: rgba(168,85,247,0.18); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.3); }
+.style-badge.daytrade { background: rgba(239,68,68,0.18); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.style-badge.overnight { background: rgba(59,130,246,0.18); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+.style-badge.partial { background: rgba(168,85,247,0.18); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.3); }
+
+/* 高手視圖：大卡片 */
+.master-hero {
+  background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-3) 100%);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.master-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--gold-bright), var(--gold));
+}
+.master-hero .hero-name {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--gold-bright);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+.master-hero .hero-meta {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 16px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.master-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.hero-stat {
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.hero-stat .label {
+  font-size: 10px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+.hero-stat .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* 三視角頁：子視角切換指示器 */
+.view-hint {
+  background: rgba(212, 175, 55, 0.08);
+  border-left: 3px solid var(--gold);
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: var(--text-2);
+  border-radius: 4px;
+  line-height: 1.7;
+}
+.view-hint strong { color: var(--gold-bright); }
+
+/* 波段雷達列表 */
+.swing-row {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.swing-row:hover { border-color: var(--gold); background: rgba(212,175,55,0.03); }
+.swing-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--bg-3);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-2);
+  border: 1px solid var(--line-2);
+}
+.swing-days { color: var(--gold-bright); font-weight: 700; }
 
 .watchlist-config {
   background: var(--bg-2);
@@ -629,12 +714,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   font-family: inherit;
 }
 .chip:hover { border-color: var(--gold); color: var(--text); }
-.chip.selected {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: var(--gold);
-  color: var(--gold-bright);
-  font-weight: 500;
-}
+.chip.selected { background: rgba(212, 175, 55, 0.15); border-color: var(--gold); color: var(--gold-bright); font-weight: 500; }
 
 .overlay {
   display: none;
@@ -649,7 +729,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 .drawer {
   position: fixed;
   top: 0; right: 0;
-  width: min(520px, 100%);
+  width: min(560px, 100%);
   height: 100vh;
   background: var(--bg-2);
   border-left: 1px solid var(--gold);
@@ -671,24 +751,13 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   top: 0;
   z-index: 1;
 }
-.drawer-title {
-  font-family: 'Noto Serif TC', serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text);
-}
-.drawer-sub {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: var(--text-3);
-  margin-top: 4px;
-}
+.drawer-title { font-family: 'Noto Serif TC', serif; font-size: 22px; font-weight: 700; color: var(--text); }
+.drawer-sub { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-3); margin-top: 4px; }
 .close-btn {
   background: transparent;
   border: 1px solid var(--line-2);
   color: var(--text-2);
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 18px;
@@ -716,6 +785,15 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   margin-bottom: 16px;
   font-size: 13px;
 }
+.info-banner {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 12px;
+}
 
 .help-card {
   background: var(--bg-2);
@@ -731,12 +809,8 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   color: var(--gold-bright);
   margin-bottom: 10px;
 }
-.help-card p, .help-card li {
-  font-size: 13px;
-  color: var(--text-2);
-  line-height: 1.8;
-}
-.help-card ul, .help-card ol { padding-left: 20px; }
+.help-card p, .help-card li { font-size: 13px; color: var(--text-2); line-height: 1.8; }
+.help-card ul, .help-card ol { padding-left: 20px; margin: 8px 0; }
 .help-card code {
   background: var(--bg-3);
   padding: 2px 6px;
@@ -745,53 +819,57 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   font-size: 12px;
   color: var(--gold-bright);
 }
+.formula {
+  background: var(--bg-3);
+  border-left: 3px solid var(--gold);
+  padding: 10px 14px;
+  margin: 10px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  border-radius: 4px;
+  white-space: pre-wrap;
+}
 
 @media (max-width: 768px) {
   .cards-grid { grid-template-columns: 1fr; }
   .header-inner { padding: 14px 16px; }
   main { padding: 16px; }
-  .controls { padding: 12px; gap: 10px; }
   .logo-cn { font-size: 18px; }
   .status-info { gap: 12px; font-size: 12px; }
   th, td { padding: 8px 10px; font-size: 12px; }
   .drawer { width: 100%; border-left: none; }
   .login-card { padding: 32px 24px; }
+  .stock-row .middle { min-width: 80px; font-size: 10px; }
 }
 </style>
 </head>
 <body>
 
-<!-- ===== 登入畫面 ===== -->
+<!-- ===== 登入 ===== -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-card">
     <div class="login-icon">🔒</div>
     <div class="login-title">分點籌碼觀察站</div>
     <div class="login-sub">CHIP RADAR · SECURE ACCESS</div>
-    
-    <div class="login-input-wrap">
-      <input type="password" class="login-input" id="passwordInput" placeholder="請輸入存取密碼" autofocus autocomplete="off">
-    </div>
-    
+    <input type="password" class="login-input" id="passwordInput" placeholder="請輸入存取密碼" autofocus autocomplete="off">
     <button class="login-btn" id="unlockBtn" onclick="attemptUnlock()">解 鎖</button>
-    
     <div class="login-error" id="loginError">密碼錯誤，請重試</div>
-    
     <div class="login-info">
-      🛡️ 您的資料已使用 AES-256 加密<br>
-      無密碼無法解開、本網站不記錄密碼<br>
-      每次關閉視窗都需要重新輸入
+      🛡️ 資料以 AES-256 加密<br>
+      每次關閉視窗都需重新輸入密碼
     </div>
   </div>
 </div>
 
-<!-- ===== 主要內容（解鎖後顯示）===== -->
+<!-- ===== 主畫面 ===== -->
 <div class="app-content" id="appContent">
 
 <header>
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en">Chip Radar</div>
+      <div class="logo-en">Chip Radar v3</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -810,6 +888,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
       <div><span class="label">最後更新</span><span class="val" id="lastUpdate">—</span></div>
       <div><span class="label">分點數</span><span class="val" id="branchCount">0</span></div>
       <div><span class="label">歷史天數</span><span class="val" id="dayCount">0</span></div>
+      <div><span class="label">基準日</span><span class="val" id="baselineDate">—</span></div>
     </div>
     <div class="control-group">
       <span class="control-label">查看日期</span>
@@ -818,15 +897,56 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <div class="tabs">
-    <button class="tab active" data-tab="overview"><span class="tab-num">01</span>共買榜</button>
-    <button class="tab" data-tab="branches"><span class="tab-num">02</span>分點動態</button>
-    <button class="tab" data-tab="stock"><span class="tab-num">03</span>個股追蹤</button>
-    <button class="tab" data-tab="master"><span class="tab-num">04</span>高手偏好</button>
-    <button class="tab" data-tab="watchlist"><span class="tab-num">05</span>關注設定</button>
+    <button class="tab active" data-tab="today3"><span class="tab-num">01</span>🌅 今日三視角</button>
+    <button class="tab" data-tab="overview"><span class="tab-num">02</span>🔥 共買榜</button>
+    <button class="tab" data-tab="branches"><span class="tab-num">03</span>📊 分點動態</button>
+    <button class="tab" data-tab="ranking"><span class="tab-num">04</span>🏆 累積排行</button>
+    <button class="tab" data-tab="masterview"><span class="tab-num">05</span>👤 高手合併視圖</button>
+    <button class="tab" data-tab="stock"><span class="tab-num">06</span>📈 個股追蹤</button>
+    <button class="tab" data-tab="master"><span class="tab-num">07</span>👥 單分點偏好</button>
+    <button class="tab" data-tab="watchlist"><span class="tab-num">08</span>⚙️ 關注設定</button>
   </div>
 
-  <div class="panel active" id="panel-overview">
+  <!-- 01 今日三視角 (新主頁) -->
+  <div class="panel active" id="panel-today3">
     <div class="controls">
+      <div class="control-group">
+        <span class="control-label">觀察角度</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-view3="daytrade" onclick="setTodayView('daytrade')">🔥 當沖觀察</button>
+          <button class="mode-btn" data-view3="overnight" onclick="setTodayView('overnight')">🌙 隔日沖觀察</button>
+          <button class="mode-btn" data-view3="swing" onclick="setTodayView('swing')">🐢 波段觀察</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">範圍</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-view3-scope="watch" onclick="setTodayScope('watch')">僅關注</button>
+          <button class="mode-btn" data-view3-scope="all" onclick="setTodayScope('all')">全部</button>
+        </div>
+      </div>
+      <div class="control-group" id="swingDaysControl" style="display:none;">
+        <span class="control-label">波段天數</span>
+        <select id="swingDays" onchange="renderToday3()">
+          <option value="3">近 3 日</option>
+          <option value="5" selected>近 5 日</option>
+          <option value="10">近 10 日</option>
+        </select>
+      </div>
+    </div>
+    <div id="today3Result"><div class="loading"><div class="loading-spinner"></div>解密資料中...</div></div>
+  </div>
+
+  <!-- 02 共買榜 -->
+  <div class="panel" id="panel-overview">
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">榜單類型</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-rank="amount" onclick="setOverviewRank('amount')">💰 金額榜</button>
+          <button class="mode-btn" data-rank="lots" onclick="setOverviewRank('lots')">📦 張數榜</button>
+        </div>
+      </div>
       <div class="control-group">
         <span class="control-label">檢視模式</span>
         <div class="mode-switch">
@@ -848,7 +968,10 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
         <span class="control-label">排序</span>
         <select id="sortBy" onchange="renderOverview()">
           <option value="count">依共買分點數</option>
+          <option value="strength">依強度（分點數×金額）</option>
           <option value="amount">依總淨買金額</option>
+          <option value="lots">依總淨買張數</option>
+          <option value="overnight">依總留倉張數</option>
         </select>
       </div>
     </div>
@@ -856,20 +979,23 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="overviewResult"><div class="loading"><div class="loading-spinner"></div>解密資料中...</div></div>
   </div>
 
+  <!-- 02 分點動態 -->
   <div class="panel" id="panel-branches">
     <div class="controls">
       <div class="control-group">
         <span class="control-label">顯示範圍</span>
         <div class="mode-switch">
-          <button class="mode-btn active" data-mode="watch" onclick="setBranchMode('watch')">僅關注分點</button>
-          <button class="mode-btn" data-mode="all" onclick="setBranchMode('all')">全部分點</button>
+          <button class="mode-btn active" data-mode="watch" onclick="setBranchMode('watch')">僅關注</button>
+          <button class="mode-btn" data-mode="all" onclick="setBranchMode('all')">全部</button>
         </div>
       </div>
       <div class="control-group">
         <span class="control-label">排序</span>
         <select id="branchSort" onchange="renderBranches()">
           <option value="master">依高手</option>
-          <option value="netamt">依總淨買金額</option>
+          <option value="netamt">依當日淨買金額</option>
+          <option value="total_pnl">依累積總損益</option>
+          <option value="daily_pnl">依當日損益</option>
         </select>
       </div>
       <div class="control-group">
@@ -881,6 +1007,51 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="branchResult"></div>
   </div>
 
+  <!-- 04 累積排行 -->
+  <div class="panel" id="panel-ranking">
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">期間</span>
+        <div class="mode-switch">
+          <button class="mode-btn" data-period="daily" onclick="setRankPeriod('daily')">當日</button>
+          <button class="mode-btn" data-period="short" onclick="setRankPeriod('short')">近5日</button>
+          <button class="mode-btn" data-period="weekly" onclick="setRankPeriod('weekly')">本週</button>
+          <button class="mode-btn" data-period="monthly" onclick="setRankPeriod('monthly')">本月</button>
+          <button class="mode-btn" data-period="mid" onclick="setRankPeriod('mid')">近60日</button>
+          <button class="mode-btn active" data-period="total" onclick="setRankPeriod('total')">累積全部</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">顯示</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-view="branches" onclick="setRankView('branches')">分點排行</button>
+          <button class="mode-btn" data-view="masters" onclick="setRankView('masters')">高手排行</button>
+          <button class="mode-btn" data-view="stocks" onclick="setRankView('stocks')">熱門個股</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">範圍</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-scope="watch" onclick="setRankScope('watch')">僅關注</button>
+          <button class="mode-btn" data-scope="all" onclick="setRankScope('all')">全部</button>
+        </div>
+      </div>
+    </div>
+    <div id="rankingResult"></div>
+  </div>
+
+  <!-- 05 高手合併視圖（新） -->
+  <div class="panel" id="panel-masterview">
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">選擇高手</span>
+        <select id="masterViewSelect" onchange="renderMasterView()" style="min-width:200px;"></select>
+      </div>
+    </div>
+    <div id="masterViewResult"></div>
+  </div>
+
+  <!-- 04 個股追蹤 -->
   <div class="panel" id="panel-stock">
     <div class="controls">
       <div class="control-group">
@@ -890,14 +1061,15 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
       <div class="control-group">
         <span class="control-label">範圍</span>
         <div class="mode-switch">
-          <button class="mode-btn active" data-mode="watch" onclick="setStockMode('watch')">僅關注分點</button>
-          <button class="mode-btn" data-mode="all" onclick="setStockMode('all')">全部分點</button>
+          <button class="mode-btn active" data-mode="watch" onclick="setStockMode('watch')">僅關注</button>
+          <button class="mode-btn" data-mode="all" onclick="setStockMode('all')">全部</button>
         </div>
       </div>
     </div>
     <div id="stockTraceResult"></div>
   </div>
 
+  <!-- 07 單分點偏好（原高手偏好） -->
   <div class="panel" id="panel-master">
     <div class="controls">
       <div class="control-group">
@@ -910,6 +1082,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
           <option value="3">近 3 日</option>
           <option value="5" selected>近 5 日</option>
           <option value="10">近 10 日</option>
+          <option value="20">近 20 日</option>
           <option value="999">全部</option>
         </select>
       </div>
@@ -917,10 +1090,11 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="masterResult"></div>
   </div>
 
+  <!-- 08 關注設定 -->
   <div class="panel" id="panel-watchlist">
     <div class="help-card">
       <h3>🎯 設定重點關注的分點</h3>
-      <p>點擊分點標籤切換關注狀態。設定自動儲存在瀏覽器中（不含密碼資訊）。</p>
+      <p>點擊分點標籤切換關注狀態。設定自動儲存在瀏覽器中。</p>
     </div>
     <div class="watchlist-config">
       <h3>★ 目前關注的分點 <span id="watchCount" style="color:var(--gold-bright);"></span></h3>
@@ -936,33 +1110,110 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     </div>
   </div>
 
+  <!-- Help -->
   <div class="panel" id="panel-help" style="display:none;">
     <div class="help-card">
+      <h3>📊 損益計算方式（重要）</h3>
+      <p>本系統計算三種損益，請依需求解讀：</p>
+      
+      <p style="margin-top:12px;"><strong style="color:var(--gold-bright);">① 當日沖銷損益（Intraday P&L）</strong></p>
+      <div class="formula">當日沖銷損益 = (賣均 - 買均) × min(買張, 賣張) × 1000 / 10000 萬</div>
+      <p>意義：同一天內，分點「當沖」部分的實現損益。</p>
+      <p>⚠️ <strong>不含留倉部位</strong>，會低估當日實際獲利（若分點當日大量買進但沒賣）。</p>
+      
+      <p style="margin-top:12px;"><strong style="color:var(--gold-bright);">② 累積已實現損益（Realized P&L, 自基準日起算）</strong></p>
+      <div class="formula">採 FIFO（先進先出）部位追蹤：
+1. 每日爬取的「買進張數」視為建倉
+2. 每日爬取的「賣出張數」按 FIFO 從未平倉部位扣除
+3. 扣除時的 (賣均 - 對應建倉成本) × 張數 × 1000 / 10000 即當日實現
+4. 累積 = 所有實現損益加總</div>
+      <p>📅 <strong>基準日：<span id="help-baseline">—</span></strong> 之前的部位無從追蹤。</p>
+      <p>📌 期間篩選：日/本週（週一起）/本月（1 號起）/全部累積</p>
+      
+      <p style="margin-top:12px;"><strong style="color:var(--gold-bright);">③ 未平倉部位（Open Positions）</strong></p>
+      <p>該分點還沒賣掉的股數 + 加權平均建倉成本，代表分點仍持有的部位。</p>
+      
+      <p style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line);">
+        <strong style="color:#fca5a5;">⚠️ 重要限制：</strong><br>
+        • 若基準日前已有留倉未追蹤，計算會偏差<br>
+        • 富邦僅顯示當日前 30 名買賣超，超出排行的交易追蹤不到<br>
+        • 張數與金額資料源自富邦頁面，均價 = 金額/張數（與真實成交均價差距極小）
+      </p>
+    </div>
+    
+    <div class="help-card">
       <h3>🔒 安全機制說明</h3>
-      <p>本網站使用 <strong>AES-256-GCM</strong> 加密保護所有分點資料：</p>
       <ul>
-        <li>資料來自 GitHub Pages 公開倉庫，但 JSON 內容完全加密</li>
-        <li>密碼<strong>不存於程式碼</strong>，僅存於 GitHub Secrets（您可掌控）</li>
-        <li>網站<strong>絕不記錄密碼</strong>，每次關閉瀏覽器都需重新輸入</li>
-        <li>解密在您本機瀏覽器中進行，密碼不傳輸到任何伺服器</li>
+        <li>所有資料以 <strong>AES-256-GCM</strong> 加密</li>
+        <li>密碼<strong>不存於程式碼</strong>，僅存於 GitHub Secrets</li>
+        <li>每次關閉瀏覽器都需重新輸入</li>
+        <li>解密在您本機進行，密碼不傳輸到任何伺服器</li>
       </ul>
     </div>
+    
     <div class="help-card">
       <h3>🤖 自動化機制</h3>
-      <p>每個交易日台灣時間 18:30，GitHub Actions 自動爬取資料並用您的密碼加密後儲存。</p>
+      <p>每個交易日台灣時間 18:30，GitHub Actions 自動爬取資料，更新累積部位並加密。</p>
+      <p>每個分點抓取兩次資料（金額+張數），合併產出完整交易紀錄。</p>
     </div>
+    
     <div class="help-card">
-      <h3>📖 功能說明</h3>
+      <h3>🎨 配色說明（台股慣例）</h3>
+      <p>
+        <span class="pos-strong">紅色數字 = 獲利／買超</span><br>
+        <span class="neg-strong">綠色數字 = 虧損／賣超</span>
+      </p>
+    </div>
+    
+    <div class="help-card">
+      <h3>📖 八大分頁功能</h3>
       <ol>
-        <li><strong>共買榜</strong>：當日被多分點同時買超的個股</li>
-        <li><strong>分點動態</strong>：各分點當日買超前 30 名</li>
-        <li><strong>個股追蹤</strong>：跨日歷史進出查詢</li>
-        <li><strong>高手偏好</strong>：分點近期持續買進偏好</li>
-        <li><strong>關注設定</strong>：自訂重點分點清單</li>
+        <li><strong>🌅 今日三視角</strong>（主頁）：盤後最重要的觀察工具，含三個子視角：
+          <ul>
+            <li><strong>🔥 當沖觀察</strong>：今日買賣接近的股票，看誰手感好</li>
+            <li><strong>🌙 隔日沖觀察</strong>：今日建倉但未賣，明日要盯他們怎麼出</li>
+            <li><strong>🐢 波段觀察</strong>：連續多日建倉的分點×個股組合（長期佈局訊號）</li>
+          </ul>
+        </li>
+        <li><strong>🔥 共買榜</strong>：當日被多分點同時買超的個股
+          <ul>
+            <li>💰 <strong>金額榜</strong> vs 📦 <strong>張數榜</strong> 切換（不同排行看到不同個股！）</li>
+            <li>新增「強度」排序（分點數 × 金額）最能反映共識強度</li>
+          </ul>
+        </li>
+        <li><strong>📊 分點動態</strong>：各分點當日買超（含張數/均價/當沖損益/風格徽章）</li>
+        <li><strong>🏆 累積排行</strong>：分點/高手/個股 的累積獲利排行
+          <ul>
+            <li>期間：當日 / 近5日 / 本週 / 本月 / 近60日 / 累積全部</li>
+          </ul>
+        </li>
+        <li><strong>👤 高手合併視圖</strong>（新功能，重要）：一位高手有多個分點時，合併看全貌
+          <ul>
+            <li>民哥 2 分點、航海王 6 分點、陳族元 4 分點... 分開看不出全貌</li>
+            <li>含：總損益 / 今日淨買 / 未平倉 / 風格判定 / <strong>旗下共識個股</strong>（多分點共買）</li>
+          </ul>
+        </li>
+        <li><strong>📈 個股追蹤</strong>：跨日歷史進出查詢</li>
+        <li><strong>👥 單分點偏好</strong>：單一分點近期買進偏好與績效</li>
+        <li><strong>⚙️ 關注設定</strong>：自訂重點分點清單</li>
       </ol>
     </div>
-  </div>
+    
+    <div class="help-card">
+      <h3>🎭 交易風格判定邏輯</h3>
+      <p>系統自動為每檔股票標記風格：</p>
+      <div class="formula">當沖比率 = min(買張, 賣張) / max(買張, 賣張)
 
+  ≥ 0.7  → 🔥 daytrade (當沖)
+  0.3-0.7 → ⚖️ partial (部分當沖+留倉)
+  < 0.3   → 🌙 overnight (主要建倉/留倉)</div>
+      <p>分點級風格 = 當日所有股票的平均當沖比率：</p>
+      <div class="formula">分點平均當沖比 ≥ 0.55  → 🔥 當沖派 (daytrader)
+0.30-0.55               → ⚖️ 混合型 (mixed)
+< 0.30                  → 🐢 波段派 (swing)</div>
+      <p>💡 波段派分點 = 大多建倉留倉 → 明日開盤要看他們怎麼處理手上部位。</p>
+    </div>
+  </div>
 </main>
 
 <div class="overlay" id="overlay" onclick="closeDrawer()"></div>
@@ -980,32 +1231,22 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 </div><!-- /app-content -->
 
 <script>
-// ========== 加密解密邏輯 ==========
+// ========== 加密 ==========
 const PBKDF2_ITERATIONS = 100000;
-
-// Base64 → Uint8Array
 function b64ToBytes(b64) {
   const bin = atob(b64);
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return bytes;
 }
-
-// 從密碼推導 AES key
 async function deriveKey(password, salt) {
   const enc = new TextEncoder();
-  const baseKey = await crypto.subtle.importKey(
-    'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
-  );
+  const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
-    baseKey,
-    { name: 'AES-GCM', length: 256 },
-    false, ['decrypt']
+    baseKey, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
   );
 }
-
-// 解密 base64 token (salt[16] + iv[12] + ciphertext)
 async function decryptToken(token, password) {
   const raw = b64ToBytes(token);
   const salt = raw.slice(0, 16);
@@ -1021,64 +1262,52 @@ const DATA_BASE = './data';
 let CURRENT_DATA = null;
 let AVAILABLE_DATES = [];
 let ALL_HISTORY = {};
+let POSITIONS = null;  // 累積部位
 let WATCHLIST = new Set();
+let SESSION_PASSWORD = null;
+
 let overviewMode = 'all';
+let overviewRank = 'amount';  // 'amount' or 'lots'
 let branchMode = 'watch';
 let stockMode = 'watch';
-let SESSION_PASSWORD = null; // 僅存於記憶體，關閉視窗即消失
+let rankPeriod = 'total';
+let rankView = 'branches';
+let rankScope = 'watch';
+let todayView = 'daytrade';  // 'daytrade' / 'overnight' / 'swing'
+let todayScope = 'watch';
 
-// ========== 登入流程 ==========
+// ========== 登入 ==========
 async function attemptUnlock() {
   const input = document.getElementById('passwordInput');
   const btn = document.getElementById('unlockBtn');
   const errEl = document.getElementById('loginError');
   const password = input.value;
-  
-  if (!password) {
-    errEl.textContent = '請輸入密碼';
-    errEl.classList.add('show');
-    return;
-  }
-  
+  if (!password) { errEl.textContent = '請輸入密碼'; errEl.classList.add('show'); return; }
   btn.disabled = true;
   btn.innerHTML = '<span class="login-spinner"></span>解密驗證中...';
   errEl.classList.remove('show');
-  
   try {
-    // 試解密 latest.json 來驗證密碼
     const r = await fetch(`${DATA_BASE}/latest.json?t=${Date.now()}`);
     if (!r.ok) {
-      errEl.textContent = '找不到資料檔案，請確認 GitHub Actions 已執行';
+      errEl.textContent = '找不到資料檔案';
       errEl.classList.add('show');
-      btn.disabled = false;
-      btn.textContent = '解 鎖';
+      btn.disabled = false; btn.textContent = '解 鎖';
       return;
     }
     const enc = await r.json();
     if (!enc.encrypted || !enc.data) {
-      errEl.textContent = '資料格式不正確（可能是舊版未加密資料）';
+      errEl.textContent = '資料格式不正確';
       errEl.classList.add('show');
-      btn.disabled = false;
-      btn.textContent = '解 鎖';
+      btn.disabled = false; btn.textContent = '解 鎖';
       return;
     }
-    
-    // 嘗試解密
     const plain = await decryptToken(enc.data, password);
     const data = JSON.parse(plain);
-    
-    // 解密成功！
     SESSION_PASSWORD = password;
     ALL_HISTORY[enc.trade_date || data.trade_date] = data;
-    
-    // 隱藏登入畫面，顯示主畫面
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('appContent').classList.add('unlocked');
-    
-    // 清空密碼輸入框（安全起見）
     input.value = '';
-    
-    // 載入主畫面
     await init();
   } catch (e) {
     console.error(e);
@@ -1091,48 +1320,38 @@ async function attemptUnlock() {
   }
 }
 
-// 鎖定（清除狀態並重新顯示登入畫面）
 function lockApp() {
-  if (!confirm('確定要鎖定？再次查看需要重新輸入密碼。')) return;
+  if (!confirm('確定要鎖定？')) return;
   SESSION_PASSWORD = null;
-  CURRENT_DATA = null;
-  ALL_HISTORY = {};
-  AVAILABLE_DATES = [];
-  WATCHLIST = new Set();
+  CURRENT_DATA = null; ALL_HISTORY = {}; AVAILABLE_DATES = []; POSITIONS = null; WATCHLIST = new Set();
   document.getElementById('appContent').classList.remove('unlocked');
   document.getElementById('loginOverlay').style.display = 'flex';
   document.getElementById('passwordInput').focus();
 }
 
-// Enter 鍵觸發登入
 document.getElementById('passwordInput').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') attemptUnlock();
 });
 
-// ========== 載入資料 ==========
+// ========== 載入 ==========
 async function loadIndex() {
   try {
     const r = await fetch(`${DATA_BASE}/index.json?t=${Date.now()}`);
     if (!r.ok) throw new Error('index.json 讀取失敗');
     const idx = await r.json();
     AVAILABLE_DATES = idx.dates || [];
-    
     const sel = document.getElementById('dateSelect');
-    sel.innerHTML = AVAILABLE_DATES.map(d => 
-      `<option value="${d}">${formatDate(d)}</option>`
-    ).join('');
-    
+    sel.innerHTML = AVAILABLE_DATES.map(d => `<option value="${d}">${formatDate(d)}</option>`).join('');
     document.getElementById('dayCount').textContent = AVAILABLE_DATES.length;
+    document.getElementById('baselineDate').textContent = formatDate(idx.baseline_date || '20260421');
+    document.getElementById('help-baseline').textContent = formatDate(idx.baseline_date || '20260421');
     return idx.latest || AVAILABLE_DATES[0];
-  } catch (e) {
-    return null;
-  }
+  } catch (e) { return null; }
 }
 
 async function loadDate(date) {
   if (ALL_HISTORY[date]) return ALL_HISTORY[date];
   if (!SESSION_PASSWORD) return null;
-  
   try {
     const r = await fetch(`${DATA_BASE}/${date}.json?t=${Date.now()}`);
     if (!r.ok) return null;
@@ -1142,9 +1361,30 @@ async function loadDate(date) {
     const data = JSON.parse(plain);
     ALL_HISTORY[date] = data;
     return data;
+  } catch (e) { console.error('解密失敗', date, e); return null; }
+}
+
+async function loadPositions() {
+  if (POSITIONS) return POSITIONS;
+  if (!SESSION_PASSWORD) return null;
+  try {
+    const r = await fetch(`${DATA_BASE}/positions.json?t=${Date.now()}`);
+    if (!r.ok) {
+      POSITIONS = { branches: {}, baseline_date: '20260421' };
+      return POSITIONS;
+    }
+    const enc = await r.json();
+    if (!enc.encrypted || !enc.data) {
+      POSITIONS = enc;
+      return POSITIONS;
+    }
+    const plain = await decryptToken(enc.data, SESSION_PASSWORD);
+    POSITIONS = JSON.parse(plain);
+    return POSITIONS;
   } catch (e) {
-    console.error('解密失敗', date, e);
-    return null;
+    console.error('載入累積部位失敗', e);
+    POSITIONS = { branches: {}, baseline_date: '20260421' };
+    return POSITIONS;
   }
 }
 
@@ -1152,11 +1392,12 @@ async function init() {
   const latestDate = await loadIndex();
   if (!latestDate) {
     document.getElementById('overviewResult').innerHTML = `
-      <div class="error-banner">⚠️ 找不到資料檔案。請先到 GitHub Actions 手動執行一次爬蟲。</div>`;
+      <div class="error-banner">⚠️ 找不到資料。請到 GitHub Actions 手動執行一次爬蟲。</div>`;
     return;
   }
   document.getElementById('dateSelect').value = latestDate;
-  await showDate(latestDate);
+  // 同時載入當日資料與累積部位
+  await Promise.all([showDate(latestDate), loadPositions()]);
   loadWatchlist();
   renderWatchlistPanel();
 }
@@ -1164,14 +1405,12 @@ async function init() {
 async function showDate(date) {
   document.getElementById('overviewResult').innerHTML = 
     '<div class="loading"><div class="loading-spinner"></div>解密 ' + formatDate(date) + '...</div>';
-  
   const data = await loadDate(date);
   if (!data) {
     document.getElementById('overviewResult').innerHTML = 
       '<div class="error-banner">解密 ' + date + ' 失敗</div>';
     return;
   }
-  
   CURRENT_DATA = data;
   document.getElementById('tradeDate').textContent = formatDate(data.trade_date);
   document.getElementById('lastUpdate').textContent = 
@@ -1192,7 +1431,7 @@ async function onDateChange() {
 }
 
 async function reloadData() {
-  ALL_HISTORY = {};
+  ALL_HISTORY = {}; POSITIONS = null;
   const btn = event.target;
   btn.textContent = '⏳ 載入中...';
   btn.disabled = true;
@@ -1221,12 +1460,9 @@ function loadWatchlist() {
     }
   } catch(e) { WATCHLIST = new Set(); }
 }
-function saveWatchlist() {
-  localStorage.setItem('chipradar_watch', JSON.stringify(Array.from(WATCHLIST)));
-}
+function saveWatchlist() { localStorage.setItem('chipradar_watch', JSON.stringify(Array.from(WATCHLIST))); }
 function toggleWatch(code) {
-  if (WATCHLIST.has(code)) WATCHLIST.delete(code);
-  else WATCHLIST.add(code);
+  if (WATCHLIST.has(code)) WATCHLIST.delete(code); else WATCHLIST.add(code);
   saveWatchlist();
   renderWatchlistPanel();
   renderAll();
@@ -1234,44 +1470,37 @@ function toggleWatch(code) {
 function selectAllBranches() {
   if (!CURRENT_DATA) return;
   CURRENT_DATA.branches.forEach(b => WATCHLIST.add(b.code));
-  saveWatchlist();
-  renderWatchlistPanel();
-  renderAll();
+  saveWatchlist(); renderWatchlistPanel(); renderAll();
 }
 function clearAllBranches() {
   WATCHLIST.clear();
-  saveWatchlist();
-  renderWatchlistPanel();
-  renderAll();
+  saveWatchlist(); renderWatchlistPanel(); renderAll();
 }
 function renderWatchlistPanel() {
   if (!CURRENT_DATA) return;
   const branches = CURRENT_DATA.branches;
   const watched = branches.filter(b => WATCHLIST.has(b.code));
   document.getElementById('watchCount').textContent = `(${watched.length}/${branches.length})`;
-  
   const watchEl = document.getElementById('selectedChips');
   if (watched.length === 0) {
     watchEl.innerHTML = '<span style="color:var(--text-3);font-size:12px;">尚未選擇任何分點</span>';
   } else {
     watchEl.innerHTML = watched.map(b => 
-      `<button class="chip selected" onclick="toggleWatch('${b.code}')" title="點擊取消關注">
+      `<button class="chip selected" onclick="toggleWatch('${b.code}')">
         ★ ${b.master} ｜ ${b.name} <span style="color:var(--text-3);font-family:monospace;font-size:10px;">[${b.code}]</span>
-      </button>`
-    ).join('');
+      </button>`).join('');
   }
-  
   const allEl = document.getElementById('allBranchChips');
   allEl.innerHTML = branches.map(b => {
     const sel = WATCHLIST.has(b.code) ? 'selected' : '';
-    const dimStyle = (!b.buys || b.buys.length === 0) ? 'opacity:0.4;' : '';
-    return `<button class="chip ${sel}" onclick="toggleWatch('${b.code}')" style="${dimStyle}">
+    const dim = (!b.buys || b.buys.length === 0) ? 'opacity:0.4;' : '';
+    return `<button class="chip ${sel}" onclick="toggleWatch('${b.code}')" style="${dim}">
       ${b.master} ｜ ${b.name}<span style="color:var(--text-3);font-family:monospace;font-size:10px;margin-left:4px;">[${b.code}]</span>
     </button>`;
   }).join('');
 }
 
-// ========== Tabs ==========
+// ========== Tabs & Modes ==========
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1279,6 +1508,11 @@ document.querySelectorAll('.tab').forEach(btn => {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
     document.getElementById('panel-help').style.display = 'none';
+    // 各頁的按需渲染
+    const tab = btn.dataset.tab;
+    if (tab === 'today3') renderToday3();
+    else if (tab === 'ranking') renderRanking();
+    else if (tab === 'masterview') renderMasterView();
   });
 });
 function toggleHelp() {
@@ -1286,25 +1520,20 @@ function toggleHelp() {
   const isOpen = help.style.display === 'block';
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  if (!isOpen) {
-    help.style.display = 'block';
-  } else {
+  if (!isOpen) { help.style.display = 'block'; }
+  else {
     help.style.display = 'none';
     document.querySelector('.tab[data-tab="overview"]').classList.add('active');
     document.getElementById('panel-overview').classList.add('active');
   }
 }
 document.addEventListener('keydown', (e) => {
-  // 在登入畫面只處理 Enter
   if (!SESSION_PASSWORD) return;
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
-  if (e.key >= '1' && e.key <= '5') {
-    const idx = parseInt(e.key) - 1;
+  if (e.key >= '1' && e.key <= '8') {
     const tabs = document.querySelectorAll('.tab');
-    if (tabs[idx]) tabs[idx].click();
-  } else if (e.key === 'Escape') {
-    closeDrawer();
-  }
+    if (tabs[parseInt(e.key)-1]) tabs[parseInt(e.key)-1].click();
+  } else if (e.key === 'Escape') closeDrawer();
 });
 
 function setOverviewMode(m) {
@@ -1322,29 +1551,89 @@ function setStockMode(m) {
   document.querySelectorAll('#panel-stock .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
   renderStockTrace();
 }
+function setRankPeriod(p) {
+  rankPeriod = p;
+  document.querySelectorAll('#panel-ranking [data-period]').forEach(b => b.classList.toggle('active', b.dataset.period === p));
+  renderRanking();
+}
+function setRankView(v) {
+  rankView = v;
+  document.querySelectorAll('#panel-ranking [data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  renderRanking();
+}
+function setRankScope(s) {
+  rankScope = s;
+  document.querySelectorAll('#panel-ranking [data-scope]').forEach(b => b.classList.toggle('active', b.dataset.scope === s));
+  renderRanking();
+}
+
+function setOverviewRank(r) {
+  overviewRank = r;
+  document.querySelectorAll('#panel-overview [data-rank]').forEach(b => b.classList.toggle('active', b.dataset.rank === r));
+  renderOverview();
+}
+function setTodayView(v) {
+  todayView = v;
+  document.querySelectorAll('#panel-today3 [data-view3]').forEach(b => b.classList.toggle('active', b.dataset.view3 === v));
+  document.getElementById('swingDaysControl').style.display = (v === 'swing') ? '' : 'none';
+  renderToday3();
+}
+function setTodayScope(s) {
+  todayScope = s;
+  document.querySelectorAll('#panel-today3 [data-view3-scope]').forEach(b => b.classList.toggle('active', b.dataset['view3Scope'] === s));
+  renderToday3();
+}
 
 function renderAll() {
   if (!CURRENT_DATA) return;
+  renderToday3();
   renderOverview();
   renderBranches();
   renderStockTrace();
   renderMasterPref();
+  renderMasterViewInit();
 }
 
-function buildStockIndex(branches, onlyWatched = false) {
+// ========== 01 共買榜 ==========
+function buildStockIndex(branches, onlyWatched, rankType) {
+  // rankType: 'amount' = 依金額排行 (原 c=B 排行才有), 'lots' = 依張數排行 (c=E 排行才有)
+  // 'amount' 時：只納入有 buy_amt > 0 的股票
+  // 'lots' 時：只納入有 buy_lot > 0 的股票
   const map = new Map();
   for (const br of branches) {
     if (onlyWatched && !WATCHLIST.has(br.code)) continue;
     if (!br.buys) continue;
     for (const s of br.buys) {
+      const hasAmt = (s.buy_amt || 0) > 0 || (s.sell_amt || 0) > 0;
+      const hasLot = (s.buy_lot || 0) > 0 || (s.sell_lot || 0) > 0;
+      if (rankType === 'amount' && !hasAmt) continue;
+      if (rankType === 'lots' && !hasLot) continue;
+      
       const key = s.code + '::' + s.name;
       if (!map.has(key)) {
-        map.set(key, { code: s.code, name: s.name, branches: [], totalNet: 0, totalBuy: 0 });
+        map.set(key, {
+          code: s.code, name: s.name, branches: [],
+          totalNet: 0, totalBuy: 0, totalNetLot: 0, totalBuyLot: 0,
+          totalOvernightLots: 0, hasLotData: false, hasAmtData: false,
+        });
       }
       const obj = map.get(key);
-      obj.branches.push({ master: br.master, branch: br.name, branchCode: br.code, net: s.net, buy: s.buy, sell: s.sell });
-      obj.totalNet += s.net;
-      obj.totalBuy += s.buy;
+      obj.branches.push({
+        master: br.master, branch: br.name, branchCode: br.code,
+        net: s.net_amt !== undefined ? s.net_amt : s.net,
+        buy: s.buy_amt !== undefined ? s.buy_amt : s.buy,
+        sell: s.sell_amt !== undefined ? s.sell_amt : s.sell,
+        buy_lot: s.buy_lot || 0, sell_lot: s.sell_lot || 0, net_lot: s.net_lot || 0,
+        overnight_lots: s.overnight_lots || 0,
+        trade_style: s.trade_style || '',
+      });
+      obj.totalNet += (s.net_amt !== undefined ? s.net_amt : s.net);
+      obj.totalBuy += (s.buy_amt !== undefined ? s.buy_amt : s.buy);
+      obj.totalNetLot += (s.net_lot || 0);
+      obj.totalBuyLot += (s.buy_lot || 0);
+      obj.totalOvernightLots += (s.overnight_lots || 0);
+      if (hasAmt) obj.hasAmtData = true;
+      if (hasLot) obj.hasLotData = true;
     }
   }
   return map;
@@ -1353,16 +1642,28 @@ function buildStockIndex(branches, onlyWatched = false) {
 function renderOverview() {
   const el = document.getElementById('overviewResult');
   if (!CURRENT_DATA) return;
+  const rankType = overviewRank; // 'amount' or 'lots'
   document.getElementById('overviewSubtitle').textContent = 
-    formatDate(CURRENT_DATA.trade_date) + ' · ' + (overviewMode === 'watch' ? '僅關注' : '全部');
-  
+    formatDate(CURRENT_DATA.trade_date) + ' · ' + (overviewMode === 'watch' ? '僅關注' : '全部') + 
+    ' · ' + (rankType === 'amount' ? '💰 金額榜（c=B）' : '📦 張數榜（c=E）');
   const minOverlap = parseInt(document.getElementById('minOverlap').value);
   const sortBy = document.getElementById('sortBy').value;
-  const stockMap = buildStockIndex(CURRENT_DATA.branches, overviewMode === 'watch');
+  const stockMap = buildStockIndex(CURRENT_DATA.branches, overviewMode === 'watch', rankType);
   let list = Array.from(stockMap.values()).filter(s => s.branches.length >= minOverlap);
   
   if (sortBy === 'count') {
     list.sort((a,b) => b.branches.length - a.branches.length || b.totalNet - a.totalNet);
+  } else if (sortBy === 'lots') {
+    list.sort((a,b) => b.totalNetLot - a.totalNetLot);
+  } else if (sortBy === 'strength') {
+    // 強度 = 分點數 × log(1+|淨買萬|)，讓分點數權重更高
+    list.sort((a,b) => {
+      const sa = a.branches.length * Math.log(1 + Math.abs(a.totalNet/10));
+      const sb = b.branches.length * Math.log(1 + Math.abs(b.totalNet/10));
+      return sb - sa;
+    });
+  } else if (sortBy === 'overnight') {
+    list.sort((a,b) => b.totalOvernightLots - a.totalOvernightLots);
   } else {
     list.sort((a,b) => b.totalNet - a.totalNet);
   }
@@ -1371,7 +1672,6 @@ function renderOverview() {
     el.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>當日沒有符合條件的共買個股</div>';
     return;
   }
-  
   const statsHTML = `
     <div class="stat-row">
       <div class="stat-box"><div class="label">共買個股</div><div class="val">${list.length}</div></div>
@@ -1379,13 +1679,17 @@ function renderOverview() {
       <div class="stat-box"><div class="label">合計淨買</div><div class="val">${fmtAmt(list.reduce((s,x)=>s+x.totalNet,0))}</div></div>
       <div class="stat-box"><div class="label">最熱門</div><div class="val" style="font-size:14px;">${list[0].name}</div></div>
     </div>`;
-  
   const rowsHTML = list.slice(0, 100).map((s, i) => {
     const badge = s.branches.length >= 4 ? '<span class="hot">🔥</span>' : '';
     const branchTags = s.branches.map(b => {
       const hl = WATCHLIST.has(b.branchCode) ? 'hl' : '';
-      return `<span class="master-tag ${hl}" title="${b.master}（${b.branch}）淨買 ${fmtAmt(b.net)}">${b.master}</span>`;
+      const lotPart = b.buy_lot ? `買${b.buy_lot}/賣${b.sell_lot}張` : '';
+      const ovPart = b.overnight_lots ? ` 留${b.overnight_lots}張` : '';
+      return `<span class="master-tag ${hl}" title="${b.master}（${b.branch}）${lotPart} 淨買 ${fmtAmt(b.net)}${ovPart}">${b.master}</span>`;
     }).join('');
+    const amtInfo = s.hasAmtData ? fmtAmt(s.totalNet) : '<span style="color:var(--text-3);font-size:11px;">—</span>';
+    const lotInfo = s.hasLotData ? (s.totalNetLot > 0 ? `+${s.totalNetLot.toLocaleString()}` : s.totalNetLot.toLocaleString()) + '張' : '<span style="color:var(--text-3);font-size:11px;">—</span>';
+    const ovInfo = s.totalOvernightLots > 0 ? `${s.totalOvernightLots.toLocaleString()}張` : '—';
     return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
       <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
       <td><div class="stock-cell">
@@ -1393,11 +1697,12 @@ function renderOverview() {
         <span class="stock-code">${s.code}</span>
       </div></td>
       <td class="num"><span class="badge ${s.branches.length>=4?'':'gold'}">${s.branches.length} 分點</span></td>
-      <td class="num pos">${fmtAmt(s.totalNet)}</td>
+      <td class="num pos-strong">${amtInfo}</td>
+      <td class="num" style="color:var(--text-2);">${lotInfo}</td>
+      <td class="num" style="color:${s.totalOvernightLots>0?'var(--red)':'var(--text-3)'};">${ovInfo}</td>
       <td>${branchTags}</td>
     </tr>`;
   }).join('');
-  
   el.innerHTML = statsHTML + `
     <div class="table-wrap">
       <table>
@@ -1405,7 +1710,9 @@ function renderOverview() {
           <th class="num" style="width:60px;">#</th>
           <th>個股</th>
           <th class="num">共買分點</th>
-          <th class="num">合計淨買</th>
+          <th class="num">淨買金額</th>
+          <th class="num">淨買張數</th>
+          <th class="num">🌙 留倉</th>
           <th>分點明細</th>
         </tr></thead>
         <tbody>${rowsHTML}</tbody>
@@ -1413,79 +1720,913 @@ function renderOverview() {
     </div>`;
 }
 
+// ========== 01 今日三視角 ==========
+function renderToday3() {
+  const el = document.getElementById('today3Result');
+  if (!CURRENT_DATA) {
+    el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密資料中...</div>';
+    return;
+  }
+  
+  if (todayView === 'daytrade') {
+    renderDaytradeView(el);
+  } else if (todayView === 'overnight') {
+    renderOvernightView(el);
+  } else {
+    renderSwingView(el);
+  }
+}
+
+function renderDaytradeView(el) {
+  // 當沖觀察：排序分點的當日當沖損益
+  let branches = CURRENT_DATA.branches.filter(b => b.buys && b.buys.length > 0);
+  if (todayScope === 'watch') branches = branches.filter(b => WATCHLIST.has(b.code));
+  
+  // 彙整每個分點的當沖表現
+  const rows = branches.map(b => {
+    const sum = CURRENT_DATA.branch_summaries?.[b.code] || {};
+    // 計算該分點當日當沖股票排行
+    const dtStocks = (b.buys || []).filter(s => 
+      (s.trade_style === 'daytrade' || s.trade_style === 'partial') &&
+      (s.pnl_intraday !== undefined && s.pnl_intraday !== 0)
+    ).sort((a,b) => Math.abs(b.pnl_intraday) - Math.abs(a.pnl_intraday));
+    
+    const totalPnl = dtStocks.reduce((s,x) => s + (x.pnl_intraday || 0), 0);
+    const winCount = dtStocks.filter(s => s.pnl_intraday > 0).length;
+    const lossCount = dtStocks.filter(s => s.pnl_intraday < 0).length;
+    
+    return {
+      branch: b,
+      summary: sum,
+      dtStocks,
+      totalPnl,
+      winCount,
+      lossCount,
+      stockCount: dtStocks.length,
+    };
+  }).filter(r => r.stockCount > 0).sort((a,b) => b.totalPnl - a.totalPnl);
+  
+  if (rows.length === 0) {
+    el.innerHTML = `
+      <div class="view-hint">🔥 <strong>當沖觀察</strong>：找出今天當沖 (買張≈賣張) 的股票，以及該分點的當沖表現。</div>
+      <div class="empty"><div class="empty-icon">💤</div>今日無顯著當沖交易</div>`;
+    return;
+  }
+  
+  const totalPnlAll = rows.reduce((s,r) => s + r.totalPnl, 0);
+  const winners = rows.filter(r => r.totalPnl > 0).length;
+  const losers = rows.filter(r => r.totalPnl < 0).length;
+  
+  const hint = `<div class="view-hint">
+    🔥 <strong>當沖觀察</strong>：今日當沖比 ≥ 30%（買賣接近）的股票交易。排序依當沖損益，可看出今天誰<strong>手感好/手感差</strong>。
+    <br>💡 勝率高的分點 → 明日可能延續操作風格；虧的分點 → 可能急著翻本，操作會較激進。
+  </div>`;
+  
+  const statsHTML = `
+    <div class="stat-row">
+      <div class="stat-box"><div class="label">參與分點</div><div class="val">${rows.length}</div></div>
+      <div class="stat-box"><div class="label">獲利 / 虧損</div><div class="val" style="font-size:16px;"><span class="pos">${winners}</span> / <span class="neg">${losers}</span></div></div>
+      <div class="stat-box"><div class="label">最強手感</div><div class="val" style="font-size:14px;">${rows[0].branch.master}</div></div>
+      <div class="stat-box"><div class="label">合計當沖損益</div><div class="val ${totalPnlAll>0?'pos-strong':'neg-strong'}" style="font-size:18px;">${fmtPnl(totalPnlAll)}</div></div>
+    </div>`;
+  
+  const cards = rows.map((r, i) => {
+    const b = r.branch;
+    const isWatch = WATCHLIST.has(b.code);
+    const winRate = r.stockCount > 0 ? (r.winCount / r.stockCount * 100).toFixed(0) : 0;
+    const pnlClass = r.totalPnl > 0 ? 'pos-strong' : 'neg-strong';
+    const rankBadge = i < 3 ? `<span style="color:var(--gold);font-size:20px;margin-right:6px;">${['🥇','🥈','🥉'][i]}</span>` : 
+                              `<span style="color:var(--text-3);font-family:monospace;margin-right:8px;">#${i+1}</span>`;
+    
+    const stocksHTML = r.dtStocks.slice(0, 8).map(s => {
+      const pnl = s.pnl_intraday || 0;
+      const cls = pnl > 0 ? 'pos' : 'neg';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(31,42,72,0.3);">
+        <div>
+          <span style="color:var(--text);font-weight:500;">${s.name}</span>
+          <span style="color:var(--text-3);font-family:monospace;font-size:10px;margin-left:6px;">${s.code}</span>
+          <span style="color:var(--text-3);font-size:10px;margin-left:8px;">買${s.buy_lot}/賣${s.sell_lot}張</span>
+        </div>
+        <span class="${cls}" style="font-family:monospace;font-weight:700;">${fmtPnl(pnl)}</span>
+      </div>`;
+    }).join('');
+    
+    return `<div class="branch-card ${isWatch ? 'highlighted' : ''}">
+      <div class="branch-header">
+        <div>
+          <div class="branch-name">${rankBadge}${isWatch ? '★ ' : ''}${b.name}</div>
+          <div class="branch-master-name">${b.master}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:20px;font-family:monospace;font-weight:700;" class="${pnlClass}">${fmtPnl(r.totalPnl)}</div>
+          <div style="font-size:11px;color:var(--text-3);">當沖 ${r.stockCount} 檔 · 勝率 ${winRate}%</div>
+        </div>
+      </div>
+      <div style="padding: 12px 16px;">${stocksHTML}</div>
+    </div>`;
+  }).join('');
+  
+  el.innerHTML = hint + statsHTML + `<div class="cards-grid">${cards}</div>`;
+}
+
+function renderOvernightView(el) {
+  // 隔日沖觀察：今日大建倉、明日可能要看怎麼出
+  let branches = CURRENT_DATA.branches.filter(b => b.buys && b.buys.length > 0);
+  if (todayScope === 'watch') branches = branches.filter(b => WATCHLIST.has(b.code));
+  
+  const rows = branches.map(b => {
+    const sum = CURRENT_DATA.branch_summaries?.[b.code] || {};
+    const ovStocks = (b.buys || [])
+      .filter(s => (s.overnight_lots || 0) > 0 || (s.trade_style === 'overnight' && (s.buy_lot || 0) > 0))
+      .sort((a,b) => (b.overnight_lots || 0) - (a.overnight_lots || 0));
+    const totalOv = ovStocks.reduce((s,x) => s + (x.overnight_lots || 0), 0);
+    const totalCost = ovStocks.reduce((s,x) => s + (x.overnight_cost_wan || 0), 0);
+    return { branch: b, summary: sum, ovStocks, totalOv, totalCost };
+  }).filter(r => r.totalOv > 0).sort((a,b) => b.totalOv - a.totalOv);
+  
+  if (rows.length === 0) {
+    el.innerHTML = `
+      <div class="view-hint">🌙 <strong>隔日沖觀察</strong>：今日大量建倉但未賣出的分點，明日是他們的出貨重點日。</div>
+      <div class="empty"><div class="empty-icon">💤</div>今日無顯著建倉</div>`;
+    return;
+  }
+  
+  const totalOvAll = rows.reduce((s,r) => s + r.totalOv, 0);
+  const totalCostAll = rows.reduce((s,r) => s + r.totalCost, 0);
+  
+  const hint = `<div class="view-hint">
+    🌙 <strong>隔日沖觀察</strong>：今日買進但未賣出（淨新建倉）的分點。依留倉張數排序。
+    <br>💡 明天開盤，這些分點很可能會開始出貨 → 盯盤要看成交量異常、大單賣壓。若今日建倉均價遠離明日股價 → 虧損壓力會很大。
+  </div>`;
+  
+  const statsHTML = `
+    <div class="stat-row">
+      <div class="stat-box"><div class="label">新建倉分點</div><div class="val">${rows.length}</div></div>
+      <div class="stat-box"><div class="label">合計留倉</div><div class="val">${totalOvAll.toLocaleString()}張</div></div>
+      <div class="stat-box"><div class="label">估算成本</div><div class="val" style="font-size:16px;">${fmtPnl(totalCostAll)}</div></div>
+      <div class="stat-box"><div class="label">留倉王</div><div class="val" style="font-size:14px;">${rows[0].branch.master}</div></div>
+    </div>`;
+  
+  const cards = rows.map((r, i) => {
+    const b = r.branch;
+    const isWatch = WATCHLIST.has(b.code);
+    const rankBadge = i < 3 ? `<span style="color:var(--red);font-size:20px;margin-right:6px;">${['🔴','🟠','🟡'][i]}</span>` : 
+                              `<span style="color:var(--text-3);font-family:monospace;margin-right:8px;">#${i+1}</span>`;
+    
+    const stocksHTML = r.ovStocks.slice(0, 8).map(s => {
+      const ov = s.overnight_lots || 0;
+      const cost = s.overnight_cost_wan || 0;
+      const avg = s.buy_avg || 0;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(31,42,72,0.3);">
+        <div>
+          <span style="color:var(--text);font-weight:500;">${s.name}</span>
+          <span style="color:var(--text-3);font-family:monospace;font-size:10px;margin-left:6px;">${s.code}</span>
+          ${avg > 0 ? `<span style="color:var(--text-3);font-size:10px;margin-left:8px;">均價 ${avg}</span>` : ''}
+        </div>
+        <div style="text-align:right;">
+          <span style="color:var(--red);font-family:monospace;font-weight:700;">+${ov}張</span>
+          ${cost > 0 ? `<div style="font-size:10px;color:var(--text-3);font-family:monospace;">${fmtPnl(cost)}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    
+    return `<div class="branch-card ${isWatch ? 'highlighted' : ''}">
+      <div class="branch-header">
+        <div>
+          <div class="branch-name">${rankBadge}${isWatch ? '★ ' : ''}${b.name}</div>
+          <div class="branch-master-name">${b.master}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:20px;font-family:monospace;font-weight:700;color:var(--red);">+${r.totalOv}張</div>
+          <div style="font-size:11px;color:var(--text-3);">${r.ovStocks.length} 檔新倉 · 成本 ${fmtPnl(r.totalCost)}</div>
+        </div>
+      </div>
+      <div style="padding: 12px 16px;">${stocksHTML}</div>
+    </div>`;
+  }).join('');
+  
+  el.innerHTML = hint + statsHTML + `<div class="cards-grid">${cards}</div>`;
+}
+
+async function renderSwingView(el) {
+  // 波段觀察：跨 N 日分析，找連續建倉組合
+  const days = parseInt(document.getElementById('swingDays').value);
+  
+  el.innerHTML = `<div class="view-hint">🐢 <strong>波段觀察</strong>：連續 ${days} 個交易日內多次出現在買超榜的「分點 × 個股」組合。這些通常是長期佈局的訊號。</div>
+    <div class="loading"><div class="loading-spinner"></div>解密 ${days} 日歷史...</div>`;
+  
+  const datesToLoad = AVAILABLE_DATES.slice(0, days);
+  await Promise.all(datesToLoad.map(d => loadDate(d)));
+  
+  // 建立 (分點 × 個股) 的出現記錄
+  const combos = new Map();
+  
+  for (const date of datesToLoad) {
+    const dayData = ALL_HISTORY[date];
+    if (!dayData) continue;
+    for (const br of dayData.branches) {
+      if (!br.buys) continue;
+      if (todayScope === 'watch' && !WATCHLIST.has(br.code)) continue;
+      for (const s of br.buys) {
+        const net = s.net_amt !== undefined ? s.net_amt : s.net;
+        // 只算淨買為正的（真的在建倉）
+        if (net <= 0 && (s.net_lot || 0) <= 0) continue;
+        const key = br.code + '::' + s.code;
+        if (!combos.has(key)) {
+          combos.set(key, {
+            branchCode: br.code, branch: br.name, master: br.master,
+            stockCode: s.code, stockName: s.name,
+            days: [], totalNet: 0, totalNetLot: 0, lastDate: null,
+          });
+        }
+        const c = combos.get(key);
+        c.days.push({ date, net, net_lot: s.net_lot || 0 });
+        c.totalNet += net;
+        c.totalNetLot += (s.net_lot || 0);
+        if (!c.lastDate || date > c.lastDate) c.lastDate = date;
+      }
+    }
+  }
+  
+  // 篩選出連續出現 >= 3 天的（真正的波段）
+  const swingList = Array.from(combos.values())
+    .filter(c => c.days.length >= 3)
+    .map(c => {
+      // 計算連續天數（檢查日期是否連續或接近）
+      const sortedDates = [...new Set(c.days.map(d => d.date))].sort();
+      return { ...c, occurCount: sortedDates.length, uniqueDates: sortedDates };
+    })
+    .sort((a,b) => b.occurCount - a.occurCount || Math.abs(b.totalNet) - Math.abs(a.totalNet));
+  
+  if (swingList.length === 0) {
+    el.innerHTML = `<div class="view-hint">🐢 <strong>波段觀察</strong>：連續 ${days} 個交易日內多次建倉的組合。目前資料不足或無顯著波段。基準日 ${formatDate(POSITIONS?.baseline_date || '20260421')} 起累積。</div>
+      <div class="empty"><div class="empty-icon">📊</div>暫無連續建倉組合（需 3 天以上出現）</div>`;
+    return;
+  }
+  
+  // 也聚合到股票層級：哪些股票被最多分點波段建倉
+  const stockAgg = new Map();
+  for (const c of swingList) {
+    if (!stockAgg.has(c.stockCode)) {
+      stockAgg.set(c.stockCode, { code: c.stockCode, name: c.stockName, branches: [], totalNet: 0 });
+    }
+    const o = stockAgg.get(c.stockCode);
+    o.branches.push(c);
+    o.totalNet += c.totalNet;
+  }
+  const hotStocks = Array.from(stockAgg.values())
+    .filter(s => s.branches.length >= 2)
+    .sort((a,b) => b.branches.length - a.branches.length || b.totalNet - a.totalNet);
+  
+  const hint = `<div class="view-hint">
+    🐢 <strong>波段觀察</strong>：近 ${days} 個交易日內連續 3 天以上出現的「分點 × 個股」組合。這是長期佈局訊號。
+    <br>💡 最具價值：<strong>多個分點同時波段建倉同一檔</strong> → 強烈共識。
+  </div>`;
+  
+  const statsHTML = `
+    <div class="stat-row">
+      <div class="stat-box"><div class="label">波段組合</div><div class="val">${swingList.length}</div></div>
+      <div class="stat-box"><div class="label">波段熱門個股</div><div class="val">${hotStocks.length}</div></div>
+      <div class="stat-box"><div class="label">最久組合</div><div class="val">${swingList[0].occurCount} 天</div></div>
+      <div class="stat-box"><div class="label">榜首</div><div class="val" style="font-size:14px;">${swingList[0].master}<br>× ${swingList[0].stockName}</div></div>
+    </div>`;
+  
+  // 熱門波段個股（最有價值的區塊）
+  let hotHTML = '';
+  if (hotStocks.length > 0) {
+    hotHTML = `<div class="section-title" style="margin-top:24px;">🔥 多分點波段共識個股<span class="section-sub">${hotStocks.length} 檔</span></div>`;
+    hotHTML += hotStocks.slice(0, 15).map(s => {
+      const branchList = s.branches.map(b => 
+        `<span class="master-tag ${WATCHLIST.has(b.branchCode)?'hl':''}" title="${b.master} 連 ${b.occurCount} 日, 累積 ${fmtAmt(b.totalNet)}">${b.master}（${b.occurCount}日）</span>`
+      ).join('');
+      return `<div class="swing-row" onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
+        <div class="swing-tag"><span class="swing-days">${s.branches.length}</span> 分點</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:15px;">${s.name} <span style="color:var(--text-3);font-family:monospace;font-size:11px;">${s.code}</span></div>
+          <div style="margin-top:4px;">${branchList}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="pos-strong" style="font-family:monospace;font-size:14px;">${fmtAmt(s.totalNet)}</div>
+          <div style="font-size:10px;color:var(--text-3);">${s.branches.reduce((x,b)=>x+b.occurCount,0)} 次進榜</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  
+  // 所有波段組合列表
+  const allHTML = `<div class="section-title" style="margin-top:24px;">📋 所有波段組合<span class="section-sub">${swingList.length} 組</span></div>` + 
+    swingList.slice(0, 50).map(c => {
+      const isWatch = WATCHLIST.has(c.branchCode);
+      return `<div class="swing-row" onclick="showStockDetail('${c.stockCode}','${c.stockName.replace(/'/g,"\\'")}')">
+        <div class="swing-tag"><span class="swing-days">${c.occurCount}</span> 天</div>
+        <div style="flex:1;">
+          <div><span style="color:${isWatch?'var(--gold-bright)':'var(--text)'};font-weight:600;">${isWatch?'★ ':''}${c.master}</span>
+            <span style="color:var(--text-3);font-size:11px;margin-left:6px;">${c.branch}</span></div>
+          <div style="margin-top:3px;"><span style="font-weight:500;">${c.stockName}</span>
+            <span style="color:var(--text-3);font-family:monospace;font-size:10px;margin-left:6px;">${c.stockCode}</span></div>
+        </div>
+        <div style="text-align:right;">
+          <div class="pos-strong" style="font-family:monospace;font-size:13px;">${fmtAmt(c.totalNet)}</div>
+          <div style="font-size:10px;color:var(--text-3);">${c.totalNetLot > 0 ? '+' + c.totalNetLot.toLocaleString() + '張' : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  
+  el.innerHTML = hint + statsHTML + hotHTML + allHTML;
+}
+
+// ========== 05 高手合併視圖 ==========
+function renderMasterViewInit() {
+  if (!CURRENT_DATA || !CURRENT_DATA.master_summaries) return;
+  const sel = document.getElementById('masterViewSelect');
+  if (!sel) return;
+  const masters = Object.entries(CURRENT_DATA.master_summaries)
+    .sort((a,b) => b[1].total_buy_amt - a[1].total_buy_amt);
+  sel.innerHTML = masters.map(([name, m]) => 
+    `<option value="${name}">${name}（${m.branches.length} 分點）</option>`
+  ).join('');
+}
+
+function renderMasterView() {
+  const el = document.getElementById('masterViewResult');
+  if (!CURRENT_DATA || !CURRENT_DATA.master_summaries) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div>載入中...</div>';
+    return;
+  }
+  
+  renderMasterViewInit();
+  const sel = document.getElementById('masterViewSelect');
+  const master = sel.value || Object.keys(CURRENT_DATA.master_summaries)[0];
+  if (!master) {
+    el.innerHTML = '<div class="empty">無資料</div>';
+    return;
+  }
+  if (!sel.value) sel.value = master;
+  
+  const m = CURRENT_DATA.master_summaries[master];
+  if (!m) return;
+  
+  const styleLabels = { daytrader: '🔥 當沖派', swing: '🐢 波段派', mixed: '⚖️ 混合型', unknown: '— 資料不足' };
+  
+  const heroHTML = `
+    <div class="master-hero">
+      <div class="hero-name">
+        👤 ${master}
+        <span class="style-badge ${m.today_style}">${styleLabels[m.today_style] || '—'}</span>
+      </div>
+      <div class="hero-meta">
+        ${m.branches.length} 個分點 · 當沖比 ${(m.avg_daytrade_ratio * 100).toFixed(0)}%
+        · 風格分佈：🔥 ${m.daytrade_stocks} · ⚖️ ${m.partial_stocks} · 🌙 ${m.overnight_stocks}
+      </div>
+      <div class="master-hero-stats">
+        <div class="hero-stat"><div class="label">今日淨買</div><div class="val ${m.total_net_amt>0?'pos-strong':'neg-strong'}">${fmtAmt(m.total_net_amt)}</div></div>
+        <div class="hero-stat"><div class="label">當日損益</div><div class="val ${m.total_daily_pnl>0?'pos':'neg'}">${fmtPnl(m.total_daily_pnl)}</div></div>
+        <div class="hero-stat"><div class="label">本週損益</div><div class="val ${m.total_weekly_pnl>0?'pos':'neg'}">${fmtPnl(m.total_weekly_pnl)}</div></div>
+        <div class="hero-stat"><div class="label">本月損益</div><div class="val ${m.total_monthly_pnl>0?'pos':'neg'}">${fmtPnl(m.total_monthly_pnl)}</div></div>
+        <div class="hero-stat"><div class="label">累積損益</div><div class="val ${m.total_cumulative_pnl>0?'pos-strong':'neg-strong'}">${fmtPnl(m.total_cumulative_pnl)}</div></div>
+        <div class="hero-stat"><div class="label">新建倉</div><div class="val" style="color:var(--red);">${m.total_overnight_lots.toLocaleString()}張</div></div>
+        <div class="hero-stat"><div class="label">未平倉</div><div class="val" style="color:var(--text-2);font-size:14px;">${m.total_open_positions}檔 / ${m.total_open_lots.toLocaleString()}張</div></div>
+        <div class="hero-stat"><div class="label">當日交易量</div><div class="val" style="font-size:14px;color:var(--text-2);">${m.total_buy_lot.toLocaleString()}/${m.total_sell_lot.toLocaleString()}張</div></div>
+      </div>
+    </div>`;
+  
+  // 分點拆解
+  const branchRows = m.branches.map(b => {
+    const s = b.summary;
+    const isWatch = WATCHLIST.has(b.code);
+    return `<tr onclick="showBranchDetail('${b.code}')">
+      <td><div class="stock-cell">
+        <span class="stock-name">${isWatch?'★ ':''}${b.name}</span>
+        <span class="stock-code">${b.code}</span>
+      </div></td>
+      <td class="num">${s.today_buy_lot ? s.today_buy_lot.toLocaleString() + '張' : '—'}</td>
+      <td class="num">${s.today_sell_lot ? s.today_sell_lot.toLocaleString() + '張' : '—'}</td>
+      <td class="num ${s.today_net_amt>0?'pos':'neg'}">${fmtAmt(s.today_net_amt)}</td>
+      <td class="num ${s.daily_pnl>0?'pos':(s.daily_pnl<0?'neg':'')}">${fmtPnl(s.daily_pnl)}</td>
+      <td class="num ${s.total_pnl>0?'pos-strong':(s.total_pnl<0?'neg-strong':'')}">${fmtPnl(s.total_pnl)}</td>
+      <td class="num" style="color:var(--text-2);">${s.open_positions_count}/${s.open_total_lots.toLocaleString()}張</td>
+      <td><span class="style-badge ${s.today_style || 'unknown'}">${styleLabels[s.today_style] || '—'}</span></td>
+    </tr>`;
+  }).join('');
+  
+  const branchesHTML = `
+    <div class="section-title">📊 分點拆解<span class="section-sub">${m.branches.length} 個分點</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>分點</th><th class="num">買張</th><th class="num">賣張</th>
+          <th class="num">淨買金額</th><th class="num">當日損益</th><th class="num">累積損益</th>
+          <th class="num">未平倉</th><th>當日風格</th>
+        </tr></thead>
+        <tbody>${branchRows}</tbody>
+      </table>
+    </div>`;
+  
+  // 共識個股（2 分點以上同時買進）
+  let consensusHTML = '';
+  if (m.consensus_stocks && m.consensus_stocks.length > 0) {
+    const rows = m.consensus_stocks.slice(0, 30).map((s, i) => {
+      const branchTags = s.branches.map(b => 
+        `<span class="master-tag" title="${b.name}: 淨買 ${fmtAmt(b.net_amt)} / 留倉 ${b.overnight_lots}張">${b.name}（${fmtAmt(b.net_amt)}）</span>`
+      ).join('');
+      return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
+        <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
+        <td><div class="stock-cell">
+          <span class="stock-name">${s.name}</span>
+          <span class="stock-code">${s.code}</span>
+        </div></td>
+        <td class="num"><span class="badge ${s.branches.length>=3?'':'gold'}">${s.branches.length} 分點</span></td>
+        <td class="num ${s.total_net_amt>0?'pos-strong':'neg-strong'}">${fmtAmt(s.total_net_amt)}</td>
+        <td class="num">${s.total_net_lot > 0 ? '+' : ''}${s.total_net_lot.toLocaleString()}張</td>
+        <td class="num" style="color:${s.total_overnight_lots>0?'var(--red)':'var(--text-3)'};">${s.total_overnight_lots>0?s.total_overnight_lots.toLocaleString()+'張':'—'}</td>
+        <td>${branchTags}</td>
+      </tr>`;
+    }).join('');
+    
+    consensusHTML = `
+      <div class="section-title" style="margin-top:24px;">🔥 旗下分點共識個股<span class="section-sub">${m.consensus_stocks.length} 檔共買</span></div>
+      <div class="view-hint">💡 這些是該高手<strong>多個分點同時買進</strong>的個股，代表強烈共識。明日可優先觀察。</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="num" style="width:60px;">#</th>
+            <th>個股</th><th class="num">分點數</th>
+            <th class="num">合計淨買</th><th class="num">合計淨買張</th>
+            <th class="num">🌙 留倉</th><th>分點明細</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+  
+  // 最愛股票 Top 20 (top_stocks)
+  let topStocksHTML = '';
+  if (m.top_stocks && m.top_stocks.length > 0) {
+    const rows = m.top_stocks.slice(0, 20).map((s, i) => {
+      const br = s.branches[0];
+      const brInfo = s.branches.length === 1 
+        ? br.name
+        : `${s.branches.length} 分點共買`;
+      return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
+        <td class="num" style="color:var(--gold-bright);">#${i+1}</td>
+        <td><div class="stock-cell">
+          <span class="stock-name">${s.name}</span>
+          <span class="stock-code">${s.code}</span>
+        </div></td>
+        <td class="num ${s.total_net_amt>0?'pos-strong':'neg-strong'}">${fmtAmt(s.total_net_amt)}</td>
+        <td class="num">${s.total_net_lot > 0 ? '+' : ''}${s.total_net_lot.toLocaleString()}張</td>
+        <td class="num" style="color:${s.total_overnight_lots>0?'var(--red)':'var(--text-3)'};">${s.total_overnight_lots>0?s.total_overnight_lots.toLocaleString()+'張':'—'}</td>
+        <td style="color:var(--text-2);font-size:12px;">${brInfo}</td>
+      </tr>`;
+    }).join('');
+    
+    topStocksHTML = `
+      <div class="section-title" style="margin-top:24px;">🎯 今日進出前 20 名個股</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="num" style="width:60px;">#</th>
+            <th>個股</th><th class="num">淨買金額</th><th class="num">淨買張</th>
+            <th class="num">🌙 留倉</th><th>來源</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+  
+  el.innerHTML = heroHTML + branchesHTML + consensusHTML + topStocksHTML;
+}
+
+// ========== 03 分點動態 ==========
+function getBranchSummary(branchCode) {
+  if (!CURRENT_DATA || !CURRENT_DATA.branch_summaries) return null;
+  return CURRENT_DATA.branch_summaries[branchCode] || null;
+}
+
 function renderBranches() {
   const el = document.getElementById('branchResult');
   if (!CURRENT_DATA) return;
   document.getElementById('branchSubtitle').textContent = formatDate(CURRENT_DATA.trade_date);
-  
   const search = document.getElementById('branchSearch').value.toLowerCase();
   const sortBy = document.getElementById('branchSort').value;
-  
   let branches = CURRENT_DATA.branches.filter(b => b.buys && b.buys.length > 0);
   if (branchMode === 'watch') branches = branches.filter(b => WATCHLIST.has(b.code));
   if (search) {
     branches = branches.filter(b => 
       b.name.toLowerCase().includes(search) || 
       b.master.toLowerCase().includes(search) ||
-      b.code.toLowerCase().includes(search)
-    );
+      b.code.toLowerCase().includes(search));
   }
   if (sortBy === 'netamt') {
     branches.sort((a,b) => {
-      const sa = a.buys.reduce((s,x) => s + x.net, 0);
-      const sb = b.buys.reduce((s,x) => s + x.net, 0);
+      const sa = a.buys.reduce((s,x) => s + (x.net_amt !== undefined ? x.net_amt : x.net), 0);
+      const sb = b.buys.reduce((s,x) => s + (x.net_amt !== undefined ? x.net_amt : x.net), 0);
       return sb - sa;
     });
+  } else if (sortBy === 'total_pnl') {
+    branches.sort((a,b) => (getBranchSummary(b.code)?.total_pnl || 0) - (getBranchSummary(a.code)?.total_pnl || 0));
+  } else if (sortBy === 'daily_pnl') {
+    branches.sort((a,b) => (getBranchSummary(b.code)?.daily_pnl || 0) - (getBranchSummary(a.code)?.daily_pnl || 0));
   } else {
     branches.sort((a,b) => (a.master||'').localeCompare(b.master||'', 'zh-Hant'));
   }
-  
   if (branches.length === 0) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>沒有符合條件的分點</div>';
     return;
   }
-  
   const cardsHTML = branches.map(b => {
     const isWatch = WATCHLIST.has(b.code);
-    const stocksHTML = b.buys.slice(0, 15).map(s => {
-      const netClass = s.net > 0 ? 'pos' : 'neg';
+    const sum = getBranchSummary(b.code);
+    
+    const pnlRow = sum ? `
+      <div class="branch-pnl-row">
+        <div class="pnl-pill">
+          <span class="pnl-label">當日</span>
+          <span class="pnl-val ${sum.daily_pnl > 0 ? 'pos' : (sum.daily_pnl < 0 ? 'neg' : '')}">${fmtPnl(sum.daily_pnl)}</span>
+        </div>
+        <div class="pnl-pill">
+          <span class="pnl-label">本週</span>
+          <span class="pnl-val ${sum.weekly_pnl > 0 ? 'pos' : (sum.weekly_pnl < 0 ? 'neg' : '')}">${fmtPnl(sum.weekly_pnl)}</span>
+        </div>
+        <div class="pnl-pill">
+          <span class="pnl-label">本月</span>
+          <span class="pnl-val ${sum.monthly_pnl > 0 ? 'pos' : (sum.monthly_pnl < 0 ? 'neg' : '')}">${fmtPnl(sum.monthly_pnl)}</span>
+        </div>
+        <div class="pnl-pill">
+          <span class="pnl-label">累積</span>
+          <span class="pnl-val ${sum.total_pnl > 0 ? 'pos-strong' : (sum.total_pnl < 0 ? 'neg-strong' : '')}">${fmtPnl(sum.total_pnl)}</span>
+        </div>
+        <div class="pnl-pill" style="margin-left:auto;">
+          <span class="pnl-label">未平倉</span>
+          <span class="pnl-val" style="color:var(--text-2);">${sum.open_positions_count}檔 / ${sum.open_total_lots.toLocaleString()}張</span>
+        </div>
+      </div>` : '';
+    
+    const stocksHTML = b.buys.slice(0, 20).map(s => {
+      const net = s.net_amt !== undefined ? s.net_amt : s.net;
+      const buy = s.buy_amt !== undefined ? s.buy_amt : s.buy;
+      const sell = s.sell_amt !== undefined ? s.sell_amt : s.sell;
+      const netClass = net > 0 ? 'pos' : 'neg';
+      
+      // 資料狀態判斷
+      const hasAmt = (buy > 0 || sell > 0);
+      const hasLot = (s.buy_lot > 0 || s.sell_lot > 0);
+      
+      // 張數資訊：僅在有張數時顯示
+      let lotInfo = '';
+      if (hasLot) {
+        const avg = s.buy_avg > 0 ? s.buy_avg : (s.sell_avg > 0 ? s.sell_avg : 0);
+        lotInfo = `${s.buy_lot}張/${s.sell_lot}張${avg > 0 ? ' · 均' + avg : ''}`;
+      } else if (hasAmt) {
+        lotInfo = '<span style="color:var(--text-3);">（張數未排進前30）</span>';
+      }
+      
+      const pnlInfo = s.pnl_intraday !== undefined && s.pnl_intraday !== 0
+        ? `<span class="${s.pnl_intraday > 0 ? 'pos' : 'neg'}">沖${s.pnl_intraday.toFixed(0)}</span>` 
+        : '';
+      
+      // 金額顯示
+      let amtLine;
+      if (hasAmt) {
+        amtLine = `<div class="net ${netClass}">▲ ${fmtAmt(net)}</div>
+                   <div class="amt">買 ${fmtAmt(buy)} / 賣 ${fmtAmt(sell)}</div>`;
+      } else {
+        // 只有張數沒金額（低價股）
+        amtLine = `<div class="net ${(s.net_lot || 0) > 0 ? 'pos' : 'neg'}">▲ ${s.net_lot}張</div>
+                   <div class="amt" style="color:var(--text-3);">（金額未排進前30）</div>`;
+      }
+      
       return `<div class="stock-row" onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
-        <div class="left"><span class="sname">${s.name}</span><span class="scode">${s.code}</span></div>
+        <div class="left">
+          <span class="sname">${s.name}</span>
+          <span class="scode">${s.code}</span>
+          ${lotInfo ? `<span class="lot-line">${lotInfo}</span>` : ''}
+        </div>
+        <div class="middle">
+          ${pnlInfo}
+        </div>
         <div class="right">
-          <div class="net ${netClass}">▲ ${fmtAmt(s.net)}</div>
-          <div class="amt">買 ${fmtAmt(s.buy)} / 賣 ${fmtAmt(s.sell)}</div>
+          ${amtLine}
         </div>
       </div>`;
     }).join('');
+    
+    const styleLabelsCard = { daytrader: '🔥 當沖派', swing: '🐢 波段派', mixed: '⚖️ 混合型', unknown: '' };
+    const styleBadgeHTML = sum && sum.today_style && sum.today_style !== 'unknown'
+      ? `<span class="style-badge ${sum.today_style}" style="margin-left:0;margin-top:4px;display:inline-block;">${styleLabelsCard[sum.today_style]}</span>`
+      : '';
+    
     return `<div class="branch-card ${isWatch ? 'highlighted' : ''}">
       <div class="branch-header">
         <div>
           <div class="branch-name">${isWatch ? '★' : '　'} ${b.name}</div>
           <div class="branch-master-name">${b.master}</div>
+          ${styleBadgeHTML}
         </div>
         <div style="text-align:right;">
           <div class="branch-meta">${b.code}</div>
           <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${b.buys.length} 檔</div>
+          ${sum && sum.avg_daytrade_ratio ? `<div style="font-size:10px;color:var(--text-3);font-family:monospace;margin-top:2px;">當沖比 ${(sum.avg_daytrade_ratio*100).toFixed(0)}%</div>` : ''}
         </div>
       </div>
+      ${pnlRow}
       <div class="branch-stocks">${stocksHTML}</div>
     </div>`;
   }).join('');
   el.innerHTML = `<div class="cards-grid">${cardsHTML}</div>`;
 }
 
+// ========== 03 累積排行 ==========
+function computePeriodPnlForStock(stock, today, period) {
+  // 支援 daily / short(近5日) / weekly / monthly / mid(近60日) / total
+  if (period === 'total') return stock.total_realized_wan || 0;
+  let sum = 0;
+  for (const rec of (stock.realized_history || [])) {
+    if (matchPeriod(rec.date, today, period)) {
+      sum += rec.pnl_wan || 0;
+    }
+  }
+  return sum;
+}
+
+function computePeriodPnlForBranch(positions, branchCode, today, period) {
+  const br = positions?.branches?.[branchCode];
+  if (!br) return 0;
+  let sum = 0;
+  for (const stockCode in (br.stocks || {})) {
+    sum += computePeriodPnlForStock(br.stocks[stockCode], today, period);
+  }
+  return sum;
+}
+
+function renderRanking() {
+  const el = document.getElementById('rankingResult');
+  if (!POSITIONS || !CURRENT_DATA) {
+    el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>載入累積資料...</div>';
+    return;
+  }
+  
+  const periodLabels = { 
+    daily: '當日', short: '近5日', weekly: '本週', 
+    monthly: '本月', mid: '近60日', total: '累積全部' 
+  };
+  
+  const baseline = POSITIONS.baseline_date || '20260421';
+  const infoHTML = `<div class="info-banner">📅 累積損益自基準日 ${formatDate(baseline)} 起算，採 FIFO 追蹤。基準日前部位無法計算。${rankPeriod==='short'||rankPeriod==='mid'?' 此期間需有足夠歷史資料。':''}</div>`;
+  
+  const today = CURRENT_DATA.trade_date;
+  
+  if (rankView === 'branches') {
+    // 分點排行
+    let branches = CURRENT_DATA.branches.filter(b => b.buys && b.buys.length > 0);
+    if (rankScope === 'watch') branches = branches.filter(b => WATCHLIST.has(b.code));
+    
+    const list = branches.map(b => {
+      const sum = CURRENT_DATA.branch_summaries?.[b.code] || {};
+      // 對 short/mid 動態計算（從 positions 取）
+      let pnl;
+      if (rankPeriod === 'daily') pnl = sum.daily_pnl || 0;
+      else if (rankPeriod === 'weekly') pnl = sum.weekly_pnl || 0;
+      else if (rankPeriod === 'monthly') pnl = sum.monthly_pnl || 0;
+      else if (rankPeriod === 'total') pnl = sum.total_pnl || 0;
+      else pnl = computePeriodPnlForBranch(POSITIONS, b.code, today, rankPeriod);
+      
+      return {
+        code: b.code, name: b.name, master: b.master,
+        pnl,
+        daily: sum?.daily_pnl || 0, weekly: sum?.weekly_pnl || 0, 
+        monthly: sum?.monthly_pnl || 0, total: sum?.total_pnl || 0,
+        open_cnt: sum?.open_positions_count || 0, open_lots: sum?.open_total_lots || 0,
+      };
+    }).sort((a,b) => b.pnl - a.pnl);
+    
+    if (list.length === 0) {
+      el.innerHTML = infoHTML + '<div class="empty"><div class="empty-icon">📊</div>尚無資料</div>';
+      return;
+    }
+    
+    const totalPnl = list.reduce((s,x) => s + x.pnl, 0);
+    const winnerCnt = list.filter(x => x.pnl > 0).length;
+    const loserCnt = list.filter(x => x.pnl < 0).length;
+    const statsHTML = `
+      <div class="stat-row">
+        <div class="stat-box"><div class="label">期間</div><div class="val" style="font-size:16px;">${periodLabels[rankPeriod]}</div></div>
+        <div class="stat-box"><div class="label">分點數</div><div class="val">${list.length}</div></div>
+        <div class="stat-box"><div class="label">獲利/虧損</div><div class="val" style="font-size:16px;"><span class="pos">${winnerCnt}</span>/<span class="neg">${loserCnt}</span></div></div>
+        <div class="stat-box"><div class="label">總損益</div><div class="val ${totalPnl>0?'pos-strong':'neg-strong'}" style="font-size:18px;">${fmtPnl(totalPnl)}</div></div>
+      </div>`;
+    
+    const rowsHTML = list.map((x, i) => `<tr onclick="showBranchDetail('${x.code}')">
+      <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
+      <td><div class="stock-cell">
+        <span class="stock-name">${WATCHLIST.has(x.code) ? '★ ' : ''}${x.name}</span>
+        <span class="stock-code">${x.master} · ${x.code}</span>
+      </div></td>
+      <td class="num ${x.pnl>0?'pos-strong':(x.pnl<0?'neg-strong':'')}" style="font-size:15px;font-weight:700;">${fmtPnl(x.pnl)}</td>
+      <td class="num ${x.daily>0?'pos':(x.daily<0?'neg':'')}">${fmtPnl(x.daily)}</td>
+      <td class="num ${x.weekly>0?'pos':(x.weekly<0?'neg':'')}">${fmtPnl(x.weekly)}</td>
+      <td class="num ${x.monthly>0?'pos':(x.monthly<0?'neg':'')}">${fmtPnl(x.monthly)}</td>
+      <td class="num ${x.total>0?'pos-strong':(x.total<0?'neg-strong':'')}" style="font-size:13px;">${fmtPnl(x.total)}</td>
+      <td class="num" style="color:var(--text-2);">${x.open_cnt}檔/${x.open_lots.toLocaleString()}張</td>
+    </tr>`).join('');
+    
+    el.innerHTML = infoHTML + statsHTML + `
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="num" style="width:60px;">#</th>
+            <th>分點（高手）</th>
+            <th class="num">${periodLabels[rankPeriod]}</th>
+            <th class="num">當日</th>
+            <th class="num">本週</th>
+            <th class="num">本月</th>
+            <th class="num">累積</th>
+            <th class="num">未平倉</th>
+          </tr></thead>
+          <tbody>${rowsHTML}</tbody>
+        </table>
+      </div>`;
+  } else if (rankView === 'masters') {
+    // 高手排行（按 master 聚合）
+    const masterSummaries = CURRENT_DATA.master_summaries || {};
+    let list = Object.entries(masterSummaries).map(([name, m]) => {
+      // 對 short/mid 動態算：從每個分點算一遍再加起來
+      let pnl;
+      if (rankPeriod === 'daily') pnl = m.total_daily_pnl;
+      else if (rankPeriod === 'weekly') pnl = m.total_weekly_pnl;
+      else if (rankPeriod === 'monthly') pnl = m.total_monthly_pnl;
+      else if (rankPeriod === 'total') pnl = m.total_cumulative_pnl;
+      else {
+        pnl = 0;
+        for (const br of m.branches) {
+          pnl += computePeriodPnlForBranch(POSITIONS, br.code, today, rankPeriod);
+        }
+      }
+      return { name, m, pnl };
+    });
+    
+    // 範圍過濾：如果是 watch 模式，只保留有任何關注分點的高手
+    if (rankScope === 'watch') {
+      list = list.filter(x => x.m.branches.some(b => WATCHLIST.has(b.code)));
+    }
+    list.sort((a,b) => b.pnl - a.pnl);
+    
+    if (list.length === 0) {
+      el.innerHTML = infoHTML + '<div class="empty"><div class="empty-icon">👥</div>尚無資料</div>';
+      return;
+    }
+    
+    const totalPnl = list.reduce((s,x) => s + x.pnl, 0);
+    const winnerCnt = list.filter(x => x.pnl > 0).length;
+    const loserCnt = list.filter(x => x.pnl < 0).length;
+    const statsHTML = `
+      <div class="stat-row">
+        <div class="stat-box"><div class="label">期間</div><div class="val" style="font-size:16px;">${periodLabels[rankPeriod]}</div></div>
+        <div class="stat-box"><div class="label">高手數</div><div class="val">${list.length}</div></div>
+        <div class="stat-box"><div class="label">獲利/虧損</div><div class="val" style="font-size:16px;"><span class="pos">${winnerCnt}</span>/<span class="neg">${loserCnt}</span></div></div>
+        <div class="stat-box"><div class="label">合計損益</div><div class="val ${totalPnl>0?'pos-strong':'neg-strong'}" style="font-size:18px;">${fmtPnl(totalPnl)}</div></div>
+      </div>`;
+    
+    const styleLabels = { daytrader: '🔥 當沖', swing: '🐢 波段', mixed: '⚖️ 混合', unknown: '—' };
+    
+    const rowsHTML = list.map((x, i) => {
+      const m = x.m;
+      return `<tr onclick="openMasterView('${x.name.replace(/'/g,"\\'")}')">
+        <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
+        <td><div class="stock-cell">
+          <span class="stock-name">${x.name}</span>
+          <span class="stock-code">${m.branches.length} 分點 · 今日淨買 ${fmtAmt(m.total_net_amt)}</span>
+        </div></td>
+        <td><span class="style-badge ${m.today_style}">${styleLabels[m.today_style] || '—'}</span></td>
+        <td class="num ${x.pnl>0?'pos-strong':(x.pnl<0?'neg-strong':'')}" style="font-size:15px;font-weight:700;">${fmtPnl(x.pnl)}</td>
+        <td class="num ${m.total_daily_pnl>0?'pos':(m.total_daily_pnl<0?'neg':'')}">${fmtPnl(m.total_daily_pnl)}</td>
+        <td class="num ${m.total_weekly_pnl>0?'pos':(m.total_weekly_pnl<0?'neg':'')}">${fmtPnl(m.total_weekly_pnl)}</td>
+        <td class="num ${m.total_monthly_pnl>0?'pos':(m.total_monthly_pnl<0?'neg':'')}">${fmtPnl(m.total_monthly_pnl)}</td>
+        <td class="num ${m.total_cumulative_pnl>0?'pos-strong':(m.total_cumulative_pnl<0?'neg-strong':'')}" style="font-size:13px;">${fmtPnl(m.total_cumulative_pnl)}</td>
+        <td class="num" style="color:var(--text-2);">${m.total_open_positions}檔/${m.total_open_lots.toLocaleString()}張</td>
+      </tr>`;
+    }).join('');
+    
+    el.innerHTML = infoHTML + statsHTML + `
+      <div class="view-hint">💡 點擊任一高手 → 跳轉到「高手合併視圖」查看完整細節。</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="num" style="width:60px;">#</th>
+            <th>高手</th>
+            <th>今日風格</th>
+            <th class="num">${periodLabels[rankPeriod]}</th>
+            <th class="num">當日</th>
+            <th class="num">本週</th>
+            <th class="num">本月</th>
+            <th class="num">累積</th>
+            <th class="num">未平倉</th>
+          </tr></thead>
+          <tbody>${rowsHTML}</tbody>
+        </table>
+      </div>`;
+  } else {
+    // 熱門個股：聚合所有分點的該檔股票累積損益
+    const stockAgg = new Map();
+    for (const [branchCode, br] of Object.entries(POSITIONS.branches || {})) {
+      if (rankScope === 'watch' && !WATCHLIST.has(branchCode)) continue;
+      for (const [stockCode, st] of Object.entries(br.stocks || {})) {
+        const periodPnl = computePeriodPnlForStock(st, today, rankPeriod);
+        const openLots = (st.open_lots || []).reduce((s,p) => s + p.lots, 0);
+        const key = stockCode;
+        if (!stockAgg.has(key)) {
+          stockAgg.set(key, { code: stockCode, name: st.stock_name, pnl: 0, branches_involved: 0, open_lots: 0 });
+        }
+        const agg = stockAgg.get(key);
+        agg.pnl += periodPnl;
+        if (Math.abs(periodPnl) > 0.001 || openLots > 0) agg.branches_involved++;
+        agg.open_lots += openLots;
+      }
+    }
+    
+    const list = Array.from(stockAgg.values()).filter(s => Math.abs(s.pnl) > 0.001 || s.open_lots > 0).sort((a,b) => b.pnl - a.pnl);
+    
+    if (list.length === 0) {
+      el.innerHTML = infoHTML + '<div class="empty"><div class="empty-icon">📉</div>此期間尚無實現損益</div>';
+      return;
+    }
+    
+    const totalPnl = list.reduce((s,x) => s + x.pnl, 0);
+    const statsHTML = `
+      <div class="stat-row">
+        <div class="stat-box"><div class="label">期間</div><div class="val" style="font-size:16px;">${periodLabels[rankPeriod]}</div></div>
+        <div class="stat-box"><div class="label">涉及個股</div><div class="val">${list.length}</div></div>
+        <div class="stat-box"><div class="label">熱門榜首</div><div class="val" style="font-size:14px;">${list[0].name}</div></div>
+        <div class="stat-box"><div class="label">合計損益</div><div class="val ${totalPnl>0?'pos-strong':'neg-strong'}" style="font-size:18px;">${fmtPnl(totalPnl)}</div></div>
+      </div>`;
+    
+    const rowsHTML = list.slice(0, 100).map((s, i) => `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
+      <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
+      <td><div class="stock-cell">
+        <span class="stock-name">${s.name}</span>
+        <span class="stock-code">${s.code}</span>
+      </div></td>
+      <td class="num">${s.branches_involved}</td>
+      <td class="num ${s.pnl>0?'pos-strong':'neg-strong'}" style="font-size:14px;">${fmtPnl(s.pnl)}</td>
+      <td class="num" style="color:var(--text-2);">${s.open_lots.toLocaleString()}張</td>
+    </tr>`).join('');
+    
+    el.innerHTML = infoHTML + statsHTML + `
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="num" style="width:60px;">#</th>
+            <th>個股</th>
+            <th class="num">涉及分點</th>
+            <th class="num">${periodLabels[rankPeriod]}損益</th>
+            <th class="num">未平倉</th>
+          </tr></thead>
+          <tbody>${rowsHTML}</tbody>
+        </table>
+      </div>`;
+  }
+}
+
+function matchPeriod(recDate, todayDate, period) {
+  if (period === 'daily') return recDate === todayDate;
+  const y = parseInt(todayDate.slice(0,4)), mo = parseInt(todayDate.slice(4,6)), d = parseInt(todayDate.slice(6,8));
+  const today = new Date(y, mo-1, d);
+  const ry = parseInt(recDate.slice(0,4)), rmo = parseInt(recDate.slice(4,6)), rd = parseInt(recDate.slice(6,8));
+  const rec = new Date(ry, rmo-1, rd);
+  if (period === 'weekly') {
+    const weekStart = new Date(today);
+    const dow = today.getDay() || 7;
+    weekStart.setDate(today.getDate() - dow + 1);
+    return rec >= weekStart;
+  }
+  if (period === 'monthly') {
+    return ry === y && rmo === mo;
+  }
+  if (period === 'short') {
+    // 近 5 日
+    const start = new Date(today);
+    start.setDate(today.getDate() - 4);
+    return rec >= start && rec <= today;
+  }
+  if (period === 'mid') {
+    // 近 60 日
+    const start = new Date(today);
+    start.setDate(today.getDate() - 59);
+    return rec >= start && rec <= today;
+  }
+  return true;
+}
+
+// ========== 04 個股追蹤 ==========
 async function renderStockTrace() {
   const el = document.getElementById('stockTraceResult');
   if (!CURRENT_DATA) return;
-  
   const q = document.getElementById('stockSearchInput').value.trim().toLowerCase();
   if (!q) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">🔎</div>請輸入股票代號或名稱開始搜尋</div>';
     return;
   }
-  
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密多日歷史...</div>';
-  
   const datesToLoad = AVAILABLE_DATES.slice(0, 30);
   await Promise.all(datesToLoad.map(d => loadDate(d)));
   
@@ -1498,7 +2639,14 @@ async function renderStockTrace() {
       if (stockMode === 'watch' && !WATCHLIST.has(br.code)) continue;
       for (const s of br.buys) {
         if (s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)) {
-          matched.push({ date, master: br.master, branch: br.name, branchCode: br.code, ...s });
+          matched.push({
+            date, master: br.master, branch: br.name, branchCode: br.code,
+            code: s.code, name: s.name,
+            buy: s.buy_amt !== undefined ? s.buy_amt : s.buy,
+            sell: s.sell_amt !== undefined ? s.sell_amt : s.sell,
+            net: s.net_amt !== undefined ? s.net_amt : s.net,
+            buy_lot: s.buy_lot || 0, sell_lot: s.sell_lot || 0, net_lot: s.net_lot || 0,
+          });
         }
       }
     }
@@ -1521,6 +2669,24 @@ async function renderStockTrace() {
     stock.records.sort((a,b) => b.date.localeCompare(a.date));
     const branches = new Set(stock.records.map(r => r.branchCode));
     const totalNet = stock.records.reduce((s,r) => s + r.net, 0);
+    const totalNetLot = stock.records.reduce((s,r) => s + r.net_lot, 0);
+    
+    // 從 POSITIONS 找各分點的累積實現損益
+    let totalRealized = 0;
+    let openSummary = [];
+    if (POSITIONS) {
+      for (const branchCode of branches) {
+        const stockStore = POSITIONS.branches?.[branchCode]?.stocks?.[stock.code];
+        if (stockStore) {
+          totalRealized += stockStore.total_realized_wan || 0;
+          const lots = (stockStore.open_lots || []).reduce((s,p) => s + p.lots, 0);
+          if (lots > 0) {
+            const br = CURRENT_DATA.branches.find(b => b.code === branchCode);
+            openSummary.push({ master: br?.master || branchCode, lots });
+          }
+        }
+      }
+    }
     
     const rowsHTML = stock.records.slice(0, 100).map(r => {
       const isWatch = WATCHLIST.has(r.branchCode);
@@ -1528,11 +2694,17 @@ async function renderStockTrace() {
         <td style="color:var(--text-2);font-family:monospace;">${formatDate(r.date)}</td>
         <td><span style="color:${isWatch?'var(--gold-bright)':'var(--text-2)'};">${isWatch?'★ ':''}${r.master}</span>
           <div style="font-size:11px;color:var(--text-3);">${r.branch}</div></td>
+        <td class="num">${r.buy_lot ? r.buy_lot + '張' : '—'}</td>
+        <td class="num">${r.sell_lot ? r.sell_lot + '張' : '—'}</td>
         <td class="num">${fmtAmt(r.buy)}</td>
         <td class="num">${fmtAmt(r.sell)}</td>
-        <td class="num pos" style="font-weight:600;">▲ ${fmtAmt(r.net)}</td>
+        <td class="num ${r.net>0?'pos-strong':'neg-strong'}">${fmtAmt(r.net)}</td>
       </tr>`;
     }).join('');
+    
+    const openInfo = openSummary.length > 0 
+      ? `<div class="info-banner" style="margin-bottom:12px;">🏦 目前未平倉：${openSummary.map(o => `${o.master} ${o.lots}張`).join('、')}</div>`
+      : '';
     
     parts.push(`
       <div style="margin-bottom:24px;">
@@ -1542,11 +2714,18 @@ async function renderStockTrace() {
         <div class="stat-row">
           <div class="stat-box"><div class="label">出現次數</div><div class="val">${stock.records.length}</div></div>
           <div class="stat-box"><div class="label">涉及分點</div><div class="val">${branches.size}</div></div>
-          <div class="stat-box"><div class="label">累計淨買</div><div class="val pos">${fmtAmt(totalNet)}</div></div>
+          <div class="stat-box"><div class="label">累計淨買金額</div><div class="val ${totalNet>0?'pos-strong':'neg-strong'}">${fmtAmt(totalNet)}</div></div>
+          <div class="stat-box"><div class="label">累計淨買張數</div><div class="val">${totalNetLot.toLocaleString()}</div></div>
+          <div class="stat-box"><div class="label">累積實現損益</div><div class="val ${totalRealized>0?'pos-strong':(totalRealized<0?'neg-strong':'')}" style="font-size:18px;">${fmtPnl(totalRealized)}</div></div>
         </div>
+        ${openInfo}
         <div class="table-wrap">
           <table>
-            <thead><tr><th>日期</th><th>分點</th><th class="num">買進</th><th class="num">賣出</th><th class="num">淨買</th></tr></thead>
+            <thead><tr>
+              <th>日期</th><th>分點</th>
+              <th class="num">買張</th><th class="num">賣張</th>
+              <th class="num">買進</th><th class="num">賣出</th><th class="num">淨買</th>
+            </tr></thead>
             <tbody>${rowsHTML}</tbody>
           </table>
         </div>
@@ -1555,20 +2734,17 @@ async function renderStockTrace() {
   el.innerHTML = parts.join('');
 }
 
+// ========== 05 高手偏好 ==========
 async function renderMasterPref() {
   const el = document.getElementById('masterResult');
   if (!CURRENT_DATA) return;
-  
   const branchCode = document.getElementById('masterSelect').value;
   const days = parseInt(document.getElementById('masterDays').value);
-  
   if (!branchCode) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div>請選擇分點</div>';
     return;
   }
-  
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密歷史...</div>';
-  
   const datesToLoad = AVAILABLE_DATES.slice(0, days);
   await Promise.all(datesToLoad.map(d => loadDate(d)));
   
@@ -1581,16 +2757,16 @@ async function renderMasterPref() {
     const br = dayData.branches.find(b => b.code === branchCode);
     if (!br || !br.buys || br.buys.length === 0) continue;
     activeDays++;
-    
     for (const s of br.buys) {
       const key = s.code + '::' + s.name;
       if (!stockMap.has(key)) {
-        stockMap.set(key, { code: s.code, name: s.name, dates: [], totalNet: 0, totalBuy: 0 });
+        stockMap.set(key, { code: s.code, name: s.name, dates: [], totalNet: 0, totalNetLot: 0 });
       }
       const o = stockMap.get(key);
-      o.dates.push({ date, net: s.net });
-      o.totalNet += s.net;
-      o.totalBuy += s.buy;
+      const net = s.net_amt !== undefined ? s.net_amt : s.net;
+      o.dates.push({ date, net, net_lot: s.net_lot || 0 });
+      o.totalNet += net;
+      o.totalNetLot += (s.net_lot || 0);
     }
   }
   
@@ -1601,18 +2777,26 @@ async function renderMasterPref() {
   
   const list = Array.from(stockMap.values()).sort((a,b) => b.totalNet - a.totalNet);
   const branchInfo = CURRENT_DATA.branches.find(b => b.code === branchCode);
+  const sum = getBranchSummary(branchCode);
+  
+  // 用 POSITIONS 顯示該分點每檔股票累積損益
+  const branchPos = POSITIONS?.branches?.[branchCode]?.stocks || {};
   
   const statsHTML = `
     <div class="stat-row">
       <div class="stat-box"><div class="label">分點</div><div class="val" style="font-size:14px;">${branchInfo?.name || '—'}</div></div>
       <div class="stat-box"><div class="label">活動天數</div><div class="val">${activeDays}</div></div>
       <div class="stat-box"><div class="label">交易檔數</div><div class="val">${stockMap.size}</div></div>
-      <div class="stat-box"><div class="label">累計淨買</div><div class="val pos">${fmtAmt(list.reduce((s,x)=>s+x.totalNet,0))}</div></div>
+      <div class="stat-box"><div class="label">累計淨買金額</div><div class="val pos-strong">${fmtAmt(list.reduce((s,x)=>s+x.totalNet,0))}</div></div>
+      ${sum ? `<div class="stat-box"><div class="label">累積已實現</div><div class="val ${sum.total_pnl>0?'pos-strong':'neg-strong'}">${fmtPnl(sum.total_pnl)}</div></div>` : ''}
     </div>`;
   
   const rowsHTML = list.slice(0, 50).map((s, i) => {
     const timeline = s.dates.sort((a,b) => a.date.localeCompare(b.date))
-      .map(d => `<span style="color:var(--red);font-family:monospace;font-size:11px;margin-right:4px;" title="${formatDate(d.date)}: 淨買 ${fmtAmt(d.net)}">▲</span>`).join('');
+      .map(d => `<span style="color:${d.net>0?'var(--red)':'var(--green)'};font-family:monospace;font-size:11px;margin-right:4px;" title="${formatDate(d.date)}: 淨買 ${fmtAmt(d.net)} (${d.net_lot}張)">${d.net>0?'▲':'▼'}</span>`).join('');
+    const stockPos = branchPos[s.code];
+    const realized = stockPos?.total_realized_wan || 0;
+    const openLots = (stockPos?.open_lots || []).reduce((x,p) => x + p.lots, 0);
     return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
       <td class="num" style="color:var(--gold-bright);">#${i+1}</td>
       <td><div class="stock-cell">
@@ -1621,7 +2805,10 @@ async function renderMasterPref() {
       </div></td>
       <td class="num">${s.dates.length}</td>
       <td>${timeline}</td>
-      <td class="num pos" style="font-weight:600;">${fmtAmt(s.totalNet)}</td>
+      <td class="num pos-strong">${fmtAmt(s.totalNet)}</td>
+      <td class="num" style="color:var(--text-2);">${s.totalNetLot.toLocaleString()}</td>
+      <td class="num ${realized>0?'pos':(realized<0?'neg':'')}">${realized !== 0 ? fmtPnl(realized) : '—'}</td>
+      <td class="num" style="color:var(--text-2);">${openLots > 0 ? openLots + '張' : '—'}</td>
     </tr>`;
   }).join('');
   
@@ -1631,15 +2818,19 @@ async function renderMasterPref() {
         <thead><tr>
           <th class="num" style="width:60px;">#</th>
           <th>個股</th>
-          <th class="num">進出次數</th>
+          <th class="num">出現</th>
           <th>時間軸</th>
-          <th class="num">累計淨買</th>
+          <th class="num">累計淨買金額</th>
+          <th class="num">累計淨買張數</th>
+          <th class="num">已實現</th>
+          <th class="num">未平倉</th>
         </tr></thead>
         <tbody>${rowsHTML}</tbody>
       </table>
     </div>`;
 }
 
+// ========== Stock Detail Drawer ==========
 async function showStockDetail(code, name) {
   document.getElementById('drawerTitle').textContent = name;
   document.getElementById('drawerSub').textContent = code + ' · 解密中...';
@@ -1658,13 +2849,18 @@ async function showStockDetail(code, name) {
       if (!br.buys) continue;
       for (const s of br.buys) {
         if (s.code === code) {
-          records.push({ date, master: br.master, branch: br.name, branchCode: br.code, ...s });
+          records.push({
+            date, master: br.master, branch: br.name, branchCode: br.code,
+            buy: s.buy_amt !== undefined ? s.buy_amt : s.buy,
+            sell: s.sell_amt !== undefined ? s.sell_amt : s.sell,
+            net: s.net_amt !== undefined ? s.net_amt : s.net,
+            buy_lot: s.buy_lot || 0, sell_lot: s.sell_lot || 0,
+          });
         }
       }
     }
   }
   records.sort((a,b) => b.date.localeCompare(a.date));
-  
   document.getElementById('drawerSub').textContent = code + ' · ' + records.length + ' 筆歷史';
   
   if (records.length === 0) {
@@ -1672,20 +2868,34 @@ async function showStockDetail(code, name) {
     return;
   }
   
+  // 各分點的 FIFO 累積
   const masterMap = new Map();
   for (const r of records) {
-    if (!masterMap.has(r.master)) masterMap.set(r.master, { count: 0, net: 0 });
-    masterMap.get(r.master).count++;
-    masterMap.get(r.master).net += r.net;
+    if (!masterMap.has(r.master)) masterMap.set(r.master, { count: 0, net: 0, net_lot: 0, realized: 0, open_lots: 0 });
+    const m = masterMap.get(r.master);
+    m.count++;
+    m.net += r.net;
+    m.net_lot += r.sell_lot ? (r.buy_lot - r.sell_lot) : r.buy_lot;
+    // 從 POSITIONS 取得累積實現損益
+    if (POSITIONS) {
+      const stockPos = POSITIONS.branches?.[r.branchCode]?.stocks?.[code];
+      if (stockPos) {
+        m.realized = stockPos.total_realized_wan || 0;
+        m.open_lots = (stockPos.open_lots || []).reduce((s,p) => s + p.lots, 0);
+      }
+    }
   }
-  const mList = Array.from(masterMap.entries()).sort((a,b) => b[1].net - a[1].net);
+  const mList = Array.from(masterMap.entries()).sort((a,b) => b[1].realized - a[1].realized);
   
   const mHTML = mList.map(([m, o]) => `
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);">
-      <span style="color:var(--text);">${m}</span>
-      <div style="text-align:right;">
-        <span style="color:var(--text-3);font-size:11px;font-family:monospace;">${o.count}次</span>
-        <span class="pos" style="font-family:monospace;margin-left:10px;font-weight:600;">${fmtAmt(o.net)}</span>
+    <div style="padding:10px 0;border-bottom:1px solid var(--line);">
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:var(--text);font-weight:500;">${m}</span>
+        <span class="${o.realized>0?'pos-strong':(o.realized<0?'neg-strong':'')}" style="font-family:monospace;">${o.realized !== 0 ? fmtPnl(o.realized) : '—'}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:11px;color:var(--text-3);font-family:monospace;">
+        <span>出現 ${o.count} 次 · 累計淨買 ${fmtAmt(o.net)}</span>
+        <span>未平倉 ${o.open_lots} 張</span>
       </div>
     </div>`).join('');
   
@@ -1693,14 +2903,14 @@ async function showStockDetail(code, name) {
     <div style="padding:8px 0;border-bottom:1px solid var(--line);font-size:12px;">
       <div style="display:flex;justify-content:space-between;">
         <span style="color:var(--text-2);font-family:monospace;">${formatDate(r.date)}</span>
-        <span class="pos" style="font-family:monospace;font-weight:600;">▲ ${fmtAmt(r.net)}</span>
+        <span class="${r.net>0?'pos-strong':'neg-strong'}" style="font-family:monospace;">▲ ${fmtAmt(r.net)}</span>
       </div>
-      <div style="color:var(--text-3);font-size:11px;margin-top:2px;">${r.master} · ${r.branch} · 買${fmtAmt(r.buy)}/賣${fmtAmt(r.sell)}</div>
+      <div style="color:var(--text-3);font-size:11px;margin-top:2px;">${r.master} · 買${r.buy_lot}張/賣${r.sell_lot}張 · 買${fmtAmt(r.buy)}/賣${fmtAmt(r.sell)}</div>
     </div>`).join('');
   
   document.getElementById('drawerBody').innerHTML = `
     <div class="drawer-section">
-      <h4>📊 涉及分點（按累計淨買排序）</h4>
+      <h4>📊 各分點累積表現（含 FIFO 已實現損益）</h4>
       ${mHTML}
     </div>
     <div class="drawer-section">
@@ -1709,21 +2919,56 @@ async function showStockDetail(code, name) {
     </div>`;
 }
 
+// 查看分點詳情（從排行榜點擊）
+function showBranchDetail(branchCode) {
+  // 切到分點動態頁並設定搜尋
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.tab[data-tab="branches"]').classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-branches').classList.add('active');
+  document.getElementById('branchSearch').value = branchCode;
+  renderBranches();
+}
+
+function openMasterView(masterName) {
+  // 切到高手合併視圖
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.tab[data-tab="masterview"]').classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-masterview').classList.add('active');
+  renderMasterViewInit();
+  const sel = document.getElementById('masterViewSelect');
+  if (sel) {
+    sel.value = masterName;
+    renderMasterView();
+  }
+}
+
 function closeDrawer() {
   document.getElementById('overlay').classList.remove('show');
   document.getElementById('drawer').classList.remove('show');
 }
 
+// ========== 格式化 ==========
 function fmtAmt(v) {
   if (v === null || v === undefined || isNaN(v)) return '—';
   const n = Number(v);
-  const wan = n / 10;
+  const wan = n / 10;  // 仟元 → 萬元
   if (Math.abs(wan) >= 10000) return (wan / 10000).toFixed(2) + '億';
   if (Math.abs(wan) >= 1) return Math.round(wan).toLocaleString() + '萬';
   return n.toLocaleString() + '仟';
 }
 
-// 不自動 init()，等使用者輸入密碼後才開始
+function fmtPnl(v) {
+  // v 已經是「萬元」單位
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  const n = Number(v);
+  if (Math.abs(n) < 0.01) return '0';
+  const sign = n > 0 ? '+' : '';
+  if (Math.abs(n) >= 10000) return sign + (n/10000).toFixed(2) + '億';
+  if (Math.abs(n) >= 1) return sign + Math.round(n).toLocaleString() + '萬';
+  return sign + n.toFixed(2) + '萬';
+}
 </script>
 
 </body>
