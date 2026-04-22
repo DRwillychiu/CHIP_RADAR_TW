@@ -258,6 +258,179 @@ main { max-width: 1400px; margin: 0 auto; padding: 24px; }
   gap: 16px;
   flex-wrap: wrap;
 }
+
+/* v3.6 全域市場篩選器 */
+.market-global-bar {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(59, 130, 246, 0.05) 100%);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.market-global-label {
+  font-size: 13px;
+  color: var(--gold-bright);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.market-global-hint {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-left: auto;
+}
+
+/* 各頁本地市場篩選 */
+.market-local-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: rgba(31, 42, 72, 0.4);
+  border-radius: 6px;
+  border: 1px dashed var(--line-2);
+}
+.market-local-bar::before {
+  content: '🎯 本頁';
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+}
+.market-local-bar .mode-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+/* 標籤徽章（個人 / 市場公認 / 系統自動）*/
+.tag-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  margin: 0 3px 0 0;
+  font-family: 'Noto Sans TC', sans-serif;
+  white-space: nowrap;
+}
+.tag-chip.personal {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-bright);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+.tag-chip.market {
+  background: rgba(168, 85, 247, 0.15);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+/* 個股市場類型小標籤 */
+.market-type-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  margin-left: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+}
+.market-type-chip.listed { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.25); }
+.market-type-chip.otc { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
+.market-type-chip.emerging { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.25); }
+.market-type-chip.etf { background: rgba(168,85,247,0.15); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.25); }
+.market-type-chip.others { background: rgba(107,114,128,0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.25); }
+
+/* ═══════════════ v3.7 三大法人 + 對齊 chip ═══════════════ */
+.inst-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  margin-right: 3px;
+  letter-spacing: 0.03em;
+}
+.inst-chip.foreign { background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
+.inst-chip.trust { background: rgba(251, 146, 60, 0.15); color: #fdba74; border: 1px solid rgba(251, 146, 60, 0.3); }
+.inst-chip.dealer { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+.inst-chip.total { background: rgba(212, 175, 55, 0.15); color: var(--gold-bright); border: 1px solid rgba(212, 175, 55, 0.3); }
+
+/* 對齊狀態 */
+.align-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif;
+  margin-left: 4px;
+}
+.align-chip.aligned { background: rgba(34, 197, 94, 0.18); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); }
+.align-chip.opposing { background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+.align-chip.neutral { background: rgba(107, 114, 128, 0.15); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.25); }
+
+/* 浮盈 chip */
+.float-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: 4px;
+}
+.float-chip.pos { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+.float-chip.neg { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+.float-chip.flat { background: rgba(107, 114, 128, 0.15); color: #9ca3af; }
+
+/* 三大法人主視角樣式 */
+.inst-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.inst-stat-card {
+  background: linear-gradient(135deg, rgba(31, 42, 72, 0.6) 0%, rgba(31, 42, 72, 0.4) 100%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+.inst-stat-card .label {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+.inst-stat-card .val {
+  font-size: 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+
+/* 對齊熱力表 */
+.alignment-heatmap {
+  display: grid;
+  grid-template-columns: 200px 1fr 80px 80px 80px;
+  gap: 8px 14px;
+  align-items: center;
+  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.alignment-heatmap .heat-cell {
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+.alignment-heatmap .heat-cell.pos { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+.alignment-heatmap .heat-cell.neg { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.alignment-heatmap .heat-cell.zero { background: rgba(107, 114, 128, 0.1); color: var(--text-3); }
 .status-info { display: flex; gap: 24px; flex-wrap: wrap; font-size: 13px; }
 .status-info .label { color: var(--text-3); margin-right: 6px; }
 .status-info .val {
@@ -896,15 +1069,30 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     </div>
   </div>
 
+  <!-- 🌐 全域市場類型篩選器 -->
+  <div class="market-global-bar">
+    <span class="market-global-label">🌐 全域市場類型</span>
+    <div class="mode-switch">
+      <button class="mode-btn" data-global-market="all" onclick="setGlobalMarket('all')">全部</button>
+      <button class="mode-btn active" data-global-market="stock" onclick="setGlobalMarket('stock')">上市+上櫃+興櫃</button>
+      <button class="mode-btn" data-global-market="listed" onclick="setGlobalMarket('listed')">上市</button>
+      <button class="mode-btn" data-global-market="otc" onclick="setGlobalMarket('otc')">上櫃</button>
+      <button class="mode-btn" data-global-market="emerging" onclick="setGlobalMarket('emerging')">興櫃</button>
+      <button class="mode-btn" data-global-market="etf" onclick="setGlobalMarket('etf')">ETF</button>
+    </div>
+    <span class="market-global-hint">💡 各頁可獨立覆蓋</span>
+  </div>
+
   <div class="tabs">
     <button class="tab active" data-tab="today3"><span class="tab-num">01</span>🌅 今日三視角</button>
     <button class="tab" data-tab="overview"><span class="tab-num">02</span>🔥 共買榜</button>
     <button class="tab" data-tab="branches"><span class="tab-num">03</span>📊 分點動態</button>
     <button class="tab" data-tab="ranking"><span class="tab-num">04</span>🏆 累積排行</button>
     <button class="tab" data-tab="masterview"><span class="tab-num">05</span>👤 高手合併視圖</button>
-    <button class="tab" data-tab="stock"><span class="tab-num">06</span>📈 個股追蹤</button>
-    <button class="tab" data-tab="master"><span class="tab-num">07</span>👥 單分點偏好</button>
-    <button class="tab" data-tab="watchlist"><span class="tab-num">08</span>⚙️ 關注設定</button>
+    <button class="tab" data-tab="institutional"><span class="tab-num">06</span>🏛️ 三大法人</button>
+    <button class="tab" data-tab="stock"><span class="tab-num">07</span>📈 個股追蹤</button>
+    <button class="tab" data-tab="master"><span class="tab-num">08</span>👥 單分點偏好</button>
+    <button class="tab" data-tab="watchlist"><span class="tab-num">09</span>⚙️ 關注設定</button>
   </div>
 
   <!-- 01 今日三視角 (新主頁) -->
@@ -1051,7 +1239,42 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="masterViewResult"></div>
   </div>
 
-  <!-- 04 個股追蹤 -->
+  <!-- 06 🏛️ 三大法人 (v3.7 新增) -->
+  <div class="panel" id="panel-institutional">
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">視角</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-instview="ranking" onclick="setInstView('ranking')">📊 全市場排行</button>
+          <button class="mode-btn" data-instview="alignment" onclick="setInstView('alignment')">🎯 高手 vs 法人</button>
+          <button class="mode-btn" data-instview="search" onclick="setInstView('search')">🔍 個股查詢</button>
+        </div>
+      </div>
+      <div class="control-group" id="instTypeGroup">
+        <span class="control-label">法人</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-insttype="foreign" onclick="setInstType('foreign')">🌏 外資</button>
+          <button class="mode-btn" data-insttype="trust" onclick="setInstType('trust')">🏦 投信</button>
+          <button class="mode-btn" data-insttype="dealer" onclick="setInstType('dealer')">💼 自營</button>
+          <button class="mode-btn" data-insttype="total" onclick="setInstType('total')">📊 三大合計</button>
+        </div>
+      </div>
+      <div class="control-group" id="instSideGroup">
+        <span class="control-label">方向</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-instside="buy" onclick="setInstSide('buy')">📈 買超</button>
+          <button class="mode-btn" data-instside="sell" onclick="setInstSide('sell')">📉 賣超</button>
+        </div>
+      </div>
+      <div class="control-group" id="instSearchGroup" style="display:none;">
+        <span class="control-label">查詢個股</span>
+        <input type="text" id="instSearchInput" placeholder="代號或名稱（如 2330）" oninput="renderInstitutional()" style="min-width:200px;">
+      </div>
+    </div>
+    <div id="institutionalResult"></div>
+  </div>
+
+  <!-- 07 個股追蹤 -->
   <div class="panel" id="panel-stock">
     <div class="controls">
       <div class="control-group">
@@ -1275,6 +1498,114 @@ let rankView = 'branches';
 let rankScope = 'watch';
 let todayView = 'daytrade';  // 'daytrade' / 'overnight' / 'swing'
 let todayScope = 'watch';
+
+// ───────── v3.7 三大法人狀態 ─────────
+let instView = 'ranking';   // ranking / alignment / search
+let instType = 'foreign';   // foreign / trust / dealer / total
+let instSide = 'buy';       // buy / sell
+
+function setInstView(v) {
+  instView = v;
+  document.querySelectorAll('[data-instview]').forEach(b => 
+    b.classList.toggle('active', b.dataset.instview === v));
+  // 視角切換時，type/side/search 顯示控制
+  const typeGroup = document.getElementById('instTypeGroup');
+  const sideGroup = document.getElementById('instSideGroup');
+  const searchGroup = document.getElementById('instSearchGroup');
+  if (v === 'search') {
+    typeGroup.style.display = 'none';
+    sideGroup.style.display = 'none';
+    searchGroup.style.display = 'flex';
+  } else if (v === 'alignment') {
+    typeGroup.style.display = 'none';
+    sideGroup.style.display = 'none';
+    searchGroup.style.display = 'none';
+  } else {
+    typeGroup.style.display = 'flex';
+    sideGroup.style.display = 'flex';
+    searchGroup.style.display = 'none';
+  }
+  renderInstitutional();
+}
+function setInstType(v) {
+  instType = v;
+  document.querySelectorAll('[data-insttype]').forEach(b => 
+    b.classList.toggle('active', b.dataset.insttype === v));
+  renderInstitutional();
+}
+function setInstSide(v) {
+  instSide = v;
+  document.querySelectorAll('[data-instside]').forEach(b => 
+    b.classList.toggle('active', b.dataset.instside === v));
+  renderInstitutional();
+}
+
+// ───────── v3.6 市場類型篩選 ─────────
+// 'all' / 'stock' (上市+上櫃+興櫃) / 'listed' / 'otc' / 'emerging' / 'etf'
+// 全域預設 = 'stock'（排除 ETF）
+let MARKET_GLOBAL = 'stock';
+// 各頁可獨立覆蓋（null = 跟隨全域）
+let MARKET_OVERRIDE = {
+  today3: null, overview: null, branches: null,
+  ranking: null, masterview: null, stock: null, institutional: null,
+};
+function getMarketFilter(page) {
+  return MARKET_OVERRIDE[page] || MARKET_GLOBAL;
+}
+function passMarketFilter(stock, page) {
+  const filter = getMarketFilter(page);
+  if (!filter || filter === 'all') return true;
+  const t = stock.market_type;
+  if (!t) return true;  // 舊資料沒 market_type 欄位，全部通過
+  if (filter === 'stock') return ['listed','listed_ky','otc','otc_ky','emerging'].includes(t);
+  if (filter === 'listed') return t === 'listed' || t === 'listed_ky';
+  if (filter === 'otc') return t === 'otc' || t === 'otc_ky';
+  if (filter === 'emerging') return t === 'emerging';
+  if (filter === 'etf') return t === 'etf' || t === 'etf_active';
+  if (filter === 'others') return ['preferred','unknown'].includes(t);
+  return true;
+}
+function setGlobalMarket(v) {
+  MARKET_GLOBAL = v;
+  // 清除所有覆蓋
+  for (const k in MARKET_OVERRIDE) MARKET_OVERRIDE[k] = null;
+  document.querySelectorAll('[data-global-market]').forEach(b => 
+    b.classList.toggle('active', b.dataset.globalMarket === v));
+  // 各頁的 local 按鈕同步
+  document.querySelectorAll('[data-local-market]').forEach(b => {
+    const pg = b.dataset.page;
+    b.classList.toggle('active', b.dataset.localMarket === v);
+  });
+  renderAll();
+  // 切換到當前 active 頁也重新渲染
+  const activeTab = document.querySelector('.tab.active')?.dataset.tab;
+  if (activeTab === 'today3') renderToday3();
+  else if (activeTab === 'ranking') renderRanking();
+  else if (activeTab === 'masterview') renderMasterView();
+  else if (activeTab === 'institutional') renderInstitutional();
+}
+function setLocalMarket(page, v) {
+  MARKET_OVERRIDE[page] = (v === MARKET_GLOBAL) ? null : v;
+  document.querySelectorAll(`[data-local-market][data-page="${page}"]`).forEach(b =>
+    b.classList.toggle('active', b.dataset.localMarket === v));
+  // 重新渲染該頁
+  if (page === 'today3') renderToday3();
+  else if (page === 'overview') renderOverview();
+  else if (page === 'branches') renderBranches();
+  else if (page === 'ranking') renderRanking();
+  else if (page === 'masterview') renderMasterView();
+  else if (page === 'stock') renderStockTrace();
+  else if (page === 'institutional') renderInstitutional();
+}
+const MARKET_LABELS = {
+  all: '全部',
+  stock: '上市+上櫃+興櫃',
+  listed: '上市',
+  otc: '上櫃',
+  emerging: '興櫃',
+  etf: 'ETF',
+  others: '其他',
+};
 
 // ========== 登入 ==========
 async function attemptUnlock() {
@@ -1513,6 +1844,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     if (tab === 'today3') renderToday3();
     else if (tab === 'ranking') renderRanking();
     else if (tab === 'masterview') renderMasterView();
+    else if (tab === 'institutional') renderInstitutional();
   });
 });
 function toggleHelp() {
@@ -1604,6 +1936,9 @@ function buildStockIndex(branches, onlyWatched, rankType) {
     if (onlyWatched && !WATCHLIST.has(br.code)) continue;
     if (!br.buys) continue;
     for (const s of br.buys) {
+      // 🌐 市場類型篩選
+      if (!passMarketFilter(s, 'overview')) continue;
+      
       const hasAmt = (s.buy_amt || 0) > 0 || (s.sell_amt || 0) > 0;
       const hasLot = (s.buy_lot || 0) > 0 || (s.sell_lot || 0) > 0;
       if (rankType === 'amount' && !hasAmt) continue;
@@ -1615,6 +1950,16 @@ function buildStockIndex(branches, onlyWatched, rankType) {
           code: s.code, name: s.name, branches: [],
           totalNet: 0, totalBuy: 0, totalNetLot: 0, totalBuyLot: 0,
           totalOvernightLots: 0, hasLotData: false, hasAmtData: false,
+          market_type: s.market_type, market_type_simple: s.market_type_simple,
+          // v3.7 三大法人 + 收盤
+          inst_foreign_net_lot: s.inst_foreign_net_lot,
+          inst_trust_net_lot: s.inst_trust_net_lot,
+          inst_dealer_net_lot: s.inst_dealer_net_lot,
+          inst_total_net_lot: s.inst_total_net_lot,
+          align_with_foreign: s.align_with_foreign,
+          close_price: s.close_price,
+          change_pct: s.change_pct,
+          floating_pnl_pct: s.floating_pnl_pct,
         });
       }
       const obj = map.get(key);
@@ -1693,17 +2038,18 @@ function renderOverview() {
     return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
       <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
       <td><div class="stock-cell">
-        <span class="stock-name">${s.name}${badge}</span>
+        <span class="stock-name">${s.name}${badge}${renderMarketChip(s)}${renderFloatChip(s.floating_pnl_pct)}</span>
         <span class="stock-code">${s.code}</span>
       </div></td>
       <td class="num"><span class="badge ${s.branches.length>=4?'':'gold'}">${s.branches.length} 分點</span></td>
       <td class="num pos-strong">${amtInfo}</td>
       <td class="num" style="color:var(--text-2);">${lotInfo}</td>
       <td class="num" style="color:${s.totalOvernightLots>0?'var(--red)':'var(--text-3)'};">${ovInfo}</td>
+      <td>${renderInstMini(s)}${renderAlignChip(s.align_with_foreign)}</td>
       <td>${branchTags}</td>
     </tr>`;
   }).join('');
-  el.innerHTML = statsHTML + `
+  el.innerHTML = renderLocalMarketBar('overview') + statsHTML + `
     <div class="table-wrap">
       <table>
         <thead><tr>
@@ -1713,6 +2059,7 @@ function renderOverview() {
           <th class="num">淨買金額</th>
           <th class="num">淨買張數</th>
           <th class="num">🌙 留倉</th>
+          <th>🏛️ 三大法人 / 對齊</th>
           <th>分點明細</th>
         </tr></thead>
         <tbody>${rowsHTML}</tbody>
@@ -1728,12 +2075,16 @@ function renderToday3() {
     return;
   }
   
+  // 包一個 wrapper：本地市場篩選器 + 內容區
+  el.innerHTML = renderLocalMarketBar('today3') + '<div id="today3Inner"></div>';
+  const inner = document.getElementById('today3Inner');
+  
   if (todayView === 'daytrade') {
-    renderDaytradeView(el);
+    renderDaytradeView(inner);
   } else if (todayView === 'overnight') {
-    renderOvernightView(el);
+    renderOvernightView(inner);
   } else {
-    renderSwingView(el);
+    renderSwingView(inner);
   }
 }
 
@@ -1745,8 +2096,9 @@ function renderDaytradeView(el) {
   // 彙整每個分點的當沖表現
   const rows = branches.map(b => {
     const sum = CURRENT_DATA.branch_summaries?.[b.code] || {};
-    // 計算該分點當日當沖股票排行
+    // 計算該分點當日當沖股票排行（套用市場篩選）
     const dtStocks = (b.buys || []).filter(s => 
+      passMarketFilter(s, 'today3') &&
       (s.trade_style === 'daytrade' || s.trade_style === 'partial') &&
       (s.pnl_intraday !== undefined && s.pnl_intraday !== 0)
     ).sort((a,b) => Math.abs(b.pnl_intraday) - Math.abs(a.pnl_intraday));
@@ -1837,7 +2189,9 @@ function renderOvernightView(el) {
   const rows = branches.map(b => {
     const sum = CURRENT_DATA.branch_summaries?.[b.code] || {};
     const ovStocks = (b.buys || [])
-      .filter(s => (s.overnight_lots || 0) > 0 || (s.trade_style === 'overnight' && (s.buy_lot || 0) > 0))
+      .filter(s => 
+        passMarketFilter(s, 'today3') &&
+        ((s.overnight_lots || 0) > 0 || (s.trade_style === 'overnight' && (s.buy_lot || 0) > 0)))
       .sort((a,b) => (b.overnight_lots || 0) - (a.overnight_lots || 0));
     const totalOv = ovStocks.reduce((s,x) => s + (x.overnight_lots || 0), 0);
     const totalCost = ovStocks.reduce((s,x) => s + (x.overnight_cost_wan || 0), 0);
@@ -1928,6 +2282,7 @@ async function renderSwingView(el) {
       if (!br.buys) continue;
       if (todayScope === 'watch' && !WATCHLIST.has(br.code)) continue;
       for (const s of br.buys) {
+        if (!passMarketFilter(s, 'today3')) continue;
         const net = s.net_amt !== undefined ? s.net_amt : s.net;
         // 只算淨買為正的（真的在建倉）
         if (net <= 0 && (s.net_lot || 0) <= 0) continue;
@@ -2079,6 +2434,25 @@ function renderMasterView() {
   
   const styleLabels = { daytrader: '🔥 當沖派', swing: '🐢 波段派', mixed: '⚖️ 混合型', unknown: '— 資料不足' };
   
+  // 高手聚合的標籤顯示
+  const masterTagsHTML = renderTags(m.tags_personal, m.tags_market, { max: 10 });
+  
+  // v3.7 計算該高手與外資的同向率
+  let alignedCount = 0, opposingCount = 0;
+  const branchCodes = m.branches.map(b => b.code);
+  for (const br of CURRENT_DATA.branches || []) {
+    if (!branchCodes.includes(br.code) || !br.buys) continue;
+    for (const s of br.buys) {
+      if (s.align_with_foreign === 'aligned') alignedCount++;
+      else if (s.align_with_foreign === 'opposing') opposingCount++;
+    }
+  }
+  const totalAlignSamples = alignedCount + opposingCount;
+  const masterAlignRate = totalAlignSamples ? (alignedCount / totalAlignSamples * 100) : null;
+  const alignText = masterAlignRate !== null 
+    ? `🎯 與外資同向率 <strong style="color:${masterAlignRate >= 60 ? 'var(--green)' : (masterAlignRate <= 40 ? 'var(--red)' : 'var(--gold-bright)')};">${masterAlignRate.toFixed(0)}%</strong> (同${alignedCount} / 反${opposingCount})`
+    : '';
+  
   const heroHTML = `
     <div class="master-hero">
       <div class="hero-name">
@@ -2088,7 +2462,9 @@ function renderMasterView() {
       <div class="hero-meta">
         ${m.branches.length} 個分點 · 當沖比 ${(m.avg_daytrade_ratio * 100).toFixed(0)}%
         · 風格分佈：🔥 ${m.daytrade_stocks} · ⚖️ ${m.partial_stocks} · 🌙 ${m.overnight_stocks}
+        ${alignText ? '<br>' + alignText : ''}
       </div>
+      ${masterTagsHTML ? `<div style="margin-top:8px;">${masterTagsHTML}</div>` : ''}
       <div class="master-hero-stats">
         <div class="hero-stat"><div class="label">今日淨買</div><div class="val ${m.total_net_amt>0?'pos-strong':'neg-strong'}">${fmtAmt(m.total_net_amt)}</div></div>
         <div class="hero-stat"><div class="label">當日損益</div><div class="val ${m.total_daily_pnl>0?'pos':'neg'}">${fmtPnl(m.total_daily_pnl)}</div></div>
@@ -2133,17 +2509,30 @@ function renderMasterView() {
       </table>
     </div>`;
   
-  // 共識個股（2 分點以上同時買進）
+  // 建立 stock_code → market_type 對照（從當日資料）
+  const stockMarketMap = {};
+  for (const br of (CURRENT_DATA.branches || [])) {
+    for (const s of (br.buys || [])) {
+      if (!stockMarketMap[s.code]) stockMarketMap[s.code] = s;
+    }
+  }
+  
+  // 共識個股（2 分點以上同時買進，套市場篩選）
   let consensusHTML = '';
   if (m.consensus_stocks && m.consensus_stocks.length > 0) {
-    const rows = m.consensus_stocks.slice(0, 30).map((s, i) => {
+    const filtered = m.consensus_stocks.filter(s => {
+      const info = stockMarketMap[s.code];
+      return !info || passMarketFilter(info, 'masterview');
+    });
+    const rows = filtered.slice(0, 30).map((s, i) => {
+      const stockInfo = stockMarketMap[s.code];
       const branchTags = s.branches.map(b => 
         `<span class="master-tag" title="${b.name}: 淨買 ${fmtAmt(b.net_amt)} / 留倉 ${b.overnight_lots}張">${b.name}（${fmtAmt(b.net_amt)}）</span>`
       ).join('');
       return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
         <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
         <td><div class="stock-cell">
-          <span class="stock-name">${s.name}</span>
+          <span class="stock-name">${s.name}${stockInfo ? renderMarketChip(stockInfo) : ''}</span>
           <span class="stock-code">${s.code}</span>
         </div></td>
         <td class="num"><span class="badge ${s.branches.length>=3?'':'gold'}">${s.branches.length} 分點</span></td>
@@ -2155,7 +2544,7 @@ function renderMasterView() {
     }).join('');
     
     consensusHTML = `
-      <div class="section-title" style="margin-top:24px;">🔥 旗下分點共識個股<span class="section-sub">${m.consensus_stocks.length} 檔共買</span></div>
+      <div class="section-title" style="margin-top:24px;">🔥 旗下分點共識個股<span class="section-sub">${filtered.length}/${m.consensus_stocks.length} 檔共買（已篩選）</span></div>
       <div class="view-hint">💡 這些是該高手<strong>多個分點同時買進</strong>的個股，代表強烈共識。明日可優先觀察。</div>
       <div class="table-wrap">
         <table>
@@ -2170,10 +2559,15 @@ function renderMasterView() {
       </div>`;
   }
   
-  // 最愛股票 Top 20 (top_stocks)
+  // 最愛股票 Top 20 (top_stocks，套市場篩選)
   let topStocksHTML = '';
   if (m.top_stocks && m.top_stocks.length > 0) {
-    const rows = m.top_stocks.slice(0, 20).map((s, i) => {
+    const filteredTop = m.top_stocks.filter(s => {
+      const info = stockMarketMap[s.code];
+      return !info || passMarketFilter(info, 'masterview');
+    });
+    const rows = filteredTop.slice(0, 20).map((s, i) => {
+      const stockInfo = stockMarketMap[s.code];
       const br = s.branches[0];
       const brInfo = s.branches.length === 1 
         ? br.name
@@ -2181,7 +2575,7 @@ function renderMasterView() {
       return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
         <td class="num" style="color:var(--gold-bright);">#${i+1}</td>
         <td><div class="stock-cell">
-          <span class="stock-name">${s.name}</span>
+          <span class="stock-name">${s.name}${stockInfo ? renderMarketChip(stockInfo) : ''}</span>
           <span class="stock-code">${s.code}</span>
         </div></td>
         <td class="num ${s.total_net_amt>0?'pos-strong':'neg-strong'}">${fmtAmt(s.total_net_amt)}</td>
@@ -2192,7 +2586,7 @@ function renderMasterView() {
     }).join('');
     
     topStocksHTML = `
-      <div class="section-title" style="margin-top:24px;">🎯 今日進出前 20 名個股</div>
+      <div class="section-title" style="margin-top:24px;">🎯 今日進出前 20 名個股<span class="section-sub">${filteredTop.length}/${m.top_stocks.length} 檔（已篩選）</span></div>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -2205,7 +2599,7 @@ function renderMasterView() {
       </div>`;
   }
   
-  el.innerHTML = heroHTML + branchesHTML + consensusHTML + topStocksHTML;
+  el.innerHTML = renderLocalMarketBar('masterview') + heroHTML + branchesHTML + consensusHTML + topStocksHTML;
 }
 
 // ========== 03 分點動態 ==========
@@ -2273,7 +2667,9 @@ function renderBranches() {
         </div>
       </div>` : '';
     
-    const stocksHTML = b.buys.slice(0, 20).map(s => {
+    // 套用市場類型篩選
+    const filteredBuys = (b.buys || []).filter(s => passMarketFilter(s, 'branches'));
+    const stocksHTML = filteredBuys.slice(0, 20).map(s => {
       const net = s.net_amt !== undefined ? s.net_amt : s.net;
       const buy = s.buy_amt !== undefined ? s.buy_amt : s.buy;
       const sell = s.sell_amt !== undefined ? s.sell_amt : s.sell;
@@ -2309,7 +2705,7 @@ function renderBranches() {
       
       return `<div class="stock-row" onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
         <div class="left">
-          <span class="sname">${s.name}</span>
+          <span class="sname">${s.name}${renderMarketChip(s)}</span>
           <span class="scode">${s.code}</span>
           ${lotInfo ? `<span class="lot-line">${lotInfo}</span>` : ''}
         </div>
@@ -2327,16 +2723,20 @@ function renderBranches() {
       ? `<span class="style-badge ${sum.today_style}" style="margin-left:0;margin-top:4px;display:inline-block;">${styleLabelsCard[sum.today_style]}</span>`
       : '';
     
+    // 分點標籤（個人 + 市場公認）
+    const tagsHTML = renderTags(b.tags_personal, b.tags_market, { max: 5 });
+    
     return `<div class="branch-card ${isWatch ? 'highlighted' : ''}">
       <div class="branch-header">
         <div>
           <div class="branch-name">${isWatch ? '★' : '　'} ${b.name}</div>
           <div class="branch-master-name">${b.master}</div>
           ${styleBadgeHTML}
+          ${tagsHTML ? `<div style="margin-top:4px;">${tagsHTML}</div>` : ''}
         </div>
         <div style="text-align:right;">
           <div class="branch-meta">${b.code}</div>
-          <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${b.buys.length} 檔</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${filteredBuys.length}/${b.buys.length} 檔</div>
           ${sum && sum.avg_daytrade_ratio ? `<div style="font-size:10px;color:var(--text-3);font-family:monospace;margin-top:2px;">當沖比 ${(sum.avg_daytrade_ratio*100).toFixed(0)}%</div>` : ''}
         </div>
       </div>
@@ -2344,7 +2744,7 @@ function renderBranches() {
       <div class="branch-stocks">${stocksHTML}</div>
     </div>`;
   }).join('');
-  el.innerHTML = `<div class="cards-grid">${cardsHTML}</div>`;
+  el.innerHTML = renderLocalMarketBar('branches') + `<div class="cards-grid">${cardsHTML}</div>`;
 }
 
 // ========== 03 累積排行 ==========
@@ -2441,7 +2841,7 @@ function renderRanking() {
       <td class="num" style="color:var(--text-2);">${x.open_cnt}檔/${x.open_lots.toLocaleString()}張</td>
     </tr>`).join('');
     
-    el.innerHTML = infoHTML + statsHTML + `
+    el.innerHTML = renderLocalMarketBar('ranking') + infoHTML + statsHTML + `
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -2518,7 +2918,7 @@ function renderRanking() {
       </tr>`;
     }).join('');
     
-    el.innerHTML = infoHTML + statsHTML + `
+    el.innerHTML = renderLocalMarketBar('ranking') + infoHTML + statsHTML + `
       <div class="view-hint">💡 點擊任一高手 → 跳轉到「高手合併視圖」查看完整細節。</div>
       <div class="table-wrap">
         <table>
@@ -2538,15 +2938,30 @@ function renderRanking() {
       </div>`;
   } else {
     // 熱門個股：聚合所有分點的該檔股票累積損益
+    // 先從當日資料建立 stock_code → market_type 對照
+    const stockMarketMap = {};
+    for (const br of (CURRENT_DATA.branches || [])) {
+      for (const s of (br.buys || [])) {
+        if (!stockMarketMap[s.code]) stockMarketMap[s.code] = s;
+      }
+    }
+    
     const stockAgg = new Map();
     for (const [branchCode, br] of Object.entries(POSITIONS.branches || {})) {
       if (rankScope === 'watch' && !WATCHLIST.has(branchCode)) continue;
       for (const [stockCode, st] of Object.entries(br.stocks || {})) {
+        // 套用市場篩選（用當日資料的 market_type）
+        const stockInfo = stockMarketMap[stockCode];
+        if (stockInfo && !passMarketFilter(stockInfo, 'ranking')) continue;
+        
         const periodPnl = computePeriodPnlForStock(st, today, rankPeriod);
         const openLots = (st.open_lots || []).reduce((s,p) => s + p.lots, 0);
         const key = stockCode;
         if (!stockAgg.has(key)) {
-          stockAgg.set(key, { code: stockCode, name: st.stock_name, pnl: 0, branches_involved: 0, open_lots: 0 });
+          stockAgg.set(key, { 
+            code: stockCode, name: st.stock_name, pnl: 0, branches_involved: 0, open_lots: 0,
+            market_type: stockInfo?.market_type, market_type_simple: stockInfo?.market_type_simple,
+          });
         }
         const agg = stockAgg.get(key);
         agg.pnl += periodPnl;
@@ -2574,7 +2989,7 @@ function renderRanking() {
     const rowsHTML = list.slice(0, 100).map((s, i) => `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
       <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
       <td><div class="stock-cell">
-        <span class="stock-name">${s.name}</span>
+        <span class="stock-name">${s.name}${renderMarketChip(s)}</span>
         <span class="stock-code">${s.code}</span>
       </div></td>
       <td class="num">${s.branches_involved}</td>
@@ -2582,7 +2997,7 @@ function renderRanking() {
       <td class="num" style="color:var(--text-2);">${s.open_lots.toLocaleString()}張</td>
     </tr>`).join('');
     
-    el.innerHTML = infoHTML + statsHTML + `
+    el.innerHTML = renderLocalMarketBar('ranking') + infoHTML + statsHTML + `
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -2629,6 +3044,444 @@ function matchPeriod(recDate, todayDate, period) {
 }
 
 // ========== 04 個股追蹤 ==========
+// ================================================================
+// 🏛️ 06 三大法人 (v3.7)
+// ================================================================
+
+const INST_TYPE_META = {
+  foreign: { label: '🌏 外資', cls: 'foreign', key: 'inst_foreign_net_lot' },
+  trust:   { label: '🏦 投信', cls: 'trust',   key: 'inst_trust_net_lot' },
+  dealer:  { label: '💼 自營', cls: 'dealer',  key: 'inst_dealer_net_lot' },
+  total:   { label: '📊 三大合計', cls: 'total', key: 'inst_total_net_lot' },
+};
+
+// 把張數格式化（含正負號 + 千分位）
+function fmtLot(n) {
+  if (n === null || n === undefined) return '—';
+  const abs = Math.abs(n);
+  const s = abs.toLocaleString();
+  if (n > 0) return '+' + s;
+  if (n < 0) return '-' + s;
+  return '0';
+}
+
+// 渲染浮盈百分比 chip
+function renderFloatChip(pct) {
+  if (pct === null || pct === undefined) return '';
+  const cls = pct > 0 ? 'pos' : (pct < 0 ? 'neg' : 'flat');
+  const sign = pct > 0 ? '+' : '';
+  return `<span class="float-chip ${cls}">${sign}${pct.toFixed(2)}%</span>`;
+}
+
+// 渲染對齊狀態 chip
+function renderAlignChip(align) {
+  if (!align || align === 'neutral') return '';
+  const labels = { aligned: '同向', opposing: '反向' };
+  return `<span class="align-chip ${align}">${labels[align] || ''}</span>`;
+}
+
+// 渲染三大法人 mini 摘要（買 row 用）
+function renderInstMini(stock) {
+  const f = stock.inst_foreign_net_lot;
+  const t = stock.inst_trust_net_lot;
+  const d = stock.inst_dealer_net_lot;
+  if (f === null && t === null && d === null) return '<span style="color:var(--text-3);font-size:11px;">—</span>';
+  const parts = [];
+  if (f !== null && f !== 0) parts.push(`<span class="inst-chip foreign" title="外資">外${fmtLot(f)}</span>`);
+  if (t !== null && t !== 0) parts.push(`<span class="inst-chip trust" title="投信">投${fmtLot(t)}</span>`);
+  if (d !== null && d !== 0) parts.push(`<span class="inst-chip dealer" title="自營">自${fmtLot(d)}</span>`);
+  if (parts.length === 0) return '<span style="color:var(--text-3);font-size:11px;">—</span>';
+  return parts.join('');
+}
+
+function renderInstitutional() {
+  const el = document.getElementById('institutionalResult');
+  if (!CURRENT_DATA) {
+    el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密資料中...</div>';
+    return;
+  }
+  const ir = CURRENT_DATA.institutional_rankings;
+  if (!ir) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📡</div>
+      此份資料無三大法人資訊（v3.6 以下舊資料）<br>
+      <span style="font-size:12px;color:var(--text-3);">下次爬蟲會自動補上</span></div>`;
+    return;
+  }
+  
+  if (instView === 'ranking') {
+    renderInstRanking(el, ir);
+  } else if (instView === 'alignment') {
+    renderInstAlignment(el);
+  } else if (instView === 'search') {
+    renderInstSearch(el);
+  }
+}
+
+// ─────── 子視角 1：全市場排行 ───────
+function renderInstRanking(el, ir) {
+  const meta = INST_TYPE_META[instType];
+  const data = ir[instType] || { buy: [], sell: [] };
+  const list = (instSide === 'buy' ? data.buy : data.sell);
+  
+  // 套用市場篩選
+  const filtered = list.filter(r => {
+    const f = getMarketFilter('institutional');
+    if (!f || f === 'all') return true;
+    // 用 market_source (twse/tpex) 簡單判定
+    if (f === 'listed') return r.market_source === 'twse';
+    if (f === 'otc') return r.market_source === 'tpex';
+    if (f === 'stock') return true;  // 股票 = 上市+上櫃+興櫃，全部 true
+    if (f === 'etf') return r.code && r.code.startsWith('00');
+    return true;
+  });
+  
+  // 統計卡片
+  const totalNet = filtered.reduce((s, r) => s + r.net_lot, 0);
+  const avg = filtered.length ? totalNet / filtered.length : 0;
+  const top1 = filtered[0];
+  
+  const sideLabel = instSide === 'buy' ? '買超' : '賣超';
+  const statsHTML = `
+    <div class="inst-stat-grid">
+      <div class="inst-stat-card">
+        <div class="label">${meta.label} ${sideLabel}檔數</div>
+        <div class="val" style="color:var(--gold-bright);">${filtered.length}</div>
+      </div>
+      <div class="inst-stat-card">
+        <div class="label">${sideLabel}合計（張）</div>
+        <div class="val ${totalNet > 0 ? 'pos' : 'neg'}">${fmtLot(totalNet)}</div>
+      </div>
+      <div class="inst-stat-card">
+        <div class="label">平均（張/檔）</div>
+        <div class="val" style="color:var(--text-2);">${fmtLot(Math.round(avg))}</div>
+      </div>
+      <div class="inst-stat-card">
+        <div class="label">${sideLabel}冠軍</div>
+        <div class="val" style="font-size:14px;color:var(--gold-bright);">
+          ${top1 ? top1.code + ' ' + (top1.name || '—') : '—'}
+        </div>
+      </div>
+    </div>`;
+  
+  // 表格
+  const rows = filtered.slice(0, 100).map((r, i) => {
+    // 是否被分點關注/購買
+    const watchedBuyers = [];
+    if (CURRENT_DATA.branches) {
+      for (const br of CURRENT_DATA.branches) {
+        if (br.buys) {
+          const hit = br.buys.find(s => s.code === r.code && (s.net_lot || 0) > 0);
+          if (hit) watchedBuyers.push(`${br.master}`);
+        }
+      }
+    }
+    // 去重 master
+    const uniqMasters = [...new Set(watchedBuyers)];
+    const watchHTML = uniqMasters.length > 0 
+      ? uniqMasters.slice(0, 5).map(m => `<span class="master-tag">${m}</span>`).join('')
+      : '<span style="color:var(--text-3);font-size:10px;">無關注分點</span>';
+    
+    const changeColor = (r.change_pct || 0) > 0 ? 'pos' : ((r.change_pct || 0) < 0 ? 'neg' : '');
+    const changeHTML = r.change_pct != null 
+      ? `<span class="${changeColor}">${r.change_pct > 0 ? '+' : ''}${r.change_pct.toFixed(2)}%</span>` 
+      : '—';
+    
+    return `<tr onclick="showStockDetail('${r.code}','${(r.name || '').replace(/'/g,"\\'")}')">
+      <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
+      <td><div class="stock-cell">
+        <span class="stock-name">${r.name || '—'}</span>
+        <span class="stock-code">${r.code}</span>
+      </div></td>
+      <td class="num ${r.net_lot > 0 ? 'pos-strong' : 'neg-strong'}" style="font-size:14px;">${fmtLot(r.net_lot)}張</td>
+      <td class="num">${r.close ? r.close.toFixed(2) : '—'}</td>
+      <td class="num">${changeHTML}</td>
+      <td>${watchHTML}</td>
+    </tr>`;
+  }).join('');
+  
+  const helpText = `💡 顯示 ${meta.label} ${sideLabel}前 ${Math.min(filtered.length, 100)} 名。「關注分點」表示你關注的高手今日是否也有買入。`;
+  
+  el.innerHTML = renderLocalMarketBar('institutional') + statsHTML + 
+    `<div class="view-hint">${helpText}</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="num" style="width:60px;">#</th>
+          <th>個股</th>
+          <th class="num">${meta.label}${sideLabel}張</th>
+          <th class="num">收盤</th>
+          <th class="num">漲跌%</th>
+          <th>關注分點同步</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ─────── 子視角 2：高手 vs 法人對齊 ───────
+function renderInstAlignment(el) {
+  if (!CURRENT_DATA.master_summaries) {
+    el.innerHTML = '<div class="empty">無高手資料</div>';
+    return;
+  }
+  
+  // 為每位高手計算同向率
+  const rows = [];
+  for (const [masterName, m] of Object.entries(CURRENT_DATA.master_summaries)) {
+    const branchCodes = m.branches.map(b => b.code);
+    let aligned = 0, opposing = 0, neutral = 0;
+    let aligned_lot = 0, opposing_lot = 0;
+    let alignedStocks = [], opposingStocks = [];
+    
+    for (const br of CURRENT_DATA.branches) {
+      if (!branchCodes.includes(br.code)) continue;
+      if (!br.buys) continue;
+      for (const s of br.buys) {
+        const a = s.align_with_foreign;
+        const lot = Math.abs(s.net_lot || 0);
+        if (a === 'aligned') {
+          aligned++;
+          aligned_lot += lot;
+          if (lot > 50) alignedStocks.push({ code: s.code, name: s.name, lot: s.net_lot, foreign: s.inst_foreign_net_lot });
+        } else if (a === 'opposing') {
+          opposing++;
+          opposing_lot += lot;
+          if (lot > 50) opposingStocks.push({ code: s.code, name: s.name, lot: s.net_lot, foreign: s.inst_foreign_net_lot });
+        } else {
+          neutral++;
+        }
+      }
+    }
+    
+    const total = aligned + opposing;
+    const alignRate = total ? (aligned / total * 100) : 0;
+    
+    rows.push({
+      master: masterName,
+      aligned, opposing, neutral, total,
+      alignRate,
+      aligned_lot, opposing_lot,
+      alignedStocks: alignedStocks.sort((a,b) => Math.abs(b.lot) - Math.abs(a.lot)).slice(0, 5),
+      opposingStocks: opposingStocks.sort((a,b) => Math.abs(b.lot) - Math.abs(a.lot)).slice(0, 5),
+    });
+  }
+  
+  rows.sort((a, b) => b.alignRate - a.alignRate);
+  
+  // 統計卡片
+  const totalAligned = rows.reduce((s, r) => s + r.aligned, 0);
+  const totalOpposing = rows.reduce((s, r) => s + r.opposing, 0);
+  const overallRate = (totalAligned + totalOpposing) ? (totalAligned / (totalAligned + totalOpposing) * 100) : 0;
+  
+  const statsHTML = `
+    <div class="inst-stat-grid">
+      <div class="inst-stat-card">
+        <div class="label">總同向次數</div>
+        <div class="val pos">${totalAligned}</div>
+      </div>
+      <div class="inst-stat-card">
+        <div class="label">總反向次數</div>
+        <div class="val neg">${totalOpposing}</div>
+      </div>
+      <div class="inst-stat-card">
+        <div class="label">整體同向率</div>
+        <div class="val" style="color:var(--gold-bright);">${overallRate.toFixed(1)}%</div>
+      </div>
+      <div class="inst-stat-card">
+        <div class="label">高手最大同向</div>
+        <div class="val" style="font-size:14px;color:var(--gold-bright);">${rows[0] ? rows[0].master : '—'}</div>
+      </div>
+    </div>`;
+  
+  // 詳細表
+  const tableRows = rows.map(r => {
+    const rateColor = r.alignRate >= 60 ? 'var(--green)' : (r.alignRate <= 40 ? 'var(--red)' : 'var(--gold-bright)');
+    const alignTag = r.alignedStocks.slice(0, 3).map(s => 
+      `<span class="master-tag" style="background:rgba(34,197,94,0.15);color:#86efac;" title="分點 ${s.lot}張 / 外資 ${s.foreign}張">${s.name}</span>`
+    ).join('');
+    const opposeTag = r.opposingStocks.slice(0, 3).map(s => 
+      `<span class="master-tag" style="background:rgba(239,68,68,0.15);color:#fca5a5;" title="分點 ${s.lot}張 / 外資 ${s.foreign}張">${s.name}</span>`
+    ).join('');
+    
+    return `<tr>
+      <td><strong style="color:var(--gold-bright);">${r.master}</strong></td>
+      <td class="num pos" style="font-size:14px;">${r.aligned}</td>
+      <td class="num neg" style="font-size:14px;">${r.opposing}</td>
+      <td class="num"><strong style="color:${rateColor};font-size:16px;">${r.alignRate.toFixed(0)}%</strong></td>
+      <td>${alignTag || '<span style="color:var(--text-3);font-size:11px;">—</span>'}</td>
+      <td>${opposeTag || '<span style="color:var(--text-3);font-size:11px;">—</span>'}</td>
+    </tr>`;
+  }).join('');
+  
+  el.innerHTML = statsHTML + `
+    <div class="view-hint">💡 <strong>同向</strong>：高手分點 + 外資都買（或都賣）。<strong>反向</strong>：方向相反。同向率高 = 高手與外資想法一致；反向率高 = 高手是逆勢者。</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>高手</th>
+          <th class="num">同向次數</th>
+          <th class="num">反向次數</th>
+          <th class="num">同向率</th>
+          <th>主要同向標的</th>
+          <th>主要反向標的</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ─────── 子視角 3：個股查詢 ───────
+function renderInstSearch(el) {
+  const q = (document.getElementById('instSearchInput')?.value || '').trim().toLowerCase();
+  if (!q) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🔎</div>輸入股票代號或名稱<br><span style="font-size:12px;color:var(--text-3);">查看該檔股票被分點 + 三大法人怎麼操作</span></div>';
+    return;
+  }
+  
+  // 在當日 branches 找匹配的股票
+  const matched = [];
+  const seen = new Set();
+  for (const br of CURRENT_DATA.branches || []) {
+    if (!br.buys) continue;
+    for (const s of br.buys) {
+      if (s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)) {
+        const key = s.code + '::' + s.name;
+        if (!seen.has(key)) {
+          seen.add(key);
+          matched.push(s);
+        }
+      }
+    }
+  }
+  
+  // 也從全市場排行找（即使分點沒交易，外資/投信有交易）
+  const ir = CURRENT_DATA.institutional_rankings || {};
+  for (const ranking of Object.values(ir)) {
+    for (const side of [ranking.buy || [], ranking.sell || []]) {
+      for (const r of side) {
+        if (!r.code) continue;
+        if (r.code.toLowerCase().includes(q) || (r.name || '').toLowerCase().includes(q)) {
+          const key = r.code + '::' + r.name;
+          if (!seen.has(key)) {
+            seen.add(key);
+            // 從市場排行手動建構基本資料
+            matched.push({
+              code: r.code, name: r.name,
+              market_type: r.market_source === 'twse' ? 'listed' : 'otc',
+              close_price: r.close, change_pct: r.change_pct,
+              inst_foreign_net_lot: instType === 'foreign' ? r.net_lot : null,
+              inst_trust_net_lot: instType === 'trust' ? r.net_lot : null,
+              inst_dealer_net_lot: instType === 'dealer' ? r.net_lot : null,
+              _from_ranking: true,
+            });
+          }
+        }
+      }
+    }
+  }
+  
+  if (matched.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🤷</div>查無此股票</div>`;
+    return;
+  }
+  
+  // 為每檔股票，找出哪些分點/高手有買
+  const cardsHTML = matched.slice(0, 20).map(s => {
+    // 找買入此股的所有分點
+    const buyers = [];
+    for (const br of CURRENT_DATA.branches || []) {
+      if (!br.buys) continue;
+      const hit = br.buys.find(x => x.code === s.code);
+      if (hit && (hit.net_lot || 0) !== 0) {
+        buyers.push({
+          master: br.master, branch: br.name, branchCode: br.code,
+          net_lot: hit.net_lot, net_amt: hit.net_amt,
+          buy_avg: hit.buy_avg,
+        });
+      }
+    }
+    buyers.sort((a, b) => (b.net_lot || 0) - (a.net_lot || 0));
+    
+    const buyersHTML = buyers.length > 0 
+      ? buyers.map(b => {
+          const cls = b.net_lot > 0 ? 'pos' : 'neg';
+          return `<tr>
+            <td><strong>${b.master}</strong> <span style="color:var(--text-3);font-size:11px;">${b.branch}</span></td>
+            <td class="num ${cls}">${b.net_lot > 0 ? '+' : ''}${b.net_lot}張</td>
+            <td class="num">${b.buy_avg ? b.buy_avg.toFixed(2) : '—'}</td>
+          </tr>`;
+        }).join('')
+      : '<tr><td colspan="3" style="text-align:center;color:var(--text-3);">無關注分點交易</td></tr>';
+    
+    // 三大法人狀況
+    const f = s.inst_foreign_net_lot, t = s.inst_trust_net_lot, d = s.inst_dealer_net_lot;
+    const totalInst = (f || 0) + (t || 0) + (d || 0);
+    
+    // 浮盈
+    const floatHTML = s.floating_pnl_pct != null ? renderFloatChip(s.floating_pnl_pct) : '';
+    
+    // 分點 vs 外資對齊
+    const branchTotalLot = buyers.reduce((sum, b) => sum + (b.net_lot || 0), 0);
+    const overallAlign = (f != null) ? (
+      (branchTotalLot > 0 && f > 0) ? 'aligned' :
+      (branchTotalLot < 0 && f < 0) ? 'aligned' :
+      (branchTotalLot * f < 0) ? 'opposing' : 'neutral'
+    ) : 'neutral';
+    
+    return `<div class="branch-card" style="margin-bottom:18px;">
+      <div class="branch-header">
+        <div>
+          <div class="branch-name" style="font-size:16px;">${s.name} ${renderMarketChip(s)}</div>
+          <div class="branch-master-name">${s.code}</div>
+          ${floatHTML}
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:var(--text-3);">收盤</div>
+          <div style="font-size:18px;font-weight:700;font-family:'JetBrains Mono';color:var(--gold-bright);">${s.close_price ? s.close_price.toFixed(2) : '—'}</div>
+          <div style="font-size:11px;color:${(s.change_pct || 0) > 0 ? 'var(--green)' : 'var(--red)'};">
+            ${s.change_pct != null ? (s.change_pct > 0 ? '+' : '') + s.change_pct.toFixed(2) + '%' : '—'}
+          </div>
+        </div>
+      </div>
+      
+      <!-- 三大法人 + 對齊 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;">
+        <div>
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">🏛️ 三大法人</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <span class="inst-chip foreign" style="font-size:11px;padding:3px 8px;">外資 ${fmtLot(f)}張</span>
+            <span class="inst-chip trust" style="font-size:11px;padding:3px 8px;">投信 ${fmtLot(t)}張</span>
+            <span class="inst-chip dealer" style="font-size:11px;padding:3px 8px;">自營 ${fmtLot(d)}張</span>
+            <span class="inst-chip total" style="font-size:11px;padding:3px 8px;">合計 ${fmtLot(totalInst)}張</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">🎯 分點 vs 外資</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-family:'JetBrains Mono';color:var(--text-2);">分點合計 ${fmtLot(branchTotalLot)}張</span>
+            ${renderAlignChip(overallAlign)}
+          </div>
+        </div>
+      </div>
+      
+      <!-- 分點明細 -->
+      <div class="table-wrap" style="margin-top:8px;">
+        <table style="font-size:12px;">
+          <thead><tr>
+            <th>分點</th>
+            <th class="num">淨買張</th>
+            <th class="num">買均</th>
+          </tr></thead>
+          <tbody>${buyersHTML}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+  
+  el.innerHTML = `<div class="view-hint">💡 找到 ${matched.length} 檔，顯示前 20 檔。每檔顯示「分點操作 + 三大法人狀況 + 對齊判定」</div>` + cardsHTML;
+}
+
+
 async function renderStockTrace() {
   const el = document.getElementById('stockTraceResult');
   if (!CURRENT_DATA) return;
@@ -2649,6 +3502,7 @@ async function renderStockTrace() {
       if (!br.buys) continue;
       if (stockMode === 'watch' && !WATCHLIST.has(br.code)) continue;
       for (const s of br.buys) {
+        if (!passMarketFilter(s, 'stock')) continue;
         if (s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)) {
           matched.push({
             date, master: br.master, branch: br.name, branchCode: br.code,
@@ -2657,6 +3511,7 @@ async function renderStockTrace() {
             sell: s.sell_amt !== undefined ? s.sell_amt : s.sell,
             net: s.net_amt !== undefined ? s.net_amt : s.net,
             buy_lot: s.buy_lot || 0, sell_lot: s.sell_lot || 0, net_lot: s.net_lot || 0,
+            market_type: s.market_type, market_type_simple: s.market_type_simple,
           });
         }
       }
@@ -2742,7 +3597,7 @@ async function renderStockTrace() {
         </div>
       </div>`);
   }
-  el.innerHTML = parts.join('');
+  el.innerHTML = renderLocalMarketBar('stock') + parts.join('');
 }
 
 // ========== 05 高手偏好 ==========
@@ -2965,6 +3820,43 @@ function escHtml(s) {
   if (s === null || s === undefined) return '';
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+// 渲染標籤群（個人 + 市場公認）
+function renderTags(tagsPersonal, tagsMarket, opts = {}) {
+  const max = opts.max || 99;
+  const all = [];
+  for (const t of (tagsPersonal || [])) all.push(`<span class="tag-chip personal" title="個人標記">${escHtml(t)}</span>`);
+  for (const t of (tagsMarket || [])) all.push(`<span class="tag-chip market" title="市場公認">${escHtml(t)}</span>`);
+  if (all.length === 0) return '';
+  return all.slice(0, max).join('');
+}
+
+// 渲染股票市場類型小標籤
+function renderMarketChip(stock) {
+  const t = stock.market_type;
+  if (!t) return '';
+  const labels = {
+    listed: '上市', listed_ky: '上市KY',
+    otc: '上櫃', otc_ky: '上櫃KY',
+    emerging: '興櫃',
+    etf: 'ETF', etf_active: '主動ETF',
+    preferred: '特別股', unknown: '未分類',
+  };
+  const simple = stock.market_type_simple || 'others';
+  return `<span class="market-type-chip ${simple}">${labels[t] || t}</span>`;
+}
+
+// 為某頁產生本地市場篩選器 HTML
+function renderLocalMarketBar(page) {
+  const current = MARKET_OVERRIDE[page] || MARKET_GLOBAL;
+  const opts = ['all', 'stock', 'listed', 'otc', 'emerging', 'etf'];
+  return `<div class="market-local-bar">${
+    opts.map(v => 
+      `<button class="mode-btn ${v===current?'active':''}" data-local-market="${v}" data-page="${page}" onclick="setLocalMarket('${page}','${v}')">${MARKET_LABELS[v]}</button>`
+    ).join('')
+  }</div>`;
+}
+
 function fmtAmt(v) {
   if (v === null || v === undefined || isNaN(v)) return '—';
   const n = Number(v);
