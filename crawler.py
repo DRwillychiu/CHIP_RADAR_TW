@@ -1777,7 +1777,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.14.2",
+        "version": "3.14.3",
         "success": success_count,
         "failed": fail_count,
         "empty": empty_count,
@@ -1846,7 +1846,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.14.2",
+            "version": "3.14.3",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
