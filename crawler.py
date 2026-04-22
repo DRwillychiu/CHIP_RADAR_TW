@@ -32,7 +32,11 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 # ========== 模組化 import ==========
-from branches import WATCHED_BRANCHES, get_unique_branches
+from branches import (
+    WATCHED_BRANCHES, get_unique_branches,
+    MASTER_STYLES, STYLE_LABELS, LIMIT_UP_THRESHOLD, NEAR_LIMIT_UP_THRESHOLD,
+    get_master_styles, get_masters_of_style,
+)
 from market_classifier import get_classifier, CATEGORY_LABELS, CATEGORY_LABELS_SIMPLE
 from institutional import (
     fetch_all_public_data, compute_alignment, compute_floating_pnl_pct
@@ -663,6 +667,541 @@ def compute_period_summaries(positions: dict, trade_date: str, today_branches_da
     return summaries
 
 
+def compute_limit_up_summary(today_branches_data: list, unique_branches: list):
+    """
+    v3.12 漲停狙擊匯總
+    
+    回傳:
+    {
+      "limit_up_stocks": [  # 今日所有漲停股
+        {
+          "code": "4536", "name": "達能", "change_pct": 10.0,
+          "close": 123.5, "volume_lot": 3500,
+          "buyers": [  # 我的分點中誰買了這檔漲停
+            {"branch_code": "9227", "branch_name": "凱基-城中", 
+             "master": "蔣承翰", "styles": ["next_day_flipper"],
+             "buy_amt": 500, "buy_lot": 100, "net_amt": 450, "net_lot": 90,
+             "overnight_lots": 90}
+          ],
+          "total_buy_amt": ..., "total_buy_lot": ...,
+          "buyer_count": 1
+        }
+      ],
+      "sniper_ranking": [  # 各分點的漲停狙擊成績
+        {
+          "branch_code": "9227", "branch_name": "凱基-城中",
+          "master": "蔣承翰", "styles": ["next_day_flipper"],
+          "limit_up_stocks_bought": 5,           # 買了幾檔漲停股
+          "total_limit_up_buy_amt": 2850,        # 買漲停股總金額
+          "total_limit_up_buy_lot": 500,         # 買漲停股總張數
+          "limit_up_codes": ["4536", "5314", ...]
+        }
+      ],
+      "master_sniper_ranking": [  # 各 master 的漲停狙擊成績（多分點合併）
+        {"master": "蔣承翰", "styles": ["next_day_flipper"],
+         "branches_count": 2, "limit_up_stocks_bought": 8,
+         "total_limit_up_buy_amt": 4500, ...}
+      ],
+      "consensus_limit_up": [  # 2 位以上 master 同時買的漲停股（超強信號）
+        {
+          "code": "...", "name": "...", "masters_list": [...],
+          "master_count": 3, "total_buy_amt": ...
+        }
+      ],
+      "style_stats": {  # 各風格的漲停狙擊統計
+        "next_day_flipper": {"masters": [...], "limit_up_count": 8, "total_buy_amt": 4500},
+        ...
+      },
+      "total_limit_up_today": 35,   # 全市場漲停股總數
+      "limit_up_bought_count": 8,    # 我的分點買到幾檔漲停
+    }
+    """
+    code_to_branch = {b["code"]: b for b in unique_branches}
+    
+    # 收集所有被分點買的漲停股
+    limit_up_map = {}  # {stock_code: {...}}
+    sniper_map = {}    # {branch_code: {...}}
+    
+    # v3.13：漲停股被分點賣出 (出貨/隔日沖 Day2 結清)
+    limit_up_sell_map = {}   # {stock_code: {sellers:[...]}}
+    seller_map = {}          # {branch_code: {...}}
+    
+    for br_data in today_branches_data:
+        branch_code = br_data["code"]
+        branch_obj = code_to_branch.get(branch_code, {})
+        master = br_data.get("master", "")
+        styles = MASTER_STYLES.get(master, ["unknown"])
+        
+        # ───── BUY 側（原邏輯）─────
+        for s in (br_data.get("buys") or []):
+            if not s.get("is_limit_up"):
+                continue
+            
+            stock_code = s.get("code")
+            if not stock_code:
+                continue
+            
+            # 加入漲停股清單
+            if stock_code not in limit_up_map:
+                limit_up_map[stock_code] = {
+                    "code": stock_code,
+                    "name": s.get("name", ""),
+                    "change_pct": s.get("change_pct"),
+                    "close": s.get("close_price"),
+                    "volume_lot": s.get("volume_lot"),
+                    "market_type": s.get("market_type"),
+                    "industry": s.get("industry"),
+                    "buyers": [],
+                    "total_buy_amt": 0,
+                    "total_buy_lot": 0,
+                    "total_net_amt": 0,
+                    "total_net_lot": 0,
+                    "total_overnight_lots": 0,
+                    "masters_set": set(),
+                }
+            
+            lu = limit_up_map[stock_code]
+            lu["buyers"].append({
+                "branch_code": branch_code,
+                "branch_name": br_data.get("name", ""),
+                "master": master,
+                "styles": styles,
+                "region": br_data.get("region", "domestic"),
+                "buy_amt": s.get("buy_amt", 0),
+                "buy_lot": s.get("buy_lot", 0),
+                "sell_amt": s.get("sell_amt", 0),
+                "sell_lot": s.get("sell_lot", 0),
+                "net_amt": s.get("net_amt", 0),
+                "net_lot": s.get("net_lot", 0),
+                "overnight_lots": s.get("overnight_lots", 0),
+            })
+            lu["total_buy_amt"] += s.get("buy_amt", 0) or 0
+            lu["total_buy_lot"] += s.get("buy_lot", 0) or 0
+            lu["total_net_amt"] += s.get("net_amt", 0) or 0
+            lu["total_net_lot"] += s.get("net_lot", 0) or 0
+            lu["total_overnight_lots"] += s.get("overnight_lots", 0) or 0
+            lu["masters_set"].add(master)
+            
+            # 分點狙擊榜
+            if branch_code not in sniper_map:
+                sniper_map[branch_code] = {
+                    "branch_code": branch_code,
+                    "branch_name": br_data.get("name", ""),
+                    "master": master,
+                    "styles": styles,
+                    "region": br_data.get("region", "domestic"),
+                    "limit_up_stocks_bought": 0,
+                    "total_limit_up_buy_amt": 0,
+                    "total_limit_up_buy_lot": 0,
+                    "total_limit_up_net_amt": 0,
+                    "total_limit_up_overnight_lots": 0,
+                    "limit_up_details": [],   # 每筆漲停買進
+                }
+            sn = sniper_map[branch_code]
+            sn["limit_up_stocks_bought"] += 1
+            sn["total_limit_up_buy_amt"] += s.get("buy_amt", 0) or 0
+            sn["total_limit_up_buy_lot"] += s.get("buy_lot", 0) or 0
+            sn["total_limit_up_net_amt"] += s.get("net_amt", 0) or 0
+            sn["total_limit_up_overnight_lots"] += s.get("overnight_lots", 0) or 0
+            sn["limit_up_details"].append({
+                "code": stock_code,
+                "name": s.get("name", ""),
+                "change_pct": s.get("change_pct"),
+                "buy_amt": s.get("buy_amt", 0),
+                "buy_lot": s.get("buy_lot", 0),
+                "net_amt": s.get("net_amt", 0),
+                "overnight_lots": s.get("overnight_lots", 0),
+            })
+        
+        # ───── SELL 側 (v3.13 新增) ─────
+        # 分點「賣超」漲停股 → 疑似隔日沖 Day2 出貨 / 獲利了結
+        for s in (br_data.get("sells") or []):
+            if not s.get("is_limit_up"):
+                continue
+            stock_code = s.get("code")
+            if not stock_code:
+                continue
+            
+            # 加入漲停賣出清單
+            if stock_code not in limit_up_sell_map:
+                limit_up_sell_map[stock_code] = {
+                    "code": stock_code,
+                    "name": s.get("name", ""),
+                    "change_pct": s.get("change_pct"),
+                    "close": s.get("close_price"),
+                    "volume_lot": s.get("volume_lot"),
+                    "market_type": s.get("market_type"),
+                    "sellers": [],
+                    "total_sell_amt": 0,
+                    "total_sell_lot": 0,
+                    "total_net_sell_amt": 0,   # 淨賣（負數）
+                    "total_net_sell_lot": 0,
+                    "masters_set": set(),
+                }
+            
+            ls = limit_up_sell_map[stock_code]
+            ls["sellers"].append({
+                "branch_code": branch_code,
+                "branch_name": br_data.get("name", ""),
+                "master": master,
+                "styles": styles,
+                "region": br_data.get("region", "domestic"),
+                "buy_amt": s.get("buy_amt", 0),
+                "buy_lot": s.get("buy_lot", 0),
+                "sell_amt": s.get("sell_amt", 0),
+                "sell_lot": s.get("sell_lot", 0),
+                "net_amt": s.get("net_amt", 0),  # 會是負數（淨賣）
+                "net_lot": s.get("net_lot", 0),
+            })
+            ls["total_sell_amt"] += s.get("sell_amt", 0) or 0
+            ls["total_sell_lot"] += s.get("sell_lot", 0) or 0
+            ls["total_net_sell_amt"] += s.get("net_amt", 0) or 0
+            ls["total_net_sell_lot"] += s.get("net_lot", 0) or 0
+            ls["masters_set"].add(master)
+            
+            # 分點「漲停出貨榜」
+            if branch_code not in seller_map:
+                seller_map[branch_code] = {
+                    "branch_code": branch_code,
+                    "branch_name": br_data.get("name", ""),
+                    "master": master,
+                    "styles": styles,
+                    "region": br_data.get("region", "domestic"),
+                    "limit_up_stocks_sold": 0,
+                    "total_limit_up_sell_amt": 0,
+                    "total_limit_up_sell_lot": 0,
+                    "total_limit_up_net_sell_amt": 0,
+                    "limit_up_sell_details": [],
+                }
+            sel = seller_map[branch_code]
+            sel["limit_up_stocks_sold"] += 1
+            sel["total_limit_up_sell_amt"] += s.get("sell_amt", 0) or 0
+            sel["total_limit_up_sell_lot"] += s.get("sell_lot", 0) or 0
+            sel["total_limit_up_net_sell_amt"] += s.get("net_amt", 0) or 0
+            sel["limit_up_sell_details"].append({
+                "code": stock_code,
+                "name": s.get("name", ""),
+                "change_pct": s.get("change_pct"),
+                "sell_amt": s.get("sell_amt", 0),
+                "sell_lot": s.get("sell_lot", 0),
+                "net_amt": s.get("net_amt", 0),
+            })
+    
+    # 後處理：漲停股清單 + 排序
+    limit_up_stocks = []
+    consensus_limit_up = []
+    for code, lu in limit_up_map.items():
+        lu["masters_list"] = sorted(lu["masters_set"])
+        lu["master_count"] = len(lu["masters_set"])
+        lu["buyer_count"] = len(lu["buyers"])
+        del lu["masters_set"]
+        limit_up_stocks.append(lu)
+        
+        # 2 位以上 master 共買 → 加入 consensus
+        if lu["master_count"] >= 2:
+            consensus_limit_up.append(lu)
+    
+    limit_up_stocks.sort(key=lambda x: (-x["master_count"], -x["total_buy_amt"]))
+    consensus_limit_up.sort(key=lambda x: (-x["master_count"], -x["total_buy_amt"]))
+    
+    # 分點狙擊排名
+    sniper_ranking = sorted(sniper_map.values(), 
+                             key=lambda x: (-x["limit_up_stocks_bought"], -x["total_limit_up_buy_amt"]))
+    
+    # Master 層級聚合（多分點合併）
+    master_sniper_map = {}
+    for sn in sniper_ranking:
+        m = sn["master"]
+        if m not in master_sniper_map:
+            master_sniper_map[m] = {
+                "master": m,
+                "styles": sn["styles"],
+                "branches": [],
+                "limit_up_codes_set": set(),
+                "total_limit_up_buy_amt": 0,
+                "total_limit_up_buy_lot": 0,
+                "total_limit_up_net_amt": 0,
+                "total_limit_up_overnight_lots": 0,
+            }
+        ms = master_sniper_map[m]
+        ms["branches"].append({
+            "code": sn["branch_code"],
+            "name": sn["branch_name"],
+            "limit_up_stocks_bought": sn["limit_up_stocks_bought"],
+            "total_buy_amt": sn["total_limit_up_buy_amt"],
+        })
+        ms["total_limit_up_buy_amt"] += sn["total_limit_up_buy_amt"]
+        ms["total_limit_up_buy_lot"] += sn["total_limit_up_buy_lot"]
+        ms["total_limit_up_net_amt"] += sn["total_limit_up_net_amt"]
+        ms["total_limit_up_overnight_lots"] += sn["total_limit_up_overnight_lots"]
+        for d in sn["limit_up_details"]:
+            ms["limit_up_codes_set"].add(d["code"])
+    
+    master_sniper_ranking = []
+    for m, data in master_sniper_map.items():
+        data["branches_count"] = len(data["branches"])
+        data["limit_up_stocks_bought"] = len(data["limit_up_codes_set"])
+        data["limit_up_codes"] = sorted(data["limit_up_codes_set"])
+        del data["limit_up_codes_set"]
+        master_sniper_ranking.append(data)
+    master_sniper_ranking.sort(key=lambda x: (-x["limit_up_stocks_bought"], -x["total_limit_up_buy_amt"]))
+    
+    # 依風格統計
+    style_stats = {}
+    for sn in sniper_ranking:
+        for style in sn["styles"]:
+            if style not in style_stats:
+                style_stats[style] = {
+                    "style": style,
+                    "masters": set(),
+                    "limit_up_count": 0,
+                    "total_buy_amt": 0,
+                    "total_buy_lot": 0,
+                }
+            ss = style_stats[style]
+            ss["masters"].add(sn["master"])
+            ss["limit_up_count"] += sn["limit_up_stocks_bought"]
+            ss["total_buy_amt"] += sn["total_limit_up_buy_amt"]
+            ss["total_buy_lot"] += sn["total_limit_up_buy_lot"]
+    for style, ss in style_stats.items():
+        ss["masters"] = sorted(ss["masters"])
+        ss["master_count"] = len(ss["masters"])
+    
+    # v3.13：漲停賣出 (隔日沖 Day2 出貨 / 獲利了結) 後處理
+    limit_up_sold_stocks = []
+    for code, ls in limit_up_sell_map.items():
+        ls["masters_list"] = sorted(ls["masters_set"])
+        ls["master_count"] = len(ls["masters_set"])
+        ls["seller_count"] = len(ls["sellers"])
+        del ls["masters_set"]
+        limit_up_sold_stocks.append(ls)
+    limit_up_sold_stocks.sort(key=lambda x: (-x["master_count"], -x["total_sell_amt"]))
+    
+    # 分點漲停出貨排名
+    seller_ranking = sorted(seller_map.values(),
+                             key=lambda x: (-x["limit_up_stocks_sold"], -x["total_limit_up_sell_amt"]))
+    
+    return {
+        "limit_up_stocks": limit_up_stocks,
+        "sniper_ranking": sniper_ranking,
+        "master_sniper_ranking": master_sniper_ranking,
+        "consensus_limit_up": consensus_limit_up,
+        "style_stats": style_stats,
+        "limit_up_bought_count": len(limit_up_stocks),
+        # v3.13 新增
+        "limit_up_sold_stocks": limit_up_sold_stocks,   # 今日被我分點賣超的漲停股
+        "seller_ranking": seller_ranking,               # 分點漲停出貨排名
+        "limit_up_sold_count": len(limit_up_sold_stocks),
+    }
+
+
+def compute_next_day_flip_verification(today_branches_data: list, 
+                                        yesterday_branches_data: list,
+                                        unique_branches: list):
+    """
+    v3.13 隔日沖驗證 — 比對「昨日漲停買進」vs「今日賣超」
+    
+    實戰場景:
+      Day 1: 蔣承翰的 9227 分點買進漲停聯發科 300 張
+      Day 2: 9227 分點賣超聯發科 280 張 → 確認隔日沖出貨
+    
+    回傳:
+    {
+      "verified_flips": [  # 確認隔日沖的案例
+        {
+          "branch_code": "9227", "branch_name": "凱基-城中",
+          "master": "蔣承翰", "styles": [...],
+          "stock_code": "2454", "stock_name": "聯發科",
+          "yesterday_buy_lot": 300,  "yesterday_buy_amt": 5000,
+          "yesterday_change_pct": 10.0,
+          "today_sell_lot": 280, "today_sell_amt": 4800,
+          "today_change_pct": -2.5,
+          "flip_ratio": 93.3,  # 出貨比例 = 今賣張 / 昨買張
+          "status": "full_flip" | "partial_flip" | "over_flip",
+        }
+      ],
+      "pending_positions": [  # 昨日買進但今日未賣（還在留倉）
+        { ..., "flip_ratio": 0, "status": "still_holding" }
+      ],
+      "flipper_scorecard": [  # 依 master 聚合出貨表現
+        {
+          "master": "蔣承翰", "styles": [...],
+          "verified_flip_count": 8,
+          "pending_count": 2,
+          "total_yesterday_buy_lot": 1200,
+          "total_today_sell_lot": 1080,
+          "overall_flip_ratio": 90.0,
+        }
+      ],
+      "is_first_day": bool,  # 是否為系統首日（沒昨日資料）
+    }
+    """
+    if not yesterday_branches_data:
+        return {
+            "verified_flips": [],
+            "pending_positions": [],
+            "flipper_scorecard": [],
+            "is_first_day": True,
+        }
+    
+    code_to_branch = {b["code"]: b for b in unique_branches}
+    
+    # Step 1: 建 index — 昨日漲停買進明細
+    # key = (branch_code, stock_code), value = {...}
+    yesterday_limit_up_buys = {}
+    for br_data in yesterday_branches_data:
+        branch_code = br_data.get("code")
+        if not branch_code or not br_data.get("buys"):
+            continue
+        for s in br_data["buys"]:
+            # v3.12 之前沒有 is_limit_up 欄位，相容處理
+            is_lu = s.get("is_limit_up")
+            if is_lu is None:
+                # 用 change_pct 判定
+                cp = s.get("change_pct")
+                is_lu = (cp is not None and cp >= LIMIT_UP_THRESHOLD)
+            if not is_lu:
+                continue
+            stock_code = s.get("code")
+            if not stock_code:
+                continue
+            key = (branch_code, stock_code)
+            yesterday_limit_up_buys[key] = {
+                "branch_code": branch_code,
+                "stock_code": stock_code,
+                "stock_name": s.get("name", ""),
+                "buy_lot": s.get("buy_lot", 0) or 0,
+                "buy_amt": s.get("buy_amt", 0) or 0,
+                "overnight_lots": s.get("overnight_lots", 0) or 0,
+                "change_pct": s.get("change_pct"),
+            }
+    
+    # Step 2: 建 index — 今日「該分點 vs 該股」的所有交易（買+賣）
+    today_trades = {}
+    for br_data in today_branches_data:
+        branch_code = br_data.get("code")
+        if not branch_code:
+            continue
+        # buys 和 sells 都要看
+        for s in (br_data.get("buys") or []) + (br_data.get("sells") or []):
+            stock_code = s.get("code")
+            if not stock_code:
+                continue
+            key = (branch_code, stock_code)
+            # 累加（因為 buys 和 sells 理論上不會有同一檔，但保險處理）
+            if key in today_trades:
+                continue
+            today_trades[key] = {
+                "branch_code": branch_code,
+                "stock_code": stock_code,
+                "buy_lot": s.get("buy_lot", 0) or 0,
+                "sell_lot": s.get("sell_lot", 0) or 0,
+                "buy_amt": s.get("buy_amt", 0) or 0,
+                "sell_amt": s.get("sell_amt", 0) or 0,
+                "change_pct": s.get("change_pct"),
+            }
+    
+    # Step 3: 配對 — 昨日漲停買進 × 今日賣出動作
+    verified_flips = []
+    pending_positions = []
+    
+    for key, yest in yesterday_limit_up_buys.items():
+        branch_code = yest["branch_code"]
+        branch_obj = code_to_branch.get(branch_code, {})
+        master = branch_obj.get("master", "")
+        styles = MASTER_STYLES.get(master, ["unknown"])
+        
+        today = today_trades.get(key, {})
+        today_sell_lot = today.get("sell_lot", 0)
+        today_sell_amt = today.get("sell_amt", 0)
+        
+        # 計算出貨比例
+        if yest["buy_lot"] > 0:
+            flip_ratio = round(today_sell_lot / yest["buy_lot"] * 100, 1)
+        else:
+            flip_ratio = 0.0
+        
+        # 判定狀態
+        if flip_ratio >= 90:
+            status = "full_flip"        # 幾乎全部出清
+        elif flip_ratio >= 30:
+            status = "partial_flip"     # 部分出貨
+        elif flip_ratio > 0:
+            status = "minor_flip"       # 少量出貨
+        else:
+            status = "still_holding"    # 尚未賣出
+        
+        record = {
+            "branch_code": branch_code,
+            "branch_name": branch_obj.get("name", ""),
+            "master": master,
+            "styles": styles,
+            "region": branch_obj.get("region", "domestic"),
+            "stock_code": yest["stock_code"],
+            "stock_name": yest["stock_name"],
+            "yesterday_buy_lot": yest["buy_lot"],
+            "yesterday_buy_amt": yest["buy_amt"],
+            "yesterday_overnight_lots": yest["overnight_lots"],
+            "yesterday_change_pct": yest["change_pct"],
+            "today_sell_lot": today_sell_lot,
+            "today_sell_amt": today_sell_amt,
+            "today_change_pct": today.get("change_pct"),
+            "flip_ratio": flip_ratio,
+            "status": status,
+        }
+        
+        if status == "still_holding":
+            pending_positions.append(record)
+        else:
+            verified_flips.append(record)
+    
+    # 按出貨比例降序
+    verified_flips.sort(key=lambda x: -x["flip_ratio"])
+    pending_positions.sort(key=lambda x: -x["yesterday_buy_amt"])
+    
+    # Step 4: Master 聚合評分
+    master_map = {}
+    for rec in verified_flips + pending_positions:
+        m = rec["master"]
+        if m not in master_map:
+            master_map[m] = {
+                "master": m,
+                "styles": rec["styles"],
+                "verified_flip_count": 0,
+                "pending_count": 0,
+                "total_yesterday_buy_lot": 0,
+                "total_yesterday_buy_amt": 0,
+                "total_today_sell_lot": 0,
+                "total_today_sell_amt": 0,
+            }
+        mm = master_map[m]
+        if rec["status"] != "still_holding":
+            mm["verified_flip_count"] += 1
+        else:
+            mm["pending_count"] += 1
+        mm["total_yesterday_buy_lot"] += rec["yesterday_buy_lot"]
+        mm["total_yesterday_buy_amt"] += rec["yesterday_buy_amt"]
+        mm["total_today_sell_lot"] += rec["today_sell_lot"]
+        mm["total_today_sell_amt"] += rec["today_sell_amt"]
+    
+    flipper_scorecard = []
+    for m, mm in master_map.items():
+        if mm["total_yesterday_buy_lot"] > 0:
+            mm["overall_flip_ratio"] = round(
+                mm["total_today_sell_lot"] / mm["total_yesterday_buy_lot"] * 100, 1)
+        else:
+            mm["overall_flip_ratio"] = 0.0
+        flipper_scorecard.append(mm)
+    flipper_scorecard.sort(key=lambda x: -x["overall_flip_ratio"])
+    
+    return {
+        "verified_flips": verified_flips,
+        "pending_positions": pending_positions,
+        "flipper_scorecard": flipper_scorecard,
+        "is_first_day": False,
+    }
+
+
 def compute_master_summaries(branch_summaries: dict, unique_branches: list, today_branches_data: list = None):
     """
     按高手（master）聚合多分點的統計
@@ -713,6 +1252,7 @@ def compute_master_summaries(branch_summaries: dict, unique_branches: list, toda
                     "tags_personal": set(),
                     "tags_market": set(),
                     "stock_stats": {},
+                    "sell_stats": {},  # v3.13 賣超個股彙整
                 }
             
             mdata = master_data[master]
@@ -787,6 +1327,35 @@ def compute_master_summaries(branch_summaries: dict, unique_branches: list, toda
                     ss["total_sell_lot"] += s.get("sell_lot", 0)
                     ss["total_net_lot"] += s.get("net_lot", 0)
                     ss["total_overnight_lots"] += s.get("overnight_lots", 0)
+            
+            # v3.13 新增：彙整該分點「賣超」的個股（淨賣方向）
+            if today_br and today_br.get("sells"):
+                for s in today_br["sells"]:
+                    code = s["code"]
+                    if code not in mdata["sell_stats"]:
+                        mdata["sell_stats"][code] = {
+                            "code": code, "name": s["name"],
+                            "branches": [],
+                            "total_buy_amt": 0, "total_sell_amt": 0, "total_net_amt": 0,
+                            "total_buy_lot": 0, "total_sell_lot": 0, "total_net_lot": 0,
+                        }
+                    ss = mdata["sell_stats"][code]
+                    ss["branches"].append({
+                        "code": branch_code,
+                        "name": code_to_branch.get(branch_code, {}).get("name", ""),
+                        "buy_amt": s.get("buy_amt", 0),
+                        "sell_amt": s.get("sell_amt", 0),
+                        "net_amt": s.get("net_amt", 0),
+                        "buy_lot": s.get("buy_lot", 0),
+                        "sell_lot": s.get("sell_lot", 0),
+                        "net_lot": s.get("net_lot", 0),
+                    })
+                    ss["total_buy_amt"] += s.get("buy_amt", 0) or 0
+                    ss["total_sell_amt"] += s.get("sell_amt", 0) or 0
+                    ss["total_net_amt"] += s.get("net_amt", 0) or 0
+                    ss["total_buy_lot"] += s.get("buy_lot", 0) or 0
+                    ss["total_sell_lot"] += s.get("sell_lot", 0) or 0
+                    ss["total_net_lot"] += s.get("net_lot", 0) or 0
     
     # 最後計算平均當沖比、風格判定
     for master, mdata in master_data.items():
@@ -828,12 +1397,24 @@ def compute_master_summaries(branch_summaries: dict, unique_branches: list, toda
         ]
         mdata["consensus_stocks"].sort(key=lambda x: -x["total_net_amt"])
         
-        # 轉換 stock_stats 為 list 以便序列化（也留 dict 以便前端快速查）
+        # 轉換 stock_stats 為 list 以便序列化
         mdata["top_stocks"] = sorted(
             mdata["stock_stats"].values(),
             key=lambda x: -x["total_net_amt"]
         )[:30]
         del mdata["stock_stats"]  # 省空間
+        
+        # v3.13 新增：共識賣超個股 + top_sells
+        mdata["consensus_sells"] = [
+            s for s in mdata["sell_stats"].values() if len(s["branches"]) >= 2
+        ]
+        mdata["consensus_sells"].sort(key=lambda x: x["total_net_amt"])  # 淨賣越大（負值）越前面
+        
+        mdata["top_sells"] = sorted(
+            mdata["sell_stats"].values(),
+            key=lambda x: x["total_net_amt"]  # 淨買由小到大（最賣超的在前）
+        )[:30]
+        del mdata["sell_stats"]
     
     return master_data
 
@@ -1016,12 +1597,19 @@ def main():
                 else:
                     s["floating_pnl_pct"] = None
                 
+                # v3.12 漲停判定
+                cp = quote["change_pct"] or 0
+                s["is_limit_up"] = cp >= LIMIT_UP_THRESHOLD
+                s["is_near_limit_up"] = cp >= NEAR_LIMIT_UP_THRESHOLD
+                
                 quote_inject_count += 1
             else:
                 s["close_price"] = None
                 s["change_pct"] = None
                 s["volume_lot"] = None
                 s["floating_pnl_pct"] = None
+                s["is_limit_up"] = False
+                s["is_near_limit_up"] = False
     
     print(f"[公開資訊] ✓ 注入完成 — 三大法人 {inst_inject_count} 筆 / 收盤行情 {quote_inject_count} 筆")
     print(f"          對齊統計：與外資同向 {align_aligned} / 反向 {align_opposing}")
@@ -1032,6 +1620,56 @@ def main():
     # 高手聚合摘要
     master_summaries = compute_master_summaries(summaries, unique_branches, today_branches_data=results)
     print(f"[聚合] 高手視角合併完成，共 {len(master_summaries)} 位高手")
+    
+    # v3.12 漲停狙擊匯總
+    limit_up_summary = compute_limit_up_summary(results, unique_branches)
+    print(f"[漲停狙擊] 我的分點買到 {limit_up_summary['limit_up_bought_count']} 檔漲停股")
+    if limit_up_summary['sniper_ranking']:
+        top_sniper = limit_up_summary['sniper_ranking'][0]
+        print(f"  🎯 最強狙擊手：{top_sniper['master']} - {top_sniper['branch_name']}"
+              f"（買 {top_sniper['limit_up_stocks_bought']} 檔漲停，{top_sniper['total_limit_up_buy_amt']:.0f} 萬）")
+    if limit_up_summary['consensus_limit_up']:
+        print(f"  👥 多位高手共買漲停股：{len(limit_up_summary['consensus_limit_up'])} 檔")
+    
+    # v3.13 隔日沖驗證 — 比對昨日漲停買進 × 今日賣超
+    print(f"\n[隔日沖驗證] 比對昨日漲停買進 vs 今日賣超...")
+    yesterday_branches_data = []
+    try:
+        # 找昨日的加密檔
+        existing_dates_sorted = sorted(
+            [f.stem for f in data_dir.glob("*.json") if f.stem.isdigit() and len(f.stem) == 8 and f.stem != trade_date],
+            reverse=True
+        )
+        if existing_dates_sorted:
+            yest_date = existing_dates_sorted[0]
+            yest_file = data_dir / f"{yest_date}.json"
+            with open(yest_file, "r", encoding="utf-8") as f:
+                yest_raw = json.load(f)
+            if yest_raw.get("encrypted"):
+                yest_plain = decrypt_data(yest_raw["data"], password)
+                yest_data = json.loads(yest_plain)
+                yesterday_branches_data = yest_data.get("branches", [])
+                print(f"  ✓ 載入昨日資料 ({yest_date}): {len(yesterday_branches_data)} 個分點")
+    except Exception as e:
+        print(f"  ⚠️ 昨日資料載入失敗: {e}（首日執行此為正常現象）")
+    
+    next_day_verification = compute_next_day_flip_verification(
+        results, yesterday_branches_data, unique_branches)
+    
+    if next_day_verification["is_first_day"]:
+        print(f"  ℹ️ 首日執行，明日才能開始比對")
+    else:
+        vf = next_day_verification["verified_flips"]
+        pp = next_day_verification["pending_positions"]
+        full_flips = [r for r in vf if r["status"] == "full_flip"]
+        partial_flips = [r for r in vf if r["status"] == "partial_flip"]
+        print(f"  ✓ 完全出貨 (flip>=90%): {len(full_flips)} 筆")
+        print(f"  ✓ 部分出貨 (flip>=30%): {len(partial_flips)} 筆")
+        print(f"  ⏸️ 尚未出貨（留倉中）: {len(pp)} 筆")
+        if next_day_verification["flipper_scorecard"]:
+            top = next_day_verification["flipper_scorecard"][0]
+            print(f"  🎯 最高出貨率：{top['master']} - 整體 {top['overall_flip_ratio']:.1f}% "
+                  f"（昨買 {top['total_yesterday_buy_lot']} 張 → 今賣 {top['total_today_sell_lot']} 張）")
     
     save_positions(positions, data_dir, password)
     print(f"[FIFO] 累積部位已更新，涉及 {len(positions.get('branches', {}))} 個分點")
@@ -1122,7 +1760,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.11",
+        "version": "3.13",
         "success": success_count,
         "failed": fail_count,
         "empty": empty_count,
@@ -1136,6 +1774,10 @@ def main():
         "margin_data": margin_filtered,           # 智慧混合後的個股融資融券
         "margin_rankings": margin_rankings,       # 7 類排行榜
         "margin_total_count": len(margin_all),    # 全市場總檔數（統計用）
+        # v3.12 新增
+        "limit_up_summary": limit_up_summary,     # 漲停狙擊匯總
+        # v3.13 新增
+        "next_day_verification": next_day_verification,  # 隔日沖驗證
     }
     
     plaintext = json.dumps(raw_output, ensure_ascii=False)
@@ -1187,7 +1829,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.11",
+            "version": "3.13",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
