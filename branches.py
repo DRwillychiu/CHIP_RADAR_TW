@@ -388,3 +388,91 @@ REGION_LABELS = {
     "eu":       "🇪🇺 歐系",
     "asia":     "🌏 亞系",
 }
+ 
+ 
+# ════════════════════════════════════════════════════════════════════
+#  v3.12 Master 風格檔案（手動標記 + 可自行擴充）
+# ════════════════════════════════════════════════════════════════════
+#
+# 為什麼獨立欄位：
+#   - 同一 master 可以有多種風格（如「隔日沖 + 當沖」）
+#   - 一個人不同時期策略也可能不同
+#   - 用陣列比單一風格更貼近真實
+#
+# 風格定義:
+#   day_trader       🔥 當沖：買賣同日結清
+#   next_day_flipper ⚡ 隔日沖：買入後隔天賣
+#   swing            🌙 波段：持股數日~數週
+#   longterm         💎 長線：持股數月以上
+#   foreign_ib       🌏 外資 IB
+#   public           🏛️ 官股
+#
+# 使用方法:
+#   1. 若要加新風格：加到下面 STYLE_LABELS 字典
+#   2. 若要改某 master 風格：改下面 MASTER_STYLES 字典（改完 commit 即生效）
+#   3. UI 的「漲停狙擊」頁會重點追蹤 next_day_flipper + day_trader
+# ════════════════════════════════════════════════════════════════════
+ 
+STYLE_LABELS = {
+    "day_trader":       {"icon": "🔥", "label": "當沖", "color": "#fb923c"},
+    "next_day_flipper": {"icon": "⚡", "label": "隔日沖", "color": "#f87171"},
+    "swing":            {"icon": "🌙", "label": "波段", "color": "#60a5fa"},
+    "longterm":         {"icon": "💎", "label": "長線", "color": "#22d3ee"},
+    "foreign_ib":       {"icon": "🌏", "label": "外資 IB", "color": "#a78bfa"},
+    "public":           {"icon": "🏛️", "label": "官股", "color": "#d8b4fe"},
+    "unknown":          {"icon": "❓", "label": "未分類", "color": "#64748b"},
+}
+ 
+MASTER_STYLES = {
+    # 🇹🇼 國內高手
+    "民哥": ["swing"],
+    "林滄海": ["swing", "longterm"],
+    "張濬安(航海王)": ["swing"],
+    "陳族元": ["swing"],
+    "陳律師": ["swing"],
+    "迷你哥/松山哥": ["day_trader"],
+    "布哥/n_nchang": ["swing"],
+    "強森": ["swing"],
+    "Tradow": ["next_day_flipper"],
+    "巨人傑": ["next_day_flipper", "day_trader"],
+    "蔣承翰": ["next_day_flipper"],   # ⭐ 你明確指定為隔日沖
+    "大牌分析師": ["swing"],
+    "優式資本": ["longterm"],
+    "東億資本": ["longterm"],
+    "Krenz(再多一位數本人)": ["day_trader"],
+    # 🌏 外資
+    "高盛": ["foreign_ib"],
+    "美林": ["foreign_ib"],
+    "摩根士丹利": ["foreign_ib"],
+    "摩根大通": ["foreign_ib"],
+    "花旗環球": ["foreign_ib"],
+    "瑞銀": ["foreign_ib"],
+    "匯豐 HSBC": ["foreign_ib"],
+    "麥格理": ["foreign_ib"],
+    # 🏛️ 官股
+    "臺銀證券": ["public"],
+    "兆豐證券": ["public"],
+}
+ 
+ 
+def get_master_styles(master_name):
+    """取得某 master 的風格陣列"""
+    return MASTER_STYLES.get(master_name, ["unknown"])
+ 
+ 
+def is_master_of_style(master_name, style):
+    """判斷某 master 是否屬於某個風格"""
+    return style in MASTER_STYLES.get(master_name, [])
+ 
+ 
+def get_masters_of_style(style):
+    """取得屬於某風格的所有 master"""
+    return [m for m, styles in MASTER_STYLES.items() if style in styles]
+ 
+ 
+# ════════════════════════════════════════════════════════════════════
+#  v3.12 漲停股定義
+# ════════════════════════════════════════════════════════════════════
+ 
+LIMIT_UP_THRESHOLD = 9.5   # 漲跌幅 >= 9.5% 視為漲停
+NEAR_LIMIT_UP_THRESHOLD = 7.0  # >= 7% 視為接近漲停（隔日沖預備狙擊）
