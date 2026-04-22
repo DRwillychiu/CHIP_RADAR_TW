@@ -1539,10 +1539,22 @@ def main():
     
     # ════════════════════════════════════════════════════════════════
     # v3.7 新增：抓取三大法人 + 收盤行情，注入到每檔股票
+    # v3.14.2: 傳入 priority_codes 供 MIS fallback 補抓
     # ════════════════════════════════════════════════════════════════
     print(f"\n[公開資訊] 抓取三大法人與收盤行情...")
+    
+    # 收集我的分點出現的所有股票代號（供 fallback 使用）
+    priority_codes = set()
+    for br in results:
+        for s in (br.get("buys", []) + br.get("sells", [])):
+            code = s.get("code")
+            if code:
+                priority_codes.add(code)
+    priority_codes = list(priority_codes)
+    print(f"  (我的分點今日涉及 {len(priority_codes)} 檔個股)")
+    
     try:
-        institutional_map, daily_quotes_map = fetch_all_public_data(trade_date)
+        institutional_map, daily_quotes_map = fetch_all_public_data(trade_date, priority_codes=priority_codes)
     except Exception as e:
         print(f"  ⚠️ 公開資訊抓取整體失敗: {e}（繼續執行，不影響主流程）")
         institutional_map, daily_quotes_map = {}, {}
@@ -1589,6 +1601,9 @@ def main():
                 s["close_price"] = quote["close"]
                 s["change_pct"] = quote["change_pct"]
                 s["volume_lot"] = quote["volume_lot"]
+                # v3.14.2: 標記資料來源 (twse / tpex / mis_tse / mis_otc)
+                s["quote_source"] = quote.get("source", "")
+                s["quote_stale"] = False  # 本次爬蟲抓到的都是即時資料
                 
                 # 計算當日浮盈（買均 vs 收盤）
                 buy_avg = s.get("buy_avg", 0) or 0
@@ -1610,6 +1625,8 @@ def main():
                 s["floating_pnl_pct"] = None
                 s["is_limit_up"] = False
                 s["is_near_limit_up"] = False
+                s["quote_source"] = None
+                s["quote_stale"] = True  # 沒抓到，標記為過時
     
     print(f"[公開資訊] ✓ 注入完成 — 三大法人 {inst_inject_count} 筆 / 收盤行情 {quote_inject_count} 筆")
     print(f"          對齊統計：與外資同向 {align_aligned} / 反向 {align_opposing}")
@@ -1760,7 +1777,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.14",
+        "version": "3.14.2",
         "success": success_count,
         "failed": fail_count,
         "empty": empty_count,
@@ -1829,7 +1846,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.14",
+            "version": "3.14.2",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
