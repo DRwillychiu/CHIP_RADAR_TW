@@ -38,6 +38,7 @@ from institutional import (
     fetch_all_public_data, compute_alignment, compute_floating_pnl_pct
 )
 import reports  # v3.9 週報/月報生成
+import margin   # v3.11 融資融券
 
 TW_TZ = timezone(timedelta(hours=8))
 
@@ -1080,12 +1081,48 @@ def main():
           f"投信 {len(institutional_rankings['trust']['buy'])} / "
           f"自營 {len(institutional_rankings['dealer']['buy'])}")
     
+    # ════════════════════════════════════════════════════════════════
+    # v3.11 新增：融資融券抓取 + 智慧注入 + 排行榜
+    # ════════════════════════════════════════════════════════════════
+    print(f"\n[融資融券] 抓取全市場融資融券資料...")
+    margin_all = {}
+    margin_filtered = {}
+    margin_rankings = {}
+    margin_inject_count = 0
+    
+    try:
+        margin_all = margin.fetch_all_margin()
+        
+        if margin_all:
+            # 注入到每檔分點個股（無論是否 Top 100）
+            margin_inject_count = margin.inject_margin_into_stocks(results, margin_all)
+            print(f"[融資融券] ✓ 注入 {margin_inject_count} 筆分點個股")
+            
+            # 智慧混合策略：我的分點個股 + Top 100 + 使用率高 + 券資比高
+            my_branch_codes = set()
+            for br in results:
+                for s in (br.get("buys", []) + br.get("sells", [])):
+                    if s.get("code"):
+                        my_branch_codes.add(s["code"])
+            
+            target_codes = margin.select_target_codes(margin_all, my_branch_codes, top_n=100)
+            margin_filtered = margin.filter_margin_data(margin_all, target_codes)
+            print(f"[融資融券] ✓ 智慧混合：保留 {len(margin_filtered)} 檔"
+                  f"（我的 {len(my_branch_codes)} + 全市場 Top）")
+            
+            # 全市場排行榜
+            margin_rankings = margin.build_margin_rankings(margin_all, top_n=30)
+            print(f"[融資融券] ✓ 全市場排行榜 (7 類 × Top 30)")
+    except Exception as e:
+        print(f"  ⚠️ 融資融券抓取失敗: {e}（不影響主流程）")
+        import traceback; traceback.print_exc()
+    
     # ===== 組裝當日 JSON =====
     raw_output = {
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.10",
+        "version": "3.11",
         "success": success_count,
         "failed": fail_count,
         "empty": empty_count,
@@ -1095,6 +1132,10 @@ def main():
         "institutional_rankings": institutional_rankings,  # v3.7 全市場法人排行
         "institutional_count": len(institutional_map),
         "quotes_count": len(daily_quotes_map),
+        # v3.11 新增
+        "margin_data": margin_filtered,           # 智慧混合後的個股融資融券
+        "margin_rankings": margin_rankings,       # 7 類排行榜
+        "margin_total_count": len(margin_all),    # 全市場總檔數（統計用）
     }
     
     plaintext = json.dumps(raw_output, ensure_ascii=False)
@@ -1146,7 +1187,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.10",
+            "version": "3.11",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
