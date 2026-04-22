@@ -665,10 +665,16 @@ def compute_period_summaries(positions: dict, trade_date: str, today_branches_da
 def compute_master_summaries(branch_summaries: dict, unique_branches: list, today_branches_data: list = None):
     """
     按高手（master）聚合多分點的統計
+    v3.10：支援 co_masters（一分點歸入多位 master）
     回傳: {master_name: {branches: [...], total_*, consensus_stocks: [...]}}
     """
-    # 分點代號 → master name
-    code_to_master = {b["code"]: b["master"] for b in unique_branches}
+    # 分點代號 → [主 master] + [co_masters]（陣列形式）
+    def all_masters_of(b):
+        lst = [b.get("master", "未知")]
+        lst.extend(b.get("co_masters", []) or [])
+        return [m for m in lst if m]
+    
+    code_to_all_masters = {b["code"]: all_masters_of(b) for b in unique_branches}
     code_to_branch = {b["code"]: b for b in unique_branches}
     
     # 今日爬蟲資料 index
@@ -680,100 +686,106 @@ def compute_master_summaries(branch_summaries: dict, unique_branches: list, toda
     master_data = {}
     
     for branch_code, summary in branch_summaries.items():
-        master = code_to_master.get(branch_code, "未知")
-        if master not in master_data:
-            master_data[master] = {
-                "master": master,
-                "branches": [],
-                "total_daily_pnl": 0.0,
-                "total_weekly_pnl": 0.0,
-                "total_monthly_pnl": 0.0,
-                "total_cumulative_pnl": 0.0,
-                "total_buy_amt": 0,
-                "total_sell_amt": 0,
-                "total_buy_lot": 0,
-                "total_sell_lot": 0,
-                "total_overnight_lots": 0,
-                "total_overnight_cost_wan": 0.0,
-                "total_open_positions": 0,
-                "total_open_lots": 0,
-                "avg_daytrade_ratio_sum": 0.0,
-                "branches_count_with_data": 0,
-                "daytrade_stocks": 0,
-                "overnight_stocks": 0,
-                "partial_stocks": 0,
-                # 標籤聚合（從旗下分點蒐集）
-                "tags_personal": set(),
-                "tags_market": set(),
-                "stock_stats": {},  # 該高手旗下所有分點對各股票的合計（共識個股）
-            }
-        
-        mdata = master_data[master]
-        branch_obj = code_to_branch.get(branch_code, {})
-        mdata["branches"].append({
-            "code": branch_code,
-            "name": branch_obj.get("name", ""),
-            "summary": summary,
-            "tags_personal": branch_obj.get("tags_personal", []),
-            "tags_market": branch_obj.get("tags_market", []),
-        })
-        # 聚合該分點的所有標籤到該高手
-        for t in branch_obj.get("tags_personal", []):
-            mdata["tags_personal"].add(t)
-        for t in branch_obj.get("tags_market", []):
-            mdata["tags_market"].add(t)
-        mdata["total_daily_pnl"] += summary["daily_pnl"]
-        mdata["total_weekly_pnl"] += summary["weekly_pnl"]
-        mdata["total_monthly_pnl"] += summary["monthly_pnl"]
-        mdata["total_cumulative_pnl"] += summary["total_pnl"]
-        mdata["total_buy_amt"] += summary.get("today_buy_amt", 0)
-        mdata["total_sell_amt"] += summary.get("today_sell_amt", 0)
-        mdata["total_buy_lot"] += summary.get("today_buy_lot", 0)
-        mdata["total_sell_lot"] += summary.get("today_sell_lot", 0)
-        mdata["total_overnight_lots"] += summary.get("today_overnight_lots", 0)
-        mdata["total_overnight_cost_wan"] += summary.get("today_overnight_cost_wan", 0.0)
-        mdata["total_open_positions"] += summary.get("open_positions_count", 0)
-        mdata["total_open_lots"] += summary.get("open_total_lots", 0)
-        mdata["daytrade_stocks"] += summary.get("today_daytrade_stocks", 0)
-        mdata["overnight_stocks"] += summary.get("today_overnight_stocks", 0)
-        mdata["partial_stocks"] += summary.get("today_partial_stocks", 0)
-        
-        if summary.get("today_stocks_count", 0) > 0:
-            mdata["avg_daytrade_ratio_sum"] += summary.get("avg_daytrade_ratio", 0.0)
-            mdata["branches_count_with_data"] += 1
-        
-        # 彙整該分點買進的個股（用於共識個股分析）
-        today_br = today_map.get(branch_code)
-        if today_br and today_br.get("buys"):
-            for s in today_br["buys"]:
-                code = s["code"]
-                if code not in mdata["stock_stats"]:
-                    mdata["stock_stats"][code] = {
-                        "code": code, "name": s["name"],
-                        "branches": [],
-                        "total_buy_amt": 0, "total_sell_amt": 0, "total_net_amt": 0,
-                        "total_buy_lot": 0, "total_sell_lot": 0, "total_net_lot": 0,
-                        "total_overnight_lots": 0,
-                    }
-                ss = mdata["stock_stats"][code]
-                ss["branches"].append({
-                    "code": branch_code,
-                    "name": code_to_branch.get(branch_code, {}).get("name", ""),
-                    "buy_amt": s.get("buy_amt", 0),
-                    "sell_amt": s.get("sell_amt", 0),
-                    "net_amt": s.get("net_amt", 0),
-                    "buy_lot": s.get("buy_lot", 0),
-                    "sell_lot": s.get("sell_lot", 0),
-                    "net_lot": s.get("net_lot", 0),
-                    "overnight_lots": s.get("overnight_lots", 0),
-                })
-                ss["total_buy_amt"] += s.get("buy_amt", 0)
-                ss["total_sell_amt"] += s.get("sell_amt", 0)
-                ss["total_net_amt"] += s.get("net_amt", 0)
-                ss["total_buy_lot"] += s.get("buy_lot", 0)
-                ss["total_sell_lot"] += s.get("sell_lot", 0)
-                ss["total_net_lot"] += s.get("net_lot", 0)
-                ss["total_overnight_lots"] += s.get("overnight_lots", 0)
+        # v3.10：一個分點可能歸入多位 master
+        for master in code_to_all_masters.get(branch_code, ["未知"]):
+            if master not in master_data:
+                master_data[master] = {
+                    "master": master,
+                    "branches": [],
+                    "total_daily_pnl": 0.0,
+                    "total_weekly_pnl": 0.0,
+                    "total_monthly_pnl": 0.0,
+                    "total_cumulative_pnl": 0.0,
+                    "total_buy_amt": 0,
+                    "total_sell_amt": 0,
+                    "total_buy_lot": 0,
+                    "total_sell_lot": 0,
+                    "total_overnight_lots": 0,
+                    "total_overnight_cost_wan": 0.0,
+                    "total_open_positions": 0,
+                    "total_open_lots": 0,
+                    "avg_daytrade_ratio_sum": 0.0,
+                    "branches_count_with_data": 0,
+                    "daytrade_stocks": 0,
+                    "overnight_stocks": 0,
+                    "partial_stocks": 0,
+                    "tags_personal": set(),
+                    "tags_market": set(),
+                    "stock_stats": {},
+                }
+            
+            mdata = master_data[master]
+            branch_obj = code_to_branch.get(branch_code, {})
+            
+            # v3.10：如果此分點對此 master 是「共用」，加個標記
+            is_shared = (branch_obj.get("master") != master)
+            primary_master = branch_obj.get("master", "")
+            
+            mdata["branches"].append({
+                "code": branch_code,
+                "name": branch_obj.get("name", ""),
+                "summary": summary,
+                "tags_personal": branch_obj.get("tags_personal", []),
+                "tags_market": branch_obj.get("tags_market", []),
+                "is_shared": is_shared,       # v3.10：是否共用
+                "primary_master": primary_master,  # v3.10：主要歸屬（若共用）
+            })
+            for t in branch_obj.get("tags_personal", []):
+                mdata["tags_personal"].add(t)
+            for t in branch_obj.get("tags_market", []):
+                mdata["tags_market"].add(t)
+            mdata["total_daily_pnl"] += summary["daily_pnl"]
+            mdata["total_weekly_pnl"] += summary["weekly_pnl"]
+            mdata["total_monthly_pnl"] += summary["monthly_pnl"]
+            mdata["total_cumulative_pnl"] += summary["total_pnl"]
+            mdata["total_buy_amt"] += summary.get("today_buy_amt", 0)
+            mdata["total_sell_amt"] += summary.get("today_sell_amt", 0)
+            mdata["total_buy_lot"] += summary.get("today_buy_lot", 0)
+            mdata["total_sell_lot"] += summary.get("today_sell_lot", 0)
+            mdata["total_overnight_lots"] += summary.get("today_overnight_lots", 0)
+            mdata["total_overnight_cost_wan"] += summary.get("today_overnight_cost_wan", 0.0)
+            mdata["total_open_positions"] += summary.get("open_positions_count", 0)
+            mdata["total_open_lots"] += summary.get("open_total_lots", 0)
+            mdata["daytrade_stocks"] += summary.get("today_daytrade_stocks", 0)
+            mdata["overnight_stocks"] += summary.get("today_overnight_stocks", 0)
+            mdata["partial_stocks"] += summary.get("today_partial_stocks", 0)
+            
+            if summary.get("today_stocks_count", 0) > 0:
+                mdata["avg_daytrade_ratio_sum"] += summary.get("avg_daytrade_ratio", 0.0)
+                mdata["branches_count_with_data"] += 1
+            
+            # 彙整該分點買進的個股
+            today_br = today_map.get(branch_code)
+            if today_br and today_br.get("buys"):
+                for s in today_br["buys"]:
+                    code = s["code"]
+                    if code not in mdata["stock_stats"]:
+                        mdata["stock_stats"][code] = {
+                            "code": code, "name": s["name"],
+                            "branches": [],
+                            "total_buy_amt": 0, "total_sell_amt": 0, "total_net_amt": 0,
+                            "total_buy_lot": 0, "total_sell_lot": 0, "total_net_lot": 0,
+                            "total_overnight_lots": 0,
+                        }
+                    ss = mdata["stock_stats"][code]
+                    ss["branches"].append({
+                        "code": branch_code,
+                        "name": code_to_branch.get(branch_code, {}).get("name", ""),
+                        "buy_amt": s.get("buy_amt", 0),
+                        "sell_amt": s.get("sell_amt", 0),
+                        "net_amt": s.get("net_amt", 0),
+                        "buy_lot": s.get("buy_lot", 0),
+                        "sell_lot": s.get("sell_lot", 0),
+                        "net_lot": s.get("net_lot", 0),
+                        "overnight_lots": s.get("overnight_lots", 0),
+                    })
+                    ss["total_buy_amt"] += s.get("buy_amt", 0)
+                    ss["total_sell_amt"] += s.get("sell_amt", 0)
+                    ss["total_net_amt"] += s.get("net_amt", 0)
+                    ss["total_buy_lot"] += s.get("buy_lot", 0)
+                    ss["total_sell_lot"] += s.get("sell_lot", 0)
+                    ss["total_net_lot"] += s.get("net_lot", 0)
+                    ss["total_overnight_lots"] += s.get("overnight_lots", 0)
     
     # 最後計算平均當沖比、風格判定
     for master, mdata in master_data.items():
@@ -1073,7 +1085,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.7",
+        "version": "3.10",
         "success": success_count,
         "failed": fail_count,
         "empty": empty_count,
@@ -1134,7 +1146,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.9",
+            "version": "3.10",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
