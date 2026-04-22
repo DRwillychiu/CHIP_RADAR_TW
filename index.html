@@ -430,6 +430,7 @@ th.sortable.sort-desc::after {
 .region-chip.us { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
 .region-chip.eu { background: rgba(251,191,36,0.15); color: #fcd34d; border: 1px solid rgba(251,191,36,0.3); }
 .region-chip.asia { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+.region-chip.public { background: rgba(168,85,247,0.15); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.3); }
 
 /* 分點管理介面 */
 .branch-group {
@@ -603,6 +604,68 @@ th.sortable.sort-desc::after {
 .inst-inner-tab.active {
   color: var(--gold-bright);
   border-bottom-color: var(--gold-bright);
+}
+
+/* ═══════════════ v3.9 報告中心樣式 ═══════════════ */
+.report-header {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(31, 42, 72, 0.4) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.report-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  margin-bottom: 8px;
+}
+.report-meta {
+  font-size: 13px;
+  color: var(--text-2);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.report-meta strong { color: var(--gold-bright); font-family: 'JetBrains Mono', monospace; }
+
+.report-section {
+  background: rgba(31, 42, 72, 0.3);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.report-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.insight-item {
+  padding: 10px 14px;
+  background: rgba(8, 14, 30, 0.35);
+  border-left: 3px solid var(--gold-bright);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-1);
+  line-height: 1.6;
+}
+.insight-item strong { color: var(--gold-bright); }
+
+.report-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-3);
+}
+.report-empty .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
 }
 
 /* 三大法人主視角樣式 */
@@ -1311,7 +1374,8 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <button class="tab" data-tab="institutional"><span class="tab-num">06</span>🏛️ 三大法人</button>
     <button class="tab" data-tab="stock"><span class="tab-num">07</span>📈 個股追蹤</button>
     <button class="tab" data-tab="master"><span class="tab-num">08</span>👥 單分點偏好</button>
-    <button class="tab" data-tab="watchlist"><span class="tab-num">09</span>⚙️ 關注設定</button>
+    <button class="tab" data-tab="reports"><span class="tab-num">09</span>📊 報告中心</button>
+    <button class="tab" data-tab="watchlist"><span class="tab-num">10</span>⚙️ 關注設定</button>
   </div>
 
   <!-- 01 今日三視角 (新主頁) -->
@@ -1532,7 +1596,36 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="masterResult"></div>
   </div>
 
-  <!-- 09 關注設定 (v3.8 完整客製化) -->
+  <!-- 09 📊 報告中心 (v3.9 新增) -->
+  <div class="panel" id="panel-reports">
+    <div class="help-card">
+      <h3>📊 週/月報告中心</h3>
+      <p>🗓️ <strong>自動生成規則</strong>：週一產生上週報告 / 每月 1 號產生上月報告。爬蟲會自動觸發，不需手動操作。</p>
+      <p>💡 <strong>資料累積</strong>：報告需要至少 2-5 個交易日的資料才有意義。第一週完整報告會在你開始累積資料一週後產生。</p>
+    </div>
+    
+    <!-- 報告類型切換 + 選擇期間 -->
+    <div class="controls">
+      <div class="control-group">
+        <span class="control-label">類型</span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-reporttype="weekly" onclick="setReportType('weekly')">📅 週報</button>
+          <button class="mode-btn" data-reporttype="monthly" onclick="setReportType('monthly')">📆 月報</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">選擇期間</span>
+        <select id="reportPeriodSelect" onchange="renderReport()" style="min-width:160px;"></select>
+      </div>
+      <div class="control-group" style="margin-left:auto;">
+        <button class="btn-mini" onclick="downloadReportMd()">📥 下載 Markdown</button>
+      </div>
+    </div>
+    
+    <div id="reportContent"></div>
+  </div>
+
+  <!-- 10 關注設定 (v3.8 完整客製化) -->
   <div class="panel" id="panel-watchlist">
     <div class="help-card">
       <h3>⚙️ 分點管理中心 (v3.8)</h3>
@@ -1572,6 +1665,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
           <label>地區</label>
           <select id="newBranchRegion">
             <option value="domestic">🇹🇼 國內</option>
+            <option value="public">🏛️ 官股</option>
             <option value="us">🇺🇸 美系</option>
             <option value="eu">🇪🇺 歐系</option>
             <option value="asia">🌏 亞系</option>
@@ -1989,6 +2083,7 @@ async function init() {
   await Promise.all([showDate(latestDate), loadPositions()]);
   loadWatchlist();
   loadCustomBranches();  // v3.8
+  await loadReportsIndex();  // v3.9
   renderWatchlistPanel();
 }
 
@@ -2034,6 +2129,332 @@ function formatDate(d) {
   if (!d) return '—';
   if (d.length === 8) return `${d.slice(0,4)}/${d.slice(4,6)}/${d.slice(6,8)}`;
   return d;
+}
+
+// ========== v3.9 報告中心 ==========
+
+let reportType = 'weekly';    // weekly / monthly
+let reportPeriod = null;       // 2026_W17 / 2026_04
+let REPORTS_INDEX = null;      // {weekly: [...], monthly: [...]}
+
+// 金額格式化（億/萬）
+function fmtAmtWan(amt) {
+  if (amt === null || amt === undefined || isNaN(amt)) return '—';
+  const n = Number(amt);
+  const sign = n > 0 ? '+' : '';
+  if (Math.abs(n) >= 10000) return `${sign}${(n/10000).toFixed(2)} 億`;
+  return `${sign}${Math.round(n).toLocaleString()} 萬`;
+}
+
+async function loadReportsIndex() {
+  try {
+    const r = await fetch(`${DATA_BASE}/reports_index.json?_=${Date.now()}`);
+    if (r.ok) {
+      REPORTS_INDEX = await r.json();
+    } else {
+      REPORTS_INDEX = { weekly: [], monthly: [] };
+    }
+  } catch(e) {
+    REPORTS_INDEX = { weekly: [], monthly: [] };
+  }
+}
+
+async function loadReportFile(type, period) {
+  try {
+    const filename = `${type}_${period}.json`;
+    const r = await fetch(`${DATA_BASE}/reports/${filename}?_=${Date.now()}`);
+    if (!r.ok) return null;
+    const encrypted = await r.json();
+    if (encrypted.encrypted) {
+      const plain = await decryptToken(encrypted.data, SESSION_PASSWORD);
+      return JSON.parse(plain);
+    }
+    return encrypted;
+  } catch(e) {
+    console.error('載入報告失敗:', e);
+    return null;
+  }
+}
+
+function setReportType(type) {
+  reportType = type;
+  reportPeriod = null;  // 切類型時重設 period
+  document.querySelectorAll('[data-reporttype]').forEach(b => 
+    b.classList.toggle('active', b.dataset.reporttype === type));
+  updatePeriodSelect();
+  renderReport();
+}
+
+function updatePeriodSelect() {
+  if (!REPORTS_INDEX) return;
+  const sel = document.getElementById('reportPeriodSelect');
+  const list = REPORTS_INDEX[reportType] || [];
+  if (list.length === 0) {
+    sel.innerHTML = '<option value="">— 暫無報告 —</option>';
+    reportPeriod = null;
+    return;
+  }
+  // list 已按時間排序（降序），取第一個作預設
+  sel.innerHTML = list.map(p => {
+    const label = reportType === 'weekly' 
+      ? p.replace('_W', ' W') 
+      : p.replace('_', '/');
+    return `<option value="${p}">${label}</option>`;
+  }).join('');
+  if (!reportPeriod || !list.includes(reportPeriod)) {
+    reportPeriod = list[0];
+  }
+  sel.value = reportPeriod;
+}
+
+async function renderReport() {
+  const el = document.getElementById('reportContent');
+  // v3.9 BugFix: 每次都要確保 index 已載入且 select 已更新
+  if (!REPORTS_INDEX) {
+    await loadReportsIndex();
+  }
+  updatePeriodSelect();  // 每次都呼叫（確保 DOM 同步）
+  
+  const list = REPORTS_INDEX[reportType] || [];
+  if (list.length === 0) {
+    el.innerHTML = `<div class="report-empty">
+      <div class="icon">📭</div>
+      <div style="font-size:16px;margin-bottom:8px;">尚無${reportType === 'weekly' ? '週' : '月'}報</div>
+      <div style="font-size:12px;">${reportType === 'weekly' 
+        ? '下週一爬蟲會自動產生上週報告' 
+        : '下個月 1 號爬蟲會自動產生上月報告'}</div>
+    </div>`;
+    return;
+  }
+  
+  reportPeriod = document.getElementById('reportPeriodSelect').value || list[0];
+  
+  el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密報告中...</div>';
+  const report = await loadReportFile(reportType, reportPeriod);
+  
+  if (!report) {
+    el.innerHTML = `<div class="report-empty">
+      <div class="icon">❌</div>
+      <div>載入報告失敗，請檢查資料檔是否存在</div>
+    </div>`;
+    return;
+  }
+  
+  if (report.empty) {
+    el.innerHTML = `<div class="report-empty">
+      <div class="icon">📭</div>
+      <div>${report.message || '此期間無交易資料'}</div>
+    </div>`;
+    return;
+  }
+  
+  renderReportContent(el, report);
+}
+
+function renderReportContent(el, report) {
+  const periodName = report.period_type === 'weekly' ? '週報' : '月報';
+  
+  // Header
+  let html = `<div class="report-header">
+    <div class="report-title">📊 分點籌碼 ${periodName}：${report.period_label.replace('_W', ' W').replace('_', '/')}</div>
+    <div class="report-meta">
+      <span>📅 <strong>${formatDate(report.start_date)}</strong> ~ <strong>${formatDate(report.end_date)}</strong></span>
+      <span>🗓️ 交易日 <strong>${report.trade_days}</strong> 天</span>
+      <span>👥 高手 <strong>${(report.master_performance || []).length}</strong> 位</span>
+      <span>📈 熱門個股 <strong>${(report.hot_stocks || []).length}</strong> 檔</span>
+    </div>
+  </div>`;
+  
+  // 執行摘要
+  if (report.insights && report.insights.length > 0) {
+    html += `<div class="report-section">
+      <div class="report-section-title">💡 執行摘要</div>`;
+    for (const ins of report.insights) {
+      // 簡單 markdown → HTML (只處理 **xxx**)
+      const htmlText = ins.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      html += `<div class="insight-item">${htmlText}</div>`;
+    }
+    html += `</div>`;
+  }
+  
+  // 高手績效
+  if (report.master_performance && report.master_performance.length > 0) {
+    html += `<div class="report-section">
+      <div class="report-section-title">👤 高手績效排行</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="num" style="width:50px;">#</th>
+            <th>高手</th>
+            <th class="num">分點</th>
+            <th class="num">期間淨買</th>
+            <th class="num">淨買張</th>
+            <th class="num">當沖比</th>
+            <th class="num">關注個股</th>
+            <th class="num">與外資同向率</th>
+          </tr></thead>
+          <tbody>`;
+    report.master_performance.slice(0, 15).forEach((m, i) => {
+      const alignRate = m.alignment_rate !== null 
+        ? `${(m.alignment_rate * 100).toFixed(0)}% <span style="color:var(--text-3);font-size:11px;">(${m.aligned_count}/${m.opposing_count})</span>` 
+        : '—';
+      const rateColor = m.alignment_rate !== null 
+        ? (m.alignment_rate >= 0.6 ? 'var(--green)' : (m.alignment_rate <= 0.4 ? 'var(--red)' : 'var(--gold-bright)'))
+        : 'var(--text-3)';
+      html += `<tr>
+        <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
+        <td><strong style="color:var(--gold-bright);">${m.master}</strong></td>
+        <td class="num">${m.branches_count}</td>
+        <td class="num ${m.total_net_amt > 0 ? 'pos-strong' : 'neg-strong'}">${fmtAmtWan(m.total_net_amt)}</td>
+        <td class="num ${m.total_net_lot > 0 ? 'pos' : 'neg'}">${m.total_net_lot > 0 ? '+' : ''}${m.total_net_lot.toLocaleString()}</td>
+        <td class="num">${(m.daytrade_ratio * 100).toFixed(0)}%</td>
+        <td class="num">${m.unique_stocks} 檔</td>
+        <td class="num" style="color:${rateColor};">${alignRate}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  }
+  
+  // 熱門個股
+  if (report.hot_stocks && report.hot_stocks.length > 0) {
+    html += `<div class="report-section">
+      <div class="report-section-title">🔥 熱門個股 Top 20</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="num" style="width:50px;">#</th>
+            <th>個股</th>
+            <th class="num">共買天</th>
+            <th class="num">共買次</th>
+            <th class="num">高手數</th>
+            <th class="num">累積淨買張</th>
+            <th class="num">外資累計</th>
+            <th class="num">期間漲跌</th>
+          </tr></thead>
+          <tbody>`;
+    report.hot_stocks.slice(0, 20).forEach((s, i) => {
+      const change = s.period_change_pct !== null && s.period_change_pct !== undefined
+        ? `<span class="${s.period_change_pct > 0 ? 'pos' : (s.period_change_pct < 0 ? 'neg' : '')}">${s.period_change_pct > 0 ? '+' : ''}${s.period_change_pct.toFixed(2)}%</span>` 
+        : '—';
+      html += `<tr onclick="showStockDetail('${s.code}','${(s.name||'').replace(/'/g,"\\'")}')">
+        <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
+        <td><div class="stock-cell">
+          <span class="stock-name">${s.name}</span>
+          <span class="stock-code">${s.code}</span>
+        </div></td>
+        <td class="num">${s.days_appeared}</td>
+        <td class="num">${s.total_buyers}</td>
+        <td class="num" style="color:var(--gold-bright);">${s.masters_count} 位</td>
+        <td class="num ${s.total_net_lot > 0 ? 'pos' : 'neg'}">${s.total_net_lot > 0 ? '+' : ''}${s.total_net_lot.toLocaleString()}</td>
+        <td class="num ${s.foreign_net_total > 0 ? 'pos' : 'neg'}">${s.foreign_net_total > 0 ? '+' : ''}${s.foreign_net_total.toLocaleString()} 張</td>
+        <td class="num">${change}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  }
+  
+  // 外資分點動向
+  if (report.foreign_branches && report.foreign_branches.length > 0) {
+    html += `<div class="report-section">
+      <div class="report-section-title">🌏 外資分點動向</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>外資</th>
+            <th>地區</th>
+            <th class="num">活躍天</th>
+            <th class="num">期間淨買</th>
+            <th class="num">淨買張</th>
+            <th>重點個股</th>
+          </tr></thead>
+          <tbody>`;
+    report.foreign_branches.forEach(f => {
+      const top3 = (f.top_stocks || []).slice(0, 3)
+        .map(ts => `<span class="master-tag">${ts.code}</span>`).join('');
+      html += `<tr>
+        <td><strong style="color:var(--gold-bright);">${f.master}</strong> <span style="color:var(--text-3);font-size:11px;">${f.name}</span></td>
+        <td>${renderRegionChip(f.region)}</td>
+        <td class="num">${f.days_active}</td>
+        <td class="num ${f.total_net_amt > 0 ? 'pos-strong' : 'neg-strong'}">${fmtAmtWan(f.total_net_amt)}</td>
+        <td class="num ${f.total_net_lot > 0 ? 'pos' : 'neg'}">${f.total_net_lot > 0 ? '+' : ''}${f.total_net_lot.toLocaleString()}</td>
+        <td>${top3}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  }
+  
+  // 風格分析
+  if (report.style_distribution) {
+    const sd = report.style_distribution;
+    html += `<div class="report-section">
+      <div class="report-section-title">⚡ 風格分析：當沖家 vs 波段家</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:8px;">🔥 當沖家熱門股</div>`;
+    if (sd.daytrade_hot && sd.daytrade_hot.length > 0) {
+      for (const [code, count] of sd.daytrade_hot.slice(0, 10)) {
+        html += `<div style="padding:4px 0;font-size:12px;"><span style="font-family:'JetBrains Mono';color:var(--gold-bright);">${code}</span> <span style="color:var(--text-3);">被 ${count} 次關注</span></div>`;
+      }
+    } else {
+      html += `<div style="color:var(--text-3);font-size:12px;">資料不足</div>`;
+    }
+    html += `</div>
+        <div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:8px;">🌙 波段家熱門股</div>`;
+    if (sd.overnight_hot && sd.overnight_hot.length > 0) {
+      for (const [code, count] of sd.overnight_hot.slice(0, 10)) {
+        html += `<div style="padding:4px 0;font-size:12px;"><span style="font-family:'JetBrains Mono';color:var(--gold-bright);">${code}</span> <span style="color:var(--text-3);">被 ${count} 次關注</span></div>`;
+      }
+    } else {
+      html += `<div style="color:var(--text-3);font-size:12px;">資料不足</div>`;
+    }
+    html += `</div></div></div>`;
+  }
+  
+  // FIFO 累積損益
+  if (report.fifo_pnl) {
+    const fp = report.fifo_pnl;
+    html += `<div class="report-section">
+      <div class="report-section-title">💰 FIFO 累積損益 Top/Bottom</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="font-size:13px;color:var(--green);margin-bottom:8px;">🟢 累積獲利前 10 分點</div>`;
+    if (fp.top_winners && fp.top_winners.length > 0) {
+      fp.top_winners.slice(0, 10).forEach((b, i) => {
+        html += `<div style="padding:5px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04);">
+          ${i+1}. <strong>${b.master}</strong> <span style="color:var(--text-3);">${b.branch_name}</span> — 
+          <span class="${b.cumulative_pnl > 0 ? 'pos' : 'neg'}" style="font-family:'JetBrains Mono';">${fmtAmtWan(b.cumulative_pnl)}</span>
+        </div>`;
+      });
+    }
+    html += `</div>
+        <div>
+          <div style="font-size:13px;color:var(--red);margin-bottom:8px;">🔴 累積虧損前 10 分點</div>`;
+    if (fp.top_losers && fp.top_losers.length > 0) {
+      fp.top_losers.slice(0, 10).forEach((b, i) => {
+        html += `<div style="padding:5px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04);">
+          ${i+1}. <strong>${b.master}</strong> <span style="color:var(--text-3);">${b.branch_name}</span> — 
+          <span class="neg" style="font-family:'JetBrains Mono';">${fmtAmtWan(b.cumulative_pnl)}</span>
+        </div>`;
+      });
+    } else {
+      html += `<div style="color:var(--text-3);font-size:12px;padding:8px 0;">目前沒有累積虧損分點</div>`;
+    }
+    html += `</div></div></div>`;
+  }
+  
+  html += `<div style="text-align:center;color:var(--text-3);font-size:11px;margin-top:20px;padding:12px;">
+    此報告由 Chip Radar v3.9 自動生成 · 基準日：${formatDate(report.start_date)}
+  </div>`;
+  
+  el.innerHTML = html;
+}
+
+function downloadReportMd() {
+  if (!reportPeriod) { alert('請先選擇報告期間'); return; }
+  // MD 檔是明碼的，直接下載
+  const url = `${DATA_BASE}/reports/${reportType}_${reportPeriod}.md`;
+  window.open(url, '_blank');
 }
 
 // ========== v3.8 分點管理中心 ==========
@@ -2150,6 +2571,7 @@ function removeCustomBranch(code) {
 // 地區 chip
 const REGION_META = {
   domestic: { label: '🇹🇼 國內', cls: 'domestic' },
+  public:   { label: '🏛️ 官股', cls: 'public' },
   us:       { label: '🇺🇸 美系', cls: 'us' },
   eu:       { label: '🇪🇺 歐系', cls: 'eu' },
   asia:     { label: '🌏 亞系', cls: 'asia' },
@@ -2170,7 +2592,7 @@ function renderWatchlistPanel() {
   ];
   
   // 按 region → master 分組
-  const regionGroups = { domestic: {}, us: {}, eu: {}, asia: {} };
+  const regionGroups = { domestic: {}, public: {}, us: {}, eu: {}, asia: {} };
   for (const b of allBranches) {
     const r = b.region || 'domestic';
     const m = b.master || '未分類';
@@ -2186,7 +2608,7 @@ function renderWatchlistPanel() {
   
   // 渲染 4 個地區群組
   let html = '';
-  const REGION_ORDER = ['domestic', 'us', 'eu', 'asia'];
+  const REGION_ORDER = ['domestic', 'public', 'us', 'eu', 'asia'];
   for (const region of REGION_ORDER) {
     const masters = regionGroups[region];
     if (!masters || Object.keys(masters).length === 0) continue;
@@ -2250,6 +2672,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     else if (tab === 'ranking') renderRanking();
     else if (tab === 'masterview') renderMasterView();
     else if (tab === 'institutional') renderInstitutional();
+    else if (tab === 'reports') renderReport();
   });
 });
 function toggleHelp() {
@@ -2270,6 +2693,10 @@ document.addEventListener('keydown', (e) => {
   if (e.key >= '1' && e.key <= '9') {
     const tabs = document.querySelectorAll('.tab');
     if (tabs[parseInt(e.key)-1]) tabs[parseInt(e.key)-1].click();
+  } else if (e.key === '0') {
+    // 0 切換到第 10 個 tab (關注設定)
+    const tabs = document.querySelectorAll('.tab');
+    if (tabs[9]) tabs[9].click();
   } else if (e.key === 'Escape') closeDrawer();
 });
 
