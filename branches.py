@@ -1,6 +1,6 @@
 """
 ========================================================================
-Module: branches.py  (v3.8 升級)
+Module: branches.py  (v3.10 升級)
 功能：分點清單 + 個人標記 + 市場公認標記
  
 設計原則：
@@ -8,11 +8,16 @@ Module: branches.py  (v3.8 升級)
   - 隨時可以新增/修改/刪除分點與標記
   - 標記分三層：個人 / 市場公認 / 系統自動
  
-v3.8 新增：
+v3.10 新增：
+  - co_masters 欄位：同分點的其他 master（多人共用分點的情境）
+  - 例：凱基-信義 主要歸屬林滄海，但陳族元也使用此分點
+  - 前端顯示時會同時呈現 master + co_masters
+  - 同向率/績效計算會把分點資料歸入所有相關 master
+ 
+v3.8 架構：
   - enabled 欄位：分點是否啟用（停用 = 爬蟲仍爬但 UI 不顯示）
-  - region 欄位：地區分組（domestic / us / eu / asia）
-  - 8 個外資分點（富邦頁面可查詢的主要外資 IB）
-  - 全套輔助函數支援客製化管理
+  - region 欄位：地區分組（domestic / public / us / eu / asia）
+  - 8 個外資分點 + 2 個官股 + 38 個國內
 ========================================================================
 """
  
@@ -23,15 +28,13 @@ v3.8 新增：
 # 欄位說明:
 #   code:          券商分點代碼（4 碼字母+數字）
 #   name:          券商-分點名稱
-#   master:        操盤人/暱稱
+#   master:        主要 master（字串）
+#   co_masters:    其他共用此分點的 master（陣列，選填）
+#                  v3.10 新增，預設空陣列
 #   tags_personal: 你的私人標記
 #   tags_market:   市場公認標記
 #   enabled:       是否啟用顯示（預設 True；False = 隱藏但仍爬蟲）
-#   region:        地區分組（domestic / us / eu / asia）
-#
-# 標記範例:
-#   個人標記: ["當沖王", "電子權值", "AI 概念", "我跟過"]
-#   市場公認: ["主力分點", "隔日沖", "波段", "中實戶", "外資IB"]
+#   region:        地區分組（domestic / public / us / eu / asia）
 #
 # ════════════════════════════════════════════════════════════════════
  
@@ -48,9 +51,9 @@ WATCHED_BRANCHES = [
     {"code": "779W", "name": "國票-彰化", "master": "民哥",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
-
-   # ─────────────────────────────────────────────────────────
-    # 林滄海（4 個分點）
+ 
+    # ─────────────────────────────────────────────────────────
+    # 林滄海（4 個分點；9216 凱基-信義與陳族元共用）
     # ─────────────────────────────────────────────────────────
     {"code": "9658", "name": "富邦-建國", "master": "林滄海",
      "tags_personal": [], "tags_market": [],
@@ -62,6 +65,7 @@ WATCHED_BRANCHES = [
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "9216", "name": "凱基-信義", "master": "林滄海",
+     "co_masters": ["陳族元"],
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
  
@@ -86,9 +90,9 @@ WATCHED_BRANCHES = [
     {"code": "9100", "name": "群益金鼎證券", "master": "張濬安(航海王)",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
-
+ 
     # ─────────────────────────────────────────────────────────
-    # 陳族元（5 個分點）
+    # 陳族元（4 個獨立分點，+ 林滄海 9216 共用）
     # ─────────────────────────────────────────────────────────
     {"code": "8880", "name": "國泰證券", "master": "陳族元",
      "tags_personal": [], "tags_market": [],
@@ -99,14 +103,10 @@ WATCHED_BRANCHES = [
     {"code": "9661", "name": "富邦-新店", "master": "陳族元",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
-    {"code": "9216", "name": "凱基-信義", "master": "陳族元",
-     "tags_personal": [], "tags_market": [],
-     "enabled": True, "region": "domestic"},
     {"code": "9A9g", "name": "永豐金-內湖", "master": "陳族元",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
-
-
+ 
     # ─────────────────────────────────────────────────────────
     # 陳律師（4 個分點）
     # ─────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ WATCHED_BRANCHES = [
     {"code": "585c", "name": "統一-仁愛", "master": "陳律師",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
-
+ 
     # ─────────────────────────────────────────────────────────
     # 迷你哥/松山哥（3 個分點）
     # ─────────────────────────────────────────────────────────
@@ -150,6 +150,7 @@ WATCHED_BRANCHES = [
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "984K", "name": "元大-館前", "master": "強森",
+     "co_masters": ["巨人傑"],
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "989N", "name": "元大-內湖", "master": "強森",
@@ -197,7 +198,7 @@ WATCHED_BRANCHES = [
      "enabled": True, "region": "domestic"},
  
     # ─────────────────────────────────────────────────────────
-    # 劉興漢(優式資本)（1 個分點）
+    # 優式資本（1 個分點）
     # ─────────────────────────────────────────────────────────
     {"code": "779c", "name": "國票-敦北法人", "master": "優式資本",
      "tags_personal": [], "tags_market": [],
@@ -280,21 +281,44 @@ def get_unique_branches():
  
  
 def get_enabled_branches():
-    """v3.8 新增：只取 enabled=True 的分點（用於 UI 顯示）"""
+    """v3.8：只取 enabled=True 的分點"""
     return [b for b in WATCHED_BRANCHES if b.get("enabled", True)]
  
  
-def get_branches_by_master(master_name, include_disabled=False):
-    """取得某高手的所有分點"""
-    return [b for b in WATCHED_BRANCHES 
-            if b["master"] == master_name 
-            and (include_disabled or b.get("enabled", True))]
+def get_all_masters_for_branch(branch):
+    """v3.10：取得某分點的所有相關 master（主 + 共用）"""
+    masters = [branch.get("master", "")]
+    masters.extend(branch.get("co_masters", []) or [])
+    return [m for m in masters if m]
+ 
+ 
+def get_branches_by_master(master_name, include_disabled=False, include_co=True):
+    """
+    取得某高手的所有分點
+    v3.10：include_co=True 會包含 co_masters 含此人的分點
+    """
+    result = []
+    for b in WATCHED_BRANCHES:
+        if not include_disabled and not b.get("enabled", True):
+            continue
+        if b.get("master") == master_name:
+            result.append(b)
+        elif include_co and master_name in (b.get("co_masters") or []):
+            result.append(b)
+    return result
  
  
 def get_all_masters(include_disabled=False):
-    """取得所有不同的高手名稱"""
+    """取得所有不同的 master 名稱（含 co_masters 提到的人）"""
     pool = WATCHED_BRANCHES if include_disabled else get_enabled_branches()
-    return list(dict.fromkeys(b["master"] for b in pool))
+    masters = []
+    seen = set()
+    for b in pool:
+        for m in get_all_masters_for_branch(b):
+            if m and m not in seen:
+                seen.add(m)
+                masters.append(m)
+    return masters
  
  
 def get_branch_by_code(code):
@@ -306,19 +330,19 @@ def get_branch_by_code(code):
  
  
 def get_branches_by_region(region, include_disabled=False):
-    """v3.8：依地區分組取分點（domestic / us / eu / asia）"""
+    """依地區分組取分點"""
     pool = WATCHED_BRANCHES if include_disabled else get_enabled_branches()
     return [b for b in pool if b.get("region", "domestic") == region]
  
  
 def get_foreign_branches(include_disabled=False):
-    """v3.8：取所有外資分點（region != domestic）"""
+    """取所有外資分點"""
     pool = WATCHED_BRANCHES if include_disabled else get_enabled_branches()
-    return [b for b in pool if b.get("region", "domestic") != "domestic"]
+    return [b for b in pool if b.get("region", "domestic") not in ("domestic", "public")]
  
  
 def get_domestic_branches(include_disabled=False):
-    """v3.8：取所有國內分點"""
+    """取所有國內分點（不含官股）"""
     pool = WATCHED_BRANCHES if include_disabled else get_enabled_branches()
     return [b for b in pool if b.get("region", "domestic") == "domestic"]
  
