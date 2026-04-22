@@ -469,6 +469,181 @@ th.sortable.sort-desc::after {
 }
 .signal-badge.neutral { display: none; }
 
+/* ═══════════════ v3.14 分歧 / 追刀 / 雙重確認樣式 ═══════════════ */
+
+.signal-badge.divergence {
+  /* 你賣 vs 法人買：分歧警示 */
+  background: linear-gradient(135deg, rgba(251,146,60,0.3), rgba(251,146,60,0.12));
+  color: #fdba74;
+  border: 1px solid rgba(251,146,60,0.6);
+  box-shadow: 0 0 8px rgba(251,146,60,0.3);
+  font-weight: 700;
+  cursor: help;
+}
+
+.signal-badge.trap-warning {
+  /* 你買 vs 法人賣：追刀危險 */
+  background: linear-gradient(135deg, rgba(239,68,68,0.35), rgba(239,68,68,0.15));
+  color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.7);
+  box-shadow: 0 0 10px rgba(239,68,68,0.4);
+  font-weight: 700;
+  animation: trapBlink 1.5s ease-in-out infinite;
+  cursor: help;
+}
+@keyframes trapBlink {
+  0%, 100% { box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+  50% { box-shadow: 0 0 16px rgba(239,68,68,0.7); }
+}
+
+.signal-badge.confirmed {
+  /* 雙重確認進場 */
+  background: linear-gradient(135deg, rgba(34,197,94,0.3), rgba(34,197,94,0.12));
+  color: #bbf7d0;
+  border: 1px solid rgba(34,197,94,0.65);
+  box-shadow: 0 0 10px rgba(34,197,94,0.3);
+  font-weight: 700;
+  cursor: help;
+}
+
+.signal-badge.confirmed-out {
+  /* 雙重確認出貨 */
+  background: rgba(148,163,184,0.2);
+  color: #cbd5e1;
+  border: 1px solid rgba(148,163,184,0.5);
+  cursor: help;
+}
+
+/* v3.14 ℹ️ 資訊按鈕 */
+.info-btn {
+  background: rgba(212,175,55,0.1);
+  color: var(--gold-bright);
+  border: 1px solid rgba(212,175,55,0.4);
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.info-btn:hover {
+  background: rgba(212,175,55,0.25);
+  border-color: var(--gold-bright);
+  transform: scale(1.1);
+}
+
+/* v3.14 定義面板（展開說明）*/
+.def-panel {
+  background: linear-gradient(180deg, rgba(31,42,72,0.7) 0%, rgba(8,14,30,0.7) 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+  animation: defSlideIn 0.25s ease-out;
+}
+@keyframes defSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.def-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(212,175,55,0.2);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+.def-panel-header h3 {
+  color: var(--gold-bright);
+  font-size: 16px;
+  margin: 0;
+}
+.def-close {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-2);
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.def-close:hover {
+  background: rgba(239,68,68,0.2);
+  color: #fca5a5;
+}
+.def-section {
+  margin-bottom: 18px;
+}
+.def-section h4 {
+  color: var(--text-1);
+  font-size: 14px;
+  margin: 0 0 8px 0;
+  border-left: 3px solid var(--gold-bright);
+  padding-left: 8px;
+}
+.def-section p {
+  color: var(--text-2);
+  font-size: 13px;
+  margin: 4px 0;
+  line-height: 1.6;
+}
+.def-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+@media (max-width: 780px) {
+  .def-grid { grid-template-columns: 1fr; }
+}
+.def-card {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+.def-card.buy {
+  background: rgba(34,197,94,0.06);
+  border-color: rgba(34,197,94,0.3);
+}
+.def-card.sell {
+  background: rgba(239,68,68,0.06);
+  border-color: rgba(239,68,68,0.3);
+}
+.def-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 8px;
+}
+.def-card.buy .def-card-title { color: #86efac; }
+.def-card.sell .def-card-title { color: #fca5a5; }
+.def-card p {
+  font-size: 12px;
+  margin: 3px 0;
+}
+.def-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.def-table th, .def-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.def-table th {
+  color: var(--text-3);
+  font-weight: 600;
+  background: rgba(255,255,255,0.02);
+}
+.def-table td {
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
 /* ═══════════════ v3.12 漲停狙擊 + 風格 Chip ═══════════════ */
 
 /* 漲停徽章 */
@@ -1895,6 +2070,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
           <button class="mode-btn active" data-side="buy" onclick="setOverviewSide('buy')">🟢 共買</button>
           <button class="mode-btn" data-side="sell" onclick="setOverviewSide('sell')">🔴 共賣</button>
         </div>
+        <button class="info-btn" onclick="toggleDefinitionPanel()" title="什麼是共買/共賣榜？">ℹ️</button>
       </div>
       <div class="control-group">
         <span class="control-label">最少共買數</span>
@@ -1917,6 +2093,94 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
         </select>
       </div>
     </div>
+    <!-- v3.14 定義面板（預設隱藏，點 ℹ️ 展開）-->
+    <div id="definitionPanel" class="def-panel" style="display:none;">
+      <div class="def-panel-header">
+        <h3>📖 榜單與信號完整說明</h3>
+        <button class="def-close" onclick="toggleDefinitionPanel()">✕</button>
+      </div>
+      
+      <div class="def-section">
+        <h4>🟢 共買榜 vs 🔴 共賣榜</h4>
+        <div class="def-grid">
+          <div class="def-card buy">
+            <div class="def-card-title">🟢 共買榜</div>
+            <p><strong>資料源</strong>：富邦 zgb0 頁面的「買超」區</p>
+            <p><strong>納入條件</strong>：我的分點對該股「淨買」</p>
+            <p><strong>典型應用</strong>：找出多位高手共識進場的標的</p>
+            <p><strong>範例</strong>：民哥買 200 張、賣 50 張 → 淨買 150 張 → 納入共買榜</p>
+          </div>
+          <div class="def-card sell">
+            <div class="def-card-title">🔴 共賣榜</div>
+            <p><strong>資料源</strong>：富邦 zgb0 頁面的「賣超」區</p>
+            <p><strong>納入條件</strong>：我的分點對該股「淨賣」</p>
+            <p><strong>典型應用</strong>：找出多位高手共識出場的標的</p>
+            <p><strong>範例</strong>：民哥買 50 張、賣 200 張 → 淨賣 150 張 → 納入共賣榜</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="def-section">
+        <h4>🧠 散戶情緒信號 Chip 意義</h4>
+        <p style="color:var(--text-2);font-size:12px;margin-bottom:10px;">
+          ⚠️ <strong>重要</strong>：信號 chip 描述的是「個股全市場」結構（三大法人 + 散戶融資），
+          與「你的分點方向」<strong>無關</strong>。
+          v3.14 起會自動比對兩者，產生更精確的組合信號。
+        </p>
+        <table class="def-table">
+          <thead><tr><th>信號</th><th>條件</th><th>含義</th></tr></thead>
+          <tbody>
+            <tr><td><span class="signal-badge smart-money-in">🟢 聰明錢進</span></td>
+                <td>外資買 &gt; 500張 + 融資減 &gt; 100張</td>
+                <td>主力進、散戶退（最強結構）</td></tr>
+            <tr><td><span class="signal-badge smart-money-out">🔴 聰明錢出</span></td>
+                <td>外資賣 &gt; 500張 + 融資增 &gt; 100張</td>
+                <td>主力出、散戶接（下跌結構）</td></tr>
+            <tr><td><span class="signal-badge retail-fomo">🟡 散戶追漲</span></td>
+                <td>外資買 &gt; 200張 + 融資增 &gt; 500張</td>
+                <td>散戶 FOMO，可能高點</td></tr>
+            <tr><td><span class="signal-badge short-squeeze">⚡ 軋空潛力</span></td>
+                <td>融券暴增 + 股價漲 + 券資比 &gt; 10%</td>
+                <td>軋空醞釀中</td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="def-section">
+        <h4>🆕 v3.14：組合信號（個股視角 × 我的方向）</h4>
+        <p style="color:var(--text-2);font-size:12px;margin-bottom:10px;">
+          將「個股整體情況」 × 「我的分點方向」智能組合，揭露更深層結構：
+        </p>
+        <table class="def-table">
+          <thead><tr><th>組合信號</th><th>我的方向</th><th>個股信號</th><th>策略意義</th></tr></thead>
+          <tbody>
+            <tr><td><span class="signal-badge confirmed">✨ 雙重確認進場</span></td>
+                <td>🟢 共買</td><td>🟢 聰明錢進</td>
+                <td><strong style="color:#86efac;">最佳進場</strong>：高手與外資方向一致</td></tr>
+            <tr><td><span class="signal-badge divergence">⚠️ 與法人分歧</span></td>
+                <td>🔴 共賣</td><td>🟢 聰明錢進</td>
+                <td><strong style="color:#fdba74;">結構分歧</strong>：本土高手與外資判斷相反（最有價值情報！）</td></tr>
+            <tr><td><span class="signal-badge trap-warning">🚨 警：追法人刀</span></td>
+                <td>🟢 共買</td><td>🔴 聰明錢出</td>
+                <td><strong style="color:#fca5a5;">追刀警示</strong>：你在接法人出貨，高度警戒</td></tr>
+            <tr><td><span class="signal-badge confirmed-out">✅ 同向出貨</span></td>
+                <td>🔴 共賣</td><td>🔴 聰明錢出</td>
+                <td>全市場共識出貨</td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="def-section" style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.3);padding:12px;border-radius:6px;">
+        <h4 style="color:#fcd34d;">💡 「與法人分歧」為什麼是高價值情報？</h4>
+        <p>當「本土高手大賣 × 外資大買」同時發生，代表兩群資金判斷相反。這通常不是 bug，而是揭露：</p>
+        <ul style="margin:6px 0 0 20px;color:var(--text-2);line-height:1.7;">
+          <li>本土籌碼派可能看到其他訊號（籌碼散亂、漲多了）而獲利了結</li>
+          <li>外資可能基於長期基本面（EPS、目標價）進場</li>
+          <li>兩派勝率不同：短線通常本土派贏、長線常外資派贏</li>
+        </ul>
+      </div>
+    </div>
+
     <div class="section-title">當日共同買超個股<span class="section-sub" id="overviewSubtitle"></span></div>
     <div id="overviewResult"><div class="loading"><div class="loading-spinner"></div>解密資料中...</div></div>
   </div>
@@ -3203,20 +3467,55 @@ function renderFlipVerification() {
 
 // ========== v3.11 融資融券 × 散戶情緒 ==========
 
-// 信號中文標籤
+// v3.14 升級：信號標籤系統
+// 每個 signal 有 4 種變體（原始 / 同向確認 / 分歧警示 / 追刀警示）
 const SIGNAL_LABELS = {
-  smart_money_in:  { label: '🟢 聰明錢進', cls: 'smart-money-in', priority: 1 },
-  smart_money_out: { label: '🔴 聰明錢出', cls: 'smart-money-out', priority: 2 },
-  retail_fomo:     { label: '🟡 散戶追漲', cls: 'retail-fomo', priority: 3 },
-  short_squeeze:   { label: '⚡ 軋空潛力', cls: 'short-squeeze', priority: 4 },
-  neutral:         { label: '', cls: 'neutral', priority: 9 },
+  smart_money_in: { 
+    label: '🟢 聰明錢進', cls: 'smart-money-in', priority: 1,
+    tip: '個股視角：外資買超 >500張 + 散戶融資減少 >100張\n意義：主力進場、散戶退場（最強結構）\n⚠️ 注意：此為「個股全市場」信號，與你的分點方向無關',
+  },
+  smart_money_out: { 
+    label: '🔴 聰明錢出', cls: 'smart-money-out', priority: 2,
+    tip: '個股視角：外資賣超 >500張 + 散戶融資增加 >100張\n意義：主力出貨、散戶接刀（下跌結構）\n⚠️ 注意：此為「個股全市場」信號，與你的分點方向無關',
+  },
+  retail_fomo:  { 
+    label: '🟡 散戶追漲', cls: 'retail-fomo', priority: 3,
+    tip: '個股視角：外資買 >200張 + 散戶融資 >500張\n意義：散戶 FOMO 跟風追漲（可能高點）',
+  },
+  short_squeeze: { 
+    label: '⚡ 軋空潛力', cls: 'short-squeeze', priority: 4,
+    tip: '個股視角：融券暴增 >500張 + 股價上漲 + 券資比 >10%\n意義：軋空行情醞釀中',
+  },
+  neutral: { label: '', cls: 'neutral', priority: 9, tip: '' },
 };
 
-function renderSignalBadge(signal) {
+// v3.14 分歧信號：signal + my_direction 組合
+// my_direction: 'buy' (我的分點共買) / 'sell' (我的分點共賣) / null
+function renderSignalBadge(signal, myDirection) {
   if (!signal || signal === 'neutral') return '';
   const meta = SIGNAL_LABELS[signal];
   if (!meta) return '';
-  return `<span class="signal-badge ${meta.cls}">${meta.label}</span>`;
+  
+  // v3.14 智能組合：我的方向 vs 個股信號
+  if (myDirection === 'sell' && signal === 'smart_money_in') {
+    // 我在賣 + 個股卻是聰明錢進 → 分歧警示（可能錯過機會）
+    return `<span class="signal-badge divergence" title="⚠️ 分歧警示！\n個股視角：外資+散戶退 = 聰明錢進（看多結構）\n但我的分點今日多數「賣超」\n→ 本土高手與外資判斷相反\n→ 可能高手獲利了結，或看到其他訊號">⚠️ 與法人分歧</span>`;
+  }
+  if (myDirection === 'buy' && signal === 'smart_money_out') {
+    // 我在買 + 個股卻是聰明錢出 → 追刀警示（危險）
+    return `<span class="signal-badge trap-warning" title="🚨 追刀警示！\n個股視角：外資賣+散戶接 = 聰明錢出（下跌結構）\n但我的分點今日多數「買超」\n→ 可能是在接法人出貨\n→ 高度警戒，確認是否有特殊邏輯">🚨 警：追法人刀</span>`;
+  }
+  if (myDirection === 'buy' && signal === 'smart_money_in') {
+    // 雙重確認：最佳入場
+    return `<span class="signal-badge confirmed" title="✨ 雙重確認\n個股全市場：聰明錢進\n我的分點：也在買超\n→ 高手與外資方向一致\n→ 最佳進場結構">✨ 雙重確認進場</span>`;
+  }
+  if (myDirection === 'sell' && signal === 'smart_money_out') {
+    // 同向賣出：確認出貨
+    return `<span class="signal-badge confirmed-out" title="✅ 同向出貨確認\n個股全市場：聰明錢出\n我的分點：也在賣超\n→ 全市場共識出貨">✅ 同向出貨</span>`;
+  }
+  
+  // 預設：原始個股信號 + tooltip
+  return `<span class="signal-badge ${meta.cls}" title="${meta.tip}">${meta.label}</span>`;
 }
 
 function renderUsageBar(pct) {
@@ -3953,6 +4252,13 @@ function setOverviewSide(s) {
   document.querySelectorAll('#panel-overview .mode-btn[data-side]').forEach(b => b.classList.toggle('active', b.dataset.side === s));
   renderOverview();
 }
+
+// v3.14 定義面板切換
+function toggleDefinitionPanel() {
+  const panel = document.getElementById('definitionPanel');
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
 function setBranchMode(m) {
   branchMode = m;
   document.querySelectorAll('#panel-branches .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
@@ -4149,7 +4455,7 @@ function renderOverview() {
     return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
       <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
       <td><div class="stock-cell">
-        <span class="stock-name">${s.name}${badge}${renderMarketChip(s)}${renderFloatChip(s.floating_pnl_pct)}${renderLimitUpChip(s.change_pct)}${renderSignalBadge(s.margin_signal)}</span>
+        <span class="stock-name">${s.name}${badge}${renderMarketChip(s)}${renderFloatChip(s.floating_pnl_pct)}${renderLimitUpChip(s.change_pct)}${renderSignalBadge(s.margin_signal, overviewSide)}</span>
         <span class="stock-code">${s.code}</span>
       </div></td>
       <td class="num"><span class="badge ${s.branches.length>=4?'':'gold'}">${s.branches.length} 分點</span></td>
