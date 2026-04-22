@@ -48,6 +48,7 @@ Module: margin.py  (v3.11 新增)
 """
 
 import json
+import time
 import requests
 from typing import Dict, Any, Optional
 
@@ -77,6 +78,7 @@ def fetch_twse_margin(timeout: int = 20, max_retries: int = 3) -> Dict[str, Dict
             print(f"  ⚠️ TWSE Margin 第 {attempt+1}/{max_retries} 次失敗: {e}")
             if attempt == max_retries - 1:
                 return {}
+            time.sleep(10 + attempt * 5)  # v3.14.3: 10s → 15s → 20s
     
     result = {}
     for row in raw_data:
@@ -154,6 +156,7 @@ def fetch_tpex_margin(timeout: int = 20, max_retries: int = 3) -> Dict[str, Dict
             print(f"  ⚠️ TPEx Margin 第 {attempt+1}/{max_retries} 次失敗: {e}")
             if attempt == max_retries - 1:
                 return {}
+            time.sleep(10 + attempt * 5)  # v3.14.3: 10s → 15s → 20s
     
     result = {}
     for row in raw_data:
@@ -218,12 +221,15 @@ def fetch_tpex_margin(timeout: int = 20, max_retries: int = 3) -> Dict[str, Dict
 def fetch_all_margin() -> Dict[str, Dict[str, Any]]:
     """
     一次抓完上市 + 上櫃融資融券
+    v3.14.3: 加入查詢間 5 秒 delay 避免限流
     
     Returns: 合併後的 {code: margin_data} 字典
     """
     print("  [1/2] TWSE 上市融資融券...")
     twse = fetch_twse_margin()
     print(f"    ✓ {len(twse)} 檔")
+    
+    time.sleep(5)  # v3.14.3: 查詢間 delay 避免 TPEx 被連續打到限流
     
     print("  [2/2] TPEx 上櫃融資融券...")
     tpex = fetch_tpex_margin()
