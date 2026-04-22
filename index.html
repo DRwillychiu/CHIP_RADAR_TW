@@ -469,6 +469,289 @@ th.sortable.sort-desc::after {
 }
 .signal-badge.neutral { display: none; }
 
+/* ═══════════════ v3.12 漲停狙擊 + 風格 Chip ═══════════════ */
+
+/* 漲停徽章 */
+.limit-up-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  background: linear-gradient(135deg, rgba(239,68,68,0.3), rgba(239,68,68,0.15));
+  color: #fecaca;
+  border: 1px solid rgba(239,68,68,0.6);
+  box-shadow: 0 0 10px rgba(239,68,68,0.4);
+  animation: limitPulse 2s ease-in-out infinite;
+}
+@keyframes limitPulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(239,68,68,0.3); }
+  50% { box-shadow: 0 0 14px rgba(239,68,68,0.5); }
+}
+.near-limit-up-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(251,146,60,0.18);
+  color: #fdba74;
+  border: 1px solid rgba(251,146,60,0.4);
+}
+
+/* 風格 chip */
+.style-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-left: 4px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.style-chip.day_trader      { background: rgba(251,146,60,0.15); color: #fb923c; border: 1px solid rgba(251,146,60,0.4); }
+.style-chip.next_day_flipper { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+.style-chip.swing           { background: rgba(96,165,250,0.15); color: #60a5fa; border: 1px solid rgba(96,165,250,0.4); }
+.style-chip.longterm        { background: rgba(34,211,238,0.15); color: #22d3ee; border: 1px solid rgba(34,211,238,0.4); }
+.style-chip.foreign_ib      { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.4); }
+.style-chip.public          { background: rgba(216,180,254,0.15); color: #d8b4fe; border: 1px solid rgba(216,180,254,0.4); }
+.style-chip.unknown         { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.4); }
+
+/* 狙擊排名卡片 */
+.sniper-card {
+  background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(31,42,72,0.4) 100%);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.sniper-card.rank-1 {
+  background: linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(31,42,72,0.4) 100%);
+  border-color: rgba(239,68,68,0.6);
+  box-shadow: 0 0 20px rgba(239,68,68,0.2);
+}
+.sniper-card.non-flipper {
+  /* 風格不是隔日沖/當沖的高手買漲停，用柔和色系 */
+  background: linear-gradient(135deg, rgba(96,165,250,0.08) 0%, rgba(31,42,72,0.4) 100%);
+  border-color: rgba(96,165,250,0.3);
+}
+.sniper-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.sniper-rank-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 40px;
+}
+.sniper-master-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fecaca;
+}
+.sniper-branch-name {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-left: 6px;
+}
+.sniper-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.sniper-stat {
+  background: rgba(8,14,30,0.4);
+  padding: 8px 10px;
+  border-radius: 5px;
+}
+.sniper-stat-label {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-bottom: 2px;
+}
+.sniper-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fecaca;
+  font-family: 'JetBrains Mono', monospace;
+}
+.sniper-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(239,68,68,0.2);
+}
+.sniper-detail-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-1);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sniper-detail-chip:hover {
+  background: rgba(239,68,68,0.2);
+  border-color: rgba(239,68,68,0.5);
+}
+.sniper-detail-chip .code {
+  color: var(--gold-bright);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+}
+
+/* 共買漲停股卡片 */
+.consensus-lu-card {
+  background: linear-gradient(135deg, rgba(212,175,55,0.1) 0%, rgba(239,68,68,0.08) 100%);
+  border: 1px solid rgba(212,175,55,0.4);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+.consensus-lu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.consensus-lu-stock {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+.consensus-lu-code {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: 6px;
+}
+.consensus-lu-buyers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* ═══════════════ v3.13 賣超/出貨樣式 ═══════════════ */
+
+/* 分點出貨卡片 (類似 sniper-card 但綠色系 — 因為出貨方向) */
+.seller-card {
+  background: linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(31,42,72,0.4) 100%);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.seller-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.seller-rank-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #86efac;
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 36px;
+}
+.seller-master-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #bbf7d0;
+}
+.seller-stat-value {
+  color: #86efac !important;
+}
+
+/* 隔日沖驗證狀態 badge */
+.flip-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.flip-status.full_flip {
+  background: rgba(239,68,68,0.25);
+  color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.6);
+  animation: flipPulse 2s ease-in-out infinite;
+}
+@keyframes flipPulse {
+  0%,100% { box-shadow: 0 0 6px rgba(239,68,68,0.3); }
+  50% { box-shadow: 0 0 14px rgba(239,68,68,0.6); }
+}
+.flip-status.partial_flip {
+  background: rgba(251,191,36,0.2);
+  color: #fcd34d;
+  border: 1px solid rgba(251,191,36,0.5);
+}
+.flip-status.minor_flip {
+  background: rgba(167,139,250,0.15);
+  color: #c4b5fd;
+  border: 1px solid rgba(167,139,250,0.4);
+}
+.flip-status.still_holding {
+  background: rgba(96,165,250,0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(96,165,250,0.4);
+}
+
+/* 隔日沖驗證表格 row 配色 */
+.flip-row-full td { background: rgba(239,68,68,0.05); }
+.flip-row-partial td { background: rgba(251,191,36,0.04); }
+
+/* 出貨率 bar */
+.flip-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.flip-bar-track {
+  width: 60px;
+  height: 8px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.flip-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+.flip-bar-fill.full { background: linear-gradient(90deg, #dc2626, #ef4444); }
+.flip-bar-fill.partial { background: linear-gradient(90deg, #d97706, #f59e0b); }
+.flip-bar-fill.minor { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+.flip-bar-fill.none { background: rgba(96,165,250,0.3); }
+
+/* 賣超 chip（相對於買超）*/
+.sell-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(34,197,94,0.12);
+  color: #86efac;
+  border: 1px solid rgba(34,197,94,0.35);
+}
+
 /* 融資使用率 bar（視覺化 0-100%）*/
 .usage-bar {
   display: inline-flex;
@@ -1552,10 +1835,11 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <button class="tab" data-tab="masterview"><span class="tab-num">05</span>👤 高手合併視圖</button>
     <button class="tab" data-tab="institutional"><span class="tab-num">06</span>🏛️ 三大法人</button>
     <button class="tab" data-tab="margin"><span class="tab-num">07</span>💹 融資融券</button>
-    <button class="tab" data-tab="stock"><span class="tab-num">08</span>📈 個股追蹤</button>
-    <button class="tab" data-tab="master"><span class="tab-num">09</span>👥 單分點偏好</button>
-    <button class="tab" data-tab="reports"><span class="tab-num">10</span>📊 報告中心</button>
-    <button class="tab" data-tab="watchlist"><span class="tab-num">11</span>⚙️ 關注設定</button>
+    <button class="tab" data-tab="limitup"><span class="tab-num">08</span>🎯 漲停狙擊</button>
+    <button class="tab" data-tab="stock"><span class="tab-num">09</span>📈 個股追蹤</button>
+    <button class="tab" data-tab="master"><span class="tab-num">10</span>👥 單分點偏好</button>
+    <button class="tab" data-tab="reports"><span class="tab-num">11</span>📊 報告中心</button>
+    <button class="tab" data-tab="watchlist"><span class="tab-num">12</span>⚙️ 關注設定</button>
   </div>
 
   <!-- 01 今日三視角 (新主頁) -->
@@ -1603,6 +1887,13 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
         <div class="mode-switch">
           <button class="mode-btn active" data-mode="all" onclick="setOverviewMode('all')">全部分點</button>
           <button class="mode-btn" data-mode="watch" onclick="setOverviewMode('watch')">僅關注分點</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">方向 <span style="color:#fbbf24;font-size:10px;">v3.13</span></span>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-side="buy" onclick="setOverviewSide('buy')">🟢 共買</button>
+          <button class="mode-btn" data-side="sell" onclick="setOverviewSide('sell')">🔴 共賣</button>
         </div>
       </div>
       <div class="control-group">
@@ -1752,6 +2043,55 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <!-- 全市場排行榜 -->
     <div class="section-title">🏆 全市場排行榜 (Top 30)</div>
     <div class="margin-rank-grid" id="marginRankGrid"></div>
+  </div>
+
+  <!-- 08 🎯 漲停狙擊 (v3.12 新增) -->
+  <div class="panel" id="panel-limitup">
+    <div class="help-card">
+      <h3>🎯 漲停狙擊中心</h3>
+      <p>📊 <strong>漲停定義</strong>：漲跌幅 ≥ 9.5%（可在 branches.py 調整）</p>
+      <p>🏷️ <strong>風格標示</strong>：每個高手旁顯示風格 chip（⚡ 隔日沖、🔥 當沖、🌙 波段、💎 長線）</p>
+      <p>💡 <strong>超強信號</strong>：同一檔漲停股被 2+ 位高手同時買 = 隔日沖點火彈藥</p>
+    </div>
+
+    <!-- 今日總覽 -->
+    <div class="sentiment-dashboard" id="limitupDashboard"></div>
+
+    <!-- 🏆 分點/Master 狙擊排名 -->
+    <div class="section-title">🏆 今日漲停狙擊榜 <span class="section-sub">按「買進漲停股數量」排序</span></div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;">
+      <button class="mode-btn active" data-sniperview="master" onclick="setSniperView('master')">👤 Master 合併</button>
+      <button class="mode-btn" data-sniperview="branch" onclick="setSniperView('branch')">📊 分點明細</button>
+    </div>
+    <div id="sniperRanking"></div>
+
+    <!-- 👥 共買漲停股 -->
+    <div class="section-title" style="margin-top:24px;">👥 共買漲停股 <span class="section-sub">2+ 位高手同時狙擊 = 超強信號</span></div>
+    <div id="consensusLimitUp"></div>
+
+    <!-- 📊 所有漲停股被誰買 -->
+    <div class="section-title" style="margin-top:24px;">📊 所有被狙擊的漲停股</div>
+    <div id="allLimitUpStocks"></div>
+
+    <!-- ⚡ 風格統計 -->
+    <div class="section-title" style="margin-top:24px;">⚡ 各風格漲停狙擊統計</div>
+    <div id="styleStats"></div>
+
+    <!-- 🔴 v3.13：漲停股被狙擊賣出 -->
+    <div class="section-title" style="margin-top:32px;border-top:2px solid rgba(239,68,68,0.3);padding-top:20px;">
+      🔴 漲停股被狙擊賣出 <span class="section-sub">今日出貨的漲停股（可能是 Day2 獲利了結）</span>
+    </div>
+    <div id="limitUpSoldStocks"></div>
+
+    <!-- 📉 v3.13：分點漲停出貨排名 -->
+    <div class="section-title" style="margin-top:24px;">📉 分點漲停出貨排名 <span class="section-sub">哪些分點今天賣出最多漲停股</span></div>
+    <div id="sellerRanking"></div>
+
+    <!-- 🎯 v3.13：隔日沖驗證看板（昨買今賣配對）-->
+    <div class="section-title" style="margin-top:32px;border-top:2px solid rgba(212,175,55,0.3);padding-top:20px;">
+      🎯 隔日沖驗證看板 <span class="section-sub">比對昨日漲停買進 × 今日賣超 — 確認真正的隔日沖手法</span>
+    </div>
+    <div id="flipVerification"></div>
   </div>
 
   <!-- 08 個股追蹤 -->
@@ -2038,6 +2378,7 @@ let WATCHLIST = new Set();
 let SESSION_PASSWORD = null;
 
 let overviewMode = 'all';
+let overviewSide = 'buy';  // v3.13: buy / sell
 let overviewRank = 'amount';  // 'amount' or 'lots'
 let overviewSort = { col: 'count', dir: 'desc' };  // v3.7 表頭排序: col = rank/count/amount/lots/overnight/foreign/align, dir = asc/desc
 let branchMode = 'watch';
@@ -2326,6 +2667,538 @@ function formatDate(d) {
   if (!d) return '—';
   if (d.length === 8) return `${d.slice(0,4)}/${d.slice(4,6)}/${d.slice(6,8)}`;
   return d;
+}
+
+// ========== v3.12 漲停狙擊 ==========
+
+const STYLE_META = {
+  day_trader:       { icon: '🔥', label: '當沖',     cls: 'day_trader' },
+  next_day_flipper: { icon: '⚡', label: '隔日沖',   cls: 'next_day_flipper' },
+  swing:            { icon: '🌙', label: '波段',     cls: 'swing' },
+  longterm:         { icon: '💎', label: '長線',     cls: 'longterm' },
+  foreign_ib:       { icon: '🌏', label: '外資 IB',  cls: 'foreign_ib' },
+  public:           { icon: '🏛️', label: '官股',    cls: 'public' },
+  unknown:          { icon: '❓', label: '未分類',   cls: 'unknown' },
+};
+
+function renderStyleChips(styles) {
+  if (!styles || styles.length === 0) return '';
+  return styles.map(s => {
+    const meta = STYLE_META[s] || STYLE_META.unknown;
+    return `<span class="style-chip ${meta.cls}" title="${meta.label}">${meta.icon} ${meta.label}</span>`;
+  }).join('');
+}
+
+function renderLimitUpChip(change_pct) {
+  if (change_pct === null || change_pct === undefined) return '';
+  const p = Number(change_pct);
+  if (p >= 9.5) return `<span class="limit-up-chip">📈 ${p.toFixed(2)}%</span>`;
+  if (p >= 7.0) return `<span class="near-limit-up-chip">🟠 ${p.toFixed(2)}%</span>`;
+  return '';
+}
+
+let sniperView = 'master';  // master / branch
+
+function setSniperView(view) {
+  sniperView = view;
+  document.querySelectorAll('[data-sniperview]').forEach(b => 
+    b.classList.toggle('active', b.dataset.sniperview === view));
+  renderLimitUpPanel();
+}
+
+function renderLimitUpPanel() {
+  if (!CURRENT_DATA) return;
+  const lu = CURRENT_DATA.limit_up_summary;
+  if (!lu) {
+    document.getElementById('limitupDashboard').innerHTML = 
+      '<div class="report-empty"><div class="icon">📭</div><div>此日期無漲停狙擊資料（資料為 v3.12 前）</div></div>';
+    document.getElementById('sniperRanking').innerHTML = '';
+    document.getElementById('consensusLimitUp').innerHTML = '';
+    document.getElementById('allLimitUpStocks').innerHTML = '';
+    document.getElementById('styleStats').innerHTML = '';
+    document.getElementById('limitUpSoldStocks').innerHTML = '';
+    document.getElementById('sellerRanking').innerHTML = '';
+    document.getElementById('flipVerification').innerHTML = '';
+    return;
+  }
+
+  // ─── 儀表板 ───
+  const totalLU = lu.limit_up_bought_count || 0;
+  const totalConsensus = (lu.consensus_limit_up || []).length;
+  const totalSnipers = (lu.sniper_ranking || []).length;
+  const topSniper = lu.sniper_ranking?.[0];
+  const totalAmt = (lu.sniper_ranking || []).reduce((s, sn) => s + (sn.total_limit_up_buy_amt || 0), 0);
+  
+  document.getElementById('limitupDashboard').innerHTML = `
+    <div class="sentiment-card">
+      <div class="sentiment-card-icon">📈</div>
+      <div class="sentiment-card-label">漲停股被狙擊</div>
+      <div class="sentiment-card-value">${totalLU}</div>
+      <div class="sentiment-card-sub">我的分點買到</div>
+    </div>
+    <div class="sentiment-card signal-green">
+      <div class="sentiment-card-icon">👥</div>
+      <div class="sentiment-card-label">共買漲停股</div>
+      <div class="sentiment-card-value">${totalConsensus}</div>
+      <div class="sentiment-card-sub">2+ 位高手同狙擊</div>
+    </div>
+    <div class="sentiment-card">
+      <div class="sentiment-card-icon">🎯</div>
+      <div class="sentiment-card-label">活躍狙擊分點</div>
+      <div class="sentiment-card-value">${totalSnipers}</div>
+      <div class="sentiment-card-sub">至少買 1 檔漲停</div>
+    </div>
+    <div class="sentiment-card">
+      <div class="sentiment-card-icon">💰</div>
+      <div class="sentiment-card-label">狙擊總金額</div>
+      <div class="sentiment-card-value">${fmtAmtWan(totalAmt)}</div>
+      <div class="sentiment-card-sub">所有分點加總</div>
+    </div>
+    ${topSniper ? `
+    <div class="sentiment-card signal-red">
+      <div class="sentiment-card-icon">🏆</div>
+      <div class="sentiment-card-label">最強狙擊手</div>
+      <div class="sentiment-card-value" style="font-size:16px;">${topSniper.master}</div>
+      <div class="sentiment-card-sub">${topSniper.limit_up_stocks_bought} 檔 / ${fmtAmtWan(topSniper.total_limit_up_buy_amt)}</div>
+    </div>
+    ` : ''}
+  `;
+
+  // ─── 狙擊排名 ───
+  const rankingData = sniperView === 'master' 
+    ? (lu.master_sniper_ranking || [])
+    : (lu.sniper_ranking || []);
+  
+  let rankHTML = '';
+  if (rankingData.length === 0) {
+    rankHTML = '<div class="report-empty">今日無分點買入漲停股</div>';
+  } else {
+    rankingData.slice(0, 15).forEach((sn, i) => {
+      const styles = sn.styles || [];
+      const isFlipper = styles.includes('next_day_flipper') || styles.includes('day_trader');
+      const cls = i === 0 ? 'rank-1' : (!isFlipper ? 'non-flipper' : '');
+      
+      const nameLine = sniperView === 'master'
+        ? `<span class="sniper-master-name">${sn.master}</span> ${renderStyleChips(styles)} <span class="sniper-branch-name">${sn.branches_count} 個分點</span>`
+        : `<span class="sniper-master-name">${sn.master}</span> ${renderStyleChips(styles)} <span class="sniper-branch-name">${sn.branch_name}</span>`;
+      
+      const lu_count = sn.limit_up_stocks_bought || 0;
+      const amt = sn.total_limit_up_buy_amt || 0;
+      const lot = sn.total_limit_up_buy_lot || 0;
+      const netAmt = sn.total_limit_up_net_amt || 0;
+      const ov = sn.total_limit_up_overnight_lots || 0;
+      
+      // 漲停股 details
+      let detailsHTML = '';
+      if (sniperView === 'branch' && sn.limit_up_details) {
+        detailsHTML = sn.limit_up_details.slice(0, 20).map(d => 
+          `<span class="sniper-detail-chip" onclick="showStockDetail('${d.code}','${(d.name||'').replace(/'/g,"\\'")}')">
+            ${d.name} <span class="code">${d.code}</span> +${(d.change_pct||0).toFixed(1)}% <span style="color:var(--gold-bright);">${fmtAmtWan(d.buy_amt)}</span>
+          </span>`
+        ).join('');
+      } else if (sniperView === 'master' && sn.limit_up_codes) {
+        // Master 視角：列出個股代碼
+        detailsHTML = sn.limit_up_codes.slice(0, 30).map(c => 
+          `<span class="sniper-detail-chip" onclick="showStockDetail('${c}','')"><span class="code">${c}</span></span>`
+        ).join('');
+      }
+      
+      rankHTML += `<div class="sniper-card ${cls}">
+        <div class="sniper-card-header">
+          <div class="sniper-rank-num">#${i+1}</div>
+          <div style="flex:1;">${nameLine}</div>
+        </div>
+        <div class="sniper-stats">
+          <div class="sniper-stat">
+            <div class="sniper-stat-label">漲停買入</div>
+            <div class="sniper-stat-value">${lu_count} 檔</div>
+          </div>
+          <div class="sniper-stat">
+            <div class="sniper-stat-label">買入金額</div>
+            <div class="sniper-stat-value">${fmtAmtWan(amt)}</div>
+          </div>
+          <div class="sniper-stat">
+            <div class="sniper-stat-label">買入張數</div>
+            <div class="sniper-stat-value">${lot.toLocaleString()}</div>
+          </div>
+          <div class="sniper-stat">
+            <div class="sniper-stat-label">淨買金額</div>
+            <div class="sniper-stat-value" style="color:${netAmt>0?'#86efac':'#fca5a5'};">${fmtAmtWan(netAmt)}</div>
+          </div>
+          <div class="sniper-stat">
+            <div class="sniper-stat-label">留倉張數</div>
+            <div class="sniper-stat-value" style="color:${ov>0?'var(--gold-bright)':'var(--text-3)'};">${ov.toLocaleString()}</div>
+          </div>
+        </div>
+        ${detailsHTML ? `<div class="sniper-details">${detailsHTML}</div>` : ''}
+      </div>`;
+    });
+  }
+  document.getElementById('sniperRanking').innerHTML = rankHTML;
+
+  // ─── 共買漲停股 ───
+  const consensus = lu.consensus_limit_up || [];
+  let consHTML = '';
+  if (consensus.length === 0) {
+    consHTML = '<div class="report-empty" style="padding:20px;"><div>今日無 2+ 位高手共買同一漲停股</div></div>';
+  } else {
+    consensus.forEach(c => {
+      const buyersHTML = (c.buyers || []).map(b => 
+        `<span class="master-tag">${b.master} <span style="color:var(--text-3);font-size:10px;">${b.branch_name}</span> <span style="color:var(--gold-bright);">${fmtAmtWan(b.buy_amt)}</span></span>`
+      ).join('');
+      consHTML += `<div class="consensus-lu-card">
+        <div class="consensus-lu-header">
+          <div>
+            <span class="consensus-lu-stock">${c.name}</span>
+            <span class="consensus-lu-code">${c.code}</span>
+            ${renderLimitUpChip(c.change_pct)}
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:12px;color:var(--text-3);">${c.master_count} 位高手共買</div>
+            <div style="font-size:14px;font-weight:700;color:var(--gold-bright);">${fmtAmtWan(c.total_buy_amt)} / ${(c.total_buy_lot||0).toLocaleString()}張</div>
+          </div>
+        </div>
+        <div class="consensus-lu-buyers">${buyersHTML}</div>
+      </div>`;
+    });
+  }
+  document.getElementById('consensusLimitUp').innerHTML = consHTML;
+
+  // ─── 所有漲停股（表格）───
+  const allLU = lu.limit_up_stocks || [];
+  if (allLU.length === 0) {
+    document.getElementById('allLimitUpStocks').innerHTML = '<div class="report-empty" style="padding:20px;">今日無漲停股被狙擊</div>';
+  } else {
+    const rows = allLU.map((s, i) => {
+      const buyersStr = (s.buyers || []).slice(0, 5).map(b => 
+        `<span style="color:${b.overnight_lots>0?'var(--gold-bright)':'var(--text-2)'};">${b.master}(${b.buy_lot}張)</span>`
+      ).join('、');
+      return `<tr onclick="showStockDetail('${s.code}','${(s.name||'').replace(/'/g,"\\'")}')">
+        <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
+        <td><div class="stock-cell">
+          <span class="stock-name">${s.name} ${renderLimitUpChip(s.change_pct)}</span>
+          <span class="stock-code">${s.code}</span>
+        </div></td>
+        <td class="num" style="color:var(--gold-bright);">${s.master_count} 位</td>
+        <td class="num">${s.buyer_count} 次</td>
+        <td class="num pos-strong">${fmtAmtWan(s.total_buy_amt)}</td>
+        <td class="num">${(s.total_buy_lot||0).toLocaleString()}張</td>
+        <td class="num" style="color:${s.total_overnight_lots>0?'var(--gold-bright)':'var(--text-3)'};">${(s.total_overnight_lots||0).toLocaleString()}張</td>
+        <td>${buyersStr}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('allLimitUpStocks').innerHTML = `<div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="num" style="width:50px;">#</th>
+          <th>漲停股</th>
+          <th class="num">高手數</th>
+          <th class="num">分點次數</th>
+          <th class="num">總買金額</th>
+          <th class="num">總買張數</th>
+          <th class="num">留倉張數</th>
+          <th>買家 (Top 5)</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`;
+  }
+
+  // ─── 風格統計 ───
+  const styleStats = lu.style_stats || {};
+  const styleOrder = ['next_day_flipper', 'day_trader', 'swing', 'longterm', 'foreign_ib', 'public', 'unknown'];
+  let styleHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">';
+  for (const s of styleOrder) {
+    const ss = styleStats[s];
+    if (!ss || ss.master_count === 0) continue;
+    const meta = STYLE_META[s] || STYLE_META.unknown;
+    styleHTML += `<div class="margin-rank-card">
+      <div class="margin-rank-title">
+        ${meta.icon} ${meta.label}
+        <span class="sub">${ss.master_count} 位高手</span>
+      </div>
+      <div style="padding:8px 0;">
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:4px;">漲停買進次數</div>
+        <div style="font-size:20px;font-weight:700;color:var(--gold-bright);font-family:'JetBrains Mono';">${ss.limit_up_count}</div>
+      </div>
+      <div style="padding:4px 0;">
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:4px;">總買入金額</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-1);font-family:'JetBrains Mono';">${fmtAmtWan(ss.total_buy_amt)}</div>
+      </div>
+      <div style="font-size:10px;color:var(--text-3);margin-top:6px;border-top:1px solid rgba(255,255,255,0.05);padding-top:6px;">
+        ${(ss.masters || []).slice(0, 5).join('、')}${(ss.masters||[]).length>5?' 等':''}
+      </div>
+    </div>`;
+  }
+  styleHTML += '</div>';
+  document.getElementById('styleStats').innerHTML = styleHTML;
+
+  // ═══════════════ v3.13：漲停股被狙擊賣出 ═══════════════
+  const soldStocks = lu.limit_up_sold_stocks || [];
+  let soldHTML = '';
+  if (soldStocks.length === 0) {
+    soldHTML = '<div class="report-empty" style="padding:20px;"><div>今日無漲停股被我的分點賣超</div></div>';
+  } else {
+    const rows = soldStocks.map((s, i) => {
+      const sellersStr = (s.sellers || []).slice(0, 5).map(b => 
+        `<span style="color:#86efac;">${b.master}(-${b.sell_lot}張)</span>`
+      ).join('、');
+      return `<tr onclick="showStockDetail('${s.code}','${(s.name||'').replace(/'/g,"\\'")}')">
+        <td class="num" style="color:#86efac;font-weight:700;">#${i+1}</td>
+        <td><div class="stock-cell">
+          <span class="stock-name">${s.name} ${renderLimitUpChip(s.change_pct)}</span>
+          <span class="stock-code">${s.code}</span>
+        </div></td>
+        <td class="num" style="color:#86efac;">${s.master_count} 位</td>
+        <td class="num">${s.seller_count} 次</td>
+        <td class="num" style="color:#86efac;font-weight:700;">${fmtAmtWan(s.total_sell_amt)}</td>
+        <td class="num">${(s.total_sell_lot||0).toLocaleString()}張</td>
+        <td>${sellersStr}</td>
+      </tr>`;
+    }).join('');
+    soldHTML = `<div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="num" style="width:50px;">#</th>
+          <th>漲停股</th>
+          <th class="num">賣家數</th>
+          <th class="num">分點次數</th>
+          <th class="num">總賣金額</th>
+          <th class="num">總賣張數</th>
+          <th>賣家 (Top 5)</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`;
+  }
+  document.getElementById('limitUpSoldStocks').innerHTML = soldHTML;
+
+  // ═══════════════ v3.13：分點漲停出貨排名 ═══════════════
+  const sellers = lu.seller_ranking || [];
+  let sellerHTML = '';
+  if (sellers.length === 0) {
+    sellerHTML = '<div class="report-empty" style="padding:20px;"><div>今日無分點賣超漲停股</div></div>';
+  } else {
+    sellers.slice(0, 10).forEach((sn, i) => {
+      const styles = sn.styles || [];
+      const sold_count = sn.limit_up_stocks_sold || 0;
+      const amt = sn.total_limit_up_sell_amt || 0;
+      const lot = sn.total_limit_up_sell_lot || 0;
+      const netAmt = sn.total_limit_up_net_sell_amt || 0;
+      
+      const detailsHTML = (sn.limit_up_sell_details || []).slice(0, 15).map(d => 
+        `<span class="sniper-detail-chip" onclick="showStockDetail('${d.code}','${(d.name||'').replace(/'/g,"\\'")}')" style="background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);">
+          ${d.name} <span class="code">${d.code}</span> +${(d.change_pct||0).toFixed(1)}% <span style="color:#86efac;">-${fmtAmtWan(d.sell_amt)}</span>
+        </span>`
+      ).join('');
+      
+      sellerHTML += `<div class="seller-card">
+        <div class="seller-card-header">
+          <div class="seller-rank-num">#${i+1}</div>
+          <div style="flex:1;">
+            <span class="seller-master-name">${sn.master}</span>
+            ${renderStyleChips(styles)}
+            <span class="sniper-branch-name">${sn.branch_name}</span>
+          </div>
+        </div>
+        <div class="sniper-stats">
+          <div class="sniper-stat">
+            <div class="sniper-stat-label">漲停賣出</div>
+            <div class="sniper-stat-value seller-stat-value">${sold_count} 檔</div>
+          </div>
+          <div class="sniper-stat">
+            <div class="sniper-stat-label">賣出金額</div>
+            <div class="sniper-stat-value seller-stat-value">${fmtAmtWan(amt)}</div>
+          </div>
+          <div class="sniper-stat">
+            <div class="sniper-stat-label">賣出張數</div>
+            <div class="sniper-stat-value seller-stat-value">${lot.toLocaleString()}</div>
+          </div>
+          <div class="sniper-stat">
+            <div class="sniper-stat-label">淨賣金額</div>
+            <div class="sniper-stat-value" style="color:${netAmt<0?'#86efac':'var(--text-2)'};">${fmtAmtWan(netAmt)}</div>
+          </div>
+        </div>
+        ${detailsHTML ? `<div class="sniper-details">${detailsHTML}</div>` : ''}
+      </div>`;
+    });
+  }
+  document.getElementById('sellerRanking').innerHTML = sellerHTML;
+
+  // ═══════════════ v3.13：隔日沖驗證看板 ═══════════════
+  renderFlipVerification();
+}
+
+// 隔日沖驗證看板獨立函數（內容較多）
+function renderFlipVerification() {
+  if (!CURRENT_DATA) return;
+  const ndv = CURRENT_DATA.next_day_verification;
+  const el = document.getElementById('flipVerification');
+  if (!el) return;
+  
+  if (!ndv || ndv.is_first_day) {
+    el.innerHTML = `<div class="report-empty" style="padding:30px;">
+      <div class="icon">ℹ️</div>
+      <div style="font-size:14px;margin-top:8px;">首日執行，明日才能開始隔日沖驗證</div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:6px;">
+        系統需要兩天資料比對：Day 1 的漲停買進 vs Day 2 的賣超動作
+      </div>
+    </div>`;
+    return;
+  }
+  
+  const verified = ndv.verified_flips || [];
+  const pending = ndv.pending_positions || [];
+  const scorecard = ndv.flipper_scorecard || [];
+  
+  // 統計
+  const fullFlips = verified.filter(v => v.status === 'full_flip');
+  const partialFlips = verified.filter(v => v.status === 'partial_flip');
+  const minorFlips = verified.filter(v => v.status === 'minor_flip');
+  
+  // ─── 儀表板（4 大卡）───
+  let html = `<div class="sentiment-dashboard" style="margin-bottom:16px;">
+    <div class="sentiment-card signal-red">
+      <div class="sentiment-card-icon">🎯</div>
+      <div class="sentiment-card-label">完全出貨</div>
+      <div class="sentiment-card-value">${fullFlips.length}</div>
+      <div class="sentiment-card-sub">flip ≥ 90%（確認隔日沖）</div>
+    </div>
+    <div class="sentiment-card signal-yellow">
+      <div class="sentiment-card-icon">📊</div>
+      <div class="sentiment-card-label">部分出貨</div>
+      <div class="sentiment-card-value">${partialFlips.length}</div>
+      <div class="sentiment-card-sub">flip 30-90%</div>
+    </div>
+    <div class="sentiment-card">
+      <div class="sentiment-card-icon">⏸️</div>
+      <div class="sentiment-card-label">留倉未賣</div>
+      <div class="sentiment-card-value">${pending.length}</div>
+      <div class="sentiment-card-sub">可能轉波段</div>
+    </div>
+    <div class="sentiment-card">
+      <div class="sentiment-card-icon">📈</div>
+      <div class="sentiment-card-label">總配對筆數</div>
+      <div class="sentiment-card-value">${verified.length + pending.length}</div>
+      <div class="sentiment-card-sub">昨日漲停買進 × 今日動作</div>
+    </div>
+  </div>`;
+  
+  // ─── 高手出貨評分 ───
+  if (scorecard.length > 0) {
+    html += `<div class="section-title" style="font-size:15px;margin:20px 0 10px;">📊 高手出貨評分</div>`;
+    html += `<div class="margin-rank-grid">`;
+    scorecard.forEach(sc => {
+      const styles = sc.styles || [];
+      const ratio = sc.overall_flip_ratio || 0;
+      const level = ratio >= 80 ? 'full' : (ratio >= 30 ? 'partial' : (ratio > 0 ? 'minor' : 'none'));
+      
+      html += `<div class="margin-rank-card" style="border-color:${ratio>=80?'rgba(239,68,68,0.4)':'var(--line)'};">
+        <div class="margin-rank-title">
+          ${sc.master} ${renderStyleChips(styles)}
+          <span class="sub">${sc.verified_flip_count} 出 / ${sc.pending_count} 留</span>
+        </div>
+        <div style="padding:8px 0;">
+          <div style="font-size:12px;color:var(--text-3);margin-bottom:4px;">整體出貨率</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-size:22px;font-weight:700;color:${ratio>=80?'#fca5a5':(ratio>=30?'#fcd34d':'var(--text-2)')};font-family:'JetBrains Mono';">${ratio.toFixed(1)}%</div>
+            <div class="flip-bar-track" style="flex:1;height:10px;">
+              <div class="flip-bar-fill ${level}" style="width:${Math.min(100,ratio)}%"></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:var(--text-2);">
+          <div>昨買：<span style="color:var(--gold-bright);">${sc.total_yesterday_buy_lot.toLocaleString()}張</span></div>
+          <div>今賣：<span style="color:#86efac;">${sc.total_today_sell_lot.toLocaleString()}張</span></div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  
+  // ─── 出貨明細表 ───
+  if (verified.length > 0) {
+    html += `<div class="section-title" style="font-size:15px;margin:20px 0 10px;">🎯 已確認出貨明細</div>`;
+    const rows = verified.slice(0, 50).map(v => {
+      const styles = v.styles || [];
+      const statusLabel = {
+        full_flip: '🎯 完全出貨',
+        partial_flip: '📊 部分出貨',
+        minor_flip: '↘ 少量出貨',
+      }[v.status] || '—';
+      const flipLevel = v.status === 'full_flip' ? 'full' : 
+                       (v.status === 'partial_flip' ? 'partial' : 'minor');
+      const rowCls = v.status === 'full_flip' ? 'flip-row-full' : 
+                     (v.status === 'partial_flip' ? 'flip-row-partial' : '');
+      return `<tr class="${rowCls}" onclick="showStockDetail('${v.stock_code}','${(v.stock_name||'').replace(/'/g,"\\'")}')">
+        <td>
+          <div style="font-weight:600;">${v.master}</div>
+          <div style="font-size:10px;color:var(--text-3);">${v.branch_name}</div>
+          ${renderStyleChips(styles)}
+        </td>
+        <td><div class="stock-cell">
+          <span class="stock-name">${v.stock_name}</span>
+          <span class="stock-code">${v.stock_code}</span>
+        </div></td>
+        <td class="num"><span style="color:var(--gold-bright);">${v.yesterday_buy_lot}張</span><br><span style="font-size:10px;color:var(--red);">+${(v.yesterday_change_pct||0).toFixed(1)}%</span></td>
+        <td class="num"><span style="color:#86efac;">${v.today_sell_lot}張</span>${v.today_change_pct!==null && v.today_change_pct!==undefined ? `<br><span style="font-size:10px;color:${v.today_change_pct>0?'var(--red)':'var(--green)'};">${v.today_change_pct>0?'+':''}${v.today_change_pct.toFixed(1)}%</span>` : ''}</td>
+        <td class="num">
+          <div class="flip-bar">
+            <div class="flip-bar-track"><div class="flip-bar-fill ${flipLevel}" style="width:${Math.min(100,v.flip_ratio)}%"></div></div>
+            <span style="font-weight:700;">${v.flip_ratio.toFixed(1)}%</span>
+          </div>
+        </td>
+        <td><span class="flip-status ${v.status}">${statusLabel}</span></td>
+      </tr>`;
+    }).join('');
+    html += `<div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>高手 / 分點</th>
+          <th>股票</th>
+          <th class="num">昨買張數</th>
+          <th class="num">今賣張數</th>
+          <th class="num">出貨率</th>
+          <th>狀態</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`;
+  }
+  
+  // ─── 尚未出貨（留倉）明細 ───
+  if (pending.length > 0) {
+    html += `<div class="section-title" style="font-size:15px;margin:20px 0 10px;">⏸️ 尚未出貨（留倉中） <span class="section-sub">可能是波段或準備多日出貨</span></div>`;
+    const rows = pending.slice(0, 30).map(v => {
+      const styles = v.styles || [];
+      return `<tr onclick="showStockDetail('${v.stock_code}','${(v.stock_name||'').replace(/'/g,"\\'")}')">
+        <td>
+          <div style="font-weight:600;">${v.master}</div>
+          <div style="font-size:10px;color:var(--text-3);">${v.branch_name}</div>
+          ${renderStyleChips(styles)}
+        </td>
+        <td><div class="stock-cell">
+          <span class="stock-name">${v.stock_name}</span>
+          <span class="stock-code">${v.stock_code}</span>
+        </div></td>
+        <td class="num"><span style="color:var(--gold-bright);">${v.yesterday_buy_lot}張</span><br><span style="font-size:10px;color:var(--red);">+${(v.yesterday_change_pct||0).toFixed(1)}%</span></td>
+        <td class="num" style="color:var(--gold-bright);">${v.yesterday_overnight_lots}張</td>
+        <td class="num">${v.today_change_pct!==null && v.today_change_pct!==undefined ? `<span style="color:${v.today_change_pct>0?'var(--red)':(v.today_change_pct<0?'var(--green)':'var(--text-2)')};">${v.today_change_pct>0?'+':''}${v.today_change_pct.toFixed(1)}%</span>` : '—'}</td>
+        <td><span class="flip-status still_holding">⏸️ 留倉</span></td>
+      </tr>`;
+    }).join('');
+    html += `<div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>高手 / 分點</th>
+          <th>股票</th>
+          <th class="num">昨買張數</th>
+          <th class="num">昨留倉</th>
+          <th class="num">今日漲跌</th>
+          <th>狀態</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`;
+  }
+  
+  el.innerHTML = html;
 }
 
 // ========== v3.11 融資融券 × 散戶情緒 ==========
@@ -3034,6 +3907,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     else if (tab === 'institutional') renderInstitutional();
     else if (tab === 'reports') renderReport();
     else if (tab === 'margin') renderMarginPanel();
+    else if (tab === 'limitup') renderLimitUpPanel();
   });
 });
 function toggleHelp() {
@@ -3055,19 +3929,28 @@ document.addEventListener('keydown', (e) => {
     const tabs = document.querySelectorAll('.tab');
     if (tabs[parseInt(e.key)-1]) tabs[parseInt(e.key)-1].click();
   } else if (e.key === '0') {
-    // 0 切到第 10 tab (📊 報告中心)
+    // 0 切到第 10 tab (👥 單分點偏好)
     const tabs = document.querySelectorAll('.tab');
     if (tabs[9]) tabs[9].click();
   } else if (e.key === '-' || e.key === '_') {
-    // - 切到第 11 tab (⚙️ 關注設定)
+    // - 切到第 11 tab (📊 報告中心)
     const tabs = document.querySelectorAll('.tab');
     if (tabs[10]) tabs[10].click();
+  } else if (e.key === '=' || e.key === '+') {
+    // = 切到第 12 tab (⚙️ 關注設定)
+    const tabs = document.querySelectorAll('.tab');
+    if (tabs[11]) tabs[11].click();
   } else if (e.key === 'Escape') closeDrawer();
 });
 
 function setOverviewMode(m) {
   overviewMode = m;
-  document.querySelectorAll('#panel-overview .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  document.querySelectorAll('#panel-overview .mode-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderOverview();
+}
+function setOverviewSide(s) {
+  overviewSide = s;
+  document.querySelectorAll('#panel-overview .mode-btn[data-side]').forEach(b => b.classList.toggle('active', b.dataset.side === s));
   renderOverview();
 }
 function setBranchMode(m) {
@@ -3124,16 +4007,16 @@ function renderAll() {
 }
 
 // ========== 01 共買榜 ==========
-function buildStockIndex(branches, onlyWatched, rankType) {
-  // rankType: 'amount' = 依金額排行 (原 c=B 排行才有), 'lots' = 依張數排行 (c=E 排行才有)
-  // 'amount' 時：只納入有 buy_amt > 0 的股票
-  // 'lots' 時：只納入有 buy_lot > 0 的股票
+function buildStockIndex(branches, onlyWatched, rankType, side) {
+  // side: 'buy' = 掃 br.buys（共買榜），'sell' = 掃 br.sells（共賣榜，v3.13）
+  side = side || 'buy';
+  const sourceKey = side === 'sell' ? 'sells' : 'buys';
   const map = new Map();
   for (const br of branches) {
     if (onlyWatched && !WATCHLIST.has(br.code)) continue;
-    if (!br.buys) continue;
-    for (const s of br.buys) {
-      // 🌐 市場類型篩選
+    const list = br[sourceKey];
+    if (!list) continue;
+    for (const s of list) {
       if (!passMarketFilter(s, 'overview')) continue;
       
       const hasAmt = (s.buy_amt || 0) > 0 || (s.sell_amt || 0) > 0;
@@ -3145,10 +4028,9 @@ function buildStockIndex(branches, onlyWatched, rankType) {
       if (!map.has(key)) {
         map.set(key, {
           code: s.code, name: s.name, branches: [],
-          totalNet: 0, totalBuy: 0, totalNetLot: 0, totalBuyLot: 0,
+          totalNet: 0, totalBuy: 0, totalSell: 0, totalNetLot: 0, totalBuyLot: 0, totalSellLot: 0,
           totalOvernightLots: 0, hasLotData: false, hasAmtData: false,
           market_type: s.market_type, market_type_simple: s.market_type_simple,
-          // v3.7 三大法人 + 收盤
           inst_foreign_net_lot: s.inst_foreign_net_lot,
           inst_trust_net_lot: s.inst_trust_net_lot,
           inst_dealer_net_lot: s.inst_dealer_net_lot,
@@ -3157,18 +4039,18 @@ function buildStockIndex(branches, onlyWatched, rankType) {
           close_price: s.close_price,
           change_pct: s.change_pct,
           floating_pnl_pct: s.floating_pnl_pct,
-          // v3.11 融資融券 + 信號
           margin_change: s.margin_change,
           margin_usage: s.margin_usage,
           short_change: s.short_change,
           margin_short_ratio: s.margin_short_ratio,
           margin_signal: s.margin_signal,
+          side: side,   // v3.13
         });
       }
       const obj = map.get(key);
       obj.branches.push({
         master: br.master, branch: br.name, branchCode: br.code,
-        region: br.region || 'domestic',  // v3.8
+        region: br.region || 'domestic',
         net: s.net_amt !== undefined ? s.net_amt : s.net,
         buy: s.buy_amt !== undefined ? s.buy_amt : s.buy,
         sell: s.sell_amt !== undefined ? s.sell_amt : s.sell,
@@ -3178,8 +4060,10 @@ function buildStockIndex(branches, onlyWatched, rankType) {
       });
       obj.totalNet += (s.net_amt !== undefined ? s.net_amt : s.net);
       obj.totalBuy += (s.buy_amt !== undefined ? s.buy_amt : s.buy);
+      obj.totalSell += (s.sell_amt !== undefined ? s.sell_amt : s.sell);
       obj.totalNetLot += (s.net_lot || 0);
       obj.totalBuyLot += (s.buy_lot || 0);
+      obj.totalSellLot += (s.sell_lot || 0);
       obj.totalOvernightLots += (s.overnight_lots || 0);
       if (hasAmt) obj.hasAmtData = true;
       if (hasLot) obj.hasLotData = true;
@@ -3191,13 +4075,15 @@ function buildStockIndex(branches, onlyWatched, rankType) {
 function renderOverview() {
   const el = document.getElementById('overviewResult');
   if (!CURRENT_DATA) return;
-  const rankType = overviewRank; // 'amount' or 'lots'
+  const rankType = overviewRank;
+  const sideLabel = overviewSide === 'sell' ? '🔴 共賣榜' : '🟢 共買榜';
   document.getElementById('overviewSubtitle').textContent = 
     formatDate(CURRENT_DATA.trade_date) + ' · ' + (overviewMode === 'watch' ? '僅關注' : '全部') + 
+    ' · ' + sideLabel +
     ' · ' + (rankType === 'amount' ? '💰 金額榜（c=B）' : '📦 張數榜（c=E）');
   const minOverlap = parseInt(document.getElementById('minOverlap').value);
   const sortBy = document.getElementById('sortBy').value;
-  const stockMap = buildStockIndex(CURRENT_DATA.branches, overviewMode === 'watch', rankType);
+  const stockMap = buildStockIndex(CURRENT_DATA.branches, overviewMode === 'watch', rankType, overviewSide);
   let list = Array.from(stockMap.values()).filter(s => s.branches.length >= minOverlap);
   
   // v3.7 排序：優先使用表頭點擊設定，沒點的話用舊下拉選單
@@ -3263,7 +4149,7 @@ function renderOverview() {
     return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
       <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
       <td><div class="stock-cell">
-        <span class="stock-name">${s.name}${badge}${renderMarketChip(s)}${renderFloatChip(s.floating_pnl_pct)}${renderSignalBadge(s.margin_signal)}</span>
+        <span class="stock-name">${s.name}${badge}${renderMarketChip(s)}${renderFloatChip(s.floating_pnl_pct)}${renderLimitUpChip(s.change_pct)}${renderSignalBadge(s.margin_signal)}</span>
         <span class="stock-code">${s.code}</span>
       </div></td>
       <td class="num"><span class="badge ${s.branches.length>=4?'':'gold'}">${s.branches.length} 分點</span></td>
