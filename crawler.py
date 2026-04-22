@@ -37,6 +37,7 @@ from market_classifier import get_classifier, CATEGORY_LABELS, CATEGORY_LABELS_S
 from institutional import (
     fetch_all_public_data, compute_alignment, compute_floating_pnl_pct
 )
+import reports  # v3.9 週報/月報生成
 
 TW_TZ = timezone(timedelta(hours=8))
 
@@ -1133,8 +1134,27 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.7",
+            "version": "3.9",
         }, f, ensure_ascii=False, indent=2)
+    
+    # v3.9 週報/月報自動生成（僅在週一/月初觸發）
+    try:
+        generated = reports.maybe_generate_reports(
+            data_dir, password, decrypt_data, encrypt_data
+        )
+        if generated:
+            print(f"\n[報告] ✓ 產生 {len(generated)} 份報告")
+            # 更新 reports_index.json 以供前端讀取
+            reports_list = reports.list_available_reports(data_dir)
+            with open(data_dir / "reports_index.json", "w", encoding="utf-8") as f:
+                json.dump({
+                    "updated_at": now_tw().isoformat(),
+                    "weekly": reports_list["weekly"],
+                    "monthly": reports_list["monthly"],
+                }, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"  ⚠️ 報告生成錯誤（不影響主流程）: {e}")
+        import traceback; traceback.print_exc()
     
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")
