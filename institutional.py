@@ -172,7 +172,7 @@ def fetch_twse_t86(trade_date: str, timeout=30, retries=3) -> Dict[str, dict]:
         except Exception as e:
             print(f"  ⚠️ TWSE T86 第 {attempt+1}/{retries} 次失敗: {e}")
             if attempt < retries - 1:
-                time.sleep(3 + attempt * 2)
+                time.sleep(10 + attempt * 5)  # v3.14.2: 10s → 15s → 20s
     
     return {}
 
@@ -238,7 +238,7 @@ def fetch_tpex_3insti(timeout=30, retries=3) -> Dict[str, dict]:
         except Exception as e:
             print(f"  ⚠️ TPEx 3insti 第 {attempt+1}/{retries} 次失敗: {e}")
             if attempt < retries - 1:
-                time.sleep(3 + attempt * 2)
+                time.sleep(10 + attempt * 5)  # v3.14.2: 10s → 15s → 20s
     
     return {}
 
@@ -292,7 +292,7 @@ def fetch_twse_daily_quotes(timeout=30, retries=3) -> Dict[str, dict]:
         except Exception as e:
             print(f"  ⚠️ TWSE daily quotes 第 {attempt+1}/{retries} 次失敗: {e}")
             if attempt < retries - 1:
-                time.sleep(3 + attempt * 2)
+                time.sleep(10 + attempt * 5)  # v3.14.2: 10s → 15s → 20s
     
     return {}
 
@@ -341,7 +341,7 @@ def fetch_tpex_daily_quotes(timeout=30, retries=3) -> Dict[str, dict]:
         except Exception as e:
             print(f"  ⚠️ TPEx daily quotes 第 {attempt+1}/{retries} 次失敗: {e}")
             if attempt < retries - 1:
-                time.sleep(3 + attempt * 2)
+                time.sleep(10 + attempt * 5)  # v3.14.2: 10s → 15s → 20s
     
     return {}
 
@@ -350,33 +350,138 @@ def fetch_tpex_daily_quotes(timeout=30, retries=3) -> Dict[str, dict]:
 #  整合介面（給 crawler.py 用）
 # ════════════════════════════════════════════════════════════════════
 
-def fetch_all_public_data(trade_date: str):
+def fetch_mis_fallback_quotes(missing_codes: list, batch_size=40, batch_delay=3) -> Dict[str, dict]:
+    """
+    v3.14.2: MIS API fallback 即時報價
+    當 TWSE STOCK_DAY_ALL 失敗時，改用 mis.twse.com.tw 逐批查詢
+    
+    mis API 可一次查多檔：tse_2330.tw|tse_2317.tw|...
+    速度快、限流少，但需要自己判斷 tse / otc 前綴
+    
+    Args:
+        missing_codes: 要補抓的股票代號 list
+        batch_size: 每批最多幾檔（太多會被截斷）
+        batch_delay: 每批間隔秒數
+    """
+    if not missing_codes:
+        return {}
+    
+    print(f"  [MIS Fallback] 補抓 {len(missing_codes)} 檔即時報價...")
+    
+    result = {}
+    
+    # MIS 需要分 tse_ (上市) / otc_ (上櫃)，但我們不知道每檔是上市上櫃
+    # 策略：先當上市試，失敗的再當上櫃試
+    
+    def build_query(codes, prefix):
+        return '|'.join(f"{prefix}_{c}.tw" for c in codes)
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'Referer': 'https://mis.twse.com.tw/stock/index.jsp',
+    }
+    
+    def parse_mis_batch(codes, prefix, attempt=0):
+        """查一批資料並解析"""
+        if not codes:
+            return
+        query = build_query(codes, prefix)
+        url = f'https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch={query}&json=1&delay=0'
+        try:
+            r = requests.get(url, timeout=15, headers=headers)
+            r.raise_for_status()
+            data = r.json()
+            for item in (data.get('msgArray') or []):
+                code = item.get('c')
+                if not code:
+                    continue
+                try:
+                    # z = 最新成交價，但有時是 '-'（無成交）
+                    close = float(item.get('z')) if item.get('z') not in ('-', '', None) else None
+                    y = float(item.get('y')) if item.get('y') not in ('-', '', None) else None  # 昨收
+                    if close is None and item.get('pz') not in ('-', '', None):
+                        close = float(item.get('pz'))  # 買一價備援
+                    open_ = float(item.get('o')) if item.get('o') not in ('-', '', None) else None
+                    high = float(item.get('h')) if item.get('h') not in ('-', '', None) else None
+                    low = float(item.get('l')) if item.get('l') not in ('-', '', None) else None
+                    volume = int(item.get('v', 0) or 0)  # 累積成交量（張）
+                    
+                    change = (close - y) if (close and y) else 0.0
+                    change_pct = (change / y * 100) if y else 0.0
+                    
+                    if close:
+                        result[code] = {
+                            "close": round(close, 2),
+                            "open": round(open_, 2) if open_ else 0,
+                            "high": round(high, 2) if high else 0,
+                            "low": round(low, 2) if low else 0,
+                            "volume_lot": volume,
+                            "change": round(change, 2),
+                            "change_pct": round(change_pct, 2),
+                            "source": f"mis_{prefix}",  # 標記來源
+                        }
+                except (ValueError, TypeError):
+                    continue
+        except Exception as e:
+            if attempt < 2:
+                print(f"    ⚠️ MIS {prefix} 第 {attempt+1}/3 次失敗: {str(e)[:80]}")
+                time.sleep(10 + attempt * 5)
+                parse_mis_batch(codes, prefix, attempt + 1)
+    
+    # 先試上市
+    for i in range(0, len(missing_codes), batch_size):
+        batch = missing_codes[i:i+batch_size]
+        parse_mis_batch(batch, 'tse')
+        if i + batch_size < len(missing_codes):
+            time.sleep(batch_delay)  # 批次間 delay
+    
+    # 沒抓到的再試上櫃
+    still_missing = [c for c in missing_codes if c not in result]
+    if still_missing:
+        print(f"    → 上市抓到 {len(result)} 檔，剩 {len(still_missing)} 檔試上櫃")
+        for i in range(0, len(still_missing), batch_size):
+            batch = still_missing[i:i+batch_size]
+            parse_mis_batch(batch, 'otc')
+            if i + batch_size < len(still_missing):
+                time.sleep(batch_delay)
+    
+    print(f"  [MIS Fallback] ✓ 成功補抓 {len(result)} 檔")
+    return result
+
+
+def fetch_all_public_data(trade_date: str, priority_codes=None):
     """
     抓全部公開資訊：三大法人 + 收盤行情
     
+    v3.14.2 升級:
+      - 查詢間 delay 從 1.5s → 5s
+      - TWSE/TPEx daily_quotes 失敗時，用 MIS API fallback 補抓
+    
+    Args:
+        trade_date: 日期
+        priority_codes: 優先補抓的個股代號 list（例如我的分點出現的股票）
+    
     Returns:
         (institutional_map, daily_quotes_map)
-        institutional_map: {code: 三大法人資料}
-        daily_quotes_map:  {code: 收盤行情資料}
     """
-    print("[公開資訊] 抓取三大法人 + 收盤行情...")
+    print("[公開資訊] 抓取三大法人 + 收盤行情 (v3.14.2 增強版限流處理)...")
     
     # 三大法人
     print("  [1/4] TWSE 上市三大法人 (T86)...")
     twse_insti = fetch_twse_t86(trade_date)
     print(f"    ✓ {len(twse_insti)} 檔")
-    time.sleep(1.5)
+    time.sleep(5)   # v3.14.2: 1.5s → 5s
     
     print("  [2/4] TPEx 上櫃三大法人...")
     tpex_insti = fetch_tpex_3insti()
     print(f"    ✓ {len(tpex_insti)} 檔")
-    time.sleep(1.5)
+    time.sleep(5)
     
     # 收盤行情
     print("  [3/4] TWSE 上市收盤行情...")
     twse_quotes = fetch_twse_daily_quotes()
     print(f"    ✓ {len(twse_quotes)} 檔")
-    time.sleep(1.5)
+    time.sleep(5)
     
     print("  [4/4] TPEx 上櫃收盤行情...")
     tpex_quotes = fetch_tpex_daily_quotes()
@@ -386,7 +491,24 @@ def fetch_all_public_data(trade_date: str):
     institutional = {**tpex_insti, **twse_insti}
     quotes = {**tpex_quotes, **twse_quotes}
     
-    print(f"[公開資訊] ✓ 三大法人 {len(institutional)} 檔 / 收盤 {len(quotes)} 檔")
+    # v3.14.2 Fallback：如果 quotes 太少 且有 priority_codes（我的分點出現的股票）
+    # 用 MIS API 補抓
+    fallback_count = 0
+    if priority_codes:
+        missing = [c for c in priority_codes if c not in quotes]
+        if missing:
+            # 只在主 API 大量失敗時 fallback（避免每次都打）
+            total_expected = 2000  # TWSE + TPEx 合計應該 >2000 檔
+            if len(quotes) < total_expected or len(missing) > 20:
+                print(f"  [!] 主 API 取得 {len(quotes)} 檔 (預期 >{total_expected})")
+                print(f"      我的分點股票中有 {len(missing)} 檔缺行情 → 啟動 MIS Fallback")
+                time.sleep(5)
+                mis_quotes = fetch_mis_fallback_quotes(missing)
+                quotes.update(mis_quotes)
+                fallback_count = len(mis_quotes)
+    
+    print(f"[公開資訊] ✓ 三大法人 {len(institutional)} 檔 / 收盤 {len(quotes)} 檔" +
+          (f" (MIS fallback 補 {fallback_count} 檔)" if fallback_count else ""))
     
     return institutional, quotes
 
