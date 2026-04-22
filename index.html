@@ -387,6 +387,224 @@ main { max-width: 1400px; margin: 0 auto; padding: 24px; }
 .float-chip.neg { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
 .float-chip.flat { background: rgba(107, 114, 128, 0.15); color: #9ca3af; }
 
+/* v3.7 可排序表頭 */
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: background 0.15s;
+}
+th.sortable:hover {
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--gold-bright);
+}
+th.sortable::after {
+  content: '⇅';
+  opacity: 0.3;
+  margin-left: 4px;
+  font-size: 10px;
+}
+th.sortable.sort-asc::after {
+  content: '▲';
+  opacity: 1;
+  color: var(--gold-bright);
+}
+th.sortable.sort-desc::after {
+  content: '▼';
+  opacity: 1;
+  color: var(--gold-bright);
+}
+
+/* ═══════════════ v3.8 地區 chip + 分點管理 ═══════════════ */
+.region-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif;
+  margin-left: 4px;
+  letter-spacing: 0.02em;
+}
+.region-chip.domestic { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+.region-chip.us { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.region-chip.eu { background: rgba(251,191,36,0.15); color: #fcd34d; border: 1px solid rgba(251,191,36,0.3); }
+.region-chip.asia { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+
+/* 分點管理介面 */
+.branch-group {
+  background: linear-gradient(135deg, rgba(31, 42, 72, 0.6) 0%, rgba(31, 42, 72, 0.3) 100%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.branch-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 10px;
+}
+.branch-group-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+.branch-group-count {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+}
+.branch-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.branch-checkbox-row:hover {
+  background: rgba(212, 175, 55, 0.06);
+}
+.branch-checkbox-row.disabled {
+  opacity: 0.45;
+}
+.branch-checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold-bright);
+  cursor: pointer;
+}
+.branch-checkbox-row .branch-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.branch-checkbox-row .branch-code-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-3);
+  min-width: 50px;
+}
+.branch-checkbox-row .branch-name-label {
+  color: var(--text-2);
+  min-width: 140px;
+}
+.branch-checkbox-row .branch-master-label {
+  color: var(--gold-bright);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* 管理動作區 */
+.mgmt-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: rgba(31, 42, 72, 0.4);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.mgmt-bar .btn-mini {
+  font-size: 12px;
+  padding: 5px 12px;
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--text-2);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mgmt-bar .btn-mini:hover {
+  background: rgba(212, 175, 55, 0.18);
+  color: var(--gold-bright);
+}
+.mgmt-bar .btn-mini.danger {
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.mgmt-bar .btn-mini.danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+/* 新增分點表單 */
+.add-branch-form {
+  background: rgba(31, 42, 72, 0.4);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+.add-branch-form label {
+  font-size: 11px;
+  color: var(--text-3);
+  display: block;
+  margin-bottom: 4px;
+}
+.add-branch-form input, .add-branch-form select {
+  width: 100%;
+  padding: 6px 10px;
+  background: rgba(8, 14, 30, 0.5);
+  border: 1px solid var(--line);
+  color: var(--text-1);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+}
+.add-branch-form input:focus, .add-branch-form select:focus {
+  border-color: var(--gold-bright);
+  outline: none;
+}
+.add-branch-form .btn-add {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, var(--gold-bright), #a88d2e);
+  color: #08101e;
+  border: none;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+}
+.add-branch-form .btn-add:hover {
+  filter: brightness(1.15);
+}
+
+/* 三大法人分頁的「外資分點」新 tab */
+.inst-inner-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 14px;
+}
+.inst-inner-tab {
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--text-3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.inst-inner-tab:hover { color: var(--text-2); }
+.inst-inner-tab.active {
+  color: var(--gold-bright);
+  border-bottom-color: var(--gold-bright);
+}
+
 /* 三大法人主視角樣式 */
 .inst-stat-grid {
   display: grid;
@@ -1074,10 +1292,11 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <span class="market-global-label">🌐 全域市場類型</span>
     <div class="mode-switch">
       <button class="mode-btn" data-global-market="all" onclick="setGlobalMarket('all')">全部</button>
-      <button class="mode-btn active" data-global-market="stock" onclick="setGlobalMarket('stock')">上市+上櫃+興櫃</button>
+      <button class="mode-btn active" data-global-market="stock" onclick="setGlobalMarket('stock')">上市+上櫃</button>
       <button class="mode-btn" data-global-market="listed" onclick="setGlobalMarket('listed')">上市</button>
       <button class="mode-btn" data-global-market="otc" onclick="setGlobalMarket('otc')">上櫃</button>
-      <button class="mode-btn" data-global-market="emerging" onclick="setGlobalMarket('emerging')">興櫃</button>
+      <!-- 興櫃按鈕暫時隱藏（富邦分點無興櫃資料源）— v3.8+ 候選 -->
+      <!-- <button class="mode-btn" data-global-market="emerging" onclick="setGlobalMarket('emerging')">興櫃</button> -->
       <button class="mode-btn" data-global-market="etf" onclick="setGlobalMarket('etf')">ETF</button>
     </div>
     <span class="market-global-hint">💡 各頁可獨立覆蓋</span>
@@ -1313,24 +1532,62 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="masterResult"></div>
   </div>
 
-  <!-- 08 關注設定 -->
+  <!-- 09 關注設定 (v3.8 完整客製化) -->
   <div class="panel" id="panel-watchlist">
     <div class="help-card">
-      <h3>🎯 設定重點關注的分點</h3>
-      <p>點擊分點標籤切換關注狀態。設定自動儲存在瀏覽器中。</p>
+      <h3>⚙️ 分點管理中心 (v3.8)</h3>
+      <p>在這裡可以勾選要顯示的分點、依地區/高手快速過濾、或新增自訂分點（會儲存在瀏覽器，不影響爬蟲後端）。</p>
     </div>
-    <div class="watchlist-config">
-      <h3>★ 目前關注的分點 <span id="watchCount" style="color:var(--gold-bright);"></span></h3>
-      <div class="master-chips" id="selectedChips"></div>
+    
+    <!-- 快捷動作 -->
+    <div class="mgmt-bar">
+      <span style="color:var(--text-3);font-size:12px;">🎯 快捷：</span>
+      <button class="btn-mini" onclick="enableAllBranches()">全部啟用</button>
+      <button class="btn-mini danger" onclick="disableAllBranches()">全部停用</button>
+      <button class="btn-mini" onclick="enableOnlyRegion('domestic')">只顯示國內</button>
+      <button class="btn-mini" onclick="enableOnlyRegion('foreign')">只顯示外資</button>
+      <span style="flex:1;"></span>
+      <span id="enabledCount" style="color:var(--gold-bright);font-family:'JetBrains Mono';font-size:12px;"></span>
     </div>
-    <div class="watchlist-config">
-      <h3>全部分點清單</h3>
-      <div class="master-chips" id="allBranchChips"></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:10px;">
-      <button class="btn" onclick="selectAllBranches()">全選</button>
-      <button class="btn" onclick="clearAllBranches()">全部清除</button>
-    </div>
+    
+    <!-- 新增自訂分點 -->
+    <details style="margin-bottom:16px;">
+      <summary style="cursor:pointer;padding:10px 14px;background:rgba(31,42,72,0.4);border:1px solid var(--line);border-radius:8px;color:var(--gold-bright);font-weight:600;">
+        ➕ 新增自訂分點（點擊展開）
+      </summary>
+      <div class="add-branch-form" style="margin-top:8px;">
+        <div>
+          <label>分點代碼 (4-6 碼)</label>
+          <input type="text" id="newBranchCode" placeholder="如 9A12" maxlength="6">
+        </div>
+        <div>
+          <label>分點名稱</label>
+          <input type="text" id="newBranchName" placeholder="如 元大-信義">
+        </div>
+        <div>
+          <label>大戶/高手</label>
+          <input type="text" id="newBranchMaster" placeholder="如 XX哥">
+        </div>
+        <div>
+          <label>地區</label>
+          <select id="newBranchRegion">
+            <option value="domestic">🇹🇼 國內</option>
+            <option value="us">🇺🇸 美系</option>
+            <option value="eu">🇪🇺 歐系</option>
+            <option value="asia">🌏 亞系</option>
+          </select>
+        </div>
+        <div>
+          <button class="btn-add" onclick="addCustomBranch()">➕ 加入</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-3);padding:0 14px 8px;">
+        💡 自訂分點只影響 UI 顯示。若要讓爬蟲真正抓取，需要修改 repo 的 branches.py。
+      </div>
+    </details>
+    
+    <!-- 分組顯示 -->
+    <div id="branchGroupsContainer"></div>
   </div>
 
   <!-- Help -->
@@ -1491,6 +1748,7 @@ let SESSION_PASSWORD = null;
 
 let overviewMode = 'all';
 let overviewRank = 'amount';  // 'amount' or 'lots'
+let overviewSort = { col: 'count', dir: 'desc' };  // v3.7 表頭排序: col = rank/count/amount/lots/overnight/foreign/align, dir = asc/desc
 let branchMode = 'watch';
 let stockMode = 'watch';
 let rankPeriod = 'total';
@@ -1541,7 +1799,7 @@ function setInstSide(v) {
 }
 
 // ───────── v3.6 市場類型篩選 ─────────
-// 'all' / 'stock' (上市+上櫃+興櫃) / 'listed' / 'otc' / 'emerging' / 'etf'
+// 'all' / 'stock' (上市+上櫃) / 'listed' / 'otc' / 'emerging' / 'etf'
 // 全域預設 = 'stock'（排除 ETF）
 let MARKET_GLOBAL = 'stock';
 // 各頁可獨立覆蓋（null = 跟隨全域）
@@ -1599,7 +1857,7 @@ function setLocalMarket(page, v) {
 }
 const MARKET_LABELS = {
   all: '全部',
-  stock: '上市+上櫃+興櫃',
+  stock: '上市+上櫃',
   listed: '上市',
   otc: '上櫃',
   emerging: '興櫃',
@@ -1730,6 +1988,7 @@ async function init() {
   // 同時載入當日資料與累積部位
   await Promise.all([showDate(latestDate), loadPositions()]);
   loadWatchlist();
+  loadCustomBranches();  // v3.8
   renderWatchlistPanel();
 }
 
@@ -1777,7 +2036,9 @@ function formatDate(d) {
   return d;
 }
 
-// ========== Watchlist ==========
+// ========== v3.8 分點管理中心 ==========
+
+// v3.8 本地儲存: watchlist + 自訂分點
 function loadWatchlist() {
   try {
     const saved = JSON.parse(localStorage.getItem('chipradar_watch') || 'null');
@@ -1791,44 +2052,188 @@ function loadWatchlist() {
     }
   } catch(e) { WATCHLIST = new Set(); }
 }
-function saveWatchlist() { localStorage.setItem('chipradar_watch', JSON.stringify(Array.from(WATCHLIST))); }
+function saveWatchlist() { 
+  localStorage.setItem('chipradar_watch', JSON.stringify(Array.from(WATCHLIST)));
+}
+
+// 自訂分點（瀏覽器端 — 不影響後端爬蟲）
+let CUSTOM_BRANCHES = [];
+function loadCustomBranches() {
+  try {
+    CUSTOM_BRANCHES = JSON.parse(localStorage.getItem('chipradar_custom_branches') || '[]');
+  } catch(e) { CUSTOM_BRANCHES = []; }
+}
+function saveCustomBranches() {
+  localStorage.setItem('chipradar_custom_branches', JSON.stringify(CUSTOM_BRANCHES));
+}
+
 function toggleWatch(code) {
   if (WATCHLIST.has(code)) WATCHLIST.delete(code); else WATCHLIST.add(code);
   saveWatchlist();
   renderWatchlistPanel();
   renderAll();
 }
-function selectAllBranches() {
+
+function enableAllBranches() {
   if (!CURRENT_DATA) return;
   CURRENT_DATA.branches.forEach(b => WATCHLIST.add(b.code));
-  saveWatchlist(); renderWatchlistPanel(); renderAll();
+  saveWatchlist();
+  renderWatchlistPanel();
+  renderAll();
 }
-function clearAllBranches() {
+
+function disableAllBranches() {
   WATCHLIST.clear();
-  saveWatchlist(); renderWatchlistPanel(); renderAll();
+  saveWatchlist();
+  renderWatchlistPanel();
+  renderAll();
 }
+
+function enableOnlyRegion(regionType) {
+  if (!CURRENT_DATA) return;
+  WATCHLIST.clear();
+  CURRENT_DATA.branches.forEach(b => {
+    const r = b.region || 'domestic';
+    if (regionType === 'domestic' && r === 'domestic') WATCHLIST.add(b.code);
+    if (regionType === 'foreign' && r !== 'domestic') WATCHLIST.add(b.code);
+  });
+  saveWatchlist();
+  renderWatchlistPanel();
+  renderAll();
+}
+
+function addCustomBranch() {
+  const code = (document.getElementById('newBranchCode').value || '').trim().toUpperCase();
+  const name = (document.getElementById('newBranchName').value || '').trim();
+  const master = (document.getElementById('newBranchMaster').value || '').trim();
+  const region = document.getElementById('newBranchRegion').value;
+  
+  if (!code || !name || !master) {
+    alert('⚠️ 分點代碼、名稱、大戶 三欄都要填');
+    return;
+  }
+  if (code.length < 4 || code.length > 6) {
+    alert('⚠️ 分點代碼長度應為 4-6 碼');
+    return;
+  }
+  // 檢查重複
+  const allExisting = [
+    ...(CURRENT_DATA?.branches || []).map(b => b.code),
+    ...CUSTOM_BRANCHES.map(b => b.code)
+  ];
+  if (allExisting.includes(code)) {
+    alert('⚠️ 此代碼已存在');
+    return;
+  }
+  
+  CUSTOM_BRANCHES.push({ code, name, master, region, custom: true });
+  saveCustomBranches();
+  
+  // 清空表單
+  document.getElementById('newBranchCode').value = '';
+  document.getElementById('newBranchName').value = '';
+  document.getElementById('newBranchMaster').value = '';
+  
+  alert(`✓ 已加入：${master} - ${name} (${code})\n\n⚠️ 提醒：這只是 UI 端的自訂分點，若要讓爬蟲抓資料，需要到 GitHub repo 修改 branches.py`);
+  renderWatchlistPanel();
+}
+
+function removeCustomBranch(code) {
+  if (!confirm('確認刪除此自訂分點？')) return;
+  CUSTOM_BRANCHES = CUSTOM_BRANCHES.filter(b => b.code !== code);
+  saveCustomBranches();
+  WATCHLIST.delete(code);
+  saveWatchlist();
+  renderWatchlistPanel();
+}
+
+// 地區 chip
+const REGION_META = {
+  domestic: { label: '🇹🇼 國內', cls: 'domestic' },
+  us:       { label: '🇺🇸 美系', cls: 'us' },
+  eu:       { label: '🇪🇺 歐系', cls: 'eu' },
+  asia:     { label: '🌏 亞系', cls: 'asia' },
+};
+
+function renderRegionChip(region) {
+  const meta = REGION_META[region || 'domestic'] || REGION_META.domestic;
+  return `<span class="region-chip ${meta.cls}">${meta.label}</span>`;
+}
+
 function renderWatchlistPanel() {
   if (!CURRENT_DATA) return;
-  const branches = CURRENT_DATA.branches;
-  const watched = branches.filter(b => WATCHLIST.has(b.code));
-  document.getElementById('watchCount').textContent = `(${watched.length}/${branches.length})`;
-  const watchEl = document.getElementById('selectedChips');
-  if (watched.length === 0) {
-    watchEl.innerHTML = '<span style="color:var(--text-3);font-size:12px;">尚未選擇任何分點</span>';
-  } else {
-    watchEl.innerHTML = watched.map(b => 
-      `<button class="chip selected" onclick="toggleWatch('${b.code}')">
-        ★ ${b.master} ｜ ${b.name} <span style="color:var(--text-3);font-family:monospace;font-size:10px;">[${b.code}]</span>
-      </button>`).join('');
+  
+  // 合併來源：爬蟲取得的分點 + 使用者自訂
+  const allBranches = [
+    ...(CURRENT_DATA.branches || []).map(b => ({...b, custom: false})),
+    ...CUSTOM_BRANCHES,
+  ];
+  
+  // 按 region → master 分組
+  const regionGroups = { domestic: {}, us: {}, eu: {}, asia: {} };
+  for (const b of allBranches) {
+    const r = b.region || 'domestic';
+    const m = b.master || '未分類';
+    if (!regionGroups[r]) regionGroups[r] = {};
+    if (!regionGroups[r][m]) regionGroups[r][m] = [];
+    regionGroups[r][m].push(b);
   }
-  const allEl = document.getElementById('allBranchChips');
-  allEl.innerHTML = branches.map(b => {
-    const sel = WATCHLIST.has(b.code) ? 'selected' : '';
-    const dim = (!b.buys || b.buys.length === 0) ? 'opacity:0.4;' : '';
-    return `<button class="chip ${sel}" onclick="toggleWatch('${b.code}')" style="${dim}">
-      ${b.master} ｜ ${b.name}<span style="color:var(--text-3);font-family:monospace;font-size:10px;margin-left:4px;">[${b.code}]</span>
-    </button>`;
-  }).join('');
+  
+  // 顯示總數
+  const totalEnabled = allBranches.filter(b => WATCHLIST.has(b.code)).length;
+  document.getElementById('enabledCount').textContent = 
+    `已啟用 ${totalEnabled} / 共 ${allBranches.length} 個分點`;
+  
+  // 渲染 4 個地區群組
+  let html = '';
+  const REGION_ORDER = ['domestic', 'us', 'eu', 'asia'];
+  for (const region of REGION_ORDER) {
+    const masters = regionGroups[region];
+    if (!masters || Object.keys(masters).length === 0) continue;
+    
+    // 統計該地區數據
+    let regionTotal = 0, regionEnabled = 0;
+    for (const brs of Object.values(masters)) {
+      regionTotal += brs.length;
+      regionEnabled += brs.filter(b => WATCHLIST.has(b.code)).length;
+    }
+    
+    html += `<div class="branch-group">
+      <div class="branch-group-header">
+        <div class="branch-group-title">${REGION_META[region].label}</div>
+        <div class="branch-group-count">${regionEnabled}/${regionTotal} 啟用</div>
+      </div>`;
+    
+    // 按 master 排序（依分點數 desc）
+    const sortedMasters = Object.entries(masters).sort((a, b) => b[1].length - a[1].length);
+    
+    for (const [master, brs] of sortedMasters) {
+      html += `<div style="margin-bottom:8px;">`;
+      html += `<div style="font-size:12px;color:var(--gold-bright);margin:6px 0 2px;font-weight:600;">👤 ${master} <span style="color:var(--text-3);font-weight:400;">(${brs.length} 分點)</span></div>`;
+      
+      for (const b of brs) {
+        const checked = WATCHLIST.has(b.code) ? 'checked' : '';
+        const disabled = !checked ? 'disabled' : '';
+        const customBadge = b.custom ? '<span style="font-size:10px;color:var(--gold-bright);background:rgba(212,175,55,0.15);padding:1px 6px;border-radius:3px;margin-left:6px;">自訂</span>' : '';
+        const rmBtn = b.custom ? `<button class="btn-mini danger" style="padding:2px 8px;font-size:10px;" onclick="event.stopPropagation();removeCustomBranch('${b.code}')">✕ 刪除</button>` : '';
+        
+        html += `<div class="branch-checkbox-row ${disabled}" onclick="toggleWatch('${b.code}')">
+          <input type="checkbox" ${checked} onclick="event.stopPropagation();toggleWatch('${b.code}')">
+          <div class="branch-info">
+            <span class="branch-code-label">${b.code}</span>
+            <span class="branch-name-label">${b.name}</span>
+            <span class="branch-master-label">${b.master}</span>
+            ${customBadge}
+          </div>
+          ${rmBtn}
+        </div>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+  
+  document.getElementById('branchGroupsContainer').innerHTML = html;
 }
 
 // ========== Tabs & Modes ==========
@@ -1862,7 +2267,7 @@ function toggleHelp() {
 document.addEventListener('keydown', (e) => {
   if (!SESSION_PASSWORD) return;
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
-  if (e.key >= '1' && e.key <= '8') {
+  if (e.key >= '1' && e.key <= '9') {
     const tabs = document.querySelectorAll('.tab');
     if (tabs[parseInt(e.key)-1]) tabs[parseInt(e.key)-1].click();
   } else if (e.key === 'Escape') closeDrawer();
@@ -1965,6 +2370,7 @@ function buildStockIndex(branches, onlyWatched, rankType) {
       const obj = map.get(key);
       obj.branches.push({
         master: br.master, branch: br.name, branchCode: br.code,
+        region: br.region || 'domestic',  // v3.8
         net: s.net_amt !== undefined ? s.net_amt : s.net,
         buy: s.buy_amt !== undefined ? s.buy_amt : s.buy,
         sell: s.sell_amt !== undefined ? s.sell_amt : s.sell,
@@ -1996,12 +2402,32 @@ function renderOverview() {
   const stockMap = buildStockIndex(CURRENT_DATA.branches, overviewMode === 'watch', rankType);
   let list = Array.from(stockMap.values()).filter(s => s.branches.length >= minOverlap);
   
-  if (sortBy === 'count') {
+  // v3.7 排序：優先使用表頭點擊設定，沒點的話用舊下拉選單
+  const headerSortCol = overviewSort.col;
+  const headerSortDir = overviewSort.dir;
+  const dirMult = headerSortDir === 'asc' ? 1 : -1;
+  
+  // 表頭排序函式庫
+  const sortFunctions = {
+    rank:      (a, b) => 0,  // 按當前順序（買進預設）
+    count:     (a, b) => (b.branches.length - a.branches.length) * -dirMult || (b.totalNet - a.totalNet) * -dirMult,
+    amount:    (a, b) => (b.totalNet - a.totalNet) * -dirMult,
+    lots:      (a, b) => (b.totalNetLot - a.totalNetLot) * -dirMult,
+    overnight: (a, b) => (b.totalOvernightLots - a.totalOvernightLots) * -dirMult,
+    foreign:   (a, b) => ((b.inst_foreign_net_lot || 0) - (a.inst_foreign_net_lot || 0)) * -dirMult,
+    trust:     (a, b) => ((b.inst_trust_net_lot || 0) - (a.inst_trust_net_lot || 0)) * -dirMult,
+    dealer:    (a, b) => ((b.inst_dealer_net_lot || 0) - (a.inst_dealer_net_lot || 0)) * -dirMult,
+    floating:  (a, b) => ((b.floating_pnl_pct || -999) - (a.floating_pnl_pct || -999)) * -dirMult,
+    close:     (a, b) => ((b.close_price || 0) - (a.close_price || 0)) * -dirMult,
+  };
+  
+  if (sortFunctions[headerSortCol]) {
+    list.sort(sortFunctions[headerSortCol]);
+  } else if (sortBy === 'count') {
     list.sort((a,b) => b.branches.length - a.branches.length || b.totalNet - a.totalNet);
   } else if (sortBy === 'lots') {
     list.sort((a,b) => b.totalNetLot - a.totalNetLot);
   } else if (sortBy === 'strength') {
-    // 強度 = 分點數 × log(1+|淨買萬|)，讓分點數權重更高
     list.sort((a,b) => {
       const sa = a.branches.length * Math.log(1 + Math.abs(a.totalNet/10));
       const sb = b.branches.length * Math.log(1 + Math.abs(b.totalNet/10));
@@ -2030,7 +2456,8 @@ function renderOverview() {
       const hl = WATCHLIST.has(b.branchCode) ? 'hl' : '';
       const lotPart = b.buy_lot ? `買${b.buy_lot}/賣${b.sell_lot}張` : '';
       const ovPart = b.overnight_lots ? ` 留${b.overnight_lots}張` : '';
-      return `<span class="master-tag ${hl}" title="${b.master}（${b.branch}）${lotPart} 淨買 ${fmtAmt(b.net)}${ovPart}">${b.master}</span>`;
+      const regionBadge = (b.region && b.region !== 'domestic') ? renderRegionChip(b.region) : '';
+      return `<span class="master-tag ${hl}" title="${b.master}（${b.branch}）${lotPart} 淨買 ${fmtAmt(b.net)}${ovPart}">${b.master}${regionBadge}</span>`;
     }).join('');
     const amtInfo = s.hasAmtData ? fmtAmt(s.totalNet) : '<span style="color:var(--text-3);font-size:11px;">—</span>';
     const lotInfo = s.hasLotData ? (s.totalNetLot > 0 ? `+${s.totalNetLot.toLocaleString()}` : s.totalNetLot.toLocaleString()) + '張' : '<span style="color:var(--text-3);font-size:11px;">—</span>';
@@ -2055,16 +2482,29 @@ function renderOverview() {
         <thead><tr>
           <th class="num" style="width:60px;">#</th>
           <th>個股</th>
-          <th class="num">共買分點</th>
-          <th class="num">淨買金額</th>
-          <th class="num">淨買張數</th>
-          <th class="num">🌙 留倉</th>
-          <th>🏛️ 三大法人 / 對齊</th>
+          <th class="num sortable ${headerSortCol==='count'?'sort-'+headerSortDir:''}" onclick="setOverviewSort('count')">共買分點</th>
+          <th class="num sortable ${headerSortCol==='amount'?'sort-'+headerSortDir:''}" onclick="setOverviewSort('amount')">淨買金額</th>
+          <th class="num sortable ${headerSortCol==='lots'?'sort-'+headerSortDir:''}" onclick="setOverviewSort('lots')">淨買張數</th>
+          <th class="num sortable ${headerSortCol==='overnight'?'sort-'+headerSortDir:''}" onclick="setOverviewSort('overnight')">🌙 留倉</th>
+          <th class="sortable ${headerSortCol==='foreign'?'sort-'+headerSortDir:''}" onclick="setOverviewSort('foreign')">🏛️ 三大法人 / 對齊</th>
           <th>分點明細</th>
         </tr></thead>
         <tbody>${rowsHTML}</tbody>
       </table>
     </div>`;
+}
+
+// v3.7 共買榜表頭點擊切換排序
+function setOverviewSort(col) {
+  if (overviewSort.col === col) {
+    // 同一欄再點 → 切換方向
+    overviewSort.dir = overviewSort.dir === 'desc' ? 'asc' : 'desc';
+  } else {
+    // 換一欄 → 預設降序
+    overviewSort.col = col;
+    overviewSort.dir = 'desc';
+  }
+  renderOverview();
 }
 
 // ========== 01 今日三視角 ==========
@@ -3130,9 +3570,23 @@ function renderInstRanking(el, ir) {
     // 用 market_source (twse/tpex) 簡單判定
     if (f === 'listed') return r.market_source === 'twse';
     if (f === 'otc') return r.market_source === 'tpex';
-    if (f === 'stock') return true;  // 股票 = 上市+上櫃+興櫃，全部 true
+    if (f === 'stock') return true;  // 股票 = 上市+上櫃，全部 true
     if (f === 'etf') return r.code && r.code.startsWith('00');
     return true;
+  });
+  
+  // v3.7 可排序：預設依 net_lot，點表頭切換
+  if (!window.__instSort) window.__instSort = { col: 'net_lot', dir: 'desc' };
+  const isort = window.__instSort;
+  const iMult = isort.dir === 'asc' ? 1 : -1;
+  filtered.sort((a, b) => {
+    let va, vb;
+    if (isort.col === 'net_lot')       { va = a.net_lot || 0; vb = b.net_lot || 0; }
+    else if (isort.col === 'close')    { va = a.close || 0; vb = b.close || 0; }
+    else if (isort.col === 'change')   { va = a.change_pct || -9999; vb = b.change_pct || -9999; }
+    else                                { va = a.code; vb = b.code; }
+    if (typeof va === 'string') return va.localeCompare(vb) * iMult;
+    return (va - vb) * iMult;
   });
   
   // 統計卡片
@@ -3208,14 +3662,26 @@ function renderInstRanking(el, ir) {
         <thead><tr>
           <th class="num" style="width:60px;">#</th>
           <th>個股</th>
-          <th class="num">${meta.label}${sideLabel}張</th>
-          <th class="num">收盤</th>
-          <th class="num">漲跌%</th>
+          <th class="num sortable ${isort.col==='net_lot'?'sort-'+isort.dir:''}" onclick="setInstSort('net_lot')">${meta.label}${sideLabel}張</th>
+          <th class="num sortable ${isort.col==='close'?'sort-'+isort.dir:''}" onclick="setInstSort('close')">收盤</th>
+          <th class="num sortable ${isort.col==='change'?'sort-'+isort.dir:''}" onclick="setInstSort('change')">漲跌%</th>
           <th>關注分點同步</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+}
+
+// v3.7 三大法人排行表頭點擊排序
+function setInstSort(col) {
+  if (!window.__instSort) window.__instSort = { col: 'net_lot', dir: 'desc' };
+  if (window.__instSort.col === col) {
+    window.__instSort.dir = window.__instSort.dir === 'desc' ? 'asc' : 'desc';
+  } else {
+    window.__instSort.col = col;
+    window.__instSort.dir = 'desc';
+  }
+  renderInstitutional();
 }
 
 // ─────── 子視角 2：高手 vs 法人對齊 ───────
@@ -3849,7 +4315,9 @@ function renderMarketChip(stock) {
 // 為某頁產生本地市場篩選器 HTML
 function renderLocalMarketBar(page) {
   const current = MARKET_OVERRIDE[page] || MARKET_GLOBAL;
-  const opts = ['all', 'stock', 'listed', 'otc', 'emerging', 'etf'];
+  // v3.7：興櫃暫時不顯示（富邦分點無興櫃資料源）
+  // 若未來補齊興櫃資料鏈，把 'emerging' 加回去即可
+  const opts = ['all', 'stock', 'listed', 'otc', 'etf'];
   return `<div class="market-local-bar">${
     opts.map(v => 
       `<button class="mode-btn ${v===current?'active':''}" data-local-market="${v}" data-page="${page}" onclick="setLocalMarket('${page}','${v}')">${MARKET_LABELS[v]}</button>`
