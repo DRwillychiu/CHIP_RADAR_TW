@@ -388,4 +388,3 @@ REGION_LABELS = {
     "eu":       "🇪🇺 歐系",
     "asia":     "🌏 亞系",
 }
- 
