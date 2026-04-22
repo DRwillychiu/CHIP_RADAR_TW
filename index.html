@@ -2591,39 +2591,48 @@ function renderWatchlistPanel() {
     ...CUSTOM_BRANCHES,
   ];
   
-  // 按 region → master 分組
+  // v3.10：取分點所有 master（主 + co_masters）
+  function allMastersOf(b) {
+    const lst = [b.master || '未分類'];
+    (b.co_masters || []).forEach(m => { if (m && !lst.includes(m)) lst.push(m); });
+    return lst;
+  }
+  
+  // 按 region → master 分組（同一分點可能歸入多位 master）
   const regionGroups = { domestic: {}, public: {}, us: {}, eu: {}, asia: {} };
   for (const b of allBranches) {
     const r = b.region || 'domestic';
-    const m = b.master || '未分類';
     if (!regionGroups[r]) regionGroups[r] = {};
-    if (!regionGroups[r][m]) regionGroups[r][m] = [];
-    regionGroups[r][m].push(b);
+    for (const m of allMastersOf(b)) {
+      if (!regionGroups[r][m]) regionGroups[r][m] = [];
+      regionGroups[r][m].push(b);
+    }
   }
   
-  // 顯示總數
-  const totalEnabled = allBranches.filter(b => WATCHLIST.has(b.code)).length;
+  // 顯示總數（去重後）
+  const uniqueCodes = new Set(allBranches.map(b => b.code));
+  const totalEnabled = [...uniqueCodes].filter(c => WATCHLIST.has(c)).length;
   document.getElementById('enabledCount').textContent = 
-    `已啟用 ${totalEnabled} / 共 ${allBranches.length} 個分點`;
+    `已啟用 ${totalEnabled} / 共 ${uniqueCodes.size} 個分點`;
   
-  // 渲染 4 個地區群組
+  // 渲染地區群組
   let html = '';
   const REGION_ORDER = ['domestic', 'public', 'us', 'eu', 'asia'];
   for (const region of REGION_ORDER) {
     const masters = regionGroups[region];
     if (!masters || Object.keys(masters).length === 0) continue;
     
-    // 統計該地區數據
-    let regionTotal = 0, regionEnabled = 0;
+    // 統計該地區數據（去重）
+    const regionCodes = new Set();
     for (const brs of Object.values(masters)) {
-      regionTotal += brs.length;
-      regionEnabled += brs.filter(b => WATCHLIST.has(b.code)).length;
+      brs.forEach(b => regionCodes.add(b.code));
     }
+    const regionEnabled = [...regionCodes].filter(c => WATCHLIST.has(c)).length;
     
     html += `<div class="branch-group">
       <div class="branch-group-header">
         <div class="branch-group-title">${REGION_META[region].label}</div>
-        <div class="branch-group-count">${regionEnabled}/${regionTotal} 啟用</div>
+        <div class="branch-group-count">${regionEnabled}/${regionCodes.size} 啟用</div>
       </div>`;
     
     // 按 master 排序（依分點數 desc）
@@ -2639,12 +2648,19 @@ function renderWatchlistPanel() {
         const customBadge = b.custom ? '<span style="font-size:10px;color:var(--gold-bright);background:rgba(212,175,55,0.15);padding:1px 6px;border-radius:3px;margin-left:6px;">自訂</span>' : '';
         const rmBtn = b.custom ? `<button class="btn-mini danger" style="padding:2px 8px;font-size:10px;" onclick="event.stopPropagation();removeCustomBranch('${b.code}')">✕ 刪除</button>` : '';
         
+        // v3.10：對此 master 是「共用」嗎？
+        const isShared = b.master !== master;
+        const sharedBadge = isShared 
+          ? `<span style="font-size:10px;color:#a78bfa;background:rgba(168,139,250,0.15);padding:1px 6px;border-radius:3px;margin-left:6px;border:1px solid rgba(168,139,250,0.3);" title="此分點主要歸屬 ${b.master}，但 ${master} 也使用">🔗 共用 ${b.master}</span>`
+          : '';
+        
         html += `<div class="branch-checkbox-row ${disabled}" onclick="toggleWatch('${b.code}')">
           <input type="checkbox" ${checked} onclick="event.stopPropagation();toggleWatch('${b.code}')">
           <div class="branch-info">
             <span class="branch-code-label">${b.code}</span>
             <span class="branch-name-label">${b.name}</span>
             <span class="branch-master-label">${b.master}</span>
+            ${sharedBadge}
             ${customBadge}
           </div>
           ${rmBtn}
@@ -3348,9 +3364,13 @@ function renderMasterView() {
   const branchRows = m.branches.map(b => {
     const s = b.summary;
     const isWatch = WATCHLIST.has(b.code);
+    // v3.10：is_shared 來自 crawler 的 master_summaries
+    const sharedTag = b.is_shared 
+      ? `<span style="font-size:9px;color:#a78bfa;background:rgba(168,139,250,0.15);padding:0px 5px;border-radius:3px;margin-left:4px;border:1px solid rgba(168,139,250,0.3);" title="此分點主要歸屬 ${b.primary_master}，但 ${m.master} 也使用">🔗 共用</span>`
+      : '';
     return `<tr onclick="showBranchDetail('${b.code}')">
       <td><div class="stock-cell">
-        <span class="stock-name">${isWatch?'★ ':''}${b.name}</span>
+        <span class="stock-name">${isWatch?'★ ':''}${b.name}${sharedTag}</span>
         <span class="stock-code">${b.code}</span>
       </div></td>
       <td class="num">${s.today_buy_lot ? s.today_buy_lot.toLocaleString() + '張' : '—'}</td>
