@@ -1,15 +1,21 @@
 """
 ========================================================================
-Module: branches.py
+Module: branches.py  (v3.8 升級)
 功能：分點清單 + 個人標記 + 市場公認標記
-
+ 
 設計原則：
   - 純資料模組，不含邏輯
   - 隨時可以新增/修改/刪除分點與標記
-  - 標記分三層：個人 / 市場公認 / 系統自動（自動的在 styles.py）
+  - 標記分三層：個人 / 市場公認 / 系統自動
+ 
+v3.8 新增：
+  - enabled 欄位：分點是否啟用（停用 = 爬蟲仍爬但 UI 不顯示）
+  - region 欄位：地區分組（domestic / us / eu / asia）
+  - 8 個外資分點（富邦頁面可查詢的主要外資 IB）
+  - 全套輔助函數支援客製化管理
 ========================================================================
 """
-
+ 
 # ════════════════════════════════════════════════════════════════════
 #  分點主清單 (WATCHED_BRANCHES)
 # ════════════════════════════════════════════════════════════════════
@@ -18,17 +24,14 @@ Module: branches.py
 #   code:          券商分點代碼（4 碼字母+數字）
 #   name:          券商-分點名稱
 #   master:        操盤人/暱稱
-#   tags_personal: 你的私人標記（你最了解的事）
-#   tags_market:   市場公認標記（網路常見討論）
+#   tags_personal: 你的私人標記
+#   tags_market:   市場公認標記
+#   enabled:       是否啟用顯示（預設 True；False = 隱藏但仍爬蟲）
+#   region:        地區分組（domestic / us / eu / asia）
 #
 # 標記範例:
 #   個人標記: ["當沖王", "電子權值", "AI 概念", "我跟過"]
-#   市場公認: ["主力分點", "隔日沖", "波段", "中實戶"]
-#
-# 使用提示:
-#   - 標記用中文好讀，但避免特殊符號（'"<>&）
-#   - 一個分點可有多個標籤
-#   - 不知道就留空 [] 即可
+#   市場公認: ["主力分點", "隔日沖", "波段", "中實戶", "外資IB"]
 #
 # ════════════════════════════════════════════════════════════════════
 
@@ -36,134 +39,218 @@ WATCHED_BRANCHES = [
     # ─────────────────────────────────────────────────────────
     # 民哥（3 個分點）
     # ─────────────────────────────────────────────────────────
-    {
-        "code": "9B25", "name": "台新-五權西", "master": "民哥",
-        "tags_personal": [],          # 👈 你的私人標記寫這裡
-        "tags_market":   [],          # 👈 市場公認標記寫這裡
-    },
-    {
-        "code": "9666", "name": "富邦-南屯", "master": "民哥",
-        "tags_personal": [],
-        "tags_market":   [],
-    },
-    {
-        "code": "779W", "name": "國票-彰化", "master": "民哥",
-        "tags_personal": [],
-        "tags_market":   [],
-    },
+    {"code": "9B25", "name": "台新-五權西", "master": "民哥",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9666", "name": "富邦-南屯", "master": "民哥",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "779W", "name": "國票-彰化", "master": "民哥",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
 
-    # ─────────────────────────────────────────────────────────
+   # ─────────────────────────────────────────────────────────
     # 林滄海（4 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "9658", "name": "富邦-建國",     "master": "林滄海", "tags_personal": [], "tags_market": []},
-    {"code": "9309", "name": "華南永昌-古亭", "master": "林滄海", "tags_personal": [], "tags_market": []},
-    {"code": "1260", "name": "宏遠證券",      "master": "林滄海", "tags_personal": [], "tags_market": []},
-    {"code": "9216", "name": "凱基-信義",     "master": "林滄海", "tags_personal": [], "tags_market": []},
-
+    {"code": "9658", "name": "富邦-建國", "master": "林滄海",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9309", "name": "華南永昌-古亭", "master": "林滄海",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "1260", "name": "宏遠證券", "master": "林滄海",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9216", "name": "凱基-信義", "master": "林滄海",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
     # ─────────────────────────────────────────────────────────
-    # 張濬安/航海王（6 個分點）
+    # 張濬安(航海王)（6 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "779Z", "name": "國票-安和",      "master": "張濬安(航海王)", "tags_personal": [], "tags_market": []},
-    {"code": "9B2E", "name": "台新-城中",      "master": "張濬安(航海王)", "tags_personal": [], "tags_market": []},
-    {"code": "920F", "name": "凱基-站前",      "master": "張濬安(航海王)", "tags_personal": [], "tags_market": []},
-    {"code": "6167", "name": "中國信託-松江",  "master": "張濬安(航海王)", "tags_personal": [], "tags_market": []},
-    {"code": "961M", "name": "富邦-木柵",      "master": "張濬安(航海王)", "tags_personal": [], "tags_market": []},
-    {"code": "9100", "name": "群益金鼎證券",   "master": "張濬安(航海王)", "tags_personal": [], "tags_market": []},
+    {"code": "779Z", "name": "國票-安和", "master": "張濬安(航海王)",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9B2E", "name": "台新-城中", "master": "張濬安(航海王)",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "920F", "name": "凱基-站前", "master": "張濬安(航海王)",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "6167", "name": "中國信託-松江", "master": "張濬安(航海王)",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "961M", "name": "富邦-木柵", "master": "張濬安(航海王)",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9100", "name": "群益金鼎證券", "master": "張濬安(航海王)",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
 
     # ─────────────────────────────────────────────────────────
     # 陳族元（5 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "8880", "name": "國泰證券",     "master": "陳族元", "tags_personal": [], "tags_market": []},
-    {"code": "9300", "name": "華南永昌證券", "master": "陳族元", "tags_personal": [], "tags_market": []},
-    {"code": "9661", "name": "富邦-新店",    "master": "陳族元", "tags_personal": [], "tags_market": []},
-    {"code": "9216", "name": "凱基-信義",     "master": "林滄海", "tags_personal": [], "tags_market": []},
-    {"code": "9A9g", "name": "永豐金-內湖",  "master": "陳族元", "tags_personal": [], "tags_market": []},
+    {"code": "8880", "name": "國泰證券", "master": "陳族元",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9300", "name": "華南永昌證券", "master": "陳族元",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9661", "name": "富邦-新店", "master": "陳族元",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9216", "name": "凱基-信義", "master": "陳族元",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9A9g", "name": "永豐金-內湖", "master": "陳族元",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+
 
     # ─────────────────────────────────────────────────────────
     # 陳律師（4 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "700c", "name": "兆豐-民生",   "master": "陳律師", "tags_personal": [], "tags_market": []},
-    {"code": "8450", "name": "康和總公司",  "master": "陳律師", "tags_personal": [], "tags_market": []},
-    {"code": "9A9R", "name": "永豐金-信義", "master": "陳律師", "tags_personal": [], "tags_market": []},
-    {"code": "585c", "name": "統一-仁愛",   "master": "陳律師", "tags_personal": [], "tags_market": []},
+    {"code": "700c", "name": "兆豐-民生", "master": "陳律師",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "8450", "name": "康和總公司", "master": "陳律師",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9A9R", "name": "永豐金-信義", "master": "陳律師",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "585c", "name": "統一-仁愛", "master": "陳律師",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
 
     # ─────────────────────────────────────────────────────────
     # 迷你哥/松山哥（3 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "9217", "name": "凱基-松山", "master": "迷你哥/松山哥", "tags_personal": [], "tags_market": []},
-    {"code": "9200", "name": "凱基證券",  "master": "迷你哥/松山哥", "tags_personal": [], "tags_market": []},
-    {"code": "9600", "name": "富邦證券",  "master": "迷你哥/松山哥", "tags_personal": [], "tags_market": []},
-
+    {"code": "9217", "name": "凱基-松山", "master": "迷你哥/松山哥",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9200", "name": "凱基證券", "master": "迷你哥/松山哥",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9600", "name": "富邦證券", "master": "迷你哥/松山哥",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
     # ─────────────────────────────────────────────────────────
     # 布哥/n_nchang（1 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "9A8F", "name": "永豐金-敦南", "master": "布哥/n_nchang", "tags_personal": [], "tags_market": []},
-
+    {"code": "9A8F", "name": "永豐金-敦南", "master": "布哥/n_nchang",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
     # ─────────────────────────────────────────────────────────
     # 強森（5 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "9B2r", "name": "台新-城東",   "master": "強森", "tags_personal": [], "tags_market": []},
-    {"code": "984K", "name": "元大-館前",   "master": "強森", "tags_personal": [], "tags_market": []},
-    {"code": "989N", "name": "元大-內湖",   "master": "強森", "tags_personal": [], "tags_market": []},
-    {"code": "9215", "name": "凱基-高美館", "master": "強森", "tags_personal": [], "tags_market": []},
-    {"code": "9B2D", "name": "台新-大昌",   "master": "強森", "tags_personal": [], "tags_market": []},
-
+    {"code": "9B2r", "name": "台新-城東", "master": "強森",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "984K", "name": "元大-館前", "master": "強森",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "989N", "name": "元大-內湖", "master": "強森",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9215", "name": "凱基-高美館", "master": "強森",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9B2D", "name": "台新-大昌", "master": "強森",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
     # ─────────────────────────────────────────────────────────
     # Tradow（1 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "9B2a", "name": "台新-松德", "master": "Tradow", "tags_personal": [], "tags_market": []},
-
+    {"code": "9B2a", "name": "台新-松德", "master": "Tradow",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
     # ─────────────────────────────────────────────────────────
     # 巨人傑（2 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "9B2n", "name": "台新-西松", "master": "巨人傑", "tags_personal": [], "tags_market": []},
-    {"code": "9B2z", "name": "台新-文心", "master": "巨人傑", "tags_personal": [], "tags_market": []},
-
+    {"code": "9B2n", "name": "台新-西松", "master": "巨人傑",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9B2z", "name": "台新-文心", "master": "巨人傑",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
     # ─────────────────────────────────────────────────────────
     # 蔣承翰（2 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "9227", "name": "凱基-城中", "master": "蔣承翰", "tags_personal": [], "tags_market": []},
-    {"code": "9B18", "name": "台新-建北", "master": "蔣承翰", "tags_personal": [], "tags_market": []},
-
+    {"code": "9227", "name": "凱基-城中", "master": "蔣承翰",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9B18", "name": "台新-建北", "master": "蔣承翰",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
     # ─────────────────────────────────────────────────────────
     # 大牌分析師（1 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "8563", "name": "新光-新竹", "master": "大牌分析師", "tags_personal": [], "tags_market": []},
-
+    {"code": "8563", "name": "新光-新竹", "master": "大牌分析師",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
     # ─────────────────────────────────────────────────────────
     # 東億資本（1 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "9874", "name": "元大-雙和", "master": "東億資本", "tags_personal": [], "tags_market": []},
-
+    {"code": "9874", "name": "元大-雙和", "master": "東億資本",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
     # ─────────────────────────────────────────────────────────
-    # Krenz/再多一位數本人（1 個分點）
+    # Krenz(再多一位數本人)（1 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "884F", "name": "玉山-桃園", "master": "Krenz(再多一位數本人)", "tags_personal": [], "tags_market": []},
+    {"code": "884F", "name": "玉山-桃園", "master": "Krenz(再多一位數本人)",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
+    # ═════════════════════════════════════════════════════════
+    # 🌏 外資分點（v3.8 新增，來源：富邦 zco 頁面）
+    # ═════════════════════════════════════════════════════════
+ 
+    # ─── 🇺🇸 美系外資（5 個）
+    {"code": "1480", "name": "美商高盛", "master": "高盛",
+     "tags_personal": [], "tags_market": ["外資IB"],
+     "enabled": True, "region": "us"},
+    {"code": "1440", "name": "美林", "master": "美林",
+     "tags_personal": [], "tags_market": ["外資IB"],
+     "enabled": True, "region": "us"},
+    {"code": "1470", "name": "台灣摩根士丹利", "master": "摩根士丹利",
+     "tags_personal": [], "tags_market": ["外資IB"],
+     "enabled": True, "region": "us"},
+    {"code": "8440", "name": "摩根大通", "master": "摩根大通",
+     "tags_personal": [], "tags_market": ["外資IB"],
+     "enabled": True, "region": "us"},
+    {"code": "1590", "name": "花旗環球", "master": "花旗環球",
+     "tags_personal": [], "tags_market": ["外資IB"],
+     "enabled": True, "region": "us"},
+ 
+    # ─── 🇪🇺 歐系外資（1 個）
+    {"code": "1650", "name": "新加坡商瑞銀", "master": "瑞銀",
+     "tags_personal": [], "tags_market": ["外資IB"],
+     "enabled": True, "region": "eu"},
+ 
+    # ─── 🌏 亞系外資（2 個）
+    {"code": "8960", "name": "香港上海匯豐", "master": "匯豐 HSBC",
+     "tags_personal": [], "tags_market": ["外資IB"],
+     "enabled": True, "region": "asia"},
+    {"code": "1360", "name": "港商麥格理", "master": "麥格理",
+     "tags_personal": [], "tags_market": ["外資IB"],
+     "enabled": True, "region": "asia"},
+ 
 ]
-
-
+ 
+ 
 # ════════════════════════════════════════════════════════════════════
-# 個人標記範例（給你參考用，目前都是空的）
+#  輔助函數
 # ════════════════════════════════════════════════════════════════════
-#
-# 假設你想為民哥加標記，在上面找到 9B25 那筆改成：
-#
-#     {
-#         "code": "9B25", "name": "台新-五權西", "master": "民哥",
-#         "tags_personal": ["當沖王", "我跟過", "權值股"],
-#         "tags_market":   ["主力分點", "中部大戶"],
-#     },
-#
-# 標籤建議分類：
-#   ▸ 操作風格：當沖王 / 隔日沖 / 短線 / 波段 / 長線
-#   ▸ 標的偏好：權值股 / 中小型 / 電子 / 傳產 / 金融 / AI / 航運 / 軍工
-#   ▸ 規模描述：主力分點 / 中實戶 / 散戶代表
-#   ▸ 你的評價：我跟過 / 跟到賺 / 跟到賠 / 不要跟
-#   ▸ 地理屬性：南部 / 北部 / 中部
-#
-# ════════════════════════════════════════════════════════════════════
-
-
+ 
 def get_unique_branches():
     """去除重複分點代碼，回傳唯一清單"""
     seen = set()
@@ -173,31 +260,54 @@ def get_unique_branches():
             seen.add(b["code"])
             unique.append(b)
     return unique
-
-
-def get_branches_by_master(master_name):
+ 
+ 
+def get_enabled_branches():
+    """v3.8 新增：只取 enabled=True 的分點（用於 UI 顯示）"""
+    return [b for b in WATCHED_BRANCHES if b.get("enabled", True)]
+ 
+ 
+def get_branches_by_master(master_name, include_disabled=False):
     """取得某高手的所有分點"""
-    return [b for b in WATCHED_BRANCHES if b["master"] == master_name]
-
-
-def get_all_masters():
+    return [b for b in WATCHED_BRANCHES 
+            if b["master"] == master_name 
+            and (include_disabled or b.get("enabled", True))]
+ 
+ 
+def get_all_masters(include_disabled=False):
     """取得所有不同的高手名稱"""
-    return list(dict.fromkeys(b["master"] for b in WATCHED_BRANCHES))
-
-
+    pool = WATCHED_BRANCHES if include_disabled else get_enabled_branches()
+    return list(dict.fromkeys(b["master"] for b in pool))
+ 
+ 
 def get_branch_by_code(code):
     """以代碼查詢分點"""
     for b in WATCHED_BRANCHES:
         if b["code"] == code:
             return b
     return None
-
-
+ 
+ 
+def get_branches_by_region(region, include_disabled=False):
+    """v3.8：依地區分組取分點（domestic / us / eu / asia）"""
+    pool = WATCHED_BRANCHES if include_disabled else get_enabled_branches()
+    return [b for b in pool if b.get("region", "domestic") == region]
+ 
+ 
+def get_foreign_branches(include_disabled=False):
+    """v3.8：取所有外資分點（region != domestic）"""
+    pool = WATCHED_BRANCHES if include_disabled else get_enabled_branches()
+    return [b for b in pool if b.get("region", "domestic") != "domestic"]
+ 
+ 
+def get_domestic_branches(include_disabled=False):
+    """v3.8：取所有國內分點"""
+    pool = WATCHED_BRANCHES if include_disabled else get_enabled_branches()
+    return [b for b in pool if b.get("region", "domestic") == "domestic"]
+ 
+ 
 def get_branches_by_tag(tag, tag_type="all"):
-    """
-    依標籤過濾分點
-    tag_type: "personal" / "market" / "all"
-    """
+    """依標籤過濾分點"""
     result = []
     for b in WATCHED_BRANCHES:
         if tag_type == "personal" and tag in b.get("tags_personal", []):
@@ -208,19 +318,31 @@ def get_branches_by_tag(tag, tag_type="all"):
             if tag in b.get("tags_personal", []) or tag in b.get("tags_market", []):
                 result.append(b)
     return result
-
-
+ 
+ 
 def get_all_personal_tags():
     """取得所有用過的個人標籤"""
     tags = set()
     for b in WATCHED_BRANCHES:
         tags.update(b.get("tags_personal", []))
     return sorted(tags)
-
-
+ 
+ 
 def get_all_market_tags():
     """取得所有用過的市場標籤"""
     tags = set()
     for b in WATCHED_BRANCHES:
         tags.update(b.get("tags_market", []))
     return sorted(tags)
+ 
+ 
+# ════════════════════════════════════════════════════════════════════
+#  地區標籤（給 UI 用）
+# ════════════════════════════════════════════════════════════════════
+ 
+REGION_LABELS = {
+    "domestic": "🇹🇼 國內",
+    "us":       "🇺🇸 美系",
+    "eu":       "🇪🇺 歐系",
+    "asia":     "🌏 亞系",
+}
