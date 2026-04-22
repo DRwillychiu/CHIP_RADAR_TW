@@ -34,7 +34,7 @@ Module: branches.py
 
 WATCHED_BRANCHES = [
     # ─────────────────────────────────────────────────────────
-    # 民哥（2 個分點）
+    # 民哥（3 個分點）
     # ─────────────────────────────────────────────────────────
     {
         "code": "9B25", "name": "台新-五權西", "master": "民哥",
@@ -46,12 +46,8 @@ WATCHED_BRANCHES = [
         "tags_personal": [],
         "tags_market":   [],
     },
-
-    # ─────────────────────────────────────────────────────────
-    # 國票彰化（1 個分點）
-    # ─────────────────────────────────────────────────────────
     {
-        "code": "779W", "name": "國票-彰化", "master": "國票彰化",
+        "code": "779W", "name": "國票-彰化", "master": "民哥",
         "tags_personal": [],
         "tags_market":   [],
     },
@@ -75,20 +71,21 @@ WATCHED_BRANCHES = [
     {"code": "9100", "name": "群益金鼎證券",   "master": "張濬安(航海王)", "tags_personal": [], "tags_market": []},
 
     # ─────────────────────────────────────────────────────────
-    # 陳族元（4 個分點）
+    # 陳族元（5 個分點）
     # ─────────────────────────────────────────────────────────
     {"code": "8880", "name": "國泰證券",     "master": "陳族元", "tags_personal": [], "tags_market": []},
     {"code": "9300", "name": "華南永昌證券", "master": "陳族元", "tags_personal": [], "tags_market": []},
     {"code": "9661", "name": "富邦-新店",    "master": "陳族元", "tags_personal": [], "tags_market": []},
+    {"code": "9216", "name": "凱基-信義",     "master": "林滄海", "tags_personal": [], "tags_market": []},
     {"code": "9A9g", "name": "永豐金-內湖",  "master": "陳族元", "tags_personal": [], "tags_market": []},
 
     # ─────────────────────────────────────────────────────────
-    # 陳族元/陳律師（4 個分點，與陳族元為同一脈但分開記）
+    # 陳律師（4 個分點）
     # ─────────────────────────────────────────────────────────
-    {"code": "700c", "name": "兆豐-民生",   "master": "陳族元/陳律師", "tags_personal": [], "tags_market": []},
-    {"code": "8450", "name": "康和總公司",  "master": "陳族元/陳律師", "tags_personal": [], "tags_market": []},
-    {"code": "9A9R", "name": "永豐金-信義", "master": "陳族元/陳律師", "tags_personal": [], "tags_market": []},
-    {"code": "585c", "name": "統一-仁愛",   "master": "陳族元/陳律師", "tags_personal": [], "tags_market": []},
+    {"code": "700c", "name": "兆豐-民生",   "master": "陳律師", "tags_personal": [], "tags_market": []},
+    {"code": "8450", "name": "康和總公司",  "master": "陳律師", "tags_personal": [], "tags_market": []},
+    {"code": "9A9R", "name": "永豐金-信義", "master": "陳律師", "tags_personal": [], "tags_market": []},
+    {"code": "585c", "name": "統一-仁愛",   "master": "陳律師", "tags_personal": [], "tags_market": []},
 
     # ─────────────────────────────────────────────────────────
     # 迷你哥/松山哥（3 個分點）
