@@ -43,6 +43,7 @@ from institutional import (
 )
 import reports  # v3.9 週報/月報生成
 import margin   # v3.11 融資融券
+import industry_classifier  # v3.15.0 產業分類
 
 TW_TZ = timezone(timedelta(hours=8))
 
@@ -1777,12 +1778,32 @@ def main():
         print(f"  ⚠️ 融資融券抓取失敗: {e}（不影響主流程）")
         import traceback; traceback.print_exc()
     
+    # ════════════════════════════════════════════════════════════════
+    # v3.15.0 新增：產業分類注入
+    # ════════════════════════════════════════════════════════════════
+    industry_map = {}
+    industry_inject_count = 0
+    try:
+        print(f"\n[產業分類] 建立/讀取產業對照表...")
+        industry_map = industry_classifier.get_industry_map(data_dir)
+        industry_inject_count = industry_classifier.inject_industry_into_stocks(results, industry_map)
+        print(f"[產業分類] ✓ 注入 {industry_inject_count} 筆分點個股產業資訊")
+        
+        # 也注入到 margin_filtered (前端排行榜用)
+        for code, m in margin_filtered.items():
+            ind = industry_map.get('stock_industry', {}).get(code)
+            if ind:
+                m['industry'] = ind
+    except Exception as e:
+        print(f"  ⚠️ 產業分類失敗: {e}（不影響主流程）")
+        import traceback; traceback.print_exc()
+    
     # ===== 組裝當日 JSON =====
     raw_output = {
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.14.5",
+        "version": "3.15.0",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -1803,6 +1824,12 @@ def main():
         "limit_up_summary": limit_up_summary,     # 漲停狙擊匯總
         # v3.13 新增
         "next_day_verification": next_day_verification,  # 隔日沖驗證
+        # v3.15.0 新增：產業分類
+        "industry_map": {
+            "stock_industry": industry_map.get('stock_industry', {}),
+            "industry_groups": industry_map.get('industry_groups', {}),
+            "updated_at": industry_map.get('updated_at'),
+        },
     }
     
     plaintext = json.dumps(raw_output, ensure_ascii=False)
@@ -1854,7 +1881,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.14.5",
+            "version": "3.15.0",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
