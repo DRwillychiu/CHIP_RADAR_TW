@@ -218,12 +218,26 @@ def fetch_tpex_margin(timeout: int = 20, max_retries: int = 3) -> Dict[str, Dict
 #  統一介面：一次抓完上市+上櫃
 # ════════════════════════════════════════════════════════════════════
 
-def fetch_all_margin() -> Dict[str, Dict[str, Any]]:
+def fetch_all_margin(verify_date: bool = True) -> Dict[str, Any]:
     """
     一次抓完上市 + 上櫃融資融券
     v3.14.3: 加入查詢間 5 秒 delay 避免限流
+    v3.14.4: 加入 HiStock 驗證資料日期機制
     
-    Returns: 合併後的 {code: margin_data} 字典
+    Args:
+        verify_date: 是否啟用 HiStock 日期驗證 (預設 True)
+    
+    Returns: 
+        {
+            'data': {code: margin_data},           # 融資融券資料 (同原格式)
+            'verification': {                       # v3.14.4 新增
+                'verified': bool,
+                'data_date': 'YYYYMMDD' or None,
+                'confidence': 'high'/'medium'/'low',
+                'message': str,
+                'samples': list,
+            }
+        }
     """
     print("  [1/2] TWSE 上市融資融券...")
     twse = fetch_twse_margin()
@@ -238,7 +252,35 @@ def fetch_all_margin() -> Dict[str, Dict[str, Any]]:
     # 合併（TWSE 優先，TPEx 補）
     merged = {**tpex, **twse}
     print(f"  [合計] 總共 {len(merged)} 檔融資融券資料")
-    return merged
+    
+    # v3.14.4: HiStock 驗證資料日期
+    verification = None
+    if verify_date and merged:
+        try:
+            from histock_verifier import verify_margin_date
+            verification = verify_margin_date(merged)
+            print(f"  {verification['message']}")
+        except Exception as e:
+            print(f"  ⚠️ HiStock 驗證異常: {e} (不影響主資料)")
+            verification = {
+                'verified': False,
+                'data_date': None,
+                'confidence': 'low',
+                'message': f'HiStock 驗證執行錯誤: {e}',
+                'samples': [],
+            }
+    
+    return {
+        'data': merged,
+        'verification': verification,
+    }
+
+
+# v3.14.4: 保留舊版介面的 wrapper (backward compat)
+def fetch_all_margin_legacy() -> Dict[str, Dict[str, Any]]:
+    """向後相容用:只回傳資料不回傳驗證 (若 crawler.py 尚未升級使用)"""
+    result = fetch_all_margin(verify_date=False)
+    return result['data']
 
 
 # ════════════════════════════════════════════════════════════════════
