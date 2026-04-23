@@ -1738,15 +1738,20 @@ def main():
     
     # ════════════════════════════════════════════════════════════════
     # v3.11 新增：融資融券抓取 + 智慧注入 + 排行榜
+    # v3.14.4 升級：加入 HiStock 日期驗證 + STAGE 模式
     # ════════════════════════════════════════════════════════════════
-    print(f"\n[融資融券] 抓取全市場融資融券資料...")
+    STAGE = os.environ.get('CHIP_RADAR_STAGE', 'full').strip().lower()
+    print(f"\n[融資融券] 抓取全市場融資融券資料... (STAGE={STAGE})")
     margin_all = {}
     margin_filtered = {}
     margin_rankings = {}
     margin_inject_count = 0
+    margin_verification = None  # v3.14.4
     
     try:
-        margin_all = margin.fetch_all_margin()
+        margin_result = margin.fetch_all_margin(verify_date=True)
+        margin_all = margin_result.get('data', {})
+        margin_verification = margin_result.get('verification')
         
         if margin_all:
             # 注入到每檔分點個股（無論是否 Top 100）
@@ -1777,7 +1782,8 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.14.3",
+        "version": "3.14.4",
+        "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
         "empty": empty_count,
@@ -1791,6 +1797,8 @@ def main():
         "margin_data": margin_filtered,           # 智慧混合後的個股融資融券
         "margin_rankings": margin_rankings,       # 7 類排行榜
         "margin_total_count": len(margin_all),    # 全市場總檔數（統計用）
+        # v3.14.4 新增：融資融券資料日期驗證結果
+        "margin_verification": margin_verification,  # HiStock 驗證結果
         # v3.12 新增
         "limit_up_summary": limit_up_summary,     # 漲停狙擊匯總
         # v3.13 新增
@@ -1846,7 +1854,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.14.3",
+            "version": "3.14.4",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
@@ -1875,5 +1883,189 @@ def main():
     print(f"  🔒 資料已加密  📊 FIFO 部位已更新")
 
 
+# ════════════════════════════════════════════════════════════════════
+#  v3.14.4 新增: margin_only STAGE - 只更新融資融券 (用於 22:30/00:00/08:00)
+# ════════════════════════════════════════════════════════════════════
+def main_margin_only():
+    """
+    v3.14.4 新增：階段 2/3/4 只更新融資融券部分,不重爬分點
+    
+    流程：
+      1. 讀取 data/latest.json (解密)
+      2. 抓取最新融資融券 + HiStock 驗證
+      3. 比對「驗證日期」vs「現有 margin_verification.data_date」
+         - 如果新抓到的日期 > 現有 (更新) → 覆蓋
+         - 如果一樣 (已是 T-0) → 跳過本次 (省資源)
+         - 如果更舊 → 保留原資料 + 加警告
+      4. 寫回加密檔
+    """
+    password = os.environ.get("CHIP_RADAR_PASSWORD", "").strip()
+    if not password:
+        print("❌ 環境變數 CHIP_RADAR_PASSWORD 未設定！")
+        sys.exit(1)
+    
+    stage_name = os.environ.get('CHIP_RADAR_STAGE', 'margin_only').strip()
+    print(f"[{now_tw().strftime('%Y-%m-%d %H:%M:%S')}] 🔄 STAGE={stage_name} 融資融券補更新")
+    
+    data_dir = Path(__file__).parent / "data"
+    latest_file = data_dir / "latest.json"
+    
+    if not latest_file.exists():
+        print(f"❌ {latest_file} 不存在，無法進行 margin_only 更新")
+        print(f"  請先執行主爬蟲 (CHIP_RADAR_STAGE=full python crawler.py)")
+        sys.exit(1)
+    
+    # ===== 讀取現有資料並解密 =====
+    print(f"\n[1/4] 讀取現有資料...")
+    with open(latest_file, "r", encoding="utf-8") as f:
+        encrypted_doc = json.load(f)
+    
+    try:
+        plaintext = decrypt_data(encrypted_doc["data"], password)
+        current_data = json.loads(plaintext)
+    except Exception as e:
+        print(f"❌ 解密失敗: {e}")
+        sys.exit(1)
+    
+    current_date = current_data.get("trade_date")
+    current_verification = current_data.get("margin_verification") or {}
+    current_data_date = current_verification.get("data_date")
+    
+    print(f"  現有 trade_date: {current_date}")
+    print(f"  現有融資融券驗證日期: {current_data_date or '(未驗證)'}")
+    print(f"  現有融資融券信心: {current_verification.get('confidence', 'N/A')}")
+    
+    # ===== 聰明跳過: 如果已經是 T-0 (最新交易日),跳過本次 =====
+    today_str = now_tw().strftime("%Y%m%d")
+    # 取最近一個交易日 (週末的情況: 若今天週六,最近交易日是週五)
+    import calendar
+    now = now_tw()
+    check = now
+    for _ in range(5):
+        if check.weekday() < 5:  # 週一(0) ~ 週五(4)
+            break
+        check = check - timedelta(days=1)
+    latest_trade_day = check.strftime("%Y%m%d")
+    # 若已 8 點前，則上個交易日
+    if now.hour < 8:
+        yesterday = now - timedelta(days=1)
+        while yesterday.weekday() >= 5:
+            yesterday = yesterday - timedelta(days=1)
+        latest_trade_day = yesterday.strftime("%Y%m%d")
+    
+    if current_data_date and current_data_date >= latest_trade_day and current_verification.get('confidence') == 'high':
+        print(f"\n✅ 現有融資融券資料已是 {current_data_date} (最新交易日)，跳過本次更新")
+        print(f"   省下 GitHub Actions 分鐘數。")
+        return
+    
+    # ===== 抓取最新融資融券 + 驗證 =====
+    print(f"\n[2/4] 抓取最新融資融券 + HiStock 驗證...")
+    try:
+        margin_result = margin.fetch_all_margin(verify_date=True)
+        margin_all = margin_result.get('data', {})
+        new_verification = margin_result.get('verification')
+    except Exception as e:
+        print(f"❌ 融資融券抓取失敗: {e}")
+        sys.exit(1)
+    
+    if not margin_all:
+        print(f"❌ 抓到 0 檔融資融券,本次跳過")
+        return
+    
+    new_data_date = (new_verification or {}).get('data_date')
+    new_confidence = (new_verification or {}).get('confidence', 'low')
+    print(f"  新抓到驗證日期: {new_data_date}")
+    print(f"  新抓到信心: {new_confidence}")
+    
+    # ===== 決定是否覆蓋 =====
+    print(f"\n[3/4] 決定是否覆蓋...")
+    should_update = False
+    
+    if not current_data_date:
+        # 現有沒驗證過 → 新的一定比較好
+        should_update = True
+        reason = "現有資料未驗證過"
+    elif new_data_date and new_data_date > current_data_date:
+        # 新的比現有更新 → 覆蓋
+        should_update = True
+        reason = f"新日期 {new_data_date} > 現有 {current_data_date}"
+    elif new_data_date and new_data_date == current_data_date:
+        if new_confidence == 'high' and current_verification.get('confidence') != 'high':
+            # 同日期但信心更高 → 也更新
+            should_update = True
+            reason = f"同日期但驗證信心提升 ({current_verification.get('confidence')}→{new_confidence})"
+        else:
+            reason = "新日期與現有相同，信心也相同，保持不變"
+    else:
+        # 新的是 T-1 或未驗證,保留現有
+        reason = f"新抓到日期 {new_data_date} 不優於現有 {current_data_date}，保留現有"
+    
+    print(f"  決定: {'✅ 覆蓋' if should_update else '⏸️ 不覆蓋'} ({reason})")
+    
+    if not should_update:
+        print(f"\n  本次執行結束,未修改資料。")
+        return
+    
+    # ===== 覆蓋並重新加密 =====
+    print(f"\n[4/4] 合併、重新加密、寫回...")
+    
+    # 注入到每檔分點個股 (和主流程相同邏輯)
+    margin_inject_count = margin.inject_margin_into_stocks(
+        current_data.get("branches", []), margin_all
+    )
+    print(f"  注入 {margin_inject_count} 筆分點個股")
+    
+    # 智慧混合
+    my_branch_codes = set()
+    for br in current_data.get("branches", []):
+        for s in (br.get("buys", []) + br.get("sells", [])):
+            if s.get("code"):
+                my_branch_codes.add(s["code"])
+    
+    target_codes = margin.select_target_codes(margin_all, my_branch_codes, top_n=100)
+    margin_filtered = margin.filter_margin_data(margin_all, target_codes)
+    margin_rankings = margin.build_margin_rankings(margin_all, top_n=30)
+    
+    # 更新相關欄位
+    current_data["margin_data"] = margin_filtered
+    current_data["margin_rankings"] = margin_rankings
+    current_data["margin_total_count"] = len(margin_all)
+    current_data["margin_verification"] = new_verification
+    current_data["stage"] = stage_name  # 記錄最後一次是哪個階段更新的
+    current_data["last_margin_update_at"] = now_tw().isoformat()
+    
+    # 重新加密
+    plaintext = json.dumps(current_data, ensure_ascii=False)
+    print(f"  重加密中 (原始 {len(plaintext)/1024:.1f} KB)...")
+    encrypted_token = encrypt_data(plaintext, password)
+    
+    encrypted_output = {
+        "encrypted": True,
+        "algorithm": "AES-256-GCM",
+        "kdf": "PBKDF2-SHA256",
+        "iterations": PBKDF2_ITERATIONS,
+        "trade_date": current_date,
+        "crawled_at": now_tw().isoformat(),
+        "baseline_date": BASELINE_DATE,
+        "data": encrypted_token,
+    }
+    
+    # 寫回日期檔 + latest.json
+    dated_file = data_dir / f"{current_date}.json"
+    with open(dated_file, "w", encoding="utf-8") as f:
+        json.dump(encrypted_output, f, ensure_ascii=False, indent=2)
+    with open(latest_file, "w", encoding="utf-8") as f:
+        json.dump(encrypted_output, f, ensure_ascii=False, indent=2)
+    
+    print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ margin_only 更新完成！")
+    print(f"  融資融券資料日期: {new_data_date}")
+    print(f"  驗證信心: {new_confidence}")
+    print(f"  篩選保留: {len(margin_filtered)} 檔")
+
+
 if __name__ == "__main__":
-    main()
+    stage = os.environ.get('CHIP_RADAR_STAGE', 'full').strip().lower()
+    if stage == 'margin_only':
+        main_margin_only()
+    else:
+        main()
