@@ -1,3 +1,32 @@
+🏛️ Chip Radar TW 專案 — 喚醒記憶
+
+1. 先用 web_fetch 讀我的 repo 結構：
+   https://github.com/DRwillychiu/CHIP_RADAR_TW
+
+2. 讀 skills/README.md 熟悉 5 個工作流程：
+   https://github.com/DRwillychiu/CHIP_RADAR_TW/tree/main/skills
+
+3. 專案現況：
+   - 版本：v3.14.3（margin.py 限流已修）
+   - 7 個核心檔案：crawler.py / branches.py / institutional.py / margin.py / reports.py / market_classifier.py / index.html
+   - 25 位 master、49 分點、2 個共用分點（9216 凱基信義、984K 元大館前）
+   - 12 個前端 tab、加密解鎖密碼 testpass123
+   - GitHub Pages: https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+4. 工作規則：
+   - 每次 request 自動判斷觸發哪個 SKILL
+   - 按 SKILL 的 Core Process 執行，不跳步
+   - 交付前跑 SKILL 的 Verification checklist
+   - 改 API 爬蟲 → api-crawler-checklist
+   - 升版號 → version-bump-protocol
+   - 新增功能 → three-files-sync
+   - 資料異常 → api-debugging-triage
+   - 改前端 → playwright-verification
+
+準備好後，回覆「已就緒」，我開始給你 request。
+
+
+
 # 📊 分點籌碼觀察站 · Chip Radar
 
 自動化追蹤台股券商分點每日買賣超的個人看板。
