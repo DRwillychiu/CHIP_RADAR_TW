@@ -1,10 +1,37 @@
 name: Daily Chip Data Crawl
 
+# v3.14.4 四階段排程策略:
+#   階段 1 (20:00): 主爬蟲, 抓全部資料 (分點+法人+行情+融資融券)
+#   階段 2 (22:30): margin_only, 補更新融資融券 (此時 TWSE 已公告 90%)
+#   階段 3 (00:00): margin_only, 深夜再試 (若階段 2 失敗, 此時 99% 公告完畢)
+#   階段 4 (08:00): margin_only, 最後保險 (隔日開盤前保證 T-0)
+#
+# 聰明跳過機制:
+#   margin_only 會先檢查現有資料日期, 若已是 T-0 + confidence=high 則跳過
+#   實際執行時間約 5-20 秒 (若跳過) / 3-5 分鐘 (若執行)
+
 on:
-  # 每個交易日台灣時間 18:30 自動執行 (UTC 10:30)
   schedule:
-    - cron: '30 10 * * 1-5'
+    # 台灣時間 20:00 (UTC 12:00) — 階段 1: 主爬蟲
+    - cron: '0 12 * * 1-5'
+    # 台灣時間 22:30 (UTC 14:30) — 階段 2: 融資融券補更新
+    - cron: '30 14 * * 1-5'
+    # 台灣時間 00:00 (UTC 16:00) — 階段 3: 深夜再試
+    - cron: '0 16 * * 2-6'
+    # 台灣時間 08:00 (UTC 00:00) — 階段 4: 最後保險
+    - cron: '0 0 * * 2-6'
+  
+  # 手動觸發保留
   workflow_dispatch:
+    inputs:
+      stage:
+        description: '手動指定爬蟲階段'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - margin_only
 
 permissions:
   contents: write
@@ -28,9 +55,24 @@ jobs:
         run: |
           pip install requests cryptography
       
+      - name: Determine stage
+        id: stage
+        run: |
+          # 根據觸發方式判斷 STAGE
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            STAGE="${{ github.event.inputs.stage || 'full' }}"
+          elif [ "${{ github.event.schedule }}" = "0 12 * * 1-5" ]; then
+            STAGE="full"
+          else
+            STAGE="margin_only"
+          fi
+          echo "stage=$STAGE" >> $GITHUB_OUTPUT
+          echo "🎯 本次執行 STAGE=$STAGE"
+      
       - name: Run crawler
         env:
           CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+          CHIP_RADAR_STAGE: ${{ steps.stage.outputs.stage }}
         run: |
           python crawler.py
         continue-on-error: true
@@ -41,8 +83,9 @@ jobs:
           git config --local user.name "GitHub Actions Bot"
           git add data/
           if git diff --staged --quiet; then
-            echo "No changes to commit"
+            echo "No changes to commit (skip scenario)"
           else
-            git commit -m "🔒 Update encrypted chip data $(date -u +%Y-%m-%d)"
+            STAGE="${{ steps.stage.outputs.stage }}"
+            git commit -m "🔒 Update chip data ($STAGE) $(date -u +%Y-%m-%d\ %H:%M)"
             git push
           fi
