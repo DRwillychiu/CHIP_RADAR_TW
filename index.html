@@ -1063,6 +1063,207 @@ th.sortable.sort-desc::after {
   margin-top: 4px;
 }
 
+/* v3.14.5: 可點擊情緒卡 */
+.sentiment-card.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.sentiment-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  border-color: var(--accent);
+}
+.sentiment-card.clickable::after {
+  content: '▸ 點擊查看清單';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 9px;
+  color: var(--text-3);
+  opacity: 0.6;
+  letter-spacing: 0.05em;
+}
+.sentiment-card.clickable:hover::after {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* v3.14.5: 個股清單 Modal */
+.signal-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+.signal-modal-overlay.active {
+  display: flex;
+}
+.signal-modal {
+  background: linear-gradient(135deg, #1a2547 0%, #0f1628 100%);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.signal-modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.signal-modal-icon {
+  font-size: 28px;
+}
+.signal-modal-title {
+  flex: 1;
+}
+.signal-modal-title h3 {
+  font-size: 18px;
+  margin: 0;
+  color: var(--text-1);
+}
+.signal-modal-title p {
+  font-size: 12px;
+  color: var(--text-3);
+  margin: 2px 0 0 0;
+}
+.signal-modal-count {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  padding: 4px 14px;
+  border-radius: 6px;
+  background: rgba(250,204,21,0.12);
+  border: 1px solid rgba(250,204,21,0.3);
+}
+.signal-modal-close {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.4);
+  color: #fca5a5;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.signal-modal-close:hover {
+  background: rgba(239,68,68,0.3);
+  color: #fff;
+}
+.signal-modal-toolbar {
+  padding: 12px 24px;
+  border-bottom: 1px solid rgba(148,163,184,0.1);
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.signal-modal-sort-label {
+  color: var(--text-3);
+  font-weight: 500;
+}
+.signal-modal-sort-btn {
+  background: rgba(31,42,72,0.5);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  padding: 5px 11px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+.signal-modal-sort-btn:hover {
+  border-color: var(--accent);
+  color: var(--text-1);
+}
+.signal-modal-sort-btn.active {
+  background: rgba(250,204,21,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.signal-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+.signal-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.signal-modal-table thead {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(180deg, #1a2547 0%, rgba(26,37,71,0.95) 100%);
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+.signal-modal-table th {
+  text-align: right;
+  padding: 10px 10px;
+  color: var(--text-3);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.signal-modal-table th.th-name {
+  text-align: left;
+}
+.signal-modal-table td {
+  padding: 9px 10px;
+  text-align: right;
+  border-bottom: 1px solid rgba(148,163,184,0.06);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.signal-modal-table td.td-name {
+  text-align: left;
+  font-family: 'Noto Sans TC', sans-serif;
+  min-width: 140px;
+}
+.signal-modal-table td.td-code {
+  color: var(--accent);
+  font-weight: 600;
+}
+.signal-modal-table tbody tr {
+  transition: background 0.1s;
+}
+.signal-modal-table tbody tr:hover {
+  background: rgba(250,204,21,0.04);
+}
+.signal-modal-table .pos { color: #fca5a5; }
+.signal-modal-table .neg { color: #86efac; }
+.signal-modal-table .usage-cell {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.signal-modal-footer {
+  padding: 10px 24px;
+  border-top: 1px solid rgba(148,163,184,0.1);
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
 /* 融資融券排行卡片（多欄） */
 .margin-rank-grid {
   display: grid;
@@ -2658,6 +2859,52 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 </main>
 
+<!-- v3.14.5: 情緒信號個股清單 Modal -->
+<div class="signal-modal-overlay" id="signalModalOverlay" onclick="if(event.target===this)closeSignalModal()">
+  <div class="signal-modal">
+    <div class="signal-modal-header">
+      <div class="signal-modal-icon" id="signalModalIcon">🟢</div>
+      <div class="signal-modal-title">
+        <h3 id="signalModalTitle">聰明錢進</h3>
+        <p id="signalModalDesc">外資買 + 散戶退（最佳買點）</p>
+      </div>
+      <div class="signal-modal-count" id="signalModalCount">0</div>
+      <button class="signal-modal-close" onclick="closeSignalModal()">✕ 關閉</button>
+    </div>
+    <div class="signal-modal-toolbar">
+      <span class="signal-modal-sort-label">排序：</span>
+      <button class="signal-modal-sort-btn active" data-sort="change_pct" onclick="sortSignalModal('change_pct')">漲跌幅 ▼</button>
+      <button class="signal-modal-sort-btn" data-sort="margin_change" onclick="sortSignalModal('margin_change')">融資變化</button>
+      <button class="signal-modal-sort-btn" data-sort="short_change" onclick="sortSignalModal('short_change')">融券變化</button>
+      <button class="signal-modal-sort-btn" data-sort="inst_foreign" onclick="sortSignalModal('inst_foreign')">外資買賣超</button>
+      <button class="signal-modal-sort-btn" data-sort="margin_usage" onclick="sortSignalModal('margin_usage')">融資使用率</button>
+      <button class="signal-modal-sort-btn" data-sort="margin_short_ratio" onclick="sortSignalModal('margin_short_ratio')">券資比</button>
+    </div>
+    <div class="signal-modal-body">
+      <table class="signal-modal-table" id="signalModalTable">
+        <thead>
+          <tr>
+            <th class="th-name">代號 / 名稱</th>
+            <th>漲跌幅</th>
+            <th>融資餘額</th>
+            <th>融資變化</th>
+            <th>融券餘額</th>
+            <th>融券變化</th>
+            <th>融資使用率</th>
+            <th>券資比</th>
+            <th>外資買賣超</th>
+          </tr>
+        </thead>
+        <tbody id="signalModalTbody"></tbody>
+      </table>
+    </div>
+    <div class="signal-modal-footer">
+      <span id="signalModalStat">—</span>
+      <span>💡 提示：點擊表頭按鈕可切換排序方式</span>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-header">
@@ -3687,14 +3934,35 @@ function renderMarginPanel() {
       const sig = s.margin_signal || 'neutral';
       signalCounter[sig] = (signalCounter[sig] || 0) + 1;
       if (sig !== 'neutral' && signalStocks[sig]) {
+        // v3.14.5: 完整收集所有籌碼欄位（給 Modal 用）
         signalStocks[sig].push({
-          code: s.code, name: s.name,
-          margin_change: s.margin_change, inst_foreign: s.inst_foreign_net_lot,
-          change_pct: s.change_pct
+          code: s.code,
+          name: s.name,
+          change_pct: s.change_pct,
+          close: s.close,
+          // 融資
+          margin_balance: s.margin_balance,
+          margin_change: s.margin_change,
+          margin_usage: s.margin_usage,
+          // 融券
+          short_balance: s.short_balance,
+          short_change: s.short_change,
+          short_usage: s.short_usage,
+          // 衍生
+          margin_short_ratio: s.margin_short_ratio,
+          offsetting: s.offsetting,
+          // 法人
+          inst_foreign: s.inst_foreign_net_lot,
+          inst_trust: s.inst_trust_net_lot,
+          inst_dealer: s.inst_dealer_net_lot,
         });
       }
     }
   }
+  
+  // v3.14.5: 存到全域讓 Modal 能讀
+  window._SIGNAL_STOCKS = signalStocks;
+  window._SIGNAL_SORT = 'change_pct';  // 預設排序
 
   // 散戶情緒儀表板
   const dashEl = document.getElementById('sentimentDashboard');
@@ -3702,25 +3970,25 @@ function renderMarginPanel() {
   const meaningfulSignals = signalCounter.smart_money_in + signalCounter.smart_money_out + signalCounter.retail_fomo + signalCounter.short_squeeze;
   
   dashEl.innerHTML = `
-    <div class="sentiment-card signal-green">
+    <div class="sentiment-card signal-green clickable" onclick="openSignalModal('smart_money_in')">
       <div class="sentiment-card-icon">🟢</div>
       <div class="sentiment-card-label">聰明錢進</div>
       <div class="sentiment-card-value">${signalCounter.smart_money_in}</div>
       <div class="sentiment-card-sub">外資買 + 散戶退（最佳）</div>
     </div>
-    <div class="sentiment-card signal-red">
+    <div class="sentiment-card signal-red clickable" onclick="openSignalModal('smart_money_out')">
       <div class="sentiment-card-icon">🔴</div>
       <div class="sentiment-card-label">聰明錢出</div>
       <div class="sentiment-card-value">${signalCounter.smart_money_out}</div>
       <div class="sentiment-card-sub">外資賣 + 散戶接（警告）</div>
     </div>
-    <div class="sentiment-card signal-yellow">
+    <div class="sentiment-card signal-yellow clickable" onclick="openSignalModal('retail_fomo')">
       <div class="sentiment-card-icon">🟡</div>
       <div class="sentiment-card-label">散戶追漲</div>
       <div class="sentiment-card-value">${signalCounter.retail_fomo}</div>
       <div class="sentiment-card-sub">外資買 + 散戶跟風</div>
     </div>
-    <div class="sentiment-card">
+    <div class="sentiment-card clickable" onclick="openSignalModal('short_squeeze')">
       <div class="sentiment-card-icon">⚡</div>
       <div class="sentiment-card-label">軋空潛力</div>
       <div class="sentiment-card-value">${signalCounter.short_squeeze}</div>
@@ -4512,6 +4780,159 @@ function buildStockIndex(branches, onlyWatched, rankType, side) {
   }
   return map;
 }
+
+// ════════════════════════════════════════════════════════════════════
+// v3.14.5: 情緒信號 Modal（可點擊卡 → 彈出個股完整清單 + 排序）
+// ════════════════════════════════════════════════════════════════════
+const SIGNAL_META = {
+  smart_money_in: {
+    icon: '🟢',
+    title: '聰明錢進',
+    desc: '外資買 + 散戶退（最強買點，機構進場散戶離場）',
+  },
+  smart_money_out: {
+    icon: '🔴',
+    title: '聰明錢出',
+    desc: '外資賣 + 散戶接（警告信號，機構離場散戶套牢風險高）',
+  },
+  retail_fomo: {
+    icon: '🟡',
+    title: '散戶追漲',
+    desc: '外資買 + 散戶跟風（短期動能強但留意過熱）',
+  },
+  short_squeeze: {
+    icon: '⚡',
+    title: '軋空潛力',
+    desc: '融券大增 + 股價漲（空頭押錯邊，後續強噴機率高）',
+  },
+};
+
+function openSignalModal(signalType) {
+  const stocks = (window._SIGNAL_STOCKS || {})[signalType] || [];
+  const meta = SIGNAL_META[signalType];
+  if (!meta) return;
+  
+  window._CURRENT_SIGNAL_TYPE = signalType;
+  window._SIGNAL_SORT = 'change_pct';  // 每次打開重置排序
+  
+  document.getElementById('signalModalIcon').textContent = meta.icon;
+  document.getElementById('signalModalTitle').textContent = meta.title;
+  document.getElementById('signalModalDesc').textContent = meta.desc;
+  document.getElementById('signalModalCount').textContent = stocks.length + ' 檔';
+  
+  // 重置排序按鈕 active 狀態
+  document.querySelectorAll('.signal-modal-sort-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sort === 'change_pct');
+    btn.textContent = btn.textContent.replace(/ [▼▲]$/, '');  // 移除箭頭
+  });
+  const firstBtn = document.querySelector('.signal-modal-sort-btn[data-sort="change_pct"]');
+  if (firstBtn) firstBtn.textContent = firstBtn.textContent + ' ▼';
+  
+  renderSignalModalTable();
+  
+  document.getElementById('signalModalOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSignalModal() {
+  document.getElementById('signalModalOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function sortSignalModal(key) {
+  window._SIGNAL_SORT = key;
+  
+  // 更新按鈕 active + 箭頭
+  document.querySelectorAll('.signal-modal-sort-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sort === key);
+    btn.textContent = btn.textContent.replace(/ [▼▲]$/, '');
+  });
+  const activeBtn = document.querySelector(`.signal-modal-sort-btn[data-sort="${key}"]`);
+  if (activeBtn) activeBtn.textContent = activeBtn.textContent + ' ▼';
+  
+  renderSignalModalTable();
+}
+
+function renderSignalModalTable() {
+  const type = window._CURRENT_SIGNAL_TYPE;
+  const stocks = [...((window._SIGNAL_STOCKS || {})[type] || [])];
+  const sortKey = window._SIGNAL_SORT || 'change_pct';
+  
+  // 排序：按絕對值大小降冪（讓最有意義的數據排在前面）
+  stocks.sort((a, b) => {
+    const av = a[sortKey];
+    const bv = b[sortKey];
+    // null/undefined 排最後
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    
+    // change_pct 用實際值降冪（紅字在上）
+    if (sortKey === 'change_pct') return bv - av;
+    // 其他用絕對值降冪（關注「大變化」不管方向）
+    return Math.abs(bv) - Math.abs(av);
+  });
+  
+  const tbody = document.getElementById('signalModalTbody');
+  
+  if (!stocks.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-3);">此分類目前沒有符合的個股</td></tr>';
+    document.getElementById('signalModalStat').textContent = '—';
+    return;
+  }
+  
+  // 格式化工具
+  const fmtPct = (v) => {
+    if (v == null || isNaN(v)) return '—';
+    const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+    return `<span class="${cls}">${v > 0 ? '+' : ''}${v.toFixed(2)}%</span>`;
+  };
+  const fmtLot = (v) => {
+    if (v == null || isNaN(v)) return '—';
+    const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+    const sign = v > 0 ? '+' : '';
+    return `<span class="${cls}">${sign}${v.toLocaleString()}</span>`;
+  };
+  const fmtNum = (v) => (v == null || isNaN(v)) ? '—' : v.toLocaleString();
+  const fmtUsage = (v) => {
+    if (v == null || isNaN(v)) return '—';
+    return `<span class="usage-cell">${v.toFixed(2)}%</span>`;
+  };
+  
+  tbody.innerHTML = stocks.map(s => `
+    <tr>
+      <td class="td-name">
+        <span class="td-code">${s.code}</span> ${s.name || ''}
+      </td>
+      <td>${fmtPct(s.change_pct)}</td>
+      <td>${fmtNum(s.margin_balance)}</td>
+      <td>${fmtLot(s.margin_change)}</td>
+      <td>${fmtNum(s.short_balance)}</td>
+      <td>${fmtLot(s.short_change)}</td>
+      <td>${fmtUsage(s.margin_usage)}</td>
+      <td>${fmtUsage(s.margin_short_ratio)}</td>
+      <td>${fmtLot(s.inst_foreign)}</td>
+    </tr>
+  `).join('');
+  
+  // 統計：平均漲跌幅
+  const validChange = stocks.filter(s => s.change_pct != null).map(s => s.change_pct);
+  const avgChange = validChange.length ? (validChange.reduce((a,b)=>a+b,0) / validChange.length) : 0;
+  const totalForeign = stocks.reduce((sum, s) => sum + (s.inst_foreign || 0), 0);
+  
+  document.getElementById('signalModalStat').innerHTML = 
+    `📊 統計：共 ${stocks.length} 檔 ｜ 平均漲跌幅 ${fmtPct(avgChange)} ｜ 外資合計 ${fmtLot(totalForeign)} 張`;
+}
+
+// Esc 關閉 Modal
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const overlay = document.getElementById('signalModalOverlay');
+    if (overlay && overlay.classList.contains('active')) {
+      closeSignalModal();
+    }
+  }
+});
 
 function renderOverview() {
   const el = document.getElementById('overviewResult');
