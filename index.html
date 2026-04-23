@@ -951,6 +951,70 @@ th.sortable.sort-desc::after {
 .usage-bar-fill.mid { background: linear-gradient(90deg, #f59e0b, #f97316); }
 .usage-bar-fill.high { background: linear-gradient(90deg, #ef4444, #dc2626); }
 
+/* v3.14.4: 資料日期標示區塊 */
+.data-date-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  border: 1px solid;
+}
+.data-date-banner.verified-t0 {
+  background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04));
+  border-color: rgba(16,185,129,0.35);
+  color: #a7f3d0;
+}
+.data-date-banner.verified-t1 {
+  background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04));
+  border-color: rgba(245,158,11,0.35);
+  color: #fde68a;
+}
+.data-date-banner.unverified {
+  background: linear-gradient(135deg, rgba(148,163,184,0.10), rgba(148,163,184,0.03));
+  border-color: rgba(148,163,184,0.30);
+  color: #cbd5e1;
+}
+.data-date-banner-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.data-date-banner-main {
+  flex: 1;
+}
+.data-date-banner-date {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--fg);
+}
+.data-date-banner-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.data-date-banner-tag {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.data-date-banner.verified-t0 .data-date-banner-tag {
+  background: rgba(16,185,129,0.25);
+  color: #6ee7b7;
+}
+.data-date-banner.verified-t1 .data-date-banner-tag {
+  background: rgba(245,158,11,0.25);
+  color: #fcd34d;
+}
+.data-date-banner.unverified .data-date-banner-tag {
+  background: rgba(148,163,184,0.25);
+  color: #e2e8f0;
+}
+
 /* 散戶情緒儀表板大卡 */
 .sentiment-dashboard {
   display: grid;
@@ -2300,6 +2364,9 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
       <p>🎯 <strong>信號解讀</strong>：<span class="signal-badge smart-money-in" style="display:inline-block;">🟢 聰明錢進</span> 外資買+散戶退（最強買點） ｜ <span class="signal-badge smart-money-out" style="display:inline-block;">🔴 聰明錢出</span> 外資賣+散戶接（警告） ｜ <span class="signal-badge retail-fomo" style="display:inline-block;">🟡 散戶追漲</span> ｜ <span class="signal-badge short-squeeze" style="display:inline-block;">⚡ 軋空潛力</span></p>
     </div>
 
+    <!-- v3.14.4: 融資融券資料日期 banner -->
+    <div id="marginDateBanner"></div>
+
     <!-- 我的分點個股散戶情緒總覽 -->
     <div class="section-title">🎯 我的分點個股 × 散戶情緒信號</div>
     <div class="sentiment-dashboard" id="sentimentDashboard"></div>
@@ -3540,6 +3607,72 @@ function renderMarginPanel() {
   if (!CURRENT_DATA) {
     document.getElementById('marginRankGrid').innerHTML = '<div class="report-empty">請先載入資料</div>';
     return;
+  }
+
+  // ─── v3.14.4: 融資融券資料日期 banner ───
+  const bannerEl = document.getElementById('marginDateBanner');
+  if (bannerEl) {
+    const ver = CURRENT_DATA.margin_verification || {};
+    const tradeDate = CURRENT_DATA.trade_date || '';
+    const lastMarginUpdate = CURRENT_DATA.last_margin_update_at || CURRENT_DATA.crawled_at || '';
+    
+    // 格式化 YYYYMMDD → YYYY/MM/DD
+    const fmtDate = (s) => s ? `${s.slice(0,4)}/${s.slice(4,6)}/${s.slice(6,8)}` : '(未知)';
+    // 格式化 ISO → HH:MM
+    const fmtTime = (iso) => {
+      if (!iso) return '';
+      try {
+        const d = new Date(iso);
+        return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      } catch(e) { return ''; }
+    };
+    
+    let bannerClass, icon, mainText, subText, tagText;
+    
+    if (ver.verified && ver.data_date && ver.confidence === 'high') {
+      // 驗證為 T-0 (當日交易日)
+      const dataDate = ver.data_date;
+      const isT0 = dataDate === tradeDate;
+      
+      if (isT0) {
+        bannerClass = 'verified-t0';
+        icon = '✅';
+        mainText = `融資融券資料日期：<span class="data-date-banner-date">${fmtDate(dataDate)}</span>`;
+        subText = `HiStock 交叉驗證通過（3/3 吻合）｜ 最後更新 ${fmtTime(lastMarginUpdate)}`;
+        tagText = 'T-0 當日';
+      } else {
+        bannerClass = 'verified-t1';
+        icon = '⚠️';
+        mainText = `融資融券資料日期：<span class="data-date-banner-date">${fmtDate(dataDate)}</span>`;
+        subText = `TWSE 尚未公告當日資料，此為 T-1 ｜ 最後更新 ${fmtTime(lastMarginUpdate)} ｜ 系統將於 22:30 / 00:00 / 隔日 08:00 自動補更新`;
+        tagText = 'T-1 前一日';
+      }
+    } else if (ver.data_date) {
+      // 有日期但信心不高
+      bannerClass = 'verified-t1';
+      icon = '⚠️';
+      mainText = `融資融券資料日期：<span class="data-date-banner-date">${fmtDate(ver.data_date)}</span>`;
+      subText = `驗證信心：${ver.confidence || 'low'} ｜ ${ver.message || ''} ｜ 最後更新 ${fmtTime(lastMarginUpdate)}`;
+      tagText = '需留意';
+    } else {
+      // 未驗證
+      bannerClass = 'unverified';
+      icon = '❓';
+      mainText = `融資融券資料日期：<span class="data-date-banner-date">未驗證</span>`;
+      subText = `HiStock 驗證未執行或失敗 ｜ 顯示的是 TWSE 原始資料 ｜ 最後更新 ${fmtTime(lastMarginUpdate)}`;
+      tagText = '未驗證';
+    }
+    
+    bannerEl.innerHTML = `
+      <div class="data-date-banner ${bannerClass}">
+        <div class="data-date-banner-icon">${icon}</div>
+        <div class="data-date-banner-main">
+          <div>${mainText}</div>
+          <div class="data-date-banner-sub">${subText}</div>
+        </div>
+        <div class="data-date-banner-tag">${tagText}</div>
+      </div>
+    `;
   }
 
   // ─── 我的分點個股散戶情緒儀表板 ───
