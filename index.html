@@ -383,8 +383,8 @@ main { max-width: 1400px; margin: 0 auto; padding: 24px; }
   font-family: 'JetBrains Mono', monospace;
   margin-left: 4px;
 }
-.float-chip.pos { background: rgba(34, 197, 94, 0.15); color: #86efac; }
-.float-chip.neg { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+.float-chip.pos { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+.float-chip.neg { background: rgba(34, 197, 94, 0.15); color: #86efac; }
 .float-chip.flat { background: rgba(107, 114, 128, 0.15); color: #9ca3af; }
 
 /* v3.7 可排序表頭 */
@@ -605,12 +605,12 @@ th.sortable.sort-desc::after {
   border: 1px solid var(--line);
 }
 .def-card.buy {
-  background: rgba(34,197,94,0.06);
-  border-color: rgba(34,197,94,0.3);
-}
-.def-card.sell {
   background: rgba(239,68,68,0.06);
   border-color: rgba(239,68,68,0.3);
+}
+.def-card.sell {
+  background: rgba(34,197,94,0.06);
+  border-color: rgba(34,197,94,0.3);
 }
 .def-card-title {
   font-size: 14px;
@@ -618,8 +618,8 @@ th.sortable.sort-desc::after {
   color: var(--text-1);
   margin-bottom: 8px;
 }
-.def-card.buy .def-card-title { color: #86efac; }
-.def-card.sell .def-card-title { color: #fca5a5; }
+.def-card.buy .def-card-title { color: #fca5a5; }
+.def-card.sell .def-card-title { color: #86efac; }
 .def-card p {
   font-size: 12px;
   margin: 3px 0;
@@ -1749,8 +1749,8 @@ th.sortable.sort-desc::after {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
 }
-.alignment-heatmap .heat-cell.pos { background: rgba(34, 197, 94, 0.2); color: #86efac; }
-.alignment-heatmap .heat-cell.neg { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.alignment-heatmap .heat-cell.pos { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.alignment-heatmap .heat-cell.neg { background: rgba(34, 197, 94, 0.2); color: #86efac; }
 .alignment-heatmap .heat-cell.zero { background: rgba(107, 114, 128, 0.1); color: var(--text-3); }
 .status-info { display: flex; gap: 24px; flex-wrap: wrap; font-size: 13px; }
 .status-info .label { color: var(--text-3); margin-right: 6px; }
@@ -3515,7 +3515,7 @@ function renderLimitUpPanel() {
       if (sniperView === 'branch' && sn.limit_up_details) {
         detailsHTML = sn.limit_up_details.slice(0, 20).map(d => 
           `<span class="sniper-detail-chip" onclick="showStockDetail('${d.code}','${(d.name||'').replace(/'/g,"\\'")}')">
-            ${d.name} <span class="code">${d.code}</span> +${(d.change_pct||0).toFixed(1)}% <span style="color:var(--gold-bright);">${fmtAmtWan(d.buy_amt)}</span>
+            ${d.name} <span class="code">${d.code}</span> +${(d.change_pct||0).toFixed(1)}% <span style="color:#fca5a5;">${fmtAmtWan(d.buy_amt)}</span>
           </span>`
         ).join('');
       } else if (sniperView === 'master' && sn.limit_up_codes) {
@@ -3545,7 +3545,7 @@ function renderLimitUpPanel() {
           </div>
           <div class="sniper-stat">
             <div class="sniper-stat-label">淨買金額</div>
-            <div class="sniper-stat-value" style="color:${netAmt>0?'#86efac':'#fca5a5'};">${fmtAmtWan(netAmt)}</div>
+            <div class="sniper-stat-value" style="color:${netAmt>0?'#fca5a5':'#86efac'};">${fmtAmtWan(netAmt)}</div>
           </div>
           <div class="sniper-stat">
             <div class="sniper-stat-label">留倉張數</div>
@@ -3566,7 +3566,7 @@ function renderLimitUpPanel() {
   } else {
     consensus.forEach(c => {
       const buyersHTML = (c.buyers || []).map(b => 
-        `<span class="master-tag">${b.master} <span style="color:var(--text-3);font-size:10px;">${b.branch_name}</span> <span style="color:var(--gold-bright);">${fmtAmtWan(b.buy_amt)}</span></span>`
+        `<span class="master-tag">${b.master} <span style="color:var(--text-3);font-size:10px;">${b.branch_name}</span> <span style="color:#fca5a5;">${fmtAmtWan(b.buy_amt)}</span></span>`
       ).join('');
       consHTML += `<div class="consensus-lu-card">
         <div class="consensus-lu-header">
@@ -3577,7 +3577,7 @@ function renderLimitUpPanel() {
           </div>
           <div style="text-align:right;">
             <div style="font-size:12px;color:var(--text-3);">${c.master_count} 位高手共買</div>
-            <div style="font-size:14px;font-weight:700;color:var(--gold-bright);">${fmtAmtWan(c.total_buy_amt)} / ${(c.total_buy_lot||0).toLocaleString()}張</div>
+            <div style="font-size:14px;font-weight:700;color:#fca5a5;">${fmtAmtWan(c.total_buy_amt)} / ${(c.total_buy_lot||0).toLocaleString()}張</div>
           </div>
         </div>
         <div class="consensus-lu-buyers">${buyersHTML}</div>
@@ -3593,7 +3593,7 @@ function renderLimitUpPanel() {
   } else {
     const rows = allLU.map((s, i) => {
       const buyersStr = (s.buyers || []).slice(0, 5).map(b => 
-        `<span style="color:${b.overnight_lots>0?'var(--gold-bright)':'var(--text-2)'};">${b.master}(${b.buy_lot}張)</span>`
+        `<span style="color:${b.overnight_lots>0?'var(--gold-bright)':'#fca5a5'};">${b.master}(${b.buy_lot}張)</span>`
       ).join('、');
       return `<tr onclick="showStockDetail('${s.code}','${(s.name||'').replace(/'/g,"\\'")}')">
         <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
@@ -3604,7 +3604,7 @@ function renderLimitUpPanel() {
         <td class="num" style="color:var(--gold-bright);">${s.master_count} 位</td>
         <td class="num">${s.buyer_count} 次</td>
         <td class="num pos-strong">${fmtAmtWan(s.total_buy_amt)}</td>
-        <td class="num">${(s.total_buy_lot||0).toLocaleString()}張</td>
+        <td class="num" style="color:#fca5a5;">${(s.total_buy_lot||0).toLocaleString()}張</td>
         <td class="num" style="color:${s.total_overnight_lots>0?'var(--gold-bright)':'var(--text-3)'};">${(s.total_overnight_lots||0).toLocaleString()}張</td>
         <td>${buyersStr}</td>
       </tr>`;
@@ -3665,15 +3665,15 @@ function renderLimitUpPanel() {
         `<span style="color:#86efac;">${b.master}(-${b.sell_lot}張)</span>`
       ).join('、');
       return `<tr onclick="showStockDetail('${s.code}','${(s.name||'').replace(/'/g,"\\'")}')">
-        <td class="num" style="color:#86efac;font-weight:700;">#${i+1}</td>
+        <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
         <td><div class="stock-cell">
           <span class="stock-name">${s.name} ${renderLimitUpChip(s.change_pct)}</span>
           <span class="stock-code">${s.code}</span>
         </div></td>
-        <td class="num" style="color:#86efac;">${s.master_count} 位</td>
+        <td class="num" style="color:var(--text-2);">${s.master_count} 位</td>
         <td class="num">${s.seller_count} 次</td>
         <td class="num" style="color:#86efac;font-weight:700;">${fmtAmtWan(s.total_sell_amt)}</td>
-        <td class="num">${(s.total_sell_lot||0).toLocaleString()}張</td>
+        <td class="num" style="color:#86efac;">${(s.total_sell_lot||0).toLocaleString()}張</td>
         <td>${sellersStr}</td>
       </tr>`;
     }).join('');
@@ -3828,7 +3828,7 @@ function renderFlipVerification() {
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:var(--text-2);">
-          <div>昨買：<span style="color:var(--gold-bright);">${sc.total_yesterday_buy_lot.toLocaleString()}張</span></div>
+          <div>昨買：<span style="color:#fca5a5;">${sc.total_yesterday_buy_lot.toLocaleString()}張</span></div>
           <div>今賣：<span style="color:#86efac;">${sc.total_today_sell_lot.toLocaleString()}張</span></div>
         </div>
       </div>`;
@@ -3860,7 +3860,7 @@ function renderFlipVerification() {
           <span class="stock-name">${v.stock_name}</span>
           <span class="stock-code">${v.stock_code}</span>
         </div></td>
-        <td class="num"><span style="color:var(--gold-bright);">${v.yesterday_buy_lot}張</span><br><span style="font-size:10px;color:var(--red);">+${(v.yesterday_change_pct||0).toFixed(1)}%</span></td>
+        <td class="num"><span style="color:#fca5a5;">${v.yesterday_buy_lot}張</span><br><span style="font-size:10px;color:var(--red);">+${(v.yesterday_change_pct||0).toFixed(1)}%</span></td>
         <td class="num"><span style="color:#86efac;">${v.today_sell_lot}張</span>${v.today_change_pct!==null && v.today_change_pct!==undefined ? `<br><span style="font-size:10px;color:${v.today_change_pct>0?'var(--red)':'var(--green)'};">${v.today_change_pct>0?'+':''}${v.today_change_pct.toFixed(1)}%</span>` : ''}</td>
         <td class="num">
           <div class="flip-bar">
@@ -3900,7 +3900,7 @@ function renderFlipVerification() {
           <span class="stock-name">${v.stock_name}</span>
           <span class="stock-code">${v.stock_code}</span>
         </div></td>
-        <td class="num"><span style="color:var(--gold-bright);">${v.yesterday_buy_lot}張</span><br><span style="font-size:10px;color:var(--red);">+${(v.yesterday_change_pct||0).toFixed(1)}%</span></td>
+        <td class="num"><span style="color:#fca5a5;">${v.yesterday_buy_lot}張</span><br><span style="font-size:10px;color:var(--red);">+${(v.yesterday_change_pct||0).toFixed(1)}%</span></td>
         <td class="num" style="color:var(--gold-bright);">${v.yesterday_overnight_lots}張</td>
         <td class="num">${v.today_change_pct!==null && v.today_change_pct!==undefined ? `<span style="color:${v.today_change_pct>0?'var(--red)':(v.today_change_pct<0?'var(--green)':'var(--text-2)')};">${v.today_change_pct>0?'+':''}${v.today_change_pct.toFixed(1)}%</span>` : '—'}</td>
         <td><span class="flip-status still_holding">⏸️ 留倉</span></td>
@@ -4268,7 +4268,7 @@ function renderMarginPanel() {
     { key: 'top_margin_sell', title: '🔴 融資賣超 Top 30', sub: '散戶下車', 
       valueFn: x => `<span class="neg">${fmtLot(x.margin_change)}張</span>` },
     { key: 'top_short_sell', title: '📉 融券增加 Top 30', sub: '新增空單', 
-      valueFn: x => `<span style="color:#a78bfa;">+${x.short_change.toLocaleString()}張</span>` },
+      valueFn: x => `<span style="color:#fca5a5;">+${x.short_change.toLocaleString()}張</span>` },
     { key: 'top_short_cover', title: '📈 融券回補 Top 30', sub: '空單回補', 
       valueFn: x => `<span style="color:#86efac;">${x.short_change.toLocaleString()}張</span>` },
     { key: 'top_offsetting', title: '🔥 當沖熱門 Top 30', sub: '資券互抵', 
@@ -4276,7 +4276,7 @@ function renderMarginPanel() {
     { key: 'top_margin_usage', title: '⚠️ 融資使用率 Top 30', sub: '散戶壓注集中', 
       valueFn: x => renderUsageBar(x.margin_usage) },
     { key: 'top_margin_short_ratio', title: '⚡ 券資比 Top 30', sub: '軋空潛力', 
-      valueFn: x => `<span style="color:#d8b4fe;">${x.margin_short_ratio.toFixed(1)}%</span>` },
+      valueFn: x => `<span style="color:var(--gold-bright);">${x.margin_short_ratio.toFixed(1)}%</span>` },
   ];
   
   let html = '';
