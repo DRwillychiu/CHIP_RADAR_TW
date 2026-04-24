@@ -1,6 +1,7 @@
 name: 1. Daily Full Crawl (20:00)
 
-# v3.14.6: 主爬蟲 - 每個交易日晚上 20:00 執行
+# v3.14.7: 修復 v3.14.6 的 git pull --rebase 順序錯誤
+# 主爬蟲 - 每個交易日晚上 20:00 執行
 # 抓取: 分點 + 三大法人 + 個股行情 + 融資融券 (可能 T-1) + 產業分類
 
 on:
@@ -50,11 +51,24 @@ jobs:
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions Bot"
-          git pull --rebase  # 避免衝突
           git add data/
+          
+          # 檢查是否有變動
           if git diff --staged --quiet; then
             echo "No changes to commit"
-          else
-            git commit -m "🔒 [FULL] Daily chip data $(TZ=Asia/Taipei date +%Y-%m-%d\ %H:%M)"
-            git push
+            exit 0
           fi
+          
+          git commit -m "🔒 [FULL] Daily chip data $(TZ=Asia/Taipei date +%Y-%m-%d\ %H:%M)"
+          
+          # Push with retry (萬一同時多個 workflow push)
+          for i in 1 2 3; do
+            if git push; then
+              echo "✅ Push success on attempt $i"
+              break
+            else
+              echo "⚠️ Push attempt $i failed, retry..."
+              git pull --rebase --strategy-option=theirs || git rebase --abort
+              sleep $((i * 5))
+            fi
+          done
