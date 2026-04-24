@@ -1,0 +1,60 @@
+name: 2. Margin Refresh (22:30 / 00:00 / 08:00)
+
+# v3.14.6: 融資融券補更新 - 避免 TWSE 延後公告導致顯示 T-1
+# 三個時段中任一個成功就停止更新 (聰明跳過機制)
+
+on:
+  schedule:
+    # 台灣時間 22:30 (UTC 14:30)
+    - cron: '30 14 * * 1-5'
+    # 台灣時間 00:00 (UTC 16:00) — 隔日凌晨
+    - cron: '0 16 * * 2-6'
+    # 台灣時間 08:00 (UTC 00:00) — 隔日早上
+    - cron: '0 0 * * 2-6'
+  
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  margin_refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install requests cryptography
+      
+      - name: Run margin_only
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+          CHIP_RADAR_STAGE: margin_only
+        run: |
+          echo "🎯 STAGE=margin_only (融資融券補更新)"
+          echo "   台灣時間: $(TZ=Asia/Taipei date +%Y-%m-%d\ %H:%M:%S)"
+          python crawler.py
+        continue-on-error: true
+      
+      - name: Commit and push data
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git pull --rebase
+          git add data/
+          if git diff --staged --quiet; then
+            echo "✅ 融資融券已是最新 T-0 (無需更新)"
+          else
+            git commit -m "🔄 [MARGIN] Margin update $(TZ=Asia/Taipei date +%Y-%m-%d\ %H:%M)"
+            git push
+          fi
