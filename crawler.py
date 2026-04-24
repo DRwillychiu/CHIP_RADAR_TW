@@ -44,6 +44,7 @@ from institutional import (
 import reports  # v3.9 週報/月報生成
 import margin   # v3.11 融資融券
 import industry_classifier  # v3.15.0 產業分類
+import history  # v3.15.2 歷史資料累積
 
 TW_TZ = timezone(timedelta(hours=8))
 
@@ -1798,12 +1799,27 @@ def main():
         print(f"  ⚠️ 產業分類失敗: {e}（不影響主流程）")
         import traceback; traceback.print_exc()
     
+    # ════════════════════════════════════════════════════════════════
+    # v3.15.2 新增：歷史資料累積 (for 三線比較圖)
+    # ════════════════════════════════════════════════════════════════
+    try:
+        history.update_history(
+            data_dir=data_dir,
+            trade_date=trade_date,
+            daily_quotes_map=daily_quotes_map,
+            industry_map=industry_map,
+            branches_results=results,
+        )
+    except Exception as e:
+        print(f"  ⚠️ 歷史累積失敗: {e}（不影響主流程）")
+        import traceback; traceback.print_exc()
+    
     # ===== 組裝當日 JSON =====
     raw_output = {
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.16.0",
+        "version": "3.16.1",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -1881,7 +1897,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.16.0",
+            "version": "3.16.1",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
