@@ -1,0 +1,60 @@
+name: 1. Daily Full Crawl (20:00)
+
+# v3.14.6: 主爬蟲 - 每個交易日晚上 20:00 執行
+# 抓取: 分點 + 三大法人 + 個股行情 + 融資融券 (可能 T-1) + 產業分類
+
+on:
+  schedule:
+    # 台灣時間 20:00 (UTC 12:00)
+    - cron: '0 12 * * 1-5'
+  
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '強制重抓 (忽略快取)'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install requests cryptography
+      
+      - name: Run full crawler
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+          CHIP_RADAR_STAGE: full
+        run: |
+          echo "🎯 STAGE=full (主爬蟲)"
+          python crawler.py
+        continue-on-error: true
+      
+      - name: Commit and push data
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git pull --rebase  # 避免衝突
+          git add data/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🔒 [FULL] Daily chip data $(TZ=Asia/Taipei date +%Y-%m-%d\ %H:%M)"
+            git push
+          fi
