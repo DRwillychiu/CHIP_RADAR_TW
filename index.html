@@ -955,6 +955,99 @@ th.sortable.sort-desc::after {
    v3.15.1: 產業分類相關樣式
    ══════════════════════════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════════════════════════
+   v3.16.1: 三線比較圖 (個股 vs 產業 vs 大盤)
+   ══════════════════════════════════════════════════════════════ */
+#stockTrendChartContainer {
+  margin: 16px 0 20px;
+  padding: 16px 18px 14px;
+  background: linear-gradient(135deg, rgba(31,42,72,0.4) 0%, rgba(15,21,37,0.6) 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.trend-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.trend-chart-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.trend-chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.chart-days-btn {
+  background: rgba(31,42,72,0.5);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+.chart-days-btn:hover {
+  border-color: var(--accent);
+  color: var(--text-1);
+}
+.chart-days-btn.active {
+  background: rgba(250,204,21,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.trend-chart-wrapper {
+  position: relative;
+  height: 300px;
+  padding: 6px 0;
+}
+.trend-chart-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(148,163,184,0.15);
+}
+.trend-chart-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.trend-chart-stat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.trend-chart-stat-label {
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.trend-chart-stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  margin-left: auto;
+}
+.trend-chart-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
 /* 個股產業 chip (小標籤) */
 .industry-chip {
   display: inline-block;
@@ -2779,6 +2872,28 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
         </div>
       </div>
     </div>
+    
+    <!-- v3.16.1: 三線比較圖 -->
+    <div id="stockTrendChartContainer" style="display:none;">
+      <div class="trend-chart-header">
+        <div class="trend-chart-title">
+          <span id="trendChartStockName">—</span>
+          <span id="trendChartStockIndustry" class="industry-chip" style="display:none;"></span>
+        </div>
+        <div class="trend-chart-controls">
+          <span class="control-label">觀察期間：</span>
+          <button class="chart-days-btn" data-days="5" onclick="setTrendDays(5)">5 天</button>
+          <button class="chart-days-btn active" data-days="10" onclick="setTrendDays(10)">10 天</button>
+          <button class="chart-days-btn" data-days="20" onclick="setTrendDays(20)">20 天</button>
+          <button class="chart-days-btn" data-days="30" onclick="setTrendDays(30)">30 天</button>
+        </div>
+      </div>
+      <div class="trend-chart-wrapper">
+        <canvas id="stockTrendCanvas"></canvas>
+      </div>
+      <div class="trend-chart-stats" id="trendChartStats"></div>
+    </div>
+    
     <div id="stockTraceResult"></div>
   </div>
 
@@ -3062,6 +3177,9 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 </div>
 
 </div><!-- /app-content -->
+
+<!-- v3.16.1: Chart.js for 三線比較圖 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
 <script>
 // ========== 加密 ==========
@@ -4926,6 +5044,273 @@ function setStockMode(m) {
   document.querySelectorAll('#panel-stock .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
   renderStockTrace();
 }
+
+// ════════════════════════════════════════════════════════════════════
+// v3.16.1: 三線比較圖 (個股 vs 產業 vs 大盤)
+// ════════════════════════════════════════════════════════════════════
+let STOCK_HISTORY_CACHE = null;  // 快取 stock_history.json
+let CURRENT_TREND_CHART = null;   // Chart.js 實例
+let CURRENT_TREND_STOCK = null;   // 當前顯示的股票代碼
+let CURRENT_TREND_DAYS = 10;      // 當前觀察天數
+
+async function loadStockHistory() {
+  if (STOCK_HISTORY_CACHE) return STOCK_HISTORY_CACHE;
+  try {
+    const r = await fetch('data/stock_history.json?_=' + Date.now());
+    if (!r.ok) return null;
+    STOCK_HISTORY_CACHE = await r.json();
+    return STOCK_HISTORY_CACHE;
+  } catch (e) {
+    console.warn('loadStockHistory failed:', e);
+    return null;
+  }
+}
+
+function setTrendDays(n) {
+  CURRENT_TREND_DAYS = n;
+  document.querySelectorAll('.chart-days-btn').forEach(b => 
+    b.classList.toggle('active', parseInt(b.dataset.days) === n));
+  if (CURRENT_TREND_STOCK) {
+    renderStockTrendChart(CURRENT_TREND_STOCK);
+  }
+}
+
+async function renderStockTrendChart(stockCode) {
+  const container = document.getElementById('stockTrendChartContainer');
+  if (!container) return;
+  
+  const history = await loadStockHistory();
+  if (!history || !history.stocks || !history.dates || history.dates.length === 0) {
+    container.style.display = 'block';
+    container.innerHTML = `
+      <div class="trend-chart-empty">
+        <div style="font-size:24px;margin-bottom:8px;">📊</div>
+        <div>歷史資料尚未累積</div>
+        <div style="font-size:11px;margin-top:6px;">每日 20:00 自動爬蟲會累積資料,請過幾天再來</div>
+      </div>`;
+    return;
+  }
+  
+  const stock = history.stocks[stockCode];
+  if (!stock) {
+    container.style.display = 'block';
+    container.innerHTML = `
+      <div class="trend-chart-empty">
+        <div style="font-size:24px;margin-bottom:8px;">⚠️</div>
+        <div>找不到 ${stockCode} 的歷史資料</div>
+        <div style="font-size:11px;margin-top:6px;">此股可能尚未進入資料庫,或非上市櫃個股</div>
+      </div>`;
+    return;
+  }
+  
+  // 重新渲染完整 UI (因為可能上次是 empty 狀態)
+  container.innerHTML = `
+    <div class="trend-chart-header">
+      <div class="trend-chart-title">
+        <span id="trendChartStockName">${stock.name || stockCode} (${stockCode})</span>
+        ${stock.industry ? `<span class="industry-chip ${getIndustryClass(stock.industry)}" title="${stock.industry}">${stock.industry.replace('業','').replace('工業','')}</span>` : ''}
+      </div>
+      <div class="trend-chart-controls">
+        <span class="control-label">觀察期間：</span>
+        <button class="chart-days-btn ${CURRENT_TREND_DAYS===5?'active':''}" data-days="5" onclick="setTrendDays(5)">5 天</button>
+        <button class="chart-days-btn ${CURRENT_TREND_DAYS===10?'active':''}" data-days="10" onclick="setTrendDays(10)">10 天</button>
+        <button class="chart-days-btn ${CURRENT_TREND_DAYS===20?'active':''}" data-days="20" onclick="setTrendDays(20)">20 天</button>
+        <button class="chart-days-btn ${CURRENT_TREND_DAYS===30?'active':''}" data-days="30" onclick="setTrendDays(30)">30 天</button>
+      </div>
+    </div>
+    <div class="trend-chart-wrapper">
+      <canvas id="stockTrendCanvas"></canvas>
+    </div>
+    <div class="trend-chart-stats" id="trendChartStats"></div>
+  `;
+  container.style.display = 'block';
+  
+  // 取最近 N 天日期
+  const allDates = history.dates.slice(-CURRENT_TREND_DAYS);
+  if (allDates.length === 0) {
+    document.getElementById('trendChartStats').innerHTML = 
+      '<div class="trend-chart-empty">無資料可顯示</div>';
+    return;
+  }
+  
+  // 基準日 = 第一天,後續都以基準日為 0% 計算累積漲跌
+  const baseDate = allDates[0];
+  const industry = stock.industry;
+  
+  // 個股線:累積漲跌%
+  const stockDaily = stock.daily || {};
+  const stockBaseClose = stockDaily[baseDate]?.close;
+  const stockLine = allDates.map(d => {
+    const close = stockDaily[d]?.close;
+    if (!close || !stockBaseClose) return null;
+    return round2(((close - stockBaseClose) / stockBaseClose) * 100);
+  });
+  
+  // 產業線:累積平均漲跌%
+  const industryData = history.industry_avg?.[industry] || {};
+  const industryLine = (() => {
+    if (!industry || !industryData[baseDate]) return allDates.map(() => null);
+    // 累積產業每日平均漲跌
+    let cumulative = 0;
+    return allDates.map((d, i) => {
+      if (i === 0) return 0;
+      const dayPct = industryData[d]?.avg_change_pct;
+      if (dayPct !== undefined && dayPct !== null) {
+        cumulative += dayPct;
+      }
+      return round2(cumulative);
+    });
+  })();
+  
+  // 大盤線
+  const marketData = history.market || {};
+  const marketBaseIdx = marketData[baseDate]?.index;
+  const marketLine = allDates.map(d => {
+    const idx = marketData[d]?.index;
+    if (!idx || !marketBaseIdx) return null;
+    return round2(((idx - marketBaseIdx) / marketBaseIdx) * 100);
+  });
+  
+  // 日期 label 格式化
+  const labels = allDates.map(d => `${d.slice(4,6)}/${d.slice(6,8)}`);
+  
+  // 摧毀舊圖
+  if (CURRENT_TREND_CHART) {
+    CURRENT_TREND_CHART.destroy();
+    CURRENT_TREND_CHART = null;
+  }
+  
+  const canvas = document.getElementById('stockTrendCanvas');
+  if (!canvas || typeof Chart === 'undefined') {
+    container.innerHTML = '<div class="trend-chart-empty">⚠️ Chart.js 載入失敗</div>';
+    return;
+  }
+  
+  const ctx = canvas.getContext('2d');
+  CURRENT_TREND_CHART = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: `${stock.name || stockCode}`,
+          data: stockLine,
+          borderColor: '#f0c850',      // 金色 (個股主角)
+          backgroundColor: 'rgba(240,200,80,0.08)',
+          borderWidth: 2.5,
+          tension: 0.25,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#f0c850',
+          pointBorderColor: '#0a0e1a',
+          pointBorderWidth: 1,
+        },
+        {
+          label: industry ? `${industry} (產業均)` : '產業均',
+          data: industryLine,
+          borderColor: '#a78bfa',      // 紫色 (產業)
+          backgroundColor: 'rgba(167,139,250,0.05)',
+          borderWidth: 2,
+          tension: 0.25,
+          pointRadius: 2.5,
+          pointHoverRadius: 4,
+          borderDash: [5, 3],
+        },
+        {
+          label: '大盤指數',
+          data: marketLine,
+          borderColor: '#5c6680',      // 灰色 (大盤)
+          backgroundColor: 'rgba(92,102,128,0.05)',
+          borderWidth: 2,
+          tension: 0.25,
+          pointRadius: 2.5,
+          pointHoverRadius: 4,
+          borderDash: [2, 2],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: {
+            color: '#e8edf7',
+            font: { size: 12 },
+            padding: 12,
+            usePointStyle: true,
+            pointStyle: 'rectRounded',
+          },
+        },
+        tooltip: {
+          backgroundColor: 'rgba(10,14,26,0.95)',
+          borderColor: '#1f2a48',
+          borderWidth: 1,
+          titleColor: '#e8edf7',
+          bodyColor: '#e8edf7',
+          padding: 10,
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed.y;
+              if (v === null || v === undefined) return `${ctx.dataset.label}: —`;
+              const sign = v > 0 ? '+' : '';
+              return `${ctx.dataset.label}: ${sign}${v.toFixed(2)}%`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(148,163,184,0.08)', drawBorder: false },
+          ticks: { color: '#9aa4bd', font: { size: 11 } },
+        },
+        y: {
+          grid: { color: 'rgba(148,163,184,0.08)', drawBorder: false },
+          ticks: {
+            color: '#9aa4bd',
+            font: { size: 11 },
+            callback: (v) => (v > 0 ? '+' : '') + v.toFixed(1) + '%',
+          },
+        },
+      },
+    },
+  });
+  
+  // 統計資訊
+  const statsEl = document.getElementById('trendChartStats');
+  const stockLast = stockLine[stockLine.length - 1];
+  const industryLast = industryLine[industryLine.length - 1];
+  const marketLast = marketLine[marketLine.length - 1];
+  
+  const fmtTrend = (v) => {
+    if (v === null || v === undefined) return '—';
+    const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+    const sign = v > 0 ? '+' : '';
+    return `<span class="${cls}">${sign}${v.toFixed(2)}%</span>`;
+  };
+  
+  statsEl.innerHTML = `
+    <div class="trend-chart-stat">
+      <div class="trend-chart-stat-dot" style="background:#f0c850;"></div>
+      <div class="trend-chart-stat-label">${stock.name || stockCode}</div>
+      <div class="trend-chart-stat-value">${fmtTrend(stockLast)}</div>
+    </div>
+    <div class="trend-chart-stat">
+      <div class="trend-chart-stat-dot" style="background:#a78bfa;"></div>
+      <div class="trend-chart-stat-label">${industry || '產業均'}</div>
+      <div class="trend-chart-stat-value">${fmtTrend(industryLast)}</div>
+    </div>
+    <div class="trend-chart-stat">
+      <div class="trend-chart-stat-dot" style="background:#5c6680;"></div>
+      <div class="trend-chart-stat-label">大盤指數</div>
+      <div class="trend-chart-stat-value">${fmtTrend(marketLast)}</div>
+    </div>
+  `;
+}
+
+function round2(n) { return Math.round(n * 100) / 100; }
+
 function setRankPeriod(p) {
   rankPeriod = p;
   document.querySelectorAll('#panel-ranking [data-period]').forEach(b => b.classList.toggle('active', b.dataset.period === p));
@@ -6777,8 +7162,20 @@ function renderInstSearch(el) {
   
   if (matched.length === 0) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">🤷</div>查無此股票</div>`;
+    // v3.16.1: 清除三線圖
+    const chartContainer = document.getElementById('stockTrendChartContainer');
+    if (chartContainer) chartContainer.style.display = 'none';
+    CURRENT_TREND_STOCK = null;
+    if (CURRENT_TREND_CHART) { CURRENT_TREND_CHART.destroy(); CURRENT_TREND_CHART = null; }
     return;
   }
+  
+  // v3.16.1: 顯示三線比較圖 (第一檔匹配)
+  // 用 requestAnimationFrame 確保 layout 完成後再渲染 canvas (避免 0x0 race)
+  CURRENT_TREND_STOCK = matched[0].code;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => renderStockTrendChart(CURRENT_TREND_STOCK));
+  });
   
   // 為每檔股票，找出哪些分點/高手有買
   const cardsHTML = matched.slice(0, 20).map(s => {
