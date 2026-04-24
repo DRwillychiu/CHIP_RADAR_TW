@@ -951,6 +951,144 @@ th.sortable.sort-desc::after {
 .usage-bar-fill.mid { background: linear-gradient(90deg, #f59e0b, #f97316); }
 .usage-bar-fill.high { background: linear-gradient(90deg, #ef4444, #dc2626); }
 
+/* ══════════════════════════════════════════════════════════════
+   v3.15.1: 產業分類相關樣式
+   ══════════════════════════════════════════════════════════════ */
+
+/* 個股產業 chip (小標籤) */
+.industry-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  line-height: 1.4;
+  font-weight: 500;
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.3);
+  color: #93c5fd;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+/* 電子產業用紫色 */
+.industry-chip.electronic { background: rgba(139,92,246,0.12); border-color: rgba(139,92,246,0.3); color: #c4b5fd; }
+/* 傳產藍色 (default) */
+/* 金融綠色 */
+.industry-chip.finance { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.3); color: #86efac; }
+/* 生技粉色 */
+.industry-chip.biotech { background: rgba(236,72,153,0.12); border-color: rgba(236,72,153,0.3); color: #f9a8d4; }
+/* 航運觀光營建橙色 */
+.industry-chip.service { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.3); color: #fcd34d; }
+
+/* 強弱族群區塊 */
+.industry-strength-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+@media (max-width: 900px) {
+  .industry-strength-panel { grid-template-columns: 1fr; }
+}
+.industry-strength-card {
+  background: linear-gradient(135deg, rgba(31,42,72,0.5) 0%, rgba(31,42,72,0.25) 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.industry-strength-card.strong {
+  border-color: rgba(239,68,68,0.35);
+  background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(31,42,72,0.25) 100%);
+}
+.industry-strength-card.weak {
+  border-color: rgba(16,185,129,0.35);
+  background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(31,42,72,0.25) 100%);
+}
+.industry-strength-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(148,163,184,0.2);
+}
+.industry-strength-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.industry-strength-subtitle {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.industry-strength-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 70px 55px 52px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(148,163,184,0.06);
+  font-size: 12.5px;
+}
+.industry-strength-row:last-child { border-bottom: none; }
+.industry-strength-rank {
+  color: var(--text-3);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+}
+.industry-strength-name {
+  font-weight: 500;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.industry-strength-change {
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 13px;
+}
+.industry-strength-change.pos { color: #fca5a5; }
+.industry-strength-change.neg { color: #86efac; }
+.industry-strength-ratio {
+  text-align: right;
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+}
+.industry-strength-count {
+  text-align: right;
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+}
+.industry-strength-samples {
+  font-size: 10px;
+  color: var(--text-3);
+  padding: 4px 0 0 36px;
+  font-family: 'JetBrains Mono', monospace;
+  opacity: 0.8;
+}
+
+/* Modal 內的產業篩選下拉 */
+.signal-modal-filter {
+  background: rgba(31,42,72,0.5);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  max-width: 180px;
+}
+.signal-modal-filter:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 /* v3.14.4: 資料日期標示區塊 */
 .data-date-banner {
   display: flex;
@@ -2879,6 +3017,12 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
       <button class="signal-modal-sort-btn" data-sort="inst_foreign" onclick="sortSignalModal('inst_foreign')">外資買賣超</button>
       <button class="signal-modal-sort-btn" data-sort="margin_usage" onclick="sortSignalModal('margin_usage')">融資使用率</button>
       <button class="signal-modal-sort-btn" data-sort="margin_short_ratio" onclick="sortSignalModal('margin_short_ratio')">券資比</button>
+      <span style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+        <span class="signal-modal-sort-label">產業：</span>
+        <select id="signalModalIndustryFilter" class="signal-modal-filter" onchange="filterSignalModal(this.value)">
+          <option value="">全部</option>
+        </select>
+      </span>
     </div>
     <div class="signal-modal-body">
       <table class="signal-modal-table" id="signalModalTable">
@@ -3850,6 +3994,116 @@ function fmtLot(n) {
   return `${sign}${num.toLocaleString()}`;
 }
 
+// ════════════════════════════════════════════════════════════════════
+// v3.15.1: 產業分類工具函數
+// ════════════════════════════════════════════════════════════════════
+
+// 給某個產業名稱決定 CSS class (配色)
+function getIndustryClass(industry) {
+  if (!industry) return '';
+  // 電子產業
+  if (['半導體業', '電腦及週邊設備業', '光電業', '通信網路業',
+       '電子零組件業', '電子通路業', '資訊服務業', '其他電子業',
+       '數位雲端'].includes(industry)) return 'electronic';
+  // 金融保險
+  if (industry === '金融保險業') return 'finance';
+  // 生技醫療
+  if (industry === '生技醫療業') return 'biotech';
+  // 航運/觀光/營建/貿易
+  if (['航運業', '觀光餐旅', '建材營造', '貿易百貨'].includes(industry)) return 'service';
+  // 傳產 - default (藍色)
+  return '';
+}
+
+// 取得某個個股代號的產業
+function getStockIndustry(code) {
+  if (!code || !CURRENT_DATA) return null;
+  const im = CURRENT_DATA.industry_map;
+  if (!im || !im.stock_industry) return null;
+  return im.stock_industry[code] || null;
+}
+
+// 產生產業 chip HTML (給個股名稱旁邊加)
+function renderIndustryChip(codeOrIndustry) {
+  let industry;
+  if (typeof codeOrIndustry === 'string' && /^\d+/.test(codeOrIndustry)) {
+    // 是股票代號
+    industry = getStockIndustry(codeOrIndustry);
+  } else {
+    industry = codeOrIndustry;
+  }
+  if (!industry) return '';
+  // 簡稱顯示 (太長截斷)
+  const short = industry.replace('業', '').replace('工業', '');
+  const cls = getIndustryClass(industry);
+  return `<span class="industry-chip ${cls}" title="${industry}">${short}</span>`;
+}
+
+// 計算強弱族群 (從 CURRENT_DATA 的個股行情 + 產業對照表)
+function computeIndustryStrength() {
+  if (!CURRENT_DATA || !CURRENT_DATA.industry_map) return null;
+  const stock2ind = CURRENT_DATA.industry_map.stock_industry || {};
+  if (Object.keys(stock2ind).length === 0) return null;
+  
+  // 彙整每個個股的漲跌幅 (從 margin_data / branches 中取)
+  const stockChange = {};  // code -> change_pct
+  
+  // 來源 1: margin_data (最完整, 涵蓋 Top 100)
+  if (CURRENT_DATA.margin_data) {
+    for (const [code, m] of Object.entries(CURRENT_DATA.margin_data)) {
+      if (m && m.change_pct !== null && m.change_pct !== undefined) {
+        stockChange[code] = m.change_pct;
+      }
+    }
+  }
+  // 來源 2: branches 裡的個股
+  for (const br of (CURRENT_DATA.branches || [])) {
+    for (const s of (br.buys || []).concat(br.sells || [])) {
+      if (s.code && s.change_pct !== null && s.change_pct !== undefined) {
+        if (!(s.code in stockChange)) {
+          stockChange[s.code] = s.change_pct;
+        }
+      }
+    }
+  }
+  
+  // 按產業聚合
+  const industryStats = {};  // industry -> {changes:[], total, up, samples:[]}
+  for (const [code, change] of Object.entries(stockChange)) {
+    const ind = stock2ind[code];
+    if (!ind || ind.startsWith('未知')) continue;
+    if (!industryStats[ind]) {
+      industryStats[ind] = { changes: [], total: 0, up: 0, down: 0, samples: [] };
+    }
+    industryStats[ind].changes.push(change);
+    industryStats[ind].total++;
+    if (change > 0) industryStats[ind].up++;
+    else if (change < 0) industryStats[ind].down++;
+    industryStats[ind].samples.push({ code, change });
+  }
+  
+  // 計算平均、排序代表股
+  const results = [];
+  for (const [ind, stats] of Object.entries(industryStats)) {
+    if (stats.total < 3) continue;  // 至少 3 檔才納入統計 (避免小樣本誤判)
+    const avg = stats.changes.reduce((a,b)=>a+b,0) / stats.total;
+    // 排序代表股 (漲幅最大 3 檔)
+    stats.samples.sort((a,b) => b.change - a.change);
+    results.push({
+      industry: ind,
+      avg_change: avg,
+      total: stats.total,
+      up: stats.up,
+      down: stats.down,
+      up_ratio: stats.up / stats.total,
+      top_stocks: stats.samples.slice(0, 3),
+      bottom_stocks: stats.samples.slice(-3).reverse(),
+    });
+  }
+  
+  return results;
+}
+
 function renderMarginPanel() {
   if (!CURRENT_DATA) {
     document.getElementById('marginRankGrid').innerHTML = '<div class="report-empty">請先載入資料</div>';
@@ -3935,11 +4189,13 @@ function renderMarginPanel() {
       signalCounter[sig] = (signalCounter[sig] || 0) + 1;
       if (sig !== 'neutral' && signalStocks[sig]) {
         // v3.14.5: 完整收集所有籌碼欄位（給 Modal 用）
+        // v3.15.1: 加入產業欄位
         signalStocks[sig].push({
           code: s.code,
           name: s.name,
           change_pct: s.change_pct,
           close: s.close,
+          industry: getStockIndustry(s.code),  // v3.15.1
           // 融資
           margin_balance: s.margin_balance,
           margin_change: s.margin_change,
@@ -4031,7 +4287,7 @@ function renderMarginPanel() {
     const rows = list.slice(0, 20).map((x, i) => `
       <div class="margin-rank-row" onclick="showStockDetail('${x.code}','${(x.name || '').replace(/'/g,"\\'")}')">
         <span class="rank-num">#${i+1}</span>
-        <span class="rank-name">${x.name || x.code}<span class="code">${x.code}</span></span>
+        <span class="rank-name">${x.name || x.code}${renderIndustryChip(x.code)}<span class="code">${x.code}</span></span>
         <span class="rank-value">${cfg.valueFn(x)}</span>
       </div>
     `).join('');
@@ -4814,6 +5070,7 @@ function openSignalModal(signalType) {
   
   window._CURRENT_SIGNAL_TYPE = signalType;
   window._SIGNAL_SORT = 'change_pct';  // 每次打開重置排序
+  window._SIGNAL_INDUSTRY_FILTER = '';  // v3.15.1: 重置產業篩選
   
   document.getElementById('signalModalIcon').textContent = meta.icon;
   document.getElementById('signalModalTitle').textContent = meta.title;
@@ -4828,6 +5085,21 @@ function openSignalModal(signalType) {
   const firstBtn = document.querySelector('.signal-modal-sort-btn[data-sort="change_pct"]');
   if (firstBtn) firstBtn.textContent = firstBtn.textContent + ' ▼';
   
+  // v3.15.1: 填充產業篩選下拉
+  const filter = document.getElementById('signalModalIndustryFilter');
+  if (filter) {
+    const industriesInStocks = {};
+    stocks.forEach(s => {
+      if (s.industry) {
+        industriesInStocks[s.industry] = (industriesInStocks[s.industry] || 0) + 1;
+      }
+    });
+    // 按檔數降冪排序
+    const sortedInds = Object.entries(industriesInStocks).sort((a,b) => b[1] - a[1]);
+    filter.innerHTML = `<option value="">全部 (${stocks.length})</option>` +
+      sortedInds.map(([ind, cnt]) => `<option value="${ind}">${ind} (${cnt})</option>`).join('');
+  }
+  
   renderSignalModalTable();
   
   document.getElementById('signalModalOverlay').classList.add('active');
@@ -4837,6 +5109,12 @@ function openSignalModal(signalType) {
 function closeSignalModal() {
   document.getElementById('signalModalOverlay').classList.remove('active');
   document.body.style.overflow = '';
+}
+
+// v3.15.1: 產業篩選
+function filterSignalModal(industry) {
+  window._SIGNAL_INDUSTRY_FILTER = industry || '';
+  renderSignalModalTable();
 }
 
 function sortSignalModal(key) {
@@ -4855,28 +5133,44 @@ function sortSignalModal(key) {
 
 function renderSignalModalTable() {
   const type = window._CURRENT_SIGNAL_TYPE;
-  const stocks = [...((window._SIGNAL_STOCKS || {})[type] || [])];
+  let stocks = [...((window._SIGNAL_STOCKS || {})[type] || [])];
   const sortKey = window._SIGNAL_SORT || 'change_pct';
+  const industryFilter = window._SIGNAL_INDUSTRY_FILTER || '';
   
-  // 排序：按絕對值大小降冪（讓最有意義的數據排在前面）
+  // v3.15.1: 產業篩選
+  const totalCount = stocks.length;
+  if (industryFilter) {
+    stocks = stocks.filter(s => s.industry === industryFilter);
+  }
+  
+  // 更新計數顯示
+  const countEl = document.getElementById('signalModalCount');
+  if (countEl) {
+    if (industryFilter) {
+      countEl.textContent = `${stocks.length} / ${totalCount} 檔`;
+    } else {
+      countEl.textContent = `${totalCount} 檔`;
+    }
+  }
+  
+  // 排序:按絕對值大小降冪 (讓最有意義的數據排在前面)
   stocks.sort((a, b) => {
     const av = a[sortKey];
     const bv = b[sortKey];
-    // null/undefined 排最後
     if (av == null && bv == null) return 0;
     if (av == null) return 1;
     if (bv == null) return -1;
-    
-    // change_pct 用實際值降冪（紅字在上）
     if (sortKey === 'change_pct') return bv - av;
-    // 其他用絕對值降冪（關注「大變化」不管方向）
     return Math.abs(bv) - Math.abs(av);
   });
   
   const tbody = document.getElementById('signalModalTbody');
   
   if (!stocks.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-3);">此分類目前沒有符合的個股</td></tr>';
+    const msg = industryFilter 
+      ? `「${industryFilter}」產業此分類沒有符合的個股`
+      : '此分類目前沒有符合的個股';
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-3);">${msg}</td></tr>`;
     document.getElementById('signalModalStat').textContent = '—';
     return;
   }
@@ -4899,10 +5193,11 @@ function renderSignalModalTable() {
     return `<span class="usage-cell">${v.toFixed(2)}%</span>`;
   };
   
+  // v3.15.1: 每列加產業 chip
   tbody.innerHTML = stocks.map(s => `
     <tr>
       <td class="td-name">
-        <span class="td-code">${s.code}</span> ${s.name || ''}
+        <span class="td-code">${s.code}</span> ${s.name || ''}${s.industry ? renderIndustryChip(s.industry) : ''}
       </td>
       <td>${fmtPct(s.change_pct)}</td>
       <td>${fmtNum(s.margin_balance)}</td>
@@ -5011,7 +5306,7 @@ function renderOverview() {
     return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
       <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
       <td><div class="stock-cell">
-        <span class="stock-name">${s.name}${badge}${renderMarketChip(s)}${renderLimitUpChip(s.change_pct)}${renderSignalBadge(s.margin_signal, overviewSide)}</span>
+        <span class="stock-name">${s.name}${badge}${renderMarketChip(s)}${renderIndustryChip(s.code)}${renderLimitUpChip(s.change_pct)}${renderSignalBadge(s.margin_signal, overviewSide)}</span>
         <span class="stock-code">${s.code}</span>
       </div></td>
       <td class="num"><span class="badge ${s.branches.length>=4?'':'gold'}">${s.branches.length} 分點</span></td>
@@ -5061,8 +5356,14 @@ function renderToday3() {
     return;
   }
   
-  // 包一個 wrapper：本地市場篩選器 + 內容區
-  el.innerHTML = renderLocalMarketBar('today3') + '<div id="today3Inner"></div>';
+  // 包一個 wrapper：本地市場篩選器 + 強弱族群 + 內容區
+  el.innerHTML = renderLocalMarketBar('today3') + 
+    '<div id="today3Strength"></div>' +    // v3.15.1: 強弱族群區塊
+    '<div id="today3Inner"></div>';
+  
+  // 渲染強弱族群
+  renderIndustryStrengthPanel('today3Strength');
+  
   const inner = document.getElementById('today3Inner');
   
   if (todayView === 'daytrade') {
@@ -5072,6 +5373,84 @@ function renderToday3() {
   } else {
     renderSwingView(inner);
   }
+}
+
+// v3.15.1: 渲染強弱族群區塊
+function renderIndustryStrengthPanel(targetId) {
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  
+  const results = computeIndustryStrength();
+  if (!results || results.length === 0) {
+    target.innerHTML = '';
+    return;
+  }
+  
+  // 分別取強勢 Top 5 + 弱勢 Top 5
+  const strong = [...results].sort((a,b) => b.avg_change - a.avg_change).slice(0, 5);
+  const weak = [...results].sort((a,b) => a.avg_change - b.avg_change).slice(0, 5);
+  
+  const fmtChange = (v) => {
+    const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+    const sign = v > 0 ? '+' : '';
+    return `<span class="industry-strength-change ${cls}">${sign}${v.toFixed(2)}%</span>`;
+  };
+  
+  const renderRow = (item, rank) => `
+    <div class="industry-strength-row" title="${item.industry}">
+      <div class="industry-strength-rank">#${rank}</div>
+      <div class="industry-strength-name">${item.industry}</div>
+      ${fmtChange(item.avg_change)}
+      <div class="industry-strength-ratio">${(item.up_ratio*100).toFixed(0)}%紅</div>
+      <div class="industry-strength-count">${item.total}檔</div>
+    </div>
+  `;
+  
+  const topSamples = (stocks) => {
+    if (!stocks || stocks.length === 0) return '';
+    return stocks.slice(0, 2).map(s => {
+      const name = (getStockIndustry(s.code) && CURRENT_DATA.margin_data && CURRENT_DATA.margin_data[s.code])
+        ? (CURRENT_DATA.margin_data[s.code].name || '')
+        : '';
+      // 找名稱從 branches
+      let stockName = name;
+      if (!stockName) {
+        for (const br of (CURRENT_DATA.branches || [])) {
+          for (const x of (br.buys || []).concat(br.sells || [])) {
+            if (x.code === s.code && x.name) { stockName = x.name; break; }
+          }
+          if (stockName) break;
+        }
+      }
+      const sign = s.change > 0 ? '+' : '';
+      return `${s.code} ${stockName || ''} (${sign}${s.change.toFixed(1)}%)`;
+    }).join(' ｜ ');
+  };
+  
+  target.innerHTML = `
+    <div class="industry-strength-panel">
+      <div class="industry-strength-card strong">
+        <div class="industry-strength-header">
+          <div class="industry-strength-title">🔥 強勢族群 Top 5</div>
+          <div class="industry-strength-subtitle">平均漲幅最高的產業</div>
+        </div>
+        ${strong.map((item, i) => renderRow(item, i+1)).join('')}
+        <div class="industry-strength-samples">
+          💡 榜首 <b>${strong[0]?.industry || ''}</b> 領漲股: ${topSamples(strong[0]?.top_stocks)}
+        </div>
+      </div>
+      <div class="industry-strength-card weak">
+        <div class="industry-strength-header">
+          <div class="industry-strength-title">❄️ 弱勢族群 Top 5</div>
+          <div class="industry-strength-subtitle">平均跌幅最深的產業</div>
+        </div>
+        ${weak.map((item, i) => renderRow(item, i+1)).join('')}
+        <div class="industry-strength-samples">
+          💡 榜首 <b>${weak[0]?.industry || ''}</b> 領跌股: ${topSamples(weak[0]?.bottom_stocks)}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function renderDaytradeView(el) {
