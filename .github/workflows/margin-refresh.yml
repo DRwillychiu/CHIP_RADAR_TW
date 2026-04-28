@@ -1,17 +1,28 @@
-name: 2. Margin Refresh (22:30 / 00:00 / 08:00)
+name: 2. Margin Refresh (Multi-Layer Defense)
 
-# v3.14.7: 修復 v3.14.6 的 git pull --rebase 順序錯誤
-# 融資融券補更新 - 避免 TWSE 延後公告導致顯示 T-1
-# 三個時段中任一個成功就停止更新 (聰明跳過機制)
+# v3.14.8: 7 重防禦排程
+# 解決 GitHub schedule 不可靠 + TWSE/HiStock 公告時差問題
+# 設計原則:
+#   1. 跨度大 (22:30 → 12:00 隔日, 14 小時)
+#   2. 多時段冗餘 (7 個時段, GitHub 跳過 7 個的機率極低)
+#   3. 聰明跳過 (crawler 端已有邏輯, T-0 後不再重複跑)
 
 on:
   schedule:
-    # 台灣時間 22:30 (UTC 14:30)
+    # 台灣時間 22:30 (UTC 14:30) - TWSE 剛公告當日
     - cron: '30 14 * * 1-5'
-    # 台灣時間 00:00 (UTC 16:00) — 隔日凌晨
-    - cron: '0 16 * * 2-6'
-    # 台灣時間 08:00 (UTC 00:00) — 隔日早上
+    # 台灣時間 23:30 (UTC 15:30) - HiStock 同步機會
+    - cron: '30 15 * * 1-5'
+    # 台灣時間 00:30 (UTC 16:30) - 午夜資料穩定
+    - cron: '30 16 * * 2-6'
+    # 台灣時間 02:00 (UTC 18:00) - 深夜 fallback
+    - cron: '0 18 * * 2-6'
+    # 台灣時間 08:00 (UTC 00:00) - 上班前最後保險
     - cron: '0 0 * * 2-6'
+    # 台灣時間 09:00 (UTC 01:00) - 盤前確保
+    - cron: '0 1 * * 2-6'
+    # 台灣時間 12:00 (UTC 04:00) - 午休最後機會
+    - cron: '0 4 * * 2-6'
   
   workflow_dispatch:
 
@@ -53,7 +64,7 @@ jobs:
           git config --local user.name "GitHub Actions Bot"
           git add data/
           
-          # 檢查是否有變動
+          # 檢查是否有變動 (聰明跳過機制 - 沒變動就 exit)
           if git diff --staged --quiet; then
             echo "✅ 融資融券已是最新 T-0 (無需更新)"
             exit 0
