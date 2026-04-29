@@ -1833,6 +1833,16 @@ def main():
             t10_ratio = summary.get('top10_long_ratio')
             if t10_ratio:
                 print(f"  ✓ 十大交易人買方集中度: {t10_ratio*100:.1f}%")
+        
+        # v3.17.1: 累積期貨歷史
+        try:
+            history.update_futures_history(
+                data_dir=data_dir,
+                trade_date=trade_date,
+                futures_data=futures_data,
+            )
+        except Exception as e:
+            print(f"  ⚠️ 期貨歷史累積失敗: {e}")
     except Exception as e:
         print(f"  ⚠️ 期貨籌碼抓取失敗: {e}(不影響主流程)")
         import traceback; traceback.print_exc()
@@ -1842,7 +1852,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.17.0",
+        "version": "3.17.1",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -1922,7 +1932,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.17.0",
+            "version": "3.17.1",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
