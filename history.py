@@ -108,10 +108,15 @@ def _load_history(history_path: Path) -> Dict[str, Any]:
             "stocks": {},
             "industry_avg": {},
             "market": {},
+            "futures": {},  # v3.17.1: 期貨歷史累積
         }
     try:
         with open(history_path, encoding='utf-8') as f:
-            return json.load(f)
+            h = json.load(f)
+            # 向後相容: 沒 futures 欄位則加上
+            if "futures" not in h:
+                h["futures"] = {}
+            return h
     except Exception as e:
         print(f"  ⚠️ history 讀取失敗: {e}, 建立新檔")
         return {
@@ -121,6 +126,7 @@ def _load_history(history_path: Path) -> Dict[str, Any]:
             "stocks": {},
             "industry_avg": {},
             "market": {},
+            "futures": {},
         }
 
 
@@ -146,6 +152,10 @@ def _prune_old_data(history: Dict[str, Any], max_days: int = MAX_DAYS) -> None:
     
     # 清 market
     history["market"] = {d: v for d, v in history.get("market", {}).items() if d in keep_dates}
+    
+    # v3.17.1: 清 futures
+    if "futures" in history:
+        history["futures"] = {d: v for d, v in history["futures"].items() if d in keep_dates}
     
     print(f"  🗑️ 清除 {removed} 天舊資料")
 
@@ -263,6 +273,76 @@ def update_history(
     
     size_kb = history_path.stat().st_size / 1024
     print(f"  ✓ 寫入 {history_path.name} ({size_kb:.1f} KB, 保留 {len(history['dates'])} 天)")
+    
+    return history
+
+
+def update_futures_history(
+    data_dir: Path,
+    trade_date: str,
+    futures_data: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    """
+    v3.17.1: 累積期貨歷史資料 (給前端 Modal 圖表用)
+    """
+    if not futures_data or not futures_data.get('summary'):
+        print(f"  ⚠️ 期貨資料為空,跳過歷史累積")
+        return None
+    
+    print(f"\n[期貨歷史] 累積 {trade_date} 期貨指標...")
+    
+    history_path = data_dir / HISTORY_FILE
+    history = _load_history(history_path)
+    
+    s = futures_data.get('summary', {})
+    f = futures_data.get('futures', {})
+    
+    # 抽取關鍵指標
+    futures_snapshot = {
+        # 外資期貨
+        'foreign_txf_net_oi': s.get('foreign_txf_net_oi', 0),
+        'foreign_mxf_net_oi': s.get('foreign_mxf_net_oi', 0),
+        'foreign_equivalent_net_oi': s.get('foreign_equivalent_net_oi', 0),
+        # 散戶
+        'retail_mxf_net_oi': s.get('retail_mxf_net_oi', 0),
+        # 選擇權
+        'pc_ratio_oi': s.get('pc_ratio_oi'),
+        'foreign_call_net_oi': s.get('foreign_call_net_oi', 0),
+        'foreign_put_net_oi': s.get('foreign_put_net_oi', 0),
+        'foreign_option_sentiment': s.get('foreign_option_sentiment', 0),
+        # 十大交易人
+        'top10_long_ratio': s.get('top10_long_ratio'),
+        'top10_short_ratio': s.get('top10_short_ratio'),
+        'top10_net_oi': s.get('top10_net_oi', 0),
+        # 三大商品 三法人淨 OI
+        'txf_dealer_net': f.get('TXF', {}).get('dealer', {}).get('net_oi', 0),
+        'txf_trust_net': f.get('TXF', {}).get('trust', {}).get('net_oi', 0),
+        'mxf_dealer_net': f.get('MXF', {}).get('dealer', {}).get('net_oi', 0),
+        'mxf_trust_net': f.get('MXF', {}).get('trust', {}).get('net_oi', 0),
+        # TMF 微型台指 (v3.17.1)
+        'tmf_dealer_net': f.get('TMF', {}).get('dealer', {}).get('net_oi', 0),
+        'tmf_trust_net': f.get('TMF', {}).get('trust', {}).get('net_oi', 0),
+        'tmf_foreign_net': f.get('TMF', {}).get('foreign', {}).get('net_oi', 0),
+    }
+    
+    history.setdefault("futures", {})[trade_date] = futures_snapshot
+    
+    if trade_date not in history["dates"]:
+        history["dates"].append(trade_date)
+        history["dates"].sort()
+    
+    _prune_old_data(history, MAX_DAYS)
+    
+    history["updated_at"] = datetime.now(TW_TZ).isoformat()
+    
+    with open(history_path, "w", encoding="utf-8") as f_out:
+        json.dump(history, f_out, ensure_ascii=False, indent=1)
+    
+    fut_days = len(history.get("futures", {}))
+    print(f"  ✓ 期貨歷史累積 {fut_days} 天 (最近 30 天)")
+    print(f"     外資等效大台: {futures_snapshot['foreign_equivalent_net_oi']:+,} 口")
+    pc = futures_snapshot.get('pc_ratio_oi')
+    print(f"     P/C Ratio: {pc if pc is not None else '—'}")
     
     return history
 
