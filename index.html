@@ -958,6 +958,223 @@ th.sortable.sort-desc::after {
 /* ══════════════════════════════════════════════════════════════
    v3.16.1: 三線比較圖 (個股 vs 產業 vs 大盤)
    ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   v3.17: 期貨情報 tab 樣式
+   ══════════════════════════════════════════════════════════════ */
+
+/* 主要儀表板網格 */
+.futures-dashboard {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) {
+  .futures-dashboard { grid-template-columns: 1fr; }
+}
+
+/* 大型指標卡 */
+.futures-hero-card {
+  background: linear-gradient(135deg, rgba(31,42,72,0.5) 0%, rgba(15,21,37,0.7) 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.futures-hero-card.bullish {
+  border-color: rgba(239,68,68,0.4);
+  background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(15,21,37,0.7) 100%);
+}
+.futures-hero-card.bearish {
+  border-color: rgba(16,185,129,0.4);
+  background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(15,21,37,0.7) 100%);
+}
+.futures-hero-title {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.futures-hero-value {
+  font-size: 32px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1.1;
+  margin: 4px 0 8px;
+}
+.futures-hero-value.pos { color: #fca5a5; }
+.futures-hero-value.neg { color: #86efac; }
+.futures-hero-label {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+.futures-hero-label strong.pos { color: #fca5a5; }
+.futures-hero-label strong.neg { color: #86efac; }
+
+/* 次要指標列 */
+.futures-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.futures-metric {
+  background: rgba(31,42,72,0.4);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.futures-metric-label {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+.futures-metric-value {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+.futures-metric-sub {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* 三法人期貨對照表 */
+.futures-table-wrap {
+  margin: 14px 0;
+  overflow-x: auto;
+}
+.futures-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.futures-table th {
+  background: rgba(31,42,72,0.6);
+  color: var(--text-2);
+  font-weight: 500;
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+}
+.futures-table th:first-child { text-align: left; }
+.futures-table td {
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 1px solid rgba(148,163,184,0.08);
+  font-family: 'JetBrains Mono', monospace;
+}
+.futures-table td:first-child {
+  text-align: left;
+  color: var(--text-2);
+  font-weight: 500;
+  font-family: inherit;
+}
+.futures-table tr:hover { background: rgba(31,42,72,0.3); }
+
+/* P/C Ratio 特殊卡片 */
+.pc-ratio-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.06) 0%, rgba(15,21,37,0.7) 100%);
+  border: 1px solid rgba(167,139,250,0.3);
+  border-radius: 10px;
+}
+.pc-ratio-gauge {
+  flex-shrink: 0;
+  width: 120px;
+  height: 80px;
+  position: relative;
+}
+.pc-ratio-info {
+  flex: 1;
+}
+.pc-ratio-value {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: #c4b5fd;
+}
+.pc-ratio-interpret {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+/* 期貨與現貨對照區塊 (今日三視角頂部用) */
+.fx-sync-panel {
+  background: linear-gradient(135deg, rgba(31,42,72,0.4) 0%, rgba(15,21,37,0.6) 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 16px 0;
+}
+.fx-sync-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.fx-sync-body {
+  display: grid;
+  grid-template-columns: 1fr 90px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.fx-sync-side {
+  padding: 10px 12px;
+  background: rgba(31,42,72,0.4);
+  border-radius: 8px;
+}
+.fx-sync-side-label {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-bottom: 3px;
+}
+.fx-sync-side-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1.1;
+}
+.fx-sync-side-sub {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-top: 3px;
+}
+.fx-sync-divider {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-3);
+  padding: 8px;
+  border-radius: 6px;
+}
+.fx-sync-divider.aligned {
+  background: rgba(239,68,68,0.1);
+  color: #fca5a5;
+  font-weight: 600;
+}
+.fx-sync-divider.aligned-bear {
+  background: rgba(16,185,129,0.1);
+  color: #86efac;
+  font-weight: 600;
+}
+.fx-sync-divider.diverge {
+  background: rgba(251,191,36,0.1);
+  color: #fbbf24;
+  font-weight: 600;
+}
+
 #stockTrendChartContainer {
   margin: 16px 0 20px;
   padding: 16px 18px 14px;
@@ -2505,12 +2722,13 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <button class="tab" data-tab="ranking"><span class="tab-num">04</span>🏆 累積排行</button>
     <button class="tab" data-tab="masterview"><span class="tab-num">05</span>👤 高手合併視圖</button>
     <button class="tab" data-tab="institutional"><span class="tab-num">06</span>🏛️ 三大法人</button>
-    <button class="tab" data-tab="margin"><span class="tab-num">07</span>💹 融資融券</button>
-    <button class="tab" data-tab="limitup"><span class="tab-num">08</span>🎯 漲停狙擊</button>
-    <button class="tab" data-tab="stock"><span class="tab-num">09</span>📈 個股追蹤</button>
-    <button class="tab" data-tab="master"><span class="tab-num">10</span>👥 單分點偏好</button>
-    <button class="tab" data-tab="reports"><span class="tab-num">11</span>📊 報告中心</button>
-    <button class="tab" data-tab="watchlist"><span class="tab-num">12</span>⚙️ 關注設定</button>
+    <button class="tab" data-tab="futures"><span class="tab-num">07</span>🎯 期貨情報</button>
+    <button class="tab" data-tab="margin"><span class="tab-num">08</span>💹 融資融券</button>
+    <button class="tab" data-tab="limitup"><span class="tab-num">09</span>🎯 漲停狙擊</button>
+    <button class="tab" data-tab="stock"><span class="tab-num">10</span>📈 個股追蹤</button>
+    <button class="tab" data-tab="master"><span class="tab-num">11</span>👥 單分點偏好</button>
+    <button class="tab" data-tab="reports"><span class="tab-num">12</span>📊 報告中心</button>
+    <button class="tab" data-tab="watchlist"><span class="tab-num">13</span>⚙️ 關注設定</button>
   </div>
 
   <!-- 01 今日三視角 (新主頁) -->
@@ -2788,7 +3006,21 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="institutionalResult"></div>
   </div>
 
-  <!-- 07 💹 融資融券 (v3.11 新增) -->
+  <!-- 07 🎯 期貨情報 (v3.17 新增) -->
+  <div class="panel" id="panel-futures">
+    <div class="help-card">
+      <h3>🎯 期貨情報 × 外資多空 × 散戶反指標</h3>
+      <p>📊 <strong>資料涵蓋</strong>:大台/小台/微台三大期貨商品 + 臺指選擇權 Call/Put + 十大交易人集中度</p>
+      <p>💡 <strong>判讀原則</strong>:
+        <span class="inst-chip foreign">外資等效大台淨 OI</span> 看主力方向 |
+        <span class="inst-chip" style="background:rgba(251,191,36,0.15);color:#fbbf24;border-color:rgba(251,191,36,0.3);">散戶小台</span> 反指標 |
+        <span class="inst-chip" style="background:rgba(167,139,250,0.15);color:#c4b5fd;border-color:rgba(167,139,250,0.3);">P/C Ratio</span> 情緒溫度計
+      </p>
+    </div>
+    <div id="futuresResult"></div>
+  </div>
+
+  <!-- 08 💹 融資融券 (v3.11 新增) -->
   <div class="panel" id="panel-margin">
     <div class="help-card">
       <h3>💹 融資融券 × 散戶情緒溫度計</h3>
@@ -4222,6 +4454,257 @@ function computeIndustryStrength() {
   return results;
 }
 
+// ════════════════════════════════════════════════════════════════════
+// v3.17: 期貨情報 tab
+// ════════════════════════════════════════════════════════════════════
+function renderFutures() {
+  const el = document.getElementById('futuresResult');
+  if (!CURRENT_DATA) {
+    el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密資料中...</div>';
+    return;
+  }
+  
+  const fd = CURRENT_DATA.futures_data;
+  if (!fd || !fd.summary) {
+    el.innerHTML = `
+      <div class="report-empty" style="padding:40px;">
+        <div style="font-size:32px;margin-bottom:10px;">📊</div>
+        <div style="margin-bottom:6px;">期貨資料尚未就緒</div>
+        <div style="font-size:11px;color:var(--text-3);">
+          需要執行 v3.17 的 Daily Full Crawl 才會有資料
+        </div>
+      </div>
+    `;
+    return;
+  }
+  
+  const s = fd.summary;
+  const foreignEqNet = s.foreign_equivalent_net_oi || 0;
+  const retailMxf = s.retail_mxf_net_oi || 0;
+  const pcRatio = s.pc_ratio_oi;
+  const foreignOptSent = s.foreign_option_sentiment || 0;
+  const top10Long = s.top10_long_ratio;
+  const top10Short = s.top10_short_ratio;
+  const top10Net = s.top10_net_oi || 0;
+  
+  // 外資多空判讀
+  const foreignBullish = foreignEqNet > 0;
+  const foreignAbs = Math.abs(foreignEqNet);
+  let foreignStance = '中性';
+  if (foreignAbs >= 30000) foreignStance = foreignBullish ? '🔥 外資極度看多' : '❄️ 外資極度看空';
+  else if (foreignAbs >= 15000) foreignStance = foreignBullish ? '📈 外資偏多' : '📉 外資偏空';
+  else if (foreignAbs >= 5000) foreignStance = foreignBullish ? '↗️ 外資小幅偏多' : '↘️ 外資小幅偏空';
+  
+  // P/C Ratio 判讀
+  let pcInterpret = '—';
+  let pcIcon = '⚖️';
+  if (pcRatio !== null && pcRatio !== undefined) {
+    if (pcRatio > 1.2) { pcInterpret = '散戶極度看空 → 反指標偏多'; pcIcon = '🚀'; }
+    else if (pcRatio > 1.0) { pcInterpret = '散戶看空 → 反指標偏多'; pcIcon = '📈'; }
+    else if (pcRatio > 0.8) { pcInterpret = '市場情緒中性'; pcIcon = '⚖️'; }
+    else if (pcRatio > 0.6) { pcInterpret = '散戶看多 → 反指標偏空'; pcIcon = '📉'; }
+    else { pcInterpret = '散戶極度看多 → 反指標偏空'; pcIcon = '⚠️'; }
+  }
+  
+  // 散戶小台反向
+  const retailBullish = retailMxf > 0;
+  const retailBullishOrBearish = retailBullish ? '看多' : '看空';
+  const retailReverse = retailBullish ? '(反指標→空)' : '(反指標→多)';
+  
+  const fmtLot = (v) => {
+    if (v === null || v === undefined) return '—';
+    const sign = v > 0 ? '+' : '';
+    return sign + v.toLocaleString() + ' 口';
+  };
+  const fmtLotClass = (v) => {
+    if (v === null || v === undefined) return '';
+    return v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+  };
+  
+  // 三法人大台明細
+  const txf = fd.futures?.TXF || {};
+  const mxf = fd.futures?.MXF || {};
+  
+  const tableRowsTxf = ['dealer', 'trust', 'foreign'].map(key => {
+    const d = txf[key] || {};
+    const label = {dealer: '自營商', trust: '投信', foreign: '外資'}[key];
+    return `<tr>
+      <td>${label}</td>
+      <td class="num">${(d.long_oi || 0).toLocaleString()}</td>
+      <td class="num">${(d.short_oi || 0).toLocaleString()}</td>
+      <td class="num ${fmtLotClass(d.net_oi)}">${fmtLot(d.net_oi)}</td>
+      <td class="num ${fmtLotClass(d.net_trade)}">${fmtLot(d.net_trade)}</td>
+    </tr>`;
+  }).join('');
+  
+  const tableRowsMxf = ['dealer', 'trust', 'foreign'].map(key => {
+    const d = mxf[key] || {};
+    const label = {dealer: '自營商', trust: '投信', foreign: '外資'}[key];
+    return `<tr>
+      <td>${label}</td>
+      <td class="num">${(d.long_oi || 0).toLocaleString()}</td>
+      <td class="num">${(d.short_oi || 0).toLocaleString()}</td>
+      <td class="num ${fmtLotClass(d.net_oi)}">${fmtLot(d.net_oi)}</td>
+      <td class="num ${fmtLotClass(d.net_trade)}">${fmtLot(d.net_trade)}</td>
+    </tr>`;
+  }).join('');
+  
+  // 選擇權三法人
+  const callData = fd.options?.TXO?.call || {};
+  const putData = fd.options?.TXO?.put || {};
+  const totalCallOI = ['dealer', 'trust', 'foreign'].reduce((sum, k) => 
+    sum + ((callData[k] || {}).long_oi || 0), 0);
+  const totalPutOI = ['dealer', 'trust', 'foreign'].reduce((sum, k) => 
+    sum + ((putData[k] || {}).long_oi || 0), 0);
+  
+  el.innerHTML = `
+    <!-- 🎯 主要指標儀表板 -->
+    <div class="futures-dashboard">
+      <!-- 外資等效大台 (主角) -->
+      <div class="futures-hero-card ${foreignBullish ? 'bullish' : 'bearish'}">
+        <div class="futures-hero-title">
+          <span>💎 外資等效大台淨未平倉</span>
+          <span style="font-size:11px;">${foreignStance}</span>
+        </div>
+        <div class="futures-hero-value ${foreignBullish ? 'pos' : 'neg'}">${fmtLot(foreignEqNet)}</div>
+        <div class="futures-hero-label">
+          大台 ${fmtLot(s.foreign_txf_net_oi)} + 小台 ${fmtLot(s.foreign_mxf_net_oi)}/4 = 等效大台合計<br>
+          <strong class="${foreignBullish ? 'pos' : 'neg'}">解讀:${foreignBullish ? '外資多單部位大 → 期貨端做多台股' : '外資空單部位大 → 期貨端避險或做空'}</strong>
+        </div>
+        <!-- 次要指標 -->
+        <div class="futures-metric-grid">
+          <div class="futures-metric">
+            <div class="futures-metric-label">外資 TXF 多方 OI</div>
+            <div class="futures-metric-value">${(txf.foreign?.long_oi || 0).toLocaleString()}</div>
+            <div class="futures-metric-sub">口 (大台)</div>
+          </div>
+          <div class="futures-metric">
+            <div class="futures-metric-label">外資 TXF 空方 OI</div>
+            <div class="futures-metric-value">${(txf.foreign?.short_oi || 0).toLocaleString()}</div>
+            <div class="futures-metric-sub">口 (大台)</div>
+          </div>
+          <div class="futures-metric">
+            <div class="futures-metric-label">外資當日淨買</div>
+            <div class="futures-metric-value ${fmtLotClass(txf.foreign?.net_trade)}">${fmtLot(txf.foreign?.net_trade)}</div>
+            <div class="futures-metric-sub">當日交易淨額</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 散戶小台反指標 -->
+      <div class="futures-hero-card ${retailBullish ? 'bearish' : 'bullish'}">
+        <div class="futures-hero-title">
+          <span>👥 散戶小台反指標</span>
+        </div>
+        <div class="futures-hero-value ${retailBullish ? 'pos' : 'neg'}">${fmtLot(retailMxf)}</div>
+        <div class="futures-hero-label">
+          散戶小台淨部位推算<br>
+          散戶${retailBullishOrBearish}<strong class="${retailBullish ? 'neg' : 'pos'}">${retailReverse}</strong><br>
+          <span style="color:var(--text-3);font-size:10px;">算法:負自營-投信-外資小台 淨 OI</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 📊 P/C Ratio + 外資選擇權 -->
+    <div class="futures-dashboard">
+      <div class="pc-ratio-card">
+        <div style="font-size:40px;line-height:1;">${pcIcon}</div>
+        <div class="pc-ratio-info">
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:2px;">Put/Call 未平倉比 (P/C Ratio)</div>
+          <div class="pc-ratio-value">${pcRatio !== null && pcRatio !== undefined ? pcRatio.toFixed(3) : '—'}</div>
+          <div class="pc-ratio-interpret">${pcInterpret}</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:6px;">
+            Call 未平倉: ${totalCallOI.toLocaleString()} 口 ｜ Put 未平倉: ${totalPutOI.toLocaleString()} 口
+          </div>
+        </div>
+      </div>
+      
+      <div class="futures-hero-card ${foreignOptSent > 0 ? 'bullish' : (foreignOptSent < 0 ? 'bearish' : '')}">
+        <div class="futures-hero-title">
+          <span>🎲 外資選擇權傾向</span>
+        </div>
+        <div class="futures-hero-value ${foreignOptSent > 0 ? 'pos' : (foreignOptSent < 0 ? 'neg' : '')}">${fmtLot(foreignOptSent)}</div>
+        <div class="futures-hero-label">
+          Call 淨 ${fmtLot(s.foreign_call_net_oi)} - Put 淨 ${fmtLot(s.foreign_put_net_oi)}<br>
+          <strong class="${foreignOptSent > 0 ? 'pos' : 'neg'}">
+            ${foreignOptSent > 200 ? '📈 外資選擇權偏多' : (foreignOptSent < -200 ? '📉 外資選擇權偏空' : '⚖️ 選擇權部位接近中性')}
+          </strong>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 🏛️ 三法人期貨明細 (大台) -->
+    <div class="section-title" style="margin-top:20px;">
+      📊 三大法人 臺股期貨 (TXF 大台) <span class="section-sub">口數</span>
+    </div>
+    <div class="futures-table-wrap">
+      <table class="futures-table">
+        <thead><tr>
+          <th>身份別</th>
+          <th>多方未平倉</th>
+          <th>空方未平倉</th>
+          <th>多空淨 OI</th>
+          <th>當日淨交易</th>
+        </tr></thead>
+        <tbody>${tableRowsTxf}</tbody>
+      </table>
+    </div>
+    
+    <!-- 🏛️ 三法人期貨明細 (小台) -->
+    <div class="section-title" style="margin-top:20px;">
+      📊 三大法人 小型臺指期 (MXF 小台) <span class="section-sub">口數 ｜ 散戶主力戰場</span>
+    </div>
+    <div class="futures-table-wrap">
+      <table class="futures-table">
+        <thead><tr>
+          <th>身份別</th>
+          <th>多方未平倉</th>
+          <th>空方未平倉</th>
+          <th>多空淨 OI</th>
+          <th>當日淨交易</th>
+        </tr></thead>
+        <tbody>${tableRowsMxf}</tbody>
+      </table>
+    </div>
+    
+    <!-- 🎯 十大交易人 -->
+    ${top10Long !== null && top10Long !== undefined ? `
+    <div class="section-title" style="margin-top:20px;">
+      🎯 十大交易人集中度 (TX 等效大台) 
+      <span class="section-sub">當月份: ${s.top_traders_month || '—'} ｜ 全市場未平倉: ${(s.market_total_oi || 0).toLocaleString()} 口</span>
+    </div>
+    <div class="futures-dashboard" style="grid-template-columns:1fr 1fr 1fr;">
+      <div class="futures-metric" style="padding:14px 16px;">
+        <div class="futures-metric-label">十大買方集中度</div>
+        <div class="futures-metric-value pos" style="font-size:22px;">${(top10Long * 100).toFixed(1)}%</div>
+        <div class="futures-metric-sub">${(s.top10_long || 0).toLocaleString()} 口</div>
+      </div>
+      <div class="futures-metric" style="padding:14px 16px;">
+        <div class="futures-metric-label">十大賣方集中度</div>
+        <div class="futures-metric-value neg" style="font-size:22px;">${(top10Short * 100).toFixed(1)}%</div>
+        <div class="futures-metric-sub">${(s.top10_short || 0).toLocaleString()} 口</div>
+      </div>
+      <div class="futures-metric" style="padding:14px 16px;">
+        <div class="futures-metric-label">十大淨部位</div>
+        <div class="futures-metric-value ${fmtLotClass(top10Net)}" style="font-size:22px;">${fmtLot(top10Net)}</div>
+        <div class="futures-metric-sub">買 - 賣</div>
+      </div>
+    </div>
+    ` : ''}
+    
+    <!-- 📝 說明 -->
+    <div class="help-card" style="margin-top:20px;font-size:11px;">
+      <p>📖 <strong>如何判讀</strong>:</p>
+      <p>
+        • <strong class="pos">外資等效大台 &gt; 0</strong> + <strong class="neg">散戶小台反向</strong> = 外資多頭信號最強<br>
+        • <strong class="neg">外資等效大台 &lt; 0</strong> + <strong class="pos">散戶小台追多</strong> = 外資可能在期貨避險,或預期指數下跌<br>
+        • <strong>P/C Ratio &gt; 1.2</strong> = 散戶普遍買 Put 看空,反指標偏多(很多空頭籌碼集中,反彈機率高)<br>
+        • <strong>P/C Ratio &lt; 0.6</strong> = 散戶普遍買 Call 看多,警覺拉回風險
+      </p>
+    </div>
+  `;
+}
+
 function renderMarginPanel() {
   if (!CURRENT_DATA) {
     document.getElementById('marginRankGrid').innerHTML = '<div class="report-empty">請先載入資料</div>';
@@ -4979,6 +5462,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     else if (tab === 'ranking') renderRanking();
     else if (tab === 'masterview') renderMasterView();
     else if (tab === 'institutional') renderInstitutional();
+    else if (tab === 'futures') renderFutures();
     else if (tab === 'reports') renderReport();
     else if (tab === 'margin') renderMarginPanel();
     else if (tab === 'limitup') renderLimitUpPanel();
@@ -5741,10 +6225,14 @@ function renderToday3() {
     return;
   }
   
-  // 包一個 wrapper：本地市場篩選器 + 強弱族群 + 內容區
+  // 包一個 wrapper：本地市場篩選器 + 期現貨對照 + 強弱族群 + 內容區
   el.innerHTML = renderLocalMarketBar('today3') + 
+    '<div id="today3FxSync"></div>' +      // v3.17: 外資期現貨對照
     '<div id="today3Strength"></div>' +    // v3.15.1: 強弱族群區塊
     '<div id="today3Inner"></div>';
+  
+  // v3.17: 渲染外資期現貨對照
+  renderFxSyncPanel('today3FxSync');
   
   // 渲染強弱族群
   renderIndustryStrengthPanel('today3Strength');
@@ -5758,6 +6246,100 @@ function renderToday3() {
   } else {
     renderSwingView(inner);
   }
+}
+
+// v3.17: 外資期現貨對照區塊
+function renderFxSyncPanel(targetId) {
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  
+  const fd = CURRENT_DATA.futures_data;
+  if (!fd || !fd.summary) {
+    target.innerHTML = '';
+    return;
+  }
+  
+  const s = fd.summary;
+  const foreignFuturesNet = s.foreign_equivalent_net_oi || 0;
+  
+  // 現貨外資買賣超 (從 institutional_rankings 聚合當日全市場)
+  let foreignSpotNet = 0;
+  const ir = CURRENT_DATA.institutional_rankings || {};
+  if (ir.foreign) {
+    // 加總所有外資買超張數 - 賣超張數
+    const buyTotal = (ir.foreign.buy || []).reduce((sum, x) => sum + (x.net_lot || 0), 0);
+    const sellTotal = (ir.foreign.sell || []).reduce((sum, x) => sum + (x.net_lot || 0), 0);
+    foreignSpotNet = buyTotal + sellTotal;  // sell 的 net_lot 是負數,buy 是正數
+  }
+  
+  // 如果現貨資料也沒有,跳過這個區塊
+  const spotUnknown = Math.abs(foreignSpotNet) < 100;
+  const futuresUnknown = foreignFuturesNet === 0;
+  
+  if (spotUnknown && futuresUnknown) {
+    target.innerHTML = '';
+    return;
+  }
+  
+  // 判斷方向是否一致
+  const spotBullish = foreignSpotNet > 0;
+  const futuresBullish = foreignFuturesNet > 0;
+  const aligned = (spotBullish === futuresBullish) && !spotUnknown && !futuresUnknown;
+  const bothBull = aligned && spotBullish;
+  const bothBear = aligned && !spotBullish;
+  
+  let divClass = 'diverge';
+  let divText = '⚠️ 期現背離';
+  let divHint = '小心:方向不一致';
+  
+  if (bothBull) {
+    divClass = 'aligned';
+    divText = '🔥 期現同買';
+    divHint = '外資雙邊看多 → 強力多頭訊號';
+  } else if (bothBear) {
+    divClass = 'aligned-bear';
+    divText = '❄️ 期現同賣';
+    divHint = '外資雙邊看空 → 強力空頭訊號';
+  } else if (spotBullish && !futuresBullish) {
+    divHint = '現貨買但期貨避險,可能盤整';
+  } else if (!spotBullish && futuresBullish) {
+    divHint = '現貨賣但期貨反手做多,留意轉折';
+  }
+  
+  const fmtSpot = (v) => {
+    const sign = v > 0 ? '+' : '';
+    const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+    return `<span class="${cls}">${sign}${v.toLocaleString()}</span>`;
+  };
+  const fmtFutures = (v) => {
+    const sign = v > 0 ? '+' : '';
+    const cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+    return `<span class="${cls}">${sign}${v.toLocaleString()}</span>`;
+  };
+  
+  target.innerHTML = `
+    <div class="fx-sync-panel">
+      <div class="fx-sync-title">
+        🏛️ 外資期現貨對照 <span style="font-size:11px;color:var(--text-3);font-weight:normal;">(台股籌碼最關鍵訊號)</span>
+      </div>
+      <div class="fx-sync-body">
+        <div class="fx-sync-side">
+          <div class="fx-sync-side-label">📊 現貨 外資買賣超 (張)</div>
+          <div class="fx-sync-side-value">${fmtSpot(foreignSpotNet)}</div>
+          <div class="fx-sync-side-sub">${spotBullish ? '買超 → 看多現股' : (foreignSpotNet < 0 ? '賣超 → 賣現股' : '近中性')}</div>
+        </div>
+        <div class="fx-sync-divider ${divClass}">
+          <div>${divText}</div>
+          <div style="font-size:9px;margin-top:3px;opacity:0.8;">${divHint}</div>
+        </div>
+        <div class="fx-sync-side">
+          <div class="fx-sync-side-label">🎯 期貨 外資等效大台淨 OI (口)</div>
+          <div class="fx-sync-side-value">${fmtFutures(foreignFuturesNet)}</div>
+          <div class="fx-sync-side-sub">${futuresBullish ? '多單 → 期貨看多' : (foreignFuturesNet < 0 ? '空單 → 期貨避險/做空' : '近中性')}</div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 // v3.15.1: 渲染強弱族群區塊
