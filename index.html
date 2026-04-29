@@ -1265,6 +1265,274 @@ th.sortable.sort-desc::after {
   font-size: 13px;
 }
 
+/* v3.17.2: 台股籌碼溫度計 (5 信號儀表板) */
+.chip-temperature {
+  margin: 14px 0;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(31,42,72,0.6) 0%, rgba(15,21,37,0.4) 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.chip-temperature:empty { display: none; }
+.chip-temp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip-temp-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+/* v3.17.3: 綜合分數 badge */
+.chip-temp-score-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 1px solid;
+}
+.chip-temp-score-badge.bull {
+  background: rgba(239,68,68,0.18);
+  color: #fca5a5;
+  border-color: rgba(239,68,68,0.4);
+}
+.chip-temp-score-badge.bull-mild {
+  background: rgba(251,113,133,0.12);
+  color: #fda4af;
+  border-color: rgba(251,113,133,0.3);
+}
+.chip-temp-score-badge.neutral {
+  background: rgba(251,191,36,0.12);
+  color: #fcd34d;
+  border-color: rgba(251,191,36,0.4);
+}
+.chip-temp-score-badge.bear-mild {
+  background: rgba(74,222,128,0.12);
+  color: #86efac;
+  border-color: rgba(74,222,128,0.3);
+}
+.chip-temp-score-badge.bear {
+  background: rgba(16,185,129,0.18);
+  color: #6ee7b7;
+  border-color: rgba(16,185,129,0.4);
+}
+.chip-temp-score-num {
+  font-size: 22px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+}
+.chip-temp-score-max {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-right: 8px;
+}
+.chip-temp-score-verdict {
+  font-size: 13px;
+  padding-left: 8px;
+  border-left: 1px solid currentColor;
+}
+
+/* 舊判讀標籤 (保留向後相容) */
+.chip-temp-verdict {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.chip-temp-verdict.bull {
+  background: rgba(239,68,68,0.18);
+  color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.4);
+}
+.chip-temp-verdict.bear {
+  background: rgba(16,185,129,0.18);
+  color: #86efac;
+  border: 1px solid rgba(16,185,129,0.4);
+}
+.chip-temp-verdict.neutral {
+  background: rgba(148,163,184,0.18);
+  color: #cbd5e1;
+  border: 1px solid rgba(148,163,184,0.4);
+}
+
+/* v3.17.3: 線性溫度計 (橫向漸層條) */
+.chip-temp-meter-wrap {
+  margin: 12px 0 16px;
+  padding: 0 4px;
+}
+.chip-temp-meter-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-3);
+  margin-bottom: 4px;
+  padding: 0 2px;
+}
+.chip-temp-meter-bar {
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  overflow: visible;
+  background: rgba(15,21,37,0.6);
+  border: 1px solid var(--line);
+}
+.chip-temp-meter-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: linear-gradient(to right,
+    #10b981 0%,        /* 0 - 偏空 (深綠) */
+    #4ade80 25%,       /* 25 - 中偏空 (淺綠) */
+    #fbbf24 50%,       /* 50 - 中性 (黃) */
+    #fb7185 75%,       /* 75 - 中偏多 (淺紅) */
+    #ef4444 100%       /* 100 - 偏多 (深紅) */
+  );
+  opacity: 0.85;
+}
+.chip-temp-meter-pointer {
+  position: absolute;
+  top: -8px;
+  bottom: -8px;
+  width: 0;
+  transform: translateX(-50%);
+  z-index: 2;
+  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.chip-temp-meter-pointer-arrow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid var(--text-1);
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+}
+.chip-temp-meter-pointer::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 14px;
+  background: var(--text-1);
+  box-shadow: 0 0 4px rgba(255,255,255,0.5);
+}
+.chip-temp-meter-pointer-value {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-1);
+  background: rgba(15,21,37,0.95);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.chip-temp-meter-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--text-3);
+  margin-top: 18px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 0 2px;
+}
+
+/* v3.17.3: 底部判讀 hint */
+.chip-temp-bottom-hint {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(31,42,72,0.4);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px;
+  font-size: 11.5px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+.chip-temp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+.chip-temp-card {
+  position: relative;
+  padding: 10px 12px;
+  background: rgba(15,21,37,0.5);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left-width: 3px;
+}
+.chip-temp-card:hover {
+  transform: translateY(-1px);
+  background: rgba(15,21,37,0.8);
+}
+.chip-temp-card.chip-temp-extreme-bull {
+  border-left-color: #ef4444;
+  background: linear-gradient(135deg, rgba(239,68,68,0.10), rgba(15,21,37,0.5));
+}
+.chip-temp-card.chip-temp-bull {
+  border-left-color: #fb7185;
+  background: linear-gradient(135deg, rgba(251,113,133,0.06), rgba(15,21,37,0.5));
+}
+.chip-temp-card.chip-temp-neutral {
+  border-left-color: #fbbf24;
+}
+.chip-temp-card.chip-temp-bear {
+  border-left-color: #4ade80;
+  background: linear-gradient(135deg, rgba(74,222,128,0.06), rgba(15,21,37,0.5));
+}
+.chip-temp-card.chip-temp-extreme-bear {
+  border-left-color: #10b981;
+  background: linear-gradient(135deg, rgba(16,185,129,0.10), rgba(15,21,37,0.5));
+}
+.chip-temp-name {
+  font-size: 10.5px;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+.chip-temp-value {
+  font-size: 17px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-1);
+  line-height: 1.1;
+}
+.chip-temp-card.chip-temp-extreme-bull .chip-temp-value,
+.chip-temp-card.chip-temp-bull .chip-temp-value {
+  color: #fca5a5;
+}
+.chip-temp-card.chip-temp-bear .chip-temp-value,
+.chip-temp-card.chip-temp-extreme-bear .chip-temp-value {
+  color: #86efac;
+}
+.chip-temp-hint {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ══════════════════════════════════════════════════════════════
    v3.17.1: 期貨資料時間 banner + clickable hero card + Modal
    ══════════════════════════════════════════════════════════════ */
@@ -1301,6 +1569,14 @@ th.sortable.sort-desc::after {
   font-size: 11px;
   color: var(--text-3);
   margin-top: 2px;
+}
+.futures-time-sub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 4px 18px;
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.6;
 }
 .futures-time-hint {
   font-size: 11px;
@@ -1474,6 +1750,110 @@ th.sortable.sort-desc::after {
   text-align: center;
   color: var(--text-3);
   font-size: 13px;
+}
+
+/* v3.17.2: 個股 tab 預設熱門 / 自選股 */
+.stock-hot-empty-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 20px 16px;
+  color: var(--text-3);
+}
+.stock-hot-empty-icon { font-size: 32px; margin-bottom: 6px; }
+.stock-hot-empty-text { font-size: 13px; }
+
+.stock-hot-section { margin-top: 18px; }
+.stock-hot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 4px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.stock-hot-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.stock-hot-sub {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.stock-hot-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0;
+}
+.stock-hot-chip {
+  padding: 6px 12px;
+  background: rgba(31,42,72,0.5);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+.stock-hot-chip:hover {
+  border-color: var(--accent);
+  background: rgba(240,200,80,0.1);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.stock-hot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+.stock-hot-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(31,42,72,0.4);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  width: 100%;
+}
+.stock-hot-card:hover {
+  border-color: var(--accent);
+  background: rgba(240,200,80,0.08);
+  transform: translateY(-1px);
+}
+.stock-hot-rank {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 28px;
+}
+.stock-hot-info { flex: 1; min-width: 0; }
+.stock-hot-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stock-hot-code {
+  font-size: 10.5px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 2px;
+}
+.stock-hot-amt {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  flex-shrink: 0;
 }
 
 /* 個股產業 chip (小標籤) */
@@ -2910,6 +3290,9 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
       <select id="dateSelect" onchange="onDateChange()"></select>
     </div>
   </div>
+  
+  <!-- v3.17.2: 台股籌碼溫度計 -->
+  <div id="chipTemperature" class="chip-temperature"></div>
 
   <!-- 🌐 全域市場類型篩選器 -->
   <div class="market-global-bar">
@@ -3928,6 +4311,9 @@ async function showDate(date) {
     .filter(b => b.buys && b.buys.length > 0)
     .map(b => `<option value="${b.code}">${b.master} | ${b.name}</option>`).join('');
   
+  // v3.17.2: 渲染籌碼溫度計
+  try { renderChipTemperature(); } catch(e) { console.warn('chip temperature err', e); }
+  
   renderAll();
 }
 
@@ -3950,6 +4336,182 @@ function formatDate(d) {
   if (!d) return '—';
   if (d.length === 8) return `${d.slice(0,4)}/${d.slice(4,6)}/${d.slice(6,8)}`;
   return d;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// v3.17.2: 台股籌碼溫度計 (5 信號儀表板)
+// ════════════════════════════════════════════════════════════════════
+function renderChipTemperature() {
+  const el = document.getElementById('chipTemperature');
+  if (!el || !CURRENT_DATA) return;
+  
+  // ─── 信號 1: 外資現貨買賣超 ───
+  const sig1 = (() => {
+    const inst = CURRENT_DATA.institutional_data;
+    let val = null;
+    if (inst?.foreign_total_amount !== undefined) val = inst.foreign_total_amount;
+    else if (inst?.foreign?.amount !== undefined) val = inst.foreign.amount;
+    else if (inst?.summary?.foreign !== undefined) val = inst.summary.foreign;
+    
+    if (val === null || val === undefined) return null;
+    
+    // val 可能是「元」或「億」,先判斷
+    let amtBillion;
+    if (Math.abs(val) > 1e8) amtBillion = val / 1e8;  // 是元
+    else amtBillion = val;  // 已經是億
+    
+    let level, label, hint;
+    if (amtBillion >= 200) { level = 'extreme-bull'; label = `+${amtBillion.toFixed(0)} 億`; hint = '外資強力買超'; }
+    else if (amtBillion >= 50) { level = 'bull'; label = `+${amtBillion.toFixed(0)} 億`; hint = '外資中度買超'; }
+    else if (amtBillion >= -50) { level = 'neutral'; label = `${amtBillion >= 0 ? '+' : ''}${amtBillion.toFixed(0)} 億`; hint = '外資中性'; }
+    else if (amtBillion >= -200) { level = 'bear'; label = `${amtBillion.toFixed(0)} 億`; hint = '外資中度賣超'; }
+    else { level = 'extreme-bear'; label = `${amtBillion.toFixed(0)} 億`; hint = '外資強力賣超'; }
+    
+    return { name: '外資現貨', label, level, hint, tab: 'institutional' };
+  })();
+  
+  // ─── 信號 2: 外資期貨等效大台 ───
+  const sig2 = (() => {
+    const eq = CURRENT_DATA.futures_data?.summary?.foreign_equivalent_net_oi;
+    if (eq === undefined || eq === null) return null;
+    
+    let level, label, hint;
+    const k = Math.round(eq / 1000);
+    if (eq >= 30000) { level = 'extreme-bull'; label = `+${k}k`; hint = '期貨極度多頭'; }
+    else if (eq >= 10000) { level = 'bull'; label = `+${k}k`; hint = '期貨偏多'; }
+    else if (eq >= -10000) { level = 'neutral'; label = `${k >= 0 ? '+' : ''}${k}k`; hint = '期貨中性'; }
+    else if (eq >= -30000) { level = 'bear'; label = `${k}k`; hint = '期貨偏空'; }
+    else { level = 'extreme-bear'; label = `${k}k`; hint = '期貨極度空頭'; }
+    
+    return { name: '外資期貨', label, level, hint, tab: 'futures' };
+  })();
+  
+  // ─── 信號 3: P/C Ratio (反指標) ───
+  const sig3 = (() => {
+    const pc = CURRENT_DATA.futures_data?.summary?.pc_ratio_oi;
+    if (pc === undefined || pc === null) return null;
+    
+    // PCR 越高 → 散戶看空 → 反指標越偏多
+    let level, hint;
+    if (pc >= 1.3) { level = 'extreme-bull'; hint = '散戶極空 (反指標強多)'; }
+    else if (pc >= 1.0) { level = 'bull'; hint = '散戶偏空 (反指標偏多)'; }
+    else if (pc >= 0.8) { level = 'neutral'; hint = 'PCR 中性'; }
+    else if (pc >= 0.6) { level = 'bear'; hint = '散戶偏多 (警覺)'; }
+    else { level = 'extreme-bear'; hint = '散戶極多 (反指標強空)'; }
+    
+    return { name: 'P/C Ratio', label: pc.toFixed(2), level, hint, tab: 'futures' };
+  })();
+  
+  // ─── 信號 4: 漲停家數 ───
+  const sig4 = (() => {
+    const lu = CURRENT_DATA.limit_up_data;
+    if (!lu) return null;
+    const upCount = (lu.up || []).length;
+    const downCount = (lu.down || []).length;
+    
+    let level, label, hint;
+    if (downCount >= 30) { level = 'extreme-bear'; label = `跌${downCount}`; hint = '極度恐慌'; }
+    else if (downCount >= 15) { level = 'bear'; label = `跌${downCount}`; hint = '弱勢'; }
+    else if (upCount >= 30) { level = 'extreme-bull'; label = `漲${upCount}`; hint = '極度熱絡'; }
+    else if (upCount >= 15) { level = 'bull'; label = `漲${upCount}`; hint = '熱絡'; }
+    else { level = 'neutral'; label = `漲${upCount}/跌${downCount}`; hint = '盤勢中性'; }
+    
+    return { name: '漲停家數', label, level, hint, tab: 'limitup' };
+  })();
+  
+  // ─── 信號 5: 散戶情緒 (聰明錢進 vs 散戶追漲) ───
+  const sig5 = (() => {
+    const md = CURRENT_DATA.margin_data;
+    if (!md?.summary) return null;
+    
+    const smart = md.summary.smart_money_in_count || 0;
+    const chase = md.summary.retail_chase_count || 0;
+    const diff = smart - chase;
+    
+    let level, label, hint;
+    if (diff >= 30) { level = 'extreme-bull'; label = `+${diff}`; hint = '聰明錢遠多於散戶'; }
+    else if (diff >= 10) { level = 'bull'; label = `+${diff}`; hint = '聰明錢佔優'; }
+    else if (diff >= -10) { level = 'neutral'; label = `${diff >= 0 ? '+' : ''}${diff}`; hint = '情緒平衡'; }
+    else if (diff >= -30) { level = 'bear'; label = `${diff}`; hint = '散戶追漲偏多'; }
+    else { level = 'extreme-bear'; label = `${diff}`; hint = '散戶過熱'; }
+    
+    return { name: '散戶情緒', label, level, hint, tab: 'margin' };
+  })();
+  
+  const signals = [sig1, sig2, sig3, sig4, sig5].filter(s => s !== null);
+  
+  if (signals.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+  
+  // 計算綜合判讀 + 0-100 分數
+  const bulls = signals.filter(s => s.level === 'bull' || s.level === 'extreme-bull').length;
+  const bears = signals.filter(s => s.level === 'bear' || s.level === 'extreme-bear').length;
+  const neutrals = signals.filter(s => s.level === 'neutral').length;
+  
+  // v3.17.3: 0-100 綜合分數計算
+  // 每個信號給分 (極多 20 / 多 15 / 中 10 / 空 5 / 極空 0)
+  // 注意:對於台股,「偏多」=「多頭籌碼」,所以 100 = 滿格紅 (看多)
+  const levelScore = { 'extreme-bull': 20, 'bull': 15, 'neutral': 10, 'bear': 5, 'extreme-bear': 0 };
+  const totalScore = signals.reduce((sum, s) => sum + (levelScore[s.level] ?? 10), 0);
+  const maxScore = signals.length * 20;
+  const normScore = Math.round((totalScore / maxScore) * 100);
+  
+  // 分數段判讀
+  let verdict, verdictClass, verdictHint;
+  if (normScore >= 70) { verdict = '偏多'; verdictClass = 'bull'; verdictHint = '多頭信號集中,但留意極端反轉風險'; }
+  else if (normScore >= 55) { verdict = '中偏多'; verdictClass = 'bull-mild'; verdictHint = '多空交織,主力略佔上風'; }
+  else if (normScore >= 45) { verdict = '中性'; verdictClass = 'neutral'; verdictHint = '盤整觀望,等待方向訊號'; }
+  else if (normScore >= 30) { verdict = '中偏空'; verdictClass = 'bear-mild'; verdictHint = '空方略強,留意支撐'; }
+  else { verdict = '偏空'; verdictClass = 'bear'; verdictHint = '空方信號集中,風險偏高'; }
+  
+  el.innerHTML = `
+    <div class="chip-temp-header">
+      <span class="chip-temp-title">🌡️ 台股籌碼溫度計</span>
+      <span class="chip-temp-score-badge ${verdictClass}">
+        <span class="chip-temp-score-num">${normScore}</span>
+        <span class="chip-temp-score-max">/100</span>
+        <span class="chip-temp-score-verdict">${verdict}</span>
+      </span>
+    </div>
+    
+    <!-- v3.17.3: 視覺化線性溫度計 -->
+    <div class="chip-temp-meter-wrap">
+      <div class="chip-temp-meter-labels">
+        <span>偏空</span>
+        <span>中偏空</span>
+        <span>中性</span>
+        <span>中偏多</span>
+        <span>偏多</span>
+      </div>
+      <div class="chip-temp-meter-bar">
+        <div class="chip-temp-meter-fill"></div>
+        <div class="chip-temp-meter-pointer" style="left: ${normScore}%;">
+          <div class="chip-temp-meter-pointer-arrow"></div>
+          <div class="chip-temp-meter-pointer-value">${normScore}</div>
+        </div>
+      </div>
+      <div class="chip-temp-meter-scale">
+        <span>0</span><span>30</span><span>50</span><span>70</span><span>100</span>
+      </div>
+    </div>
+    
+    <div class="chip-temp-grid">
+      ${signals.map(s => `
+        <div class="chip-temp-card chip-temp-${s.level}" onclick="if(window.switchTab) switchTab('${s.tab}'); else document.querySelector('[data-tab=\\'${s.tab}\\']')?.click();" title="${s.hint}">
+          <div class="chip-temp-name">${s.name}</div>
+          <div class="chip-temp-value">${s.label}</div>
+          <div class="chip-temp-hint">${s.hint}</div>
+        </div>
+      `).join('')}
+    </div>
+    
+    <div class="chip-temp-bottom-hint">
+      💡 <strong>${normScore}/100 = ${verdict}區</strong> ｜ ${verdictHint} 
+      <span style="color:var(--text-3);margin-left:8px;">分布: ${bulls} 多 / ${neutrals} 中 / ${bears} 空</span>
+    </div>
+  `;
 }
 
 // ========== v3.12 漲停狙擊 ==========
@@ -4784,13 +5346,13 @@ function renderFutures() {
       <div class="futures-time-icon">📅</div>
       <div class="futures-time-info">
         <div class="futures-time-main">
-          期貨資料日期: <strong>${fd.date || '—'}</strong>
+          <span style="margin-right:8px;">期貨資料日期: <strong>${fd.date || '—'}</strong></span>
           <span class="futures-time-tag">T-0</span>
-          <span style="margin-left:14px;color:var(--text-3);font-weight:normal;">⏳ 結算日: <strong style="color:var(--accent);">${settlement.date}</strong> (還有 ${settlement.days} 天)</span>
         </div>
-        <div class="futures-time-sub">
-          📡 TAIFEX 公告時程: <span style="color:var(--accent);">15:00 三大法人</span> ｜ <span style="color:var(--accent);">15:30 大額交易人</span> ｜ Chip Radar 每日 20:00 抓取穩定版
-          <br>系統最後抓取: <strong>${fd.crawled_at ? new Date(fd.crawled_at).toLocaleString('zh-TW', {hour12: false}).replace(/\//g,'-').slice(0,16) : '—'}</strong>
+        <div class="futures-time-sub futures-time-sub-grid">
+          <div><span style="color:var(--text-3);">⏳ 結算日</span> <strong style="color:var(--accent);">${settlement.date}</strong> <span style="color:var(--text-3);">(剩 ${settlement.days} 天)</span></div>
+          <div><span style="color:var(--text-3);">📡 TAIFEX 公告</span> <span style="color:var(--accent);">15:00 三大法人</span> · <span style="color:var(--accent);">15:30 大額交易人</span></div>
+          <div><span style="color:var(--text-3);">💾 系統最後抓取</span> <strong>${fd.crawled_at ? new Date(fd.crawled_at).toLocaleString('zh-TW', {hour12: false}).replace(/\//g,'-').slice(0,16) : '—'}</strong></div>
         </div>
       </div>
       <div class="futures-time-hint">💡 點擊任一指標卡可查看 30 天歷史走勢</div>
@@ -5233,12 +5795,15 @@ function renderMarginPanel() {
       subText = `驗證信心：${ver.confidence || 'low'} ｜ ${ver.message || ''} ｜ 最後更新 ${fmtTime(lastMarginUpdate)}`;
       tagText = '需留意';
     } else {
-      // 未驗證
+      // TWSE 原始資料 (HiStock 交叉驗證待補)
       bannerClass = 'unverified';
-      icon = '❓';
-      mainText = `融資融券資料日期：<span class="data-date-banner-date">未驗證</span>`;
-      subText = `HiStock 驗證未執行或失敗 ｜ 顯示的是 TWSE 原始資料 ｜ 最後更新 ${fmtTime(lastMarginUpdate)}`;
-      tagText = '未驗證';
+      icon = 'ℹ️';
+      // 嘗試從 latest.json 拿到 marginData 的日期
+      const md = CURRENT_DATA?.margin_data;
+      const dataDate = md?.data_date || md?.date || ver.data_date;
+      mainText = `融資融券資料日期：<span class="data-date-banner-date">${dataDate ? fmtDate(dataDate) : '未取得'}</span>`;
+      subText = `📊 顯示 TWSE 證交所原始資料 ｜ HiStock 交叉驗證待補 ｜ 最後更新 ${fmtTime(lastMarginUpdate)}`;
+      tagText = 'TWSE 原始';
     }
     
     bannerEl.innerHTML = `
@@ -8334,12 +8899,95 @@ function renderInstSearch(el) {
 }
 
 
+// v3.17.2: 個股 tab 預設「熱門個股 + 自選股」
+function renderStockHotPicks(el) {
+  const stockMap = new Map();
+  
+  if (CURRENT_DATA?.branches) {
+    for (const br of CURRENT_DATA.branches) {
+      if (!br.buys) continue;
+      for (const s of br.buys) {
+        if (!passMarketFilter(s, 'stock')) continue;
+        const key = s.code;
+        if (!stockMap.has(key)) {
+          stockMap.set(key, { code: s.code, name: s.name, totalBuy: 0, branches: new Set() });
+        }
+        const entry = stockMap.get(key);
+        entry.totalBuy += (s.amt || 0);
+        entry.branches.add(br.name);
+      }
+    }
+  }
+  
+  const top = Array.from(stockMap.values())
+    .sort((a, b) => {
+      if (b.branches.size !== a.branches.size) return b.branches.size - a.branches.size;
+      return b.totalBuy - a.totalBuy;
+    })
+    .slice(0, 10);
+  
+  const watchlist = Array.from(WATCHLIST || []).slice(0, 12);
+  
+  const watchHTML = watchlist.length > 0 ? `
+    <div class="stock-hot-section">
+      <div class="stock-hot-header">
+        <span class="stock-hot-title">⭐ 我的自選股</span>
+        <span class="stock-hot-sub">${watchlist.length} 檔</span>
+      </div>
+      <div class="stock-hot-chips">
+        ${watchlist.map(code => `
+          <button class="stock-hot-chip" onclick="document.getElementById('stockSearchInput').value='${code}';renderStockTrace();">
+            <span class="stock-hot-chip-code">${code}</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+  
+  const topHTML = top.length > 0 ? `
+    <div class="stock-hot-section">
+      <div class="stock-hot-header">
+        <span class="stock-hot-title">🔥 今日熱門個股 Top 10</span>
+        <span class="stock-hot-sub">分點同步買超 (依分點數量排序)</span>
+      </div>
+      <div class="stock-hot-grid">
+        ${top.map((s, i) => {
+          const amtFmt = s.totalBuy >= 1e8 
+            ? (s.totalBuy / 1e8).toFixed(1) + '億'
+            : (s.totalBuy / 1e4).toFixed(0) + '萬';
+          return `
+            <button class="stock-hot-card" onclick="document.getElementById('stockSearchInput').value='${s.code}';renderStockTrace();">
+              <div class="stock-hot-rank">#${i+1}</div>
+              <div class="stock-hot-info">
+                <div class="stock-hot-name">${s.name}</div>
+                <div class="stock-hot-code">${s.code} · ${s.branches.size} 分點同買</div>
+              </div>
+              <div class="stock-hot-amt pos">+${amtFmt}</div>
+            </button>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  ` : '';
+  
+  el.innerHTML = `
+    <div class="stock-hot-empty-hint">
+      <div class="stock-hot-empty-icon">🔎</div>
+      <div class="stock-hot-empty-text">輸入股票代號或名稱搜尋, 或從下方快速選擇</div>
+    </div>
+    ${watchHTML}
+    ${topHTML || '<div class="empty" style="margin-top:20px;"><div class="empty-icon">📊</div>今日無資料</div>'}
+  `;
+}
+
+
 async function renderStockTrace() {
   const el = document.getElementById('stockTraceResult');
   if (!CURRENT_DATA) return;
   const q = document.getElementById('stockSearchInput').value.trim().toLowerCase();
   if (!q) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">🔎</div>請輸入股票代號或名稱開始搜尋</div>';
+    // v3.17.2: 預設顯示「今日熱門個股 Top 10」+ 「自選股」+ 引導
+    renderStockHotPicks(el);
     return;
   }
   el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密多日歷史...</div>';
