@@ -305,13 +305,24 @@ def fetch_top_traders_futures(trade_date: str, contract: str = 'TXF') -> Dict[st
             result['by_month'][month]['top10_long_institutional'] = top10_long
             result['by_month'][month]['top10_short_institutional'] = top10_short
     
-    # 取最近月份
+    # 取參考月份 (v3.17.5 修正: 改用 999999 全部月份對齊 TAIFEX 官網標準)
     if result['by_month']:
         months = sorted(result['by_month'].keys())
-        # 最近月通常是第一個 (當月結算)
-        nearest = months[0]
-        result['nearest_month'] = result['by_month'][nearest]
-        result['nearest_month_label'] = nearest
+        # 999999 = 不分月份合計 (TAIFEX 官網預設顯示這個)
+        if '999999' in result['by_month']:
+            result['nearest_month'] = result['by_month']['999999']
+            result['nearest_month_label'] = '全部月份'
+            # 同時保留當月供參考
+            current_months = [m for m in months if m not in ('999999', '666666')]
+            if current_months:
+                result['current_month'] = result['by_month'][current_months[0]]
+                result['current_month_label'] = current_months[0]
+        else:
+            # 退化:若沒 999999 則取最近月份
+            current_months = [m for m in months if m not in ('999999', '666666')]
+            nearest = current_months[0] if current_months else months[0]
+            result['nearest_month'] = result['by_month'][nearest]
+            result['nearest_month_label'] = nearest
     
     return result
 
@@ -367,6 +378,79 @@ def compute_max_pain(option_oi_data: Dict[str, Any]) -> Optional[Dict[str, Any]]
 # ════════════════════════════════════════════════════════════════════
 #  🎯 6. 綜合抓取 + 計算 (主入口)
 # ════════════════════════════════════════════════════════════════════
+def fetch_official_pcr(trade_date: str) -> Optional[Dict[str, Any]]:
+    """
+    v3.17.5: 直接從 TAIFEX 官方 pcRatio 端點抓真實 PCR
+    
+    端點: https://www.taifex.com.tw/cht/3/pcRatio (HTML 頁面)
+    回傳最近 21 個交易日的 PCR 表格
+    
+    Args:
+        trade_date: YYYYMMDD (e.g. 20260429)
+    
+    Returns:
+        {
+            'pcr_oi': float,         # 買賣權未平倉量比 (例: 1.7112)
+            'pcr_volume': float,     # 買賣權成交量比 (例: 0.9592)  
+            'put_oi': int,           # 賣權未平倉量
+            'call_oi': int,          # 買權未平倉量
+            'put_volume': int,       # 賣權成交量
+            'call_volume': int,      # 買權成交量
+            'date': str,             # YYYY/M/D
+        }
+        失敗回 None
+    """
+    import re
+    
+    # YYYYMMDD → YYYY/M/D (TAIFEX 表格用無前導零格式)
+    yyyy = trade_date[:4]
+    mm = str(int(trade_date[4:6]))  # 去掉前導 0
+    dd = str(int(trade_date[6:8]))
+    target_date = f"{yyyy}/{mm}/{dd}"
+    
+    try:
+        r = requests.get(
+            'https://www.taifex.com.tw/cht/3/pcRatio',
+            headers=HEADERS,
+            timeout=15,
+        )
+        if r.status_code != 200 or len(r.text) < 5000:
+            return None
+        
+        html = r.text
+        # 解析所有 <tr>
+        trs = re.findall(r'<tr[^>]*>(.*?)</tr>', html, re.DOTALL)
+        
+        for tr in trs:
+            if target_date not in tr:
+                continue
+            tds = re.findall(r'<td[^>]*>(.*?)</td>', tr, re.DOTALL)
+            cleaned = [re.sub(r'<[^>]+>', '', t).strip().replace(',', '').replace('&nbsp;', '') for t in tds]
+            if len(cleaned) < 7:
+                continue
+            
+            try:
+                date, put_vol, call_vol, vol_ratio, put_oi, call_oi, oi_ratio = cleaned[:7]
+                if date != target_date:
+                    continue
+                return {
+                    'pcr_oi': round(float(oi_ratio) / 100, 4),         # 171.12 → 1.7112
+                    'pcr_volume': round(float(vol_ratio) / 100, 4),    # 95.92 → 0.9592
+                    'put_oi': int(put_oi),
+                    'call_oi': int(call_oi),
+                    'put_volume': int(put_vol),
+                    'call_volume': int(call_vol),
+                    'date': date,
+                }
+            except (ValueError, IndexError):
+                continue
+        
+        return None
+    except Exception as e:
+        print(f"  ⚠️ fetch_official_pcr 失敗: {e}")
+        return None
+
+
 def fetch_all_futures_data(trade_date: str) -> Dict[str, Any]:
     """
     一次抓取所有期貨相關資料 (for crawler.py 主流程)
@@ -448,21 +532,33 @@ def fetch_all_futures_data(trade_date: str) -> Dict[str, Any]:
     summary['retail_mxf_net_oi'] = -(mxf_dealer_net + mxf_trust_net + mxf_foreign_net)
     
     # 4-c. Put/Call Ratio (全市場未平倉)
+    # ⚠️ v3.17.5 修正: 改抓 TAIFEX 官方 pcRatio 端點 (全市場 OI)
+    # 之前用三大法人多方 OI 計算是錯誤的 (差異約 8-10%)
     call_data = result['options'].get('TXO', {}).get('call', {})
     put_data = result['options'].get('TXO', {}).get('put', {})
     
-    # 累計 call/put 三法人未平倉
-    total_call_long_oi = sum(
-        (call_data.get(k, {}).get('long_oi', 0)) for k in ['dealer', 'trust', 'foreign']
-    )
-    total_put_long_oi = sum(
-        (put_data.get(k, {}).get('long_oi', 0)) for k in ['dealer', 'trust', 'foreign']
-    )
-    
-    if total_call_long_oi > 0:
-        summary['pc_ratio_oi'] = round(total_put_long_oi / total_call_long_oi, 3)
+    # 嘗試從官方端點取真實 PCR
+    pcr_official = fetch_official_pcr(trade_date)
+    if pcr_official:
+        summary['pc_ratio_oi'] = pcr_official['pcr_oi']
+        summary['pc_ratio_volume'] = pcr_official.get('pcr_volume')
+        summary['put_oi_total'] = pcr_official.get('put_oi')
+        summary['call_oi_total'] = pcr_official.get('call_oi')
+        summary['pcr_source'] = 'TAIFEX 官方'
     else:
-        summary['pc_ratio_oi'] = None
+        # 退化:用三大法人計算 (僅作備援,標記為估算)
+        total_call_long_oi = sum(
+            (call_data.get(k, {}).get('long_oi', 0)) for k in ['dealer', 'trust', 'foreign']
+        )
+        total_put_long_oi = sum(
+            (put_data.get(k, {}).get('long_oi', 0)) for k in ['dealer', 'trust', 'foreign']
+        )
+        if total_call_long_oi > 0:
+            summary['pc_ratio_oi'] = round(total_put_long_oi / total_call_long_oi, 3)
+            summary['pcr_source'] = '三法人估算 (備援)'
+        else:
+            summary['pc_ratio_oi'] = None
+            summary['pcr_source'] = None
     
     # 4-d. 外資選擇權 Call 和 Put 的淨 OI (多方 - 空方)
     foreign_call = call_data.get('foreign', {})
