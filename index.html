@@ -4772,7 +4772,10 @@ function renderFutures() {
     let target = findThirdWed(now.getFullYear(), now.getMonth());
     if (now.getTime() > target.getTime()) target = findThirdWed(now.getFullYear(), now.getMonth() + 1);
     const days = Math.ceil((target.getTime() - now.getTime()) / (86400000));
-    return { date: target.toISOString().slice(5, 10).replace('-', '/'), days };
+    // v3.17.1.1 fix: 用本地時間取月日,避免 UTC 轉換誤差
+    const mm = String(target.getMonth() + 1).padStart(2, '0');
+    const dd = String(target.getDate()).padStart(2, '0');
+    return { date: `${mm}/${dd}`, days };
   })();
   
   el.innerHTML = `
@@ -4786,7 +4789,8 @@ function renderFutures() {
           <span style="margin-left:14px;color:var(--text-3);font-weight:normal;">⏳ 結算日: <strong style="color:var(--accent);">${settlement.date}</strong> (還有 ${settlement.days} 天)</span>
         </div>
         <div class="futures-time-sub">
-          TAIFEX 公告於 14:30+ ｜ 系統最後抓取: ${fd.crawled_at ? new Date(fd.crawled_at).toLocaleString('zh-TW', {hour12: false}).replace(/\//g,'-').slice(0,16) : '—'}
+          📡 TAIFEX 公告時程: <span style="color:var(--accent);">15:00 三大法人</span> ｜ <span style="color:var(--accent);">15:30 大額交易人</span> ｜ Chip Radar 每日 20:00 抓取穩定版
+          <br>系統最後抓取: <strong>${fd.crawled_at ? new Date(fd.crawled_at).toLocaleString('zh-TW', {hour12: false}).replace(/\//g,'-').slice(0,16) : '—'}</strong>
         </div>
       </div>
       <div class="futures-time-hint">💡 點擊任一指標卡可查看 30 天歷史走勢</div>
@@ -4940,6 +4944,13 @@ function renderFutures() {
         <div class="futures-metric-value ${fmtLotClass(top10Net)}" style="font-size:22px;">${fmtLot(top10Net)}</div>
         <div class="futures-metric-sub">買 - 賣</div>
       </div>
+    </div>
+    
+    <!-- v3.17.1.1: 資料來源透明說明 -->
+    <div style="margin-top:8px;padding:8px 12px;background:rgba(31,42,72,0.3);border-left:2px solid rgba(167,139,250,0.4);border-radius:4px;font-size:10.5px;color:var(--text-3);line-height:1.5;">
+      📡 <strong style="color:var(--text-2);">資料來源</strong>:TAIFEX 大額交易人未沖銷部位結構表（每日 15:30 公告）｜ 
+      <strong style="color:var(--text-2);">計算</strong>: 集中度 = 前十大交易人部位 ÷ 全市場未平倉口數 ｜
+      <strong style="color:var(--text-2);">說明</strong>:TAIFEX 不公開個別交易人身份,僅給合計數;含外資/自營/大戶/特法
     </div>
     ` : ''}
     
