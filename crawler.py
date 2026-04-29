@@ -45,6 +45,7 @@ import reports  # v3.9 週報/月報生成
 import margin   # v3.11 融資融券
 import industry_classifier  # v3.15.0 產業分類
 import history  # v3.15.2 歷史資料累積
+import futures  # v3.17 期貨選擇權籌碼
 
 TW_TZ = timezone(timedelta(hours=8))
 
@@ -1811,7 +1812,29 @@ def main():
             branches_results=results,
         )
     except Exception as e:
-        print(f"  ⚠️ 歷史累積失敗: {e}（不影響主流程）")
+        print(f"  ⚠️ 歷史累積失敗: {e}(不影響主流程)")
+        import traceback; traceback.print_exc()
+    
+    # ════════════════════════════════════════════════════════════════
+    # v3.17 新增:期貨選擇權籌碼
+    # ════════════════════════════════════════════════════════════════
+    futures_data = {}
+    try:
+        print(f"\n[期貨籌碼] 抓取 TAIFEX 期貨/選擇權/大額交易人...")
+        futures_data = futures.fetch_all_futures_data(trade_date)
+        # 印出關鍵摘要
+        summary = futures_data.get('summary', {})
+        if summary:
+            print(f"  ✓ 外資等效大台淨 OI: {summary.get('foreign_equivalent_net_oi', 0):,} 口")
+            print(f"  ✓ 散戶小台淨 OI (推算): {summary.get('retail_mxf_net_oi', 0):,} 口")
+            pc = summary.get('pc_ratio_oi')
+            if pc:
+                print(f"  ✓ P/C Ratio: {pc}")
+            t10_ratio = summary.get('top10_long_ratio')
+            if t10_ratio:
+                print(f"  ✓ 十大交易人買方集中度: {t10_ratio*100:.1f}%")
+    except Exception as e:
+        print(f"  ⚠️ 期貨籌碼抓取失敗: {e}(不影響主流程)")
         import traceback; traceback.print_exc()
     
     # ===== 組裝當日 JSON =====
@@ -1819,7 +1842,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.16.1",
+        "version": "3.17.0",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -1846,6 +1869,8 @@ def main():
             "industry_groups": industry_map.get('industry_groups', {}),
             "updated_at": industry_map.get('updated_at'),
         },
+        # v3.17 新增:期貨選擇權籌碼
+        "futures_data": futures_data,
     }
     
     plaintext = json.dumps(raw_output, ensure_ascii=False)
@@ -1897,7 +1922,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.16.1",
+            "version": "3.17.0",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
