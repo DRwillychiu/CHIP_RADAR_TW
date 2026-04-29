@@ -1265,6 +1265,217 @@ th.sortable.sort-desc::after {
   font-size: 13px;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   v3.17.1: 期貨資料時間 banner + clickable hero card + Modal
+   ══════════════════════════════════════════════════════════════ */
+.futures-time-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(240,200,80,0.08) 0%, rgba(15,21,37,0.5) 100%);
+  border: 1px solid rgba(240,200,80,0.25);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.futures-time-icon { font-size: 20px; }
+.futures-time-info { flex: 1; min-width: 200px; }
+.futures-time-main {
+  font-size: 13px;
+  color: var(--text-1);
+  font-weight: 500;
+}
+.futures-time-main strong { color: var(--accent); margin: 0 4px; }
+.futures-time-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  background: rgba(16,185,129,0.15);
+  color: #86efac;
+  font-size: 10px;
+  border-radius: 3px;
+  margin-left: 4px;
+  border: 1px solid rgba(16,185,129,0.3);
+}
+.futures-time-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+.futures-time-hint {
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(240,200,80,0.08);
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(240,200,80,0.2);
+}
+
+/* clickable hero/card */
+.futures-hero-card.clickable,
+.pc-ratio-card.clickable {
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.futures-hero-card.clickable::after,
+.pc-ratio-card.clickable::after {
+  content: '📈 點擊看走勢';
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 9px;
+  color: var(--text-3);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.futures-hero-card.clickable:hover,
+.pc-ratio-card.clickable:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 4px 16px rgba(240,200,80,0.15);
+}
+.futures-hero-card.clickable:hover::after,
+.pc-ratio-card.clickable:hover::after {
+  opacity: 1;
+}
+
+/* Modal */
+.fut-history-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.fut-history-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.fut-history-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 8, 16, 0.85);
+  backdrop-filter: blur(4px);
+}
+.fut-history-box {
+  position: relative;
+  width: 90%;
+  max-width: 900px;
+  max-height: 85vh;
+  background: linear-gradient(135deg, #131a2e 0%, #0a0e1a 100%);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.fut-history-header {
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+.fut-history-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.fut-history-close {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s;
+}
+.fut-history-close:hover {
+  background: rgba(239,68,68,0.1);
+  color: #fca5a5;
+  border-color: #fca5a5;
+}
+.fut-history-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  flex: 1;
+}
+.fut-history-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.fut-history-stat {
+  background: rgba(31,42,72,0.4);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.fut-history-stat-label {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+.fut-history-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+.fut-history-chart-wrap {
+  position: relative;
+  height: 280px;
+  margin: 12px 0;
+  padding: 6px 0;
+}
+.fut-history-table-wrap {
+  margin-top: 14px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.fut-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.fut-history-table th {
+  position: sticky;
+  top: 0;
+  background: rgba(31,42,72,0.95);
+  color: var(--text-2);
+  font-weight: 500;
+  padding: 6px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+}
+.fut-history-table th:first-child { text-align: left; }
+.fut-history-table td {
+  padding: 6px 10px;
+  text-align: right;
+  border-bottom: 1px solid rgba(148,163,184,0.06);
+  font-family: 'JetBrains Mono', monospace;
+}
+.fut-history-table td:first-child {
+  text-align: left;
+  font-family: inherit;
+  color: var(--text-2);
+}
+.fut-history-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
 /* 個股產業 chip (小標籤) */
 .industry-chip {
   display: inline-block;
@@ -4521,12 +4732,13 @@ function renderFutures() {
     return v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
   };
   
-  // 三法人大台明細
+  // 三法人大台/小台/微台明細
   const txf = fd.futures?.TXF || {};
   const mxf = fd.futures?.MXF || {};
+  const tmf = fd.futures?.TMF || {};
   
-  const tableRowsTxf = ['dealer', 'trust', 'foreign'].map(key => {
-    const d = txf[key] || {};
+  const buildRows = (sourceObj) => ['dealer', 'trust', 'foreign'].map(key => {
+    const d = sourceObj[key] || {};
     const label = {dealer: '自營商', trust: '投信', foreign: '外資'}[key];
     return `<tr>
       <td>${label}</td>
@@ -4537,17 +4749,9 @@ function renderFutures() {
     </tr>`;
   }).join('');
   
-  const tableRowsMxf = ['dealer', 'trust', 'foreign'].map(key => {
-    const d = mxf[key] || {};
-    const label = {dealer: '自營商', trust: '投信', foreign: '外資'}[key];
-    return `<tr>
-      <td>${label}</td>
-      <td class="num">${(d.long_oi || 0).toLocaleString()}</td>
-      <td class="num">${(d.short_oi || 0).toLocaleString()}</td>
-      <td class="num ${fmtLotClass(d.net_oi)}">${fmtLot(d.net_oi)}</td>
-      <td class="num ${fmtLotClass(d.net_trade)}">${fmtLot(d.net_trade)}</td>
-    </tr>`;
-  }).join('');
+  const tableRowsTxf = buildRows(txf);
+  const tableRowsMxf = buildRows(mxf);
+  const tableRowsTmf = buildRows(tmf);  // v3.17.1: TMF 微型台指
   
   // 選擇權三法人
   const callData = fd.options?.TXO?.call || {};
@@ -4557,11 +4761,41 @@ function renderFutures() {
   const totalPutOI = ['dealer', 'trust', 'foreign'].reduce((sum, k) => 
     sum + ((putData[k] || {}).long_oi || 0), 0);
   
+  // v3.17.1 結算日倒數
+  const settlement = (() => {
+    const now = new Date();
+    const findThirdWed = (year, month) => {
+      const firstDay = new Date(year, month, 1);
+      const firstWedDay = (3 - firstDay.getDay() + 7) % 7 + 1;
+      return new Date(year, month, firstWedDay + 14);
+    };
+    let target = findThirdWed(now.getFullYear(), now.getMonth());
+    if (now.getTime() > target.getTime()) target = findThirdWed(now.getFullYear(), now.getMonth() + 1);
+    const days = Math.ceil((target.getTime() - now.getTime()) / (86400000));
+    return { date: target.toISOString().slice(5, 10).replace('-', '/'), days };
+  })();
+  
   el.innerHTML = `
+    <!-- v3.17.1: 期貨資料時間 banner -->
+    <div class="futures-time-banner">
+      <div class="futures-time-icon">📅</div>
+      <div class="futures-time-info">
+        <div class="futures-time-main">
+          期貨資料日期: <strong>${fd.date || '—'}</strong>
+          <span class="futures-time-tag">T-0</span>
+          <span style="margin-left:14px;color:var(--text-3);font-weight:normal;">⏳ 結算日: <strong style="color:var(--accent);">${settlement.date}</strong> (還有 ${settlement.days} 天)</span>
+        </div>
+        <div class="futures-time-sub">
+          TAIFEX 公告於 14:30+ ｜ 系統最後抓取: ${fd.crawled_at ? new Date(fd.crawled_at).toLocaleString('zh-TW', {hour12: false}).replace(/\//g,'-').slice(0,16) : '—'}
+        </div>
+      </div>
+      <div class="futures-time-hint">💡 點擊任一指標卡可查看 30 天歷史走勢</div>
+    </div>
+    
     <!-- 🎯 主要指標儀表板 -->
     <div class="futures-dashboard">
       <!-- 外資等效大台 (主角) -->
-      <div class="futures-hero-card ${foreignBullish ? 'bullish' : 'bearish'}">
+      <div class="futures-hero-card clickable ${foreignBullish ? 'bullish' : 'bearish'}" onclick="showFuturesHistoryModal('foreign_equivalent_net_oi','💎 外資等效大台淨未平倉')">
         <div class="futures-hero-title">
           <span>💎 外資等效大台淨未平倉</span>
           <span style="font-size:11px;">${foreignStance}</span>
@@ -4592,7 +4826,7 @@ function renderFutures() {
       </div>
       
       <!-- 散戶小台反指標 -->
-      <div class="futures-hero-card ${retailBullish ? 'bearish' : 'bullish'}">
+      <div class="futures-hero-card clickable ${retailBullish ? 'bearish' : 'bullish'}" onclick="showFuturesHistoryModal('retail_mxf_net_oi','👥 散戶小台反指標')">
         <div class="futures-hero-title">
           <span>👥 散戶小台反指標</span>
         </div>
@@ -4607,7 +4841,7 @@ function renderFutures() {
     
     <!-- 📊 P/C Ratio + 外資選擇權 -->
     <div class="futures-dashboard">
-      <div class="pc-ratio-card">
+      <div class="pc-ratio-card clickable" onclick="showFuturesHistoryModal('pc_ratio_oi','📊 Put/Call Ratio')">
         <div style="font-size:40px;line-height:1;">${pcIcon}</div>
         <div class="pc-ratio-info">
           <div style="font-size:11px;color:var(--text-3);margin-bottom:2px;">Put/Call 未平倉比 (P/C Ratio)</div>
@@ -4619,7 +4853,7 @@ function renderFutures() {
         </div>
       </div>
       
-      <div class="futures-hero-card ${foreignOptSent > 0 ? 'bullish' : (foreignOptSent < 0 ? 'bearish' : '')}">
+      <div class="futures-hero-card clickable ${foreignOptSent > 0 ? 'bullish' : (foreignOptSent < 0 ? 'bearish' : '')}" onclick="showFuturesHistoryModal('foreign_option_sentiment','🎲 外資選擇權傾向')">
         <div class="futures-hero-title">
           <span>🎲 外資選擇權傾向</span>
         </div>
@@ -4667,6 +4901,23 @@ function renderFutures() {
       </table>
     </div>
     
+    <!-- v3.17.1: 🏛️ 三法人期貨明細 (微台) -->
+    <div class="section-title" style="margin-top:20px;">
+      📊 三大法人 微型臺指期 (TMF 微台) <span class="section-sub">口數 ｜ 1/10 大台合約值</span>
+    </div>
+    <div class="futures-table-wrap">
+      <table class="futures-table">
+        <thead><tr>
+          <th>身份別</th>
+          <th>多方未平倉</th>
+          <th>空方未平倉</th>
+          <th>多空淨 OI</th>
+          <th>當日淨交易</th>
+        </tr></thead>
+        <tbody>${tableRowsTmf}</tbody>
+      </table>
+    </div>
+    
     <!-- 🎯 十大交易人 -->
     ${top10Long !== null && top10Long !== undefined ? `
     <div class="section-title" style="margin-top:20px;">
@@ -4704,6 +4955,220 @@ function renderFutures() {
     </div>
   `;
 }
+
+// ════════════════════════════════════════════════════════════════════
+// v3.17.1: 期貨歷史 Modal (點擊 hero card 跳出)
+// ════════════════════════════════════════════════════════════════════
+let FUTURES_HISTORY_CACHE = null;
+
+async function loadFuturesHistory() {
+  // 從 stock_history.json 抓 futures 區塊
+  if (FUTURES_HISTORY_CACHE) return FUTURES_HISTORY_CACHE;
+  try {
+    const r = await fetch('data/stock_history.json?_=' + Date.now());
+    if (!r.ok) return null;
+    const h = await r.json();
+    FUTURES_HISTORY_CACHE = h.futures || {};
+    return FUTURES_HISTORY_CACHE;
+  } catch(e) {
+    console.warn('loadFuturesHistory failed', e);
+    return null;
+  }
+}
+
+let CURRENT_MODAL_CHART = null;
+
+async function showFuturesHistoryModal(metricKey, title) {
+  // 移除舊 modal
+  const oldModal = document.getElementById('futuresHistoryModal');
+  if (oldModal) oldModal.remove();
+  if (CURRENT_MODAL_CHART) { CURRENT_MODAL_CHART.destroy(); CURRENT_MODAL_CHART = null; }
+  
+  // 建 modal
+  const modal = document.createElement('div');
+  modal.id = 'futuresHistoryModal';
+  modal.className = 'fut-history-modal';
+  modal.innerHTML = `
+    <div class="fut-history-backdrop" onclick="closeFuturesHistoryModal()"></div>
+    <div class="fut-history-box">
+      <div class="fut-history-header">
+        <div class="fut-history-title">${title}</div>
+        <button class="fut-history-close" onclick="closeFuturesHistoryModal()">✕</button>
+      </div>
+      <div class="fut-history-body" id="futHistoryBody">
+        <div class="loading"><div class="loading-spinner"></div>載入歷史資料...</div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  setTimeout(() => modal.classList.add('show'), 10);
+  
+  // 載入資料
+  const history = await loadFuturesHistory();
+  const body = document.getElementById('futHistoryBody');
+  if (!body) return;
+  
+  if (!history || Object.keys(history).length === 0) {
+    body.innerHTML = `
+      <div class="fut-history-empty">
+        <div style="font-size:32px;">📊</div>
+        <div style="margin-top:8px;">期貨歷史資料尚未累積</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:6px;">
+          系統每日 20:00 自動累積期貨指標,需要至少 2-3 天才有意義的趨勢
+        </div>
+      </div>`;
+    return;
+  }
+  
+  const dates = Object.keys(history).sort();
+  if (dates.length === 0) {
+    body.innerHTML = '<div class="fut-history-empty">無資料</div>';
+    return;
+  }
+  
+  // 抽出該指標的時間序列
+  const labels = dates.map(d => `${d.slice(4,6)}/${d.slice(6,8)}`);
+  const values = dates.map(d => history[d]?.[metricKey] ?? null);
+  const lastValue = values[values.length - 1];
+  const firstValue = values.find(v => v !== null) || 0;
+  const change = (lastValue !== null && firstValue !== null) ? lastValue - firstValue : 0;
+  
+  // 判斷指標類型
+  const isRatio = metricKey.includes('ratio');
+  const fmt = isRatio
+    ? (v) => v === null ? '—' : v.toFixed(3)
+    : (v) => v === null ? '—' : (v > 0 ? '+' : '') + v.toLocaleString() + ' 口';
+  
+  body.innerHTML = `
+    <div class="fut-history-stats">
+      <div class="fut-history-stat">
+        <div class="fut-history-stat-label">最新值</div>
+        <div class="fut-history-stat-value ${lastValue > 0 ? 'pos' : (lastValue < 0 ? 'neg' : '')}">${fmt(lastValue)}</div>
+      </div>
+      <div class="fut-history-stat">
+        <div class="fut-history-stat-label">${dates.length} 天累積</div>
+        <div class="fut-history-stat-value">${dates.length} 天</div>
+      </div>
+      <div class="fut-history-stat">
+        <div class="fut-history-stat-label">期間變動</div>
+        <div class="fut-history-stat-value ${change > 0 ? 'pos' : (change < 0 ? 'neg' : '')}">${fmt(change)}</div>
+      </div>
+    </div>
+    <div class="fut-history-chart-wrap">
+      <canvas id="futHistoryCanvas"></canvas>
+    </div>
+    <div class="fut-history-table-wrap">
+      <table class="fut-history-table">
+        <thead><tr><th>日期</th><th>數值</th><th>較前日</th></tr></thead>
+        <tbody>
+          ${dates.slice().reverse().map((d, i, arr) => {
+            const v = history[d]?.[metricKey];
+            const prevDate = arr[i+1];
+            const prev = prevDate ? history[prevDate]?.[metricKey] : null;
+            const diff = (v !== null && v !== undefined && prev !== null && prev !== undefined) ? v - prev : null;
+            return `<tr>
+              <td>${d.slice(0,4)}/${d.slice(4,6)}/${d.slice(6,8)}</td>
+              <td class="num ${v > 0 ? 'pos' : (v < 0 ? 'neg' : '')}">${fmt(v)}</td>
+              <td class="num ${diff > 0 ? 'pos' : (diff < 0 ? 'neg' : '')}">${diff !== null ? (diff > 0 ? '+' : '') + (isRatio ? diff.toFixed(3) : diff.toLocaleString()) : '—'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  
+  // 等 DOM 就緒再畫 chart
+  requestAnimationFrame(() => {
+    const canvas = document.getElementById('futHistoryCanvas');
+    if (!canvas || typeof Chart === 'undefined') return;
+    
+    const ctx = canvas.getContext('2d');
+    CURRENT_MODAL_CHART = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: title.replace(/[💎👥📊🎲]/g, '').trim(),
+          data: values,
+          borderColor: '#f0c850',
+          backgroundColor: 'rgba(240,200,80,0.1)',
+          borderWidth: 2.5,
+          tension: 0.25,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: (ctx) => {
+            const v = ctx.parsed.y;
+            return v > 0 ? '#fca5a5' : (v < 0 ? '#86efac' : '#f0c850');
+          },
+          pointBorderColor: '#0a0e1a',
+          pointBorderWidth: 1,
+          spanGaps: true,
+          fill: true,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(10,14,26,0.95)',
+            borderColor: '#1f2a48',
+            borderWidth: 1,
+            titleColor: '#e8edf7',
+            bodyColor: '#e8edf7',
+            padding: 10,
+            callbacks: {
+              label: (ctx) => fmt(ctx.parsed.y),
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(148,163,184,0.08)' },
+            ticks: { color: '#9aa4bd', font: { size: 11 } },
+          },
+          y: {
+            grid: { color: 'rgba(148,163,184,0.08)' },
+            ticks: { color: '#9aa4bd', font: { size: 11 } },
+          }
+        }
+      }
+    });
+  });
+}
+
+function closeFuturesHistoryModal() {
+  const modal = document.getElementById('futuresHistoryModal');
+  if (modal) {
+    modal.classList.remove('show');
+    setTimeout(() => modal.remove(), 200);
+  }
+  if (CURRENT_MODAL_CHART) {
+    CURRENT_MODAL_CHART.destroy();
+    CURRENT_MODAL_CHART = null;
+  }
+}
+
+// v3.17.1: 結算日倒數計算 (台指期當月結算 = 第三個週三)
+function getNextSettlementDate() {
+  const now = new Date();
+  // 找這個月的第三個週三
+  const findThirdWed = (year, month) => {
+    const firstDay = new Date(year, month, 1);
+    const firstWedDay = (3 - firstDay.getDay() + 7) % 7 + 1;  // 1-based
+    const thirdWed = firstWedDay + 14;
+    return new Date(year, month, thirdWed);
+  };
+  let target = findThirdWed(now.getFullYear(), now.getMonth());
+  if (now.getTime() > target.getTime()) {
+    // 已過,取下個月
+    target = findThirdWed(now.getFullYear(), now.getMonth() + 1);
+  }
+  const days = Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  return { date: target, days: days };
+}
+
 
 function renderMarginPanel() {
   if (!CURRENT_DATA) {
