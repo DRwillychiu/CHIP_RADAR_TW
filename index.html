@@ -5463,6 +5463,188 @@ function renderFutures() {
       </div>
     </div>
     
+    <!-- 🆕 v3.18: 期貨行情面 (TX 各月份開高低收 + 跨月價差) -->
+    ${(() => {
+      const md = fd.market_data;
+      if (!md || !md.summary) return '';
+      const ms = md.summary;
+      const nearChg = ms.near_change || 0;
+      const nearChgPct = ms.near_change_pct || 0;
+      const chgClass = nearChg > 0 ? 'pos' : (nearChg < 0 ? 'neg' : '');
+      const ahClose = ms.after_hours_near_close;
+      const ahChgPct = ms.after_hours_near_change_pct || 0;
+      const ahClass = ahChgPct > 0 ? 'pos' : (ahChgPct < 0 ? 'neg' : '');
+      const spread = ms.spread_near_next;
+      
+      // 月份表格
+      const regularMonths = (md.months || []).filter(m => m.session === '一般')
+        .sort((a, b) => (a.month || '').localeCompare(b.month || ''));
+      const ahMonths = (md.months || []).filter(m => m.session === '盤後')
+        .sort((a, b) => (a.month || '').localeCompare(b.month || ''));
+      
+      const renderRow = (m) => {
+        const c = m.change || 0;
+        const cls = c > 0 ? 'pos' : (c < 0 ? 'neg' : '');
+        return `<tr>
+          <td><strong>${m.month}</strong></td>
+          <td>${m.open !== null ? m.open.toLocaleString() : '—'}</td>
+          <td>${m.high !== null ? m.high.toLocaleString() : '—'}</td>
+          <td>${m.low !== null ? m.low.toLocaleString() : '—'}</td>
+          <td><strong>${m.close !== null ? m.close.toLocaleString() : '—'}</strong></td>
+          <td class="${cls}">${c >= 0 ? '+' : ''}${c} (${(m.change_pct||0).toFixed(2)}%)</td>
+          <td>${(m.volume || 0).toLocaleString()}</td>
+          <td>${m.settlement !== null ? m.settlement.toLocaleString() : '—'}</td>
+          <td>${m.open_interest !== null ? m.open_interest.toLocaleString() : '—'}</td>
+        </tr>`;
+      };
+      
+      return `
+      <div class="section-title" style="margin-top:20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span>📈 期貨行情面 (TX 大台)</span>
+        <span style="background:rgba(16,185,129,0.15);color:#86efac;padding:2px 8px;border-radius:10px;border:1px solid rgba(16,185,129,0.4);font-size:11px;font-weight:600;">✓ TAIFEX 對齊</span>
+        <span class="section-sub" style="margin-left:auto;">v3.18 新增</span>
+      </div>
+      
+      <!-- 行情面 hero cards (近月 / 跨月價差 / 夜盤) -->
+      <div class="futures-hero-grid" style="margin-bottom:14px;">
+        <div class="futures-hero-card ${chgClass === 'neg' ? 'bearish' : (chgClass === 'pos' ? 'bullish' : '')}">
+          <div class="futures-hero-label-top">
+            <span>📊 TX 近月 (${ms.near_month})</span>
+          </div>
+          <div class="futures-hero-value ${chgClass}">${ms.near_close !== null ? ms.near_close.toLocaleString() : '—'}</div>
+          <div class="futures-hero-label">
+            <span class="${chgClass}">${nearChg >= 0 ? '+' : ''}${nearChg} (${nearChgPct.toFixed(2)}%)</span><br>
+            成交 ${(ms.near_volume || 0).toLocaleString()} 口 ｜ 結算 ${ms.near_settlement || '—'}
+          </div>
+        </div>
+        
+        <div class="futures-hero-card">
+          <div class="futures-hero-label-top">
+            <span>🔄 跨月價差 (次-近)</span>
+          </div>
+          <div class="futures-hero-value ${spread > 0 ? 'pos' : (spread < 0 ? 'neg' : '')}">
+            ${spread !== null && spread !== undefined ? (spread >= 0 ? '+' : '') + spread : '—'}
+          </div>
+          <div class="futures-hero-label">
+            ${ms.next_month || '—'} - ${ms.near_month || '—'}<br>
+            <strong>
+              ${spread > 30 ? '📈 看多預期 (正逆價差)' : (spread < -30 ? '📉 看空預期 (負價差)' : '⚖️ 預期中性')}
+            </strong>
+          </div>
+        </div>
+        
+        ${ahClose !== null && ahClose !== undefined ? `
+        <div class="futures-hero-card ${ahClass === 'neg' ? 'bearish' : (ahClass === 'pos' ? 'bullish' : '')}">
+          <div class="futures-hero-label-top">
+            <span>🌙 夜盤近月</span>
+          </div>
+          <div class="futures-hero-value ${ahClass}">${ahClose.toLocaleString()}</div>
+          <div class="futures-hero-label">
+            <span class="${ahClass}">${ahChgPct >= 0 ? '+' : ''}${ahChgPct.toFixed(2)}%</span><br>
+            <strong>反映美股後反應</strong>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+      
+      <!-- 各月份完整表格 -->
+      <div class="futures-table-wrap" style="margin-bottom:8px;">
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:6px;">📋 一般時段 (08:45-13:45)</div>
+        <table class="futures-table">
+          <thead><tr>
+            <th>月份</th><th>開盤</th><th>最高</th><th>最低</th><th>收盤</th>
+            <th>漲跌</th><th>成交量</th><th>結算價</th><th>未沖銷</th>
+          </tr></thead>
+          <tbody>${regularMonths.map(renderRow).join('')}</tbody>
+        </table>
+      </div>
+      
+      ${ahMonths.length > 0 ? `
+      <div class="futures-table-wrap" style="margin-bottom:14px;">
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:6px;">🌙 夜盤時段 (15:00-翌日05:00)</div>
+        <table class="futures-table">
+          <thead><tr>
+            <th>月份</th><th>開盤</th><th>最高</th><th>最低</th><th>收盤</th>
+            <th>漲跌</th><th>成交量</th><th>結算價</th><th>未沖銷</th>
+          </tr></thead>
+          <tbody>${ahMonths.map(renderRow).join('')}</tbody>
+        </table>
+      </div>
+      ` : ''}
+      `;
+    })()}
+    
+    <!-- 🆕 v3.18: 夜盤三大法人 -->
+    ${(() => {
+      const ah = fd.after_hours;
+      if (!ah || !ah.futures) return '';
+      const ahs = ah.summary || {};
+      const fEqv = ahs.foreign_equivalent_net_trade_ah;
+      const eqvClass = fEqv > 0 ? 'pos' : (fEqv < 0 ? 'neg' : '');
+      
+      const renderAhRow = (com, role, roleZh) => {
+        const d = (ah.futures[com] || {})[role] || {};
+        const net = d.net_trade || 0;
+        const cls = net > 0 ? 'pos' : (net < 0 ? 'neg' : '');
+        return `<tr>
+          <td><strong>${roleZh}</strong></td>
+          <td>${(d.long_trade || 0).toLocaleString()}</td>
+          <td>${(d.short_trade || 0).toLocaleString()}</td>
+          <td class="${cls}">${net >= 0 ? '+' : ''}${net.toLocaleString()}</td>
+        </tr>`;
+      };
+      
+      const renderAhTable = (com, comZh) => {
+        const has = ah.futures[com] && Object.keys(ah.futures[com]).length > 0;
+        if (!has) return '';
+        return `
+        <div class="futures-table-wrap" style="margin-bottom:10px;">
+          <div style="font-size:12px;color:var(--text-3);margin-bottom:6px;">${comZh}</div>
+          <table class="futures-table">
+            <thead><tr>
+              <th>身份別</th><th>多方交易</th><th>空方交易</th><th>淨交易</th>
+            </tr></thead>
+            <tbody>
+              ${renderAhRow(com, 'dealer', '自營商')}
+              ${renderAhRow(com, 'trust', '投信')}
+              ${renderAhRow(com, 'foreign', '外資')}
+            </tbody>
+          </table>
+        </div>`;
+      };
+      
+      return `
+      <div class="section-title" style="margin-top:20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span>🌙 夜盤三大法人 (反映美股後反應)</span>
+        <span style="background:rgba(16,185,129,0.15);color:#86efac;padding:2px 8px;border-radius:10px;border:1px solid rgba(16,185,129,0.4);font-size:11px;font-weight:600;">✓ TAIFEX 對齊</span>
+        <span class="section-sub" style="margin-left:auto;">v3.18 新增</span>
+      </div>
+      
+      <!-- 夜盤外資等效大台 hero card -->
+      <div class="futures-hero-grid" style="margin-bottom:14px;grid-template-columns:1fr;">
+        <div class="futures-hero-card ${eqvClass === 'neg' ? 'bearish' : (eqvClass === 'pos' ? 'bullish' : '')}">
+          <div class="futures-hero-label-top">
+            <span>💎 夜盤外資等效大台 (淨交易)</span>
+          </div>
+          <div class="futures-hero-value ${eqvClass}">${fEqv >= 0 ? '+' : ''}${(fEqv || 0).toLocaleString()} 口</div>
+          <div class="futures-hero-label">
+            TXF ${(ahs.foreign_txf_net_trade_ah || 0).toLocaleString()} ｜ MXF/4 = ${((ahs.foreign_mxf_net_trade_ah || 0)/4).toFixed(0)} ｜ TMF/20 = ${((ahs.foreign_tmf_net_trade_ah || 0)/20).toFixed(0)}<br>
+            <strong>${fEqv > 500 ? '📈 夜盤外資積極買進' : (fEqv < -500 ? '📉 夜盤外資積極賣出' : '⚖️ 夜盤外資中性')}</strong>
+          </div>
+        </div>
+      </div>
+      
+      ${renderAhTable('TXF', '臺股期貨 (TXF 大台)')}
+      ${renderAhTable('MXF', '小型臺指期貨 (MXF 小台)')}
+      ${renderAhTable('TMF', '微型臺指期貨 (TMF 微台)')}
+      
+      <div style="font-size:11px;color:var(--text-3);background:rgba(99,102,241,0.08);padding:8px 12px;border-radius:6px;border-left:3px solid var(--brand);margin-bottom:14px;">
+        💡 <strong>判讀說明</strong>:夜盤資料只有「交易量」沒有「未平倉」(夜盤不結算)。
+        夜盤淨交易反映外資對美股後台股期貨的即時反應，可作為隔日開盤方向參考。
+      </div>
+      `;
+    })()}
+    
     <!-- 🏛️ 三法人期貨明細 (大台) -->
     <div class="section-title" style="margin-top:20px;">
       📊 三大法人 臺股期貨 (TXF 大台) <span class="section-sub">口數</span>
