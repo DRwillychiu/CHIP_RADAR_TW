@@ -1833,6 +1833,21 @@ def main():
             t10_ratio = summary.get('top10_long_ratio')
             if t10_ratio:
                 print(f"  ✓ 十大交易人買方集中度: {t10_ratio*100:.1f}%")
+            # v3.18: 新指標
+            near_close = summary.get('near_month_close')
+            if near_close:
+                near_chg_pct = summary.get('near_month_change_pct', 0)
+                print(f"  ✓ TX 近月收盤: {near_close} ({near_chg_pct:+.2f}%)")
+                spread = summary.get('spread_near_next')
+                if spread is not None:
+                    print(f"  ✓ 跨月價差 (次-近): {spread:+}")
+            ah_close = summary.get('after_hours_near_close')
+            if ah_close:
+                ah_chg_pct = summary.get('after_hours_near_change_pct', 0)
+                print(f"  ✓ 夜盤近月收盤: {ah_close} ({ah_chg_pct:+.2f}%)")
+            ah_foreign = summary.get('ah_foreign_equivalent_net_trade')
+            if ah_foreign is not None:
+                print(f"  ✓ 夜盤外資等效大台: {ah_foreign:+,} 口")
         
         # v3.17.1: 累積期貨歷史
         try:
@@ -1852,7 +1867,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.17.5",
+        "version": "3.18",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -1932,7 +1947,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.17.5",
+            "version": "3.18",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
