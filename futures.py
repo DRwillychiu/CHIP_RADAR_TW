@@ -378,6 +378,302 @@ def compute_max_pain(option_oi_data: Dict[str, Any]) -> Optional[Dict[str, Any]]
 # ════════════════════════════════════════════════════════════════════
 #  🎯 6. 綜合抓取 + 計算 (主入口)
 # ════════════════════════════════════════════════════════════════════
+def fetch_futures_market_data(trade_date: str) -> Optional[Dict[str, Any]]:
+    """
+    v3.18: 抓 TAIFEX 期貨每日交易行情 (TX 各月份開高低收 + 跨月價差)
+    
+    端點: https://www.taifex.com.tw/cht/3/dlFutDataDown
+    
+    回傳:
+        {
+            'date': '2026/04/29',
+            'months': [
+                {
+                    'month': '202605',          # 月份代碼
+                    'session': '一般',           # 一般 / 盤後
+                    'open': 39698,
+                    'high': 39790,
+                    'low': 39123,
+                    'close': 39490,
+                    'change': -243,
+                    'change_pct': -0.61,
+                    'volume': 59705,
+                    'settlement': 39479,        # 結算價
+                    'open_interest': 79818,     # 未沖銷契約
+                    'historical_high': 40458,
+                    'historical_low': 31357,
+                },
+                ...
+            ],
+            'spreads': [                         # 跨月價差
+                {
+                    'pair': '202605/202606',
+                    'session': '一般',
+                    'spread': 92,
+                    'volume': 415,
+                },
+                ...
+            ],
+            'summary': {
+                'near_month': '202605',           # 近月
+                'near_close': 39490,              # 近月收盤
+                'near_change': -243,              # 近月漲跌
+                'near_change_pct': -0.61,         # 近月漲跌%
+                'near_volume': 59705,             # 近月成交量
+                'next_month': '202606',           # 次月
+                'spread_near_next': 60,           # 近月-次月價差 (反映預期)
+                'after_hours_near_close': 39461,  # 近月夜盤收盤 (如有)
+            }
+        }
+    """
+    import re
+    
+    try:
+        r = requests.post(
+            'https://www.taifex.com.tw/cht/3/dlFutDataDown',
+            data={
+                'down_type': '1',
+                'commodity_id': 'TX',
+                'queryStartDate': _date_fmt(trade_date),
+                'queryEndDate': _date_fmt(trade_date),
+                'commodity_idt': 'TX',
+                'MarketCode': '',
+            },
+            headers=HEADERS,
+            timeout=15,
+        )
+        if r.status_code != 200 or len(r.text) < 500:
+            return None
+        
+        r.encoding = 'big5'
+        lines = [l.strip() for l in r.text.split('\n') if l.strip()]
+        
+        if len(lines) < 2:
+            return None
+        
+        # 解析每一行
+        months = []
+        spreads = []
+        target_date = None
+        
+        for line in lines[1:]:  # 跳過 header
+            cols = [c.strip() for c in line.split(',')]
+            if len(cols) < 16:
+                continue
+            
+            date = cols[0]
+            commodity = cols[1]
+            month_str = cols[2].strip()
+            session = cols[17] if len(cols) > 17 else '一般'
+            
+            if commodity != 'TX':
+                continue
+            
+            target_date = date
+            
+            # 跨月價差會有 / 符號
+            if '/' in month_str:
+                # 例如 "202605/202606"
+                try:
+                    spread_val = cols[3]  # 開盤價當作價差參考
+                    spread_volume = int(cols[9]) if cols[9] not in ('-', '') else 0
+                    
+                    # 用收盤價當價差 (若有)
+                    close = cols[6]
+                    spread = None
+                    if close not in ('-', ''):
+                        try:
+                            spread = int(close)
+                        except ValueError:
+                            spread = None
+                    
+                    spreads.append({
+                        'pair': month_str.replace(' ', ''),
+                        'session': session,
+                        'spread': spread,
+                        'volume': spread_volume,
+                    })
+                except (ValueError, IndexError):
+                    continue
+            else:
+                # 單月行情
+                try:
+                    def safe_int(v):
+                        if v in ('-', ''): return None
+                        try: return int(v)
+                        except ValueError: return None
+                    
+                    def safe_float(v):
+                        if v in ('-', ''): return None
+                        try: return float(v.replace('%', ''))
+                        except ValueError: return None
+                    
+                    months.append({
+                        'month': month_str.strip(),
+                        'session': session,
+                        'open': safe_int(cols[3]),
+                        'high': safe_int(cols[4]),
+                        'low': safe_int(cols[5]),
+                        'close': safe_int(cols[6]),
+                        'change': safe_int(cols[7]),
+                        'change_pct': safe_float(cols[8]),
+                        'volume': safe_int(cols[9]) or 0,
+                        'settlement': safe_int(cols[10]),
+                        'open_interest': safe_int(cols[11]),
+                        'historical_high': safe_int(cols[14]),
+                        'historical_low': safe_int(cols[15]),
+                    })
+                except (ValueError, IndexError):
+                    continue
+        
+        if not months:
+            return None
+        
+        # 計算 summary
+        # 一般時段月份排序 (近月通常排第 1)
+        regular_months = [m for m in months if m['session'] == '一般']
+        ah_months = [m for m in months if m['session'] == '盤後']
+        
+        regular_months.sort(key=lambda x: x['month'])
+        
+        summary = {}
+        if regular_months:
+            near = regular_months[0]
+            summary['near_month'] = near['month']
+            summary['near_close'] = near['close']
+            summary['near_change'] = near['change']
+            summary['near_change_pct'] = near['change_pct']
+            summary['near_volume'] = near['volume']
+            summary['near_open'] = near['open']
+            summary['near_high'] = near['high']
+            summary['near_low'] = near['low']
+            summary['near_settlement'] = near['settlement']
+            summary['near_oi'] = near['open_interest']
+            
+            if len(regular_months) >= 2:
+                next_m = regular_months[1]
+                summary['next_month'] = next_m['month']
+                summary['next_close'] = next_m['close']
+                if near['close'] is not None and next_m['close'] is not None:
+                    summary['spread_near_next'] = next_m['close'] - near['close']
+        
+        # 夜盤近月收盤
+        if ah_months:
+            ah_regular = sorted([m for m in ah_months], key=lambda x: x['month'])
+            if ah_regular:
+                summary['after_hours_near_month'] = ah_regular[0]['month']
+                summary['after_hours_near_close'] = ah_regular[0]['close']
+                summary['after_hours_near_change'] = ah_regular[0]['change']
+                summary['after_hours_near_change_pct'] = ah_regular[0]['change_pct']
+        
+        return {
+            'date': target_date,
+            'months': months,
+            'spreads': spreads,
+            'summary': summary,
+        }
+    
+    except Exception as e:
+        print(f"  ⚠️ fetch_futures_market_data 失敗: {e}")
+        return None
+
+
+def fetch_after_hours_futures(trade_date: str) -> Optional[Dict[str, Any]]:
+    """
+    v3.18: 抓夜盤三大法人 (futContractsDateAhDown)
+    
+    夜盤交易時段: 15:00 (前一日) 至 05:00 (當日)
+    反映美股後台股期貨開盤前反應
+    
+    ⚠️ 夜盤資料只有「交易量」沒有「未平倉」(因為夜盤不結算)
+    
+    回傳:
+        {
+            'date': '2026/04/29',
+            'futures': {
+                'TXF': {
+                    'dealer':  {'long_trade', 'short_trade', 'net_trade'},
+                    'trust':   {...},
+                    'foreign': {...},
+                },
+                'MXF': {...},
+                'TMF': {...},
+            }
+        }
+    """
+    try:
+        r = requests.post(
+            'https://www.taifex.com.tw/cht/3/futContractsDateAhDown',
+            data={
+                'queryStartDate': _date_fmt(trade_date),
+                'queryEndDate': _date_fmt(trade_date),
+                'commodityId': '',
+            },
+            headers=HEADERS,
+            timeout=15,
+        )
+        if r.status_code != 200 or len(r.text) < 500:
+            return None
+        
+        r.encoding = 'big5'
+        lines = [l.strip() for l in r.text.split('\n') if l.strip()]
+        if len(lines) < 2:
+            return None
+        
+        result = {'date': None, 'futures': {'TXF': {}, 'MXF': {}, 'TMF': {}}}
+        COMMODITY_MAP = {'臺股期貨': 'TXF', '小型臺指期貨': 'MXF', '微型臺指期貨': 'TMF'}
+        ROLE_MAP = {'自營商': 'dealer', '投信': 'trust', '外資及陸資': 'foreign'}
+        
+        for line in lines[1:]:
+            cols = [c.strip() for c in line.split(',')]
+            if len(cols) < 9:
+                continue
+            
+            commodity_zh = cols[1]
+            role_zh = cols[2]
+            
+            if commodity_zh not in COMMODITY_MAP:
+                continue
+            if role_zh not in ROLE_MAP:
+                continue
+            
+            com_key = COMMODITY_MAP[commodity_zh]
+            role_key = ROLE_MAP[role_zh]
+            
+            try:
+                result['date'] = cols[0]
+                # 夜盤 CSV 9 欄: 日期,商品,身份,多方交易口數,多方金額,空方口數,空方金額,多空淨額,金額淨額
+                result['futures'][com_key][role_key] = {
+                    'long_trade': int(cols[3]),
+                    'short_trade': int(cols[5]),
+                    'net_trade': int(cols[7]),
+                }
+            except (ValueError, IndexError):
+                continue
+        
+        # 計算夜盤外資等效大台 (用 net_trade 而非 net_oi)
+        try:
+            txf_foreign = result['futures'].get('TXF', {}).get('foreign', {}).get('net_trade', 0)
+            mxf_foreign = result['futures'].get('MXF', {}).get('foreign', {}).get('net_trade', 0)
+            tmf_foreign = result['futures'].get('TMF', {}).get('foreign', {}).get('net_trade', 0)
+            
+            equivalent = txf_foreign + (mxf_foreign / 4) + (tmf_foreign / 20)
+            result['summary'] = {
+                'foreign_equivalent_net_trade_ah': round(equivalent),
+                'foreign_txf_net_trade_ah': txf_foreign,
+                'foreign_mxf_net_trade_ah': mxf_foreign,
+                'foreign_tmf_net_trade_ah': tmf_foreign,
+            }
+        except (TypeError, ValueError):
+            result['summary'] = {}
+        
+        return result
+    
+    except Exception as e:
+        print(f"  ⚠️ fetch_after_hours_futures 失敗: {e}")
+        return None
+
+
 def fetch_official_pcr(trade_date: str) -> Optional[Dict[str, Any]]:
     """
     v3.17.5: 直接從 TAIFEX 官方 pcRatio 端點抓真實 PCR
@@ -596,6 +892,34 @@ def fetch_all_futures_data(trade_date: str) -> Dict[str, Any]:
         summary['top10_long'] = t10_long
         summary['top10_short'] = t10_short
         summary['market_total_oi'] = total
+    
+    # 5. v3.18 NEW: 期貨各月份行情 (TX 開高低收 + 跨月價差)
+    print("  [期貨行情] 抓取 TX 各月份開高低收...")
+    market_data = fetch_futures_market_data(trade_date)
+    if market_data:
+        result['market_data'] = market_data
+        # 把關鍵指標放到 summary
+        ms = market_data.get('summary', {})
+        summary['near_month_close'] = ms.get('near_close')
+        summary['near_month_change'] = ms.get('near_change')
+        summary['near_month_change_pct'] = ms.get('near_change_pct')
+        summary['near_month_volume'] = ms.get('near_volume')
+        summary['near_month_settlement'] = ms.get('near_settlement')
+        summary['spread_near_next'] = ms.get('spread_near_next')
+        summary['after_hours_near_close'] = ms.get('after_hours_near_close')
+        summary['after_hours_near_change_pct'] = ms.get('after_hours_near_change_pct')
+    
+    # 6. v3.18 NEW: 夜盤三大法人
+    print("  [夜盤] 抓取夜盤三大法人...")
+    ah_data = fetch_after_hours_futures(trade_date)
+    if ah_data:
+        result['after_hours'] = ah_data
+        # 把關鍵指標放到 summary
+        ahs = ah_data.get('summary', {})
+        summary['ah_foreign_txf_net_trade'] = ahs.get('foreign_txf_net_trade_ah')
+        summary['ah_foreign_mxf_net_trade'] = ahs.get('foreign_mxf_net_trade_ah')
+        summary['ah_foreign_tmf_net_trade'] = ahs.get('foreign_tmf_net_trade_ah')
+        summary['ah_foreign_equivalent_net_trade'] = ahs.get('foreign_equivalent_net_trade_ah')
     
     return result
 
