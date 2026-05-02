@@ -7573,10 +7573,11 @@ function renderToday3() {
     return;
   }
   
-  // 包一個 wrapper：本地市場篩選器 + 期現貨對照 + 強弱族群 + 內容區
+  // 包一個 wrapper：本地市場篩選器 + 期現貨對照 + 強弱族群 + v3.20 警報 + 內容區
   el.innerHTML = renderLocalMarketBar('today3') + 
     '<div id="today3FxSync"></div>' +      // v3.17: 外資期現貨對照
     '<div id="today3Strength"></div>' +    // v3.15.1: 強弱族群區塊
+    '<div id="today3Alerts"></div>' +      // v3.20: 重大訊息 + 內部人警報
     '<div id="today3Inner"></div>';
   
   // v3.17: 渲染外資期現貨對照
@@ -7584,6 +7585,9 @@ function renderToday3() {
   
   // 渲染強弱族群
   renderIndustryStrengthPanel('today3Strength');
+  
+  // v3.20: 渲染重大訊息 + 內部人警報
+  renderAlertsPanel('today3Alerts');
   
   const inner = document.getElementById('today3Inner');
   
@@ -7766,6 +7770,105 @@ function renderIndustryStrengthPanel(targetId) {
       </div>
     </div>
   `;
+}
+
+// ============================================================
+// v3.20: 重大訊息 + 內部人警報儀表板 (主頁 today3 用)
+// ============================================================
+function renderAlertsPanel(targetId) {
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  
+  if (!CURRENT_DATA) {
+    target.innerHTML = '';
+    return;
+  }
+  
+  const announcements = CURRENT_DATA.announcements || [];
+  const insiderData = CURRENT_DATA.insider_data || {};
+  
+  // 篩選 high impact
+  const highImpact = announcements.filter(a => a.classification?.impact === 'high');
+  const mediumImpact = announcements.filter(a => a.classification?.impact === 'medium');
+  
+  // 內部人警報統計
+  const insiderAlerts = [];
+  for (const [code, info] of Object.entries(insiderData)) {
+    for (const a of (info.alerts || [])) {
+      insiderAlerts.push({...a, code, stock_name: info.name});
+    }
+  }
+  
+  if (highImpact.length === 0 && mediumImpact.length === 0 && insiderAlerts.length === 0) {
+    target.innerHTML = '';
+    return;
+  }
+  
+  const renderAnnouncementCard = (a) => {
+    const cat = a.classification?.category || '其他';
+    const impactColor = a.classification?.impact === 'high' ? '#ef4444' : '#fcd34d';
+    return `
+      <div class="alert-item" style="padding:8px 12px;background:rgba(99,102,241,0.05);border-left:3px solid ${impactColor};margin:4px 0;border-radius:4px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-weight:700;color:var(--gold-bright);font-family:monospace;">${a.code}</span>
+          <span style="font-weight:600;">${a.name}</span>
+          <span style="font-size:10px;background:rgba(252,211,77,0.15);color:#fcd34d;padding:1px 6px;border-radius:8px;">${cat}</span>
+          <span style="font-size:10px;color:var(--text-3);">${a.time || ''}</span>
+        </div>
+        <div style="margin-top:4px;font-size:12px;color:var(--text-2);line-height:1.4;">${(a.subject || '').slice(0, 150)}</div>
+      </div>
+    `;
+  };
+  
+  const renderInsiderCard = (a) => {
+    const sevColor = a.severity === 'high' ? '#ef4444' : '#fcd34d';
+    return `
+      <div class="alert-item" style="padding:8px 12px;background:rgba(239,68,68,0.05);border-left:3px solid ${sevColor};margin:4px 0;border-radius:4px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-weight:700;color:var(--gold-bright);font-family:monospace;">${a.code}</span>
+          <span style="font-weight:600;">${a.stock_name || ''}</span>
+          <span style="font-size:10px;background:rgba(239,68,68,0.15);color:#fca5a5;padding:1px 6px;border-radius:8px;">⚠️ 內部人</span>
+        </div>
+        <div style="margin-top:4px;font-size:12px;color:var(--text-2);">${a.message}</div>
+      </div>
+    `;
+  };
+  
+  let html = `
+    <div style="background:linear-gradient(135deg,rgba(31,42,72,0.5) 0%,rgba(15,21,37,0.7) 100%);border:1px solid var(--line);border-radius:10px;padding:16px;margin:14px 0;">
+      <div class="section-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <span>🚨 v3.20 即時警報</span>
+        <span style="background:rgba(16,185,129,0.15);color:#86efac;padding:2px 8px;border-radius:10px;border:1px solid rgba(16,185,129,0.4);font-size:11px;font-weight:600;">✓ MOPS 對齊</span>
+        <span class="section-sub" style="margin-left:auto;font-size:11px;">v3.20 新增</span>
+      </div>
+  `;
+  
+  // 內部人警報
+  if (insiderAlerts.length > 0) {
+    html += `<div style="margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;color:#fca5a5;margin-bottom:6px;">⚠️ 內部人籌碼警報 (${insiderAlerts.length})</div>
+      ${insiderAlerts.slice(0, 5).map(renderInsiderCard).join('')}
+    </div>`;
+  }
+  
+  // 高影響重大訊息
+  if (highImpact.length > 0) {
+    html += `<div style="margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;color:#ef4444;margin-bottom:6px;">🔴 高影響度重大訊息 (${highImpact.length})</div>
+      ${highImpact.slice(0, 5).map(renderAnnouncementCard).join('')}
+    </div>`;
+  }
+  
+  // 中影響重大訊息 (摺疊)
+  if (mediumImpact.length > 0) {
+    html += `<details style="margin-bottom:8px;">
+      <summary style="font-size:13px;font-weight:600;color:#fcd34d;cursor:pointer;margin-bottom:6px;">🟡 中影響度重大訊息 (${mediumImpact.length}) — 點擊展開</summary>
+      <div style="margin-top:6px;">${mediumImpact.slice(0, 10).map(renderAnnouncementCard).join('')}</div>
+    </details>`;
+  }
+  
+  html += `</div>`;
+  target.innerHTML = html;
 }
 
 function renderDaytradeView(el) {
