@@ -1,7 +1,7 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**：v3.18 ｜ **網站**：https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**：v3.19 ｜ **網站**：https://drwillychiu.github.io/CHIP_RADAR_TW/
 
 ---
 
@@ -119,6 +119,16 @@ index.html (~340KB)
 ## 📈 版本歷程
 
 ### v3.17.x 期貨情報系列
+- **v3.19** (2026/05/02) 🆕 ⭐ **個股行情整合**
+  - ✨ **個股股價 chip 全面整合**:籌碼 + 行情 = 完整故事
+    - 個股追蹤 tab (#10) 標題加股價 chip
+    - 共買榜 (#02) 每筆加 inline 股價 (沒漲停也顯示)
+    - 高手共識個股 + Top 20 名單加股價
+  - ✨ 智慧避免重複:≥7% 漲停由 limit-up-chip 處理,inline-quote 自動跳過
+  - 📊 利用 stock_history.json (8,885 檔每日 close + change_pct, 不需動爬蟲)
+  - 🎨 紅綠配色:漲=紅 / 跌=綠 (對齊台股慣例)
+  - 🚀 init() prefetch 加速 (背景預載)
+
 - **v3.18** (2026/05/01) 🆕 ⭐ **期貨行情面 + 夜盤三大法人**
   - ✨ **新增「期貨行情面」區塊**:TX 6 個月份開高低收 + 結算價 + 未沖銷
     - TX 近月 hero card (收盤/漲跌/成交量)
@@ -390,4 +400,4 @@ MIT License - 自由使用、修改、分享。
 
 **Chip Radar TW · 90% 戰力 · 持續演進中** 📊🎯
 
-*Last Updated: 2026/05/01 · v3.18*
+*Last Updated: 2026/05/02 · v3.19*
