@@ -973,6 +973,35 @@ th.sortable.sort-desc::after {
   .futures-dashboard { grid-template-columns: 1fr; }
 }
 
+/* v3.19: 個股股價 chip */
+.quote-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(99,102,241,0.08);
+  border: 1px solid rgba(99,102,241,0.25);
+  color: var(--text-2);
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.quote-chip.pos {
+  background: rgba(239,68,68,0.10);
+  border-color: rgba(239,68,68,0.35);
+  color: #fca5a5;
+}
+.quote-chip.neg {
+  background: rgba(16,185,129,0.10);
+  border-color: rgba(16,185,129,0.35);
+  color: #6ee7b7;
+}
+.quote-chip .quote-price { font-weight: 700; }
+.quote-chip .quote-change { font-size: 10px; opacity: 0.95; }
+
 /* 大型指標卡 */
 .futures-hero-card {
   background: linear-gradient(135deg, rgba(31,42,72,0.5) 0%, rgba(15,21,37,0.7) 100%);
@@ -4299,6 +4328,8 @@ async function init() {
   loadCustomBranches();  // v3.8
   await loadReportsIndex();  // v3.9
   renderWatchlistPanel();
+  // v3.19: 背景預載 stock_history (給個股股價 chip 用)
+  loadStockHistory().catch(() => {});
 }
 
 async function showDate(date) {
@@ -6803,6 +6834,70 @@ async function loadStockHistory() {
   }
 }
 
+// v3.19: 取個股當前股價 (從 stock_history 最新一天)
+function getStockQuote(code) {
+  if (!STOCK_HISTORY_CACHE || !code) return null;
+  const stock = STOCK_HISTORY_CACHE.stocks?.[code];
+  if (!stock || !stock.daily) return null;
+  
+  const dates = Object.keys(stock.daily).sort();
+  if (dates.length === 0) return null;
+  
+  const latestDate = dates[dates.length - 1];
+  const latest = stock.daily[latestDate];
+  
+  return {
+    code,
+    name: stock.name,
+    industry: stock.industry,
+    date: latestDate,
+    close: latest.close,
+    change_pct: latest.change_pct,
+    // 計算漲跌絕對值 (用前一日收盤推算)
+    prev_close: dates.length >= 2 ? stock.daily[dates[dates.length - 2]].close : null,
+    days_count: dates.length,
+  };
+}
+
+// v3.19: 渲染股價標籤 (彩色小 chip)
+function renderQuoteChip(code) {
+  const q = getStockQuote(code);
+  if (!q || q.close === undefined || q.close === null) return '';
+  
+  const chgPct = q.change_pct || 0;
+  const cls = chgPct > 0 ? 'pos' : (chgPct < 0 ? 'neg' : '');
+  const arrow = chgPct > 0 ? '▲' : (chgPct < 0 ? '▼' : '–');
+  const sign = chgPct > 0 ? '+' : '';
+  
+  // 漲停判定 (≥ 9.5%)
+  const isLimitUp = chgPct >= 9.5;
+  const isLimitDown = chgPct <= -9.5;
+  const limitTag = isLimitUp ? ' 🔴' : (isLimitDown ? ' 🔵' : '');
+  
+  return `<span class="quote-chip ${cls}" title="${q.date} 收盤 ${q.close}">
+    <span class="quote-price">${q.close}</span>
+    <span class="quote-change">${arrow}${sign}${chgPct.toFixed(2)}%</span>${limitTag}
+  </span>`;
+}
+
+// v3.19: 從 stock 物件直接取股價 (給共買榜/排行榜用,因為他們已從 buys 注入)
+function renderInlineQuote(s) {
+  if (!s || s.close_price === undefined || s.close_price === null) return '';
+  const chgPct = s.change_pct;
+  if (chgPct === undefined || chgPct === null) return '';
+  // 漲停 ≥ 7% 已由 renderLimitUpChip 處理,這裡只顯示其他情況
+  if (chgPct >= 7.0) return '';
+  
+  const cls = chgPct > 0 ? 'pos' : (chgPct < 0 ? 'neg' : '');
+  const arrow = chgPct > 0 ? '▲' : (chgPct < 0 ? '▼' : '–');
+  const sign = chgPct > 0 ? '+' : '';
+  
+  return `<span class="quote-chip ${cls}" title="收盤 ${s.close_price}">
+    <span class="quote-price">${s.close_price}</span>
+    <span class="quote-change">${arrow}${sign}${chgPct.toFixed(2)}%</span>
+  </span>`;
+}
+
 function setTrendDays(n) {
   CURRENT_TREND_DAYS = n;
   document.querySelectorAll('.chart-days-btn').forEach(b => 
@@ -7428,7 +7523,7 @@ function renderOverview() {
     return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
       <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
       <td><div class="stock-cell">
-        <span class="stock-name">${s.name}${badge}${renderMarketChip(s)}${renderIndustryChip(s.code)}${renderLimitUpChip(s.change_pct)}${renderSignalBadge(s.margin_signal, overviewSide)}</span>
+        <span class="stock-name">${s.name}${badge}${renderMarketChip(s)}${renderIndustryChip(s.code)}${renderLimitUpChip(s.change_pct)}${renderSignalBadge(s.margin_signal, overviewSide)}${renderInlineQuote(s)}</span>
         <span class="stock-code">${s.code}</span>
       </div></td>
       <td class="num"><span class="badge ${s.branches.length>=4?'':'gold'}">${s.branches.length} 分點</span></td>
@@ -8121,7 +8216,7 @@ function renderMasterView() {
       return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
         <td class="num" style="color:var(--gold-bright);font-weight:700;">#${i+1}</td>
         <td><div class="stock-cell">
-          <span class="stock-name">${s.name}${stockInfo ? renderMarketChip(stockInfo) : ''}</span>
+          <span class="stock-name">${s.name}${stockInfo ? renderMarketChip(stockInfo) : ''}${renderQuoteChip(s.code)}</span>
           <span class="stock-code">${s.code}</span>
         </div></td>
         <td class="num"><span class="badge ${s.branches.length>=3?'':'gold'}">${s.branches.length} 分點</span></td>
@@ -8164,7 +8259,7 @@ function renderMasterView() {
       return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
         <td class="num" style="color:var(--gold-bright);">#${i+1}</td>
         <td><div class="stock-cell">
-          <span class="stock-name">${s.name}${stockInfo ? renderMarketChip(stockInfo) : ''}</span>
+          <span class="stock-name">${s.name}${stockInfo ? renderMarketChip(stockInfo) : ''}${renderQuoteChip(s.code)}</span>
           <span class="stock-code">${s.code}</span>
         </div></td>
         <td class="num ${s.total_net_amt>0?'pos-strong':'neg-strong'}">${fmtAmt(s.total_net_amt)}</td>
@@ -9196,6 +9291,8 @@ function renderStockHotPicks(el) {
 async function renderStockTrace() {
   const el = document.getElementById('stockTraceResult');
   if (!CURRENT_DATA) return;
+  // v3.19: 確保 stock_history 已載入 (供股價顯示用)
+  await loadStockHistory();
   const q = document.getElementById('stockSearchInput').value.trim().toLowerCase();
   if (!q) {
     // v3.17.2: 預設顯示「今日熱門個股 Top 10」+ 「自選股」+ 引導
@@ -9288,6 +9385,7 @@ async function renderStockTrace() {
       <div style="margin-bottom:24px;">
         <div class="section-title" style="font-size:18px;">
           ${stock.name} <span style="color:var(--text-3);font-family:monospace;font-size:14px;font-weight:400;">(${stock.code})</span>
+          ${renderQuoteChip(stock.code)}
         </div>
         <div class="stat-row">
           <div class="stat-box"><div class="label">出現次數</div><div class="val">${stock.records.length}</div></div>
