@@ -1862,12 +1862,83 @@ def main():
         print(f"  ⚠️ 期貨籌碼抓取失敗: {e}(不影響主流程)")
         import traceback; traceback.print_exc()
     
+    # ════════════════════════════════════════════════════════════════
+    # v3.20: MOPS 內部人 + 重大訊息
+    # ════════════════════════════════════════════════════════════════
+    insider_data = {}
+    announcements = []
+    try:
+        import insiders
+        from datetime import datetime as _dt
+        
+        # 1. 重大訊息 (當日)
+        td = _dt.strptime(trade_date, '%Y%m%d')
+        print(f"\n[MOPS] 抓取重大訊息 ({td.year}/{td.month}/{td.day})...")
+        anns_sii = insiders.fetch_daily_announcements(td.year, td.month, td.day, 'sii')
+        anns_otc = insiders.fetch_daily_announcements(td.year, td.month, td.day, 'otc')
+        announcements = anns_sii + anns_otc
+        # 加分類
+        for a in announcements:
+            a['classification'] = insiders.classify_announcement(a.get('subject', ''))
+        high_count = sum(1 for a in announcements if a['classification']['impact'] == 'high')
+        print(f"  ✓ 重大訊息 {len(announcements)} 則 (高影響度: {high_count})")
+        
+        # 2. 董監持股 (只抓 priority_codes - 用戶分點關注的個股)
+        # 為了不跑太久, 只抓「分點 buys 中出現過」的 stock_codes (限 50 檔)
+        watched_codes = set()
+        for br in (results or [])[:10]:  # 前 10 個分點
+            for s in (br.get('buys', []) or [])[:5]:
+                if s.get('code') and s['code'].isdigit() and len(s['code']) == 4:
+                    watched_codes.add(s['code'])
+                    if len(watched_codes) >= 50:
+                        break
+            if len(watched_codes) >= 50:
+                break
+        
+        print(f"  [MOPS] 抓取 {len(watched_codes)} 檔個股董監持股...")
+        for i, code in enumerate(list(watched_codes)[:50]):
+            try:
+                d = insiders.fetch_director_holdings(code, td.year, td.month)
+                if d:
+                    # 偵測異動 (沒有前期資料,只偵測高設質)
+                    alerts_list = insiders.detect_insider_changes(d, prev=None)
+                    if alerts_list:
+                        # 找 stock name
+                        stock_name = ''
+                        for br in (results or []):
+                            for s in (br.get('buys', []) or []):
+                                if s.get('code') == code:
+                                    stock_name = s.get('name', '')
+                                    break
+                            if stock_name: break
+                        insider_data[code] = {
+                            'name': stock_name,
+                            'directors_count': d['directors_count'],
+                            'total_pledge_ratio': d['total_pledge_ratio'],
+                            'high_pledge_count': d['high_pledge_count'],
+                            'alerts': alerts_list,
+                        }
+                # 限流防禦
+                if i < len(watched_codes) - 1:
+                    import time as _t
+                    _t.sleep(2)
+            except Exception as e:
+                print(f"    ⚠️ {code} 失敗: {e}")
+                continue
+        
+        print(f"  ✓ 找到 {len(insider_data)} 檔有內部人警報")
+    except ImportError:
+        print("  [MOPS] insiders 模組未安裝, 略過")
+    except Exception as e:
+        print(f"  ⚠️ MOPS 抓取失敗: {e}")
+        import traceback; traceback.print_exc()
+    
     # ===== 組裝當日 JSON =====
     raw_output = {
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.19",
+        "version": "3.20",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -1896,7 +1967,29 @@ def main():
         },
         # v3.17 新增:期貨選擇權籌碼
         "futures_data": futures_data,
+        # v3.20 新增:MOPS 內部人 + 重大訊息
+        "insider_data": insider_data,
+        "announcements": announcements,
     }
+    
+    # ════════════════════════════════════════════════════════════════
+    # v3.20: 推播警報系統 (在加密前用 raw_output 跑警報)
+    # ════════════════════════════════════════════════════════════════
+    try:
+        import alerts
+        # dry_run = False:有 webhook 會真的推送, 沒 webhook 走 test mode
+        alert_result = alerts.run_alerts(
+            latest_data=raw_output,
+            insider_data=insider_data,
+            announcements=announcements,
+            dry_run=False,
+        )
+        print(f"  [警報] 偵測 {len(alert_result['detected'])} 個訊號, "
+              f"分類 {alert_result.get('count_by_type', {})}")
+    except ImportError:
+        print("  [警報] alerts 模組未安裝, 略過")
+    except Exception as e:
+        print(f"  [警報] 執行失敗: {e}")
     
     plaintext = json.dumps(raw_output, ensure_ascii=False)
     print(f"[加密] 原始大小: {len(plaintext)/1024:.1f} KB")
@@ -1947,7 +2040,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.19",
+            "version": "3.20",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
