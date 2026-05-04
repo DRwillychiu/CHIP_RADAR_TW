@@ -179,6 +179,16 @@ WATCHED_BRANCHES = [
     {"code": "9B2z", "name": "台新-文心", "master": "巨人傑",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
+
+    # ─────────────────────────────────────────────────────────
+    # 竹科主力分點（2 個分點）
+    # ─────────────────────────────────────────────────────────
+    {"code": "700V", "name": "兆豐-新竹", "master": "竹科主力分點",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9647", "name": "富邦-新竹", "master": "竹科主力分點",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
  
     # ─────────────────────────────────────────────────────────
     # 蔣承翰（2 個分點）
@@ -217,6 +227,34 @@ WATCHED_BRANCHES = [
     {"code": "884F", "name": "玉山-桃園", "master": "Krenz(再多一位數本人)",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
+
+    # ─────────────────────────────────────────────────────────
+    # 志誠資本（1 個分點）
+    # ─────────────────────────────────────────────────────────
+    {"code": "779v", "name": "國票-台中", "master": "志誠資本",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+
+    # ─────────────────────────────────────────────────────────
+    # 謝明彧大哥(華南永昌)（3 個分點）
+    # ─────────────────────────────────────────────────────────
+    {"code": "9307", "name": "華南永昌-大安", "master": "謝明彧大哥(華南永昌)",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9309", "name": "華南永昌-古亭", "master": "謝明彧大哥(華南永昌)",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9347", "name": "華南永昌-敦南", "master": "謝明彧大哥(華南永昌)",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+
+    # ─────────────────────────────────────────────────────────
+    # 林適中（1 個分點）
+    # ─────────────────────────────────────────────────────────
+    {"code": "9614", "name": "富邦-基隆", "master": "林適中",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+ 
  
     # ═════════════════════════════════════════════════════════
     # 🌏 外資分點（v3.8 新增，來源：富邦 zco 頁面）
