@@ -145,10 +145,11 @@ def fetch_twse_t86(trade_date: str, timeout=30, retries=3) -> Dict[str, dict]:
                 trust_sell = _safe_int(row[9]) // 1000
                 trust_net = _safe_int(row[10]) // 1000
                 
-                # 自營商 = 自行買賣 + 避險
+                # 自營商 = 自行買賣 + 避險 (用合計 [11] 直接除避免整數除法 floor 誤差)
                 dealer_net_self = _safe_int(row[14]) // 1000
                 dealer_net_hedge = _safe_int(row[17]) // 1000
-                dealer_net = dealer_net_self + dealer_net_hedge
+                # v3.21 修正: 用 [11] 合計直接除,避免負數 floor 誤差
+                dealer_net = _safe_int(row[11]) // 1000
                 
                 total_net = _safe_int(row[18]) // 1000
                 
