@@ -23,4 +23,4 @@ Single sheet per day (YYYYMMDD), vertical layout:
 - Each branch: header row + top 10 stocks by buy amount
 - 12 columns: Master / Branch / Code / Stock / Buy lots / Sell lots / Buy amt / Sell amt / Net diff / Buy avg / Sell avg / P&L
 
-*Updated: 2026-05-08 12:22*
+*Updated: 2026-05-08 13:40*
