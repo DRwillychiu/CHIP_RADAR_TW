@@ -1,32 +1,26 @@
-# 📊 Chip Radar 老闆版 Excel 日報歷史
+# Chip Radar Excel Daily Report
 
-**自動生成** - 每日 Daily Full Crawl 跑完後自動更新
+Auto-generated after each Daily Full Crawl.
 
-## 📥 直接下載最新版
+## Latest
 
-[**latest.xlsx**](./latest.xlsx) — 永遠是最新一日 (建議書籤)
+[**latest.xlsx**](./latest.xlsx) - always the most recent day
 
-## 📚 歷史檔
+## History
 
-共 1 個交易日:
+2 trading days:
 
-| 檔名 | 大小 | 連結 |
+| File | Size | Link |
 |------|------|------|
-| chip_radar_2026-05-07.xlsx | 336.6 KB | [下載](./chip_radar_2026-05-07.xlsx) |
+| chip_radar_2026-05-08.xlsx | 48.0 KB | [Download](./chip_radar_2026-05-08.xlsx) |
+| chip_radar_2026-05-07.xlsx | 336.6 KB | [Download](./chip_radar_2026-05-07.xlsx) |
 
 ---
 
-## 📋 Excel 結構
+## Structure
 
-**Sheet 1「總覽」**: 56 個關注分點 × 各 Top 10 買超個股 (橫向排列)
+Single sheet per day (YYYYMMDD), vertical layout:
+- Each branch: header row + top 10 stocks by buy amount
+- 12 columns: Master / Branch / Code / Stock / Buy lots / Sell lots / Buy amt / Sell amt / Net diff / Buy avg / Sell avg / P&L
 
-**Sheet 2「分點明細」**: 完整買賣超 (每筆: Master/分點/股票/買進/賣出/淨額)
-
-## 🎨 配色
-
-- 🔴 **紅色** = 買超 (台股慣例)
-- 🟢 **綠色** = 賣超 (台股慣例)
-
----
-
-*Last Updated: 2026-05-08 00:57*
+*Updated: 2026-05-08 12:22*
