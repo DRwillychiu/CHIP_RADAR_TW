@@ -1938,7 +1938,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.21",
+        "version": "3.22",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -1991,6 +1991,23 @@ def main():
     except Exception as e:
         print(f"  [警報] 執行失敗: {e}")
     
+    # ════════════════════════════════════════════════════════════════
+    # v3.22: 老闆版 Excel 日報 (在加密前用 branches 資料生成)
+    # ════════════════════════════════════════════════════════════════
+    try:
+        import excel_report
+        excel_path = excel_report.generate_excel_report(
+            branches_data=results,  # results = 56 個分點的 buys/sells
+            trade_date=trade_date,
+            output_dir=str(data_dir / "reports"),
+        )
+        if excel_path:
+            print(f"  [Excel 日報] 生成成功:{excel_path}")
+    except ImportError:
+        print("  [Excel 日報] excel_report 模組未安裝, 略過")
+    except Exception as e:
+        print(f"  [Excel 日報] 生成失敗:{e}")
+    
     plaintext = json.dumps(raw_output, ensure_ascii=False)
     print(f"[加密] 原始大小: {len(plaintext)/1024:.1f} KB")
     encrypted_token = encrypt_data(plaintext, password)
@@ -2040,7 +2057,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.21",
+            "version": "3.22",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
