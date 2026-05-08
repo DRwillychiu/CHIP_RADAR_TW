@@ -36,7 +36,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install requests cryptography
+          pip install requests cryptography openpyxl
       
       - name: Run full crawler
         env:
