@@ -1,7 +1,7 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.24 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.25 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 
 ---
 
@@ -126,6 +126,14 @@ index.html (~340KB)
 ## 📈 版本歷程
 
 ### v3.2x 一週優化系列
+- **v3.25** (2026/05/09) 🆕 ⭐⭐ **溫度計 v2 + 主散對照 + 30 天趨勢**
+  - 🔧 **T-a 透明化權重**:每信號顯示 `score/20` badge + 加權公式列
+  - 🆕 **M-a 主散對照面板**:主力 (外資現貨 + 投信現貨) vs 散戶 (融資熱度 + 散戶小台) 4 視角並列
+  - 🆕 **M-b 主散背離指數**:`主力分 − 散戶分` ∈ [-8, +8],+8 = 主力進+散戶退最強多
+  - 🆕 **T-b 30 天溫度趨勢**:Chart.js line chart, 點顏色按溫度分區
+  - 🆕 backend `crawler.py` 加 `compute_chip_temperature()` + `update_temp_history()` 累積 `data/temp_history.json`
+  - 🟢 戰力 99.5 → 99.7/100
+
 - **v3.24** (2026/05/09) 🆕 ⭐ **Excel 嚴格模仿手動版「分點觀察」**
   - 🔧 `excel_report.py` 完整重寫 (~21KB,取代 v3.23 的 24KB)
   - 🔧 字型 `新細明體` 12pt + 全 cell center/center 對齊 (對齊手動版)
@@ -481,6 +489,6 @@ MIT License - 自由使用、修改、分享。
 
 ---
 
-**Chip Radar TW · 99.5% 戰力 · 持續演進中** 📊🎯
+**Chip Radar TW · 99.7% 戰力 · 持續演進中** 📊🎯
 
-*Last Updated: 2026/05/09 · v3.24*
+*Last Updated: 2026/05/09 · v3.25*

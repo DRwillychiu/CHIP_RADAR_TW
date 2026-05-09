@@ -84,6 +84,148 @@ ROW_PATTERN = re.compile(
     re.DOTALL,
 )
 
+# ════════════════════════════════════════════════════════════════
+#  v3.25: 籌碼溫度計後端計算 + 30 天歷史累積
+# ════════════════════════════════════════════════════════════════
+#  與前端 renderChipTemperature() 邏輯對齊 (5 信號等權重 0-20 分,
+#  加總 / 最大值 × 100 = 0-100 分)。每次 daily-full 後寫入
+#  data/temp_history.json (前端 chart 用)。
+
+def _temp_signal_score(value, thresholds):
+    """thresholds = (extreme_bull, bull, neutral_low, bear)
+    回傳 (score, level)。score = 20/15/10/5/0, level = 'extreme-bull'/etc."""
+    if value is None:
+        return None
+    eb, b, nl, br = thresholds
+    if value >= eb:    return (20, 'extreme-bull')
+    if value >= b:     return (15, 'bull')
+    if value >= nl:    return (10, 'neutral')
+    if value >= br:    return (5, 'bear')
+    return (0, 'extreme-bear')
+
+
+def compute_chip_temperature(raw_output):
+    """
+    從 raw_output 計算籌碼溫度計分數 (0-100) + 5 信號明細.
+    與前端 renderChipTemperature() 對齊。
+
+    Returns: dict { score: int, signals: [...], components: {...} } 或 None
+    """
+    signals = []
+
+    # 信號 1: 外資現貨
+    try:
+        r = raw_output.get('institutional_rankings', {}).get('foreign') or {}
+        buy = r.get('buy') or []
+        sell = r.get('sell') or []
+        if buy or sell:
+            net = (sum(x.get('foreign_net_lot', 0) or 0 for x in buy)
+                   + sum(x.get('foreign_net_lot', 0) or 0 for x in sell))
+            sc = _temp_signal_score(net, (50000, 10000, -10000, -50000))
+            if sc:
+                signals.append({'name': '外資現貨', 'score': sc[0], 'level': sc[1], 'value': net})
+    except Exception:
+        pass
+
+    # 信號 2: 外資期貨等效大台
+    try:
+        eq = raw_output.get('futures_data', {}).get('summary', {}).get('foreign_equivalent_net_oi')
+        sc = _temp_signal_score(eq, (30000, 10000, -10000, -30000))
+        if sc:
+            signals.append({'name': '外資期貨', 'score': sc[0], 'level': sc[1], 'value': eq})
+    except Exception:
+        pass
+
+    # 信號 3: P/C Ratio (反指標 — PCR 高 = 散戶極空 = 反向看多)
+    try:
+        pc = raw_output.get('futures_data', {}).get('summary', {}).get('pc_ratio_oi')
+        sc = _temp_signal_score(pc, (1.3, 1.0, 0.8, 0.6))
+        if sc:
+            signals.append({'name': 'P/C Ratio', 'score': sc[0], 'level': sc[1], 'value': pc})
+    except Exception:
+        pass
+
+    # 信號 4: 分點漲停數
+    try:
+        lus = raw_output.get('limit_up_summary') or {}
+        n = len(lus.get('limit_up_stocks') or [])
+        # thresholds: 8 / 4 / 1 / 0
+        if n >= 8:    sc = (20, 'extreme-bull')
+        elif n >= 4:  sc = (15, 'bull')
+        elif n >= 1:  sc = (10, 'neutral')
+        else:         sc = (5, 'bear')
+        signals.append({'name': '分點漲停', 'score': sc[0], 'level': sc[1], 'value': n})
+    except Exception:
+        pass
+
+    # 信號 5: 融資熱度 (反指標)
+    try:
+        mr = raw_output.get('margin_rankings') or {}
+        buy_top = (mr.get('top_margin_buy') or [])[:5]
+        if buy_top:
+            total_increase = sum(x.get('margin_change', 0) or 0 for x in buy_top)
+            billion = total_increase / 1e8
+            # 反指標: 散戶大幅追漲 = 看空
+            if billion >= 30:    sc = (0, 'extreme-bear')
+            elif billion >= 10:  sc = (5, 'bear')
+            elif billion >= -10: sc = (10, 'neutral')
+            elif billion >= -30: sc = (15, 'bull')
+            else:                sc = (20, 'extreme-bull')
+            signals.append({'name': '融資熱度', 'score': sc[0], 'level': sc[1], 'value': round(billion, 2)})
+    except Exception:
+        pass
+
+    if not signals:
+        return None
+
+    total = sum(s['score'] for s in signals)
+    max_total = len(signals) * 20
+    norm = round(total / max_total * 100) if max_total > 0 else 0
+
+    return {
+        'score': norm,
+        'signals': signals,
+        'total': total,
+        'max_total': max_total,
+        'signal_count': len(signals),
+    }
+
+
+def update_temp_history(data_dir, trade_date, temp_result, max_days=30):
+    """更新 data/temp_history.json (前端 chart 讀取). 保留最近 max_days 個交易日."""
+    hist_file = data_dir / "temp_history.json"
+    history = []
+    if hist_file.exists():
+        try:
+            with open(hist_file, 'r', encoding='utf-8') as f:
+                history = json.load(f).get('history', [])
+        except Exception:
+            history = []
+    # 移除同日重複
+    history = [h for h in history if h.get('date') != trade_date]
+    # 追加今日
+    entry = {
+        'date': trade_date,
+        'score': temp_result['score'],
+        'signals': [
+            {'name': s['name'], 'score': s['score'], 'level': s['level']}
+            for s in temp_result['signals']
+        ],
+    }
+    history.append(entry)
+    # 排序 + 截斷
+    history.sort(key=lambda h: h.get('date', ''))
+    history = history[-max_days:]
+    payload = {
+        'updated_at': now_tw().isoformat(),
+        'count': len(history),
+        'history': history,
+    }
+    with open(hist_file, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    return entry
+
+
 # ========== 加密 ==========
 
 PBKDF2_ITERATIONS = 100000
@@ -1938,7 +2080,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.24",
+        "version": "3.25",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -2007,7 +2149,18 @@ def main():
         print("  [Excel 日報] excel_report 模組未安裝, 略過")
     except Exception as e:
         print(f"  [Excel 日報] 生成失敗:{e}")
-    
+
+    # ════════════════════════════════════════════════════════════════
+    # v3.25: 籌碼溫度計分數 + 30 天歷史累積 (前端 chart 用)
+    # ════════════════════════════════════════════════════════════════
+    try:
+        temp_result = compute_chip_temperature(raw_output)
+        if temp_result:
+            entry = update_temp_history(data_dir, trade_date, temp_result)
+            print(f"  [溫度計] 今日 {entry['score']}/100 ({len(entry['signals'])} 信號)")
+    except Exception as e:
+        print(f"  [溫度計] 失敗: {e}")
+
     plaintext = json.dumps(raw_output, ensure_ascii=False)
     print(f"[加密] 原始大小: {len(plaintext)/1024:.1f} KB")
     encrypted_token = encrypt_data(plaintext, password)
@@ -2057,7 +2210,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.24",
+            "version": "3.25",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）

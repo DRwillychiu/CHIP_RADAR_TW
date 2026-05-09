@@ -1572,6 +1572,291 @@ th.sortable.sort-desc::after {
   text-overflow: ellipsis;
 }
 
+/* v3.25: 信號 score badge (透明化權重) */
+.chip-temp-score {
+  margin-top: 6px;
+  padding: 2px 6px;
+  display: inline-block;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  border-radius: 4px;
+  background: rgba(31,42,72,0.5);
+  color: var(--text-2);
+  border: 1px solid rgba(148,163,184,0.2);
+}
+.chip-temp-card.chip-temp-extreme-bull .chip-temp-score,
+.chip-temp-card.chip-temp-bull .chip-temp-score {
+  background: rgba(239,68,68,0.15);
+  color: #fca5a5;
+  border-color: rgba(239,68,68,0.3);
+}
+.chip-temp-card.chip-temp-bear .chip-temp-score,
+.chip-temp-card.chip-temp-extreme-bear .chip-temp-score {
+  background: rgba(16,185,129,0.15);
+  color: #86efac;
+  border-color: rgba(16,185,129,0.3);
+}
+
+/* v3.25: 30 天溫度計趨勢 chart wrapper */
+.temp-history-wrap {
+  margin: 14px 0;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(31,42,72,0.55) 0%, rgba(15,21,37,0.4) 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.temp-history-wrap:empty { display: none; }
+.temp-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.temp-history-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.temp-history-stats {
+  display: flex;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+}
+.temp-history-stat b {
+  color: var(--text-1);
+  font-weight: 700;
+  margin-left: 3px;
+}
+.temp-history-chart-wrap {
+  position: relative;
+  height: 180px;
+  margin: 6px 0;
+}
+.temp-history-bottom-hint {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: rgba(31,42,72,0.4);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px;
+  font-size: 10.5px;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+.temp-history-empty {
+  padding: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* v3.25: 主散對照面板 */
+.smart-retail-contrast {
+  margin: 14px 0;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(31,42,72,0.55) 0%, rgba(15,21,37,0.4) 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.smart-retail-contrast:empty { display: none; }
+.src-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.src-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.src-divergence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 1px solid;
+  font-family: 'JetBrains Mono', monospace;
+}
+.src-divergence-badge.strong-bull {
+  background: rgba(239,68,68,0.2);
+  color: #fca5a5;
+  border-color: rgba(239,68,68,0.5);
+}
+.src-divergence-badge.weak-bull {
+  background: rgba(251,113,133,0.12);
+  color: #fda4af;
+  border-color: rgba(251,113,133,0.3);
+}
+.src-divergence-badge.flat {
+  background: rgba(148,163,184,0.12);
+  color: #cbd5e1;
+  border-color: rgba(148,163,184,0.3);
+}
+.src-divergence-badge.weak-bear {
+  background: rgba(74,222,128,0.12);
+  color: #86efac;
+  border-color: rgba(74,222,128,0.3);
+}
+.src-divergence-badge.strong-bear {
+  background: rgba(16,185,129,0.2);
+  color: #6ee7b7;
+  border-color: rgba(16,185,129,0.5);
+}
+.src-div-num {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+}
+.src-div-label {
+  font-size: 12px;
+  padding-left: 8px;
+  border-left: 1px solid currentColor;
+}
+.src-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 720px) {
+  .src-grid { grid-template-columns: 1fr; }
+}
+.src-side {
+  padding: 10px 12px;
+  background: rgba(15,21,37,0.5);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.src-side-smart {
+  border-left: 3px solid #fb7185;
+}
+.src-side-retail {
+  border-left: 3px solid #38bdf8;
+}
+.src-side-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.src-side-title-tag {
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+.src-side-smart .src-side-title-tag {
+  background: rgba(251,113,133,0.2);
+  color: #fda4af;
+}
+.src-side-retail .src-side-title-tag {
+  background: rgba(56,189,248,0.2);
+  color: #7dd3fc;
+}
+.src-rows {
+  display: grid;
+  gap: 6px;
+}
+.src-row {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  padding: 4px 0;
+}
+.src-row-name {
+  color: var(--text-3);
+}
+.src-row-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.src-row-val.pos { color: #fca5a5; }
+.src-row-val.neg { color: #86efac; }
+.src-row-tag {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.src-row-tag.bull { background: rgba(239,68,68,0.18); color: #fca5a5; }
+.src-row-tag.bull-mild { background: rgba(251,113,133,0.12); color: #fda4af; }
+.src-row-tag.neutral { background: rgba(148,163,184,0.18); color: #cbd5e1; }
+.src-row-tag.bear-mild { background: rgba(74,222,128,0.12); color: #86efac; }
+.src-row-tag.bear { background: rgba(16,185,129,0.18); color: #6ee7b7; }
+
+.src-bottom-hint {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(31,42,72,0.4);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px;
+  font-size: 11.5px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+/* v3.25: 加權公式列 */
+.chip-temp-formula {
+  margin: 12px 0 4px;
+  padding: 8px 12px;
+  background: rgba(15,21,37,0.5);
+  border: 1px dashed rgba(148,163,184,0.25);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  line-height: 1.6;
+}
+.chip-temp-formula-label {
+  color: var(--text-2);
+  margin-right: 4px;
+  font-family: inherit;
+}
+.chip-temp-formula-item {
+  padding: 1px 5px;
+  background: rgba(31,42,72,0.6);
+  border-radius: 3px;
+  color: var(--text-1);
+  cursor: help;
+}
+.chip-temp-formula-plus, .chip-temp-formula-eq, .chip-temp-formula-div, .chip-temp-formula-mult {
+  color: var(--text-3);
+  margin: 0 2px;
+}
+.chip-temp-formula-sum {
+  color: #fbbf24;
+  font-weight: 700;
+}
+.chip-temp-formula-max {
+  color: var(--text-3);
+}
+.chip-temp-formula-result {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 13px;
+  padding: 0 4px;
+}
+
 /* ══════════════════════════════════════════════════════════════
    v3.17.1: 期貨資料時間 banner + clickable hero card + Modal
    ══════════════════════════════════════════════════════════════ */
@@ -3366,6 +3651,12 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   <!-- v3.17.2: 台股籌碼溫度計 -->
   <div id="chipTemperature" class="chip-temperature"></div>
 
+  <!-- v3.25: 主散對照面板 (主力 vs 散戶 4 視角 + 背離指數) -->
+  <div id="smartRetailContrast" class="smart-retail-contrast"></div>
+
+  <!-- v3.25: 30 天溫度計趨勢 -->
+  <div id="tempHistoryWrap" class="temp-history-wrap"></div>
+
   <!-- 🌐 全域市場類型篩選器 -->
   <div class="market-global-bar">
     <span class="market-global-label">🌐 全域市場類型</span>
@@ -4427,6 +4718,10 @@ async function showDate(date) {
   
   // v3.17.2: 渲染籌碼溫度計
   try { renderChipTemperature(); } catch(e) { console.warn('chip temperature err', e); }
+  // v3.25: 主散對照
+  try { renderSmartRetailContrast(); } catch(e) { console.warn('smart-retail contrast err', e); }
+  // v3.25: 30 天溫度計趨勢 (非阻塞 fetch)
+  renderTempHistory().catch(e => console.warn('temp history err', e));
   
   renderAll();
 }
@@ -4568,20 +4863,29 @@ function renderChipTemperature() {
   })();
   
   const signals = [sig1, sig2, sig3, sig4, sig5].filter(s => s !== null);
-  
+
   if (signals.length === 0) {
     el.innerHTML = '';
     return;
   }
-  
+
   // 計算綜合判讀 + 0-100 分數
   const bulls = signals.filter(s => s.level === 'bull' || s.level === 'extreme-bull').length;
   const bears = signals.filter(s => s.level === 'bear' || s.level === 'extreme-bear').length;
   const neutrals = signals.filter(s => s.level === 'neutral').length;
-  
+
+  // v3.25: 透明化權重
+  // 每信號等級 → 0-20 分; 等權重平均 (未來可加 weight 欄位區分權重)
   const levelScore = { 'extreme-bull': 20, 'bull': 15, 'neutral': 10, 'bear': 5, 'extreme-bear': 0 };
-  const totalScore = signals.reduce((sum, s) => sum + (levelScore[s.level] ?? 10), 0);
-  const maxScore = signals.length * 20;
+  const levelLabel = { 'extreme-bull': '極多', 'bull': '偏多', 'neutral': '中性', 'bear': '偏空', 'extreme-bear': '極空' };
+  // 把 score 寫進每個 signal 物件以利渲染
+  signals.forEach(s => {
+    s.score = levelScore[s.level] ?? 10;
+    s.weight = 1;  // v3.25: 等權重, 預留未來區分
+    s.levelLabel = levelLabel[s.level] ?? '中性';
+  });
+  const totalScore = signals.reduce((sum, s) => sum + s.score * s.weight, 0);
+  const maxScore = signals.reduce((sum, s) => sum + 20 * s.weight, 0);
   const normScore = Math.round((totalScore / maxScore) * 100);
   
   let verdict, verdictClass, verdictHint;
@@ -4625,19 +4929,303 @@ function renderChipTemperature() {
     
     <div class="chip-temp-grid">
       ${signals.map(s => `
-        <div class="chip-temp-card chip-temp-${s.level}" onclick="if(window.switchTab) switchTab('${s.tab}'); else document.querySelector('[data-tab=\\'${s.tab}\\']')?.click();" title="${s.hint}">
+        <div class="chip-temp-card chip-temp-${s.level}" onclick="if(window.switchTab) switchTab('${s.tab}'); else document.querySelector('[data-tab=\\'${s.tab}\\']')?.click();" title="${s.name} ${s.levelLabel}\n貢獻 ${s.score}/20 分 (權重 ${s.weight}x)\n${s.hint}\n\n計算: ${s.label}">
           <div class="chip-temp-name">${s.name}</div>
           <div class="chip-temp-value">${s.label}</div>
           <div class="chip-temp-hint">${s.hint}</div>
+          <div class="chip-temp-score">${s.score}/20 · ${s.levelLabel}</div>
         </div>
       `).join('')}
     </div>
-    
+
+    <!-- v3.25: 加權公式透明化 -->
+    <div class="chip-temp-formula" title="點擊看完整公式">
+      <span class="chip-temp-formula-label">📐 公式:</span>
+      ${signals.map(s => `<span class="chip-temp-formula-item" title="${s.name}: ${s.score} × ${s.weight}">${s.score}×${s.weight}</span>`).join('<span class="chip-temp-formula-plus">+</span>')}
+      <span class="chip-temp-formula-eq">=</span>
+      <span class="chip-temp-formula-sum">${totalScore}</span>
+      <span class="chip-temp-formula-div">÷</span>
+      <span class="chip-temp-formula-max">${maxScore}</span>
+      <span class="chip-temp-formula-mult">× 100 =</span>
+      <span class="chip-temp-formula-result">${normScore}</span>
+    </div>
+
     <div class="chip-temp-bottom-hint">
       💡 <strong>${verdict}區 (${normScore}/100)</strong> · ${verdictHint}
       <span style="color:var(--text-3);margin-left:10px;">🔴${bulls} 多 · 🟡${neutrals} 中 · 🟢${bears} 空</span>
     </div>
   `;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  v3.25: 主散對照 (Smart-Retail Contrast) + 背離指數
+// ════════════════════════════════════════════════════════════════════
+//   主力 2 視角:
+//     - 外資現貨 (institutional_rankings.foreign 淨張)
+//     - 投信現貨 (institutional_rankings.trust 淨張)
+//   散戶 2 視角:
+//     - 散戶融資 (margin_rankings.top_margin_buy 前 5 加總, 增加=追漲)
+//     - 散戶小台 (futures_data.summary.retail_mxf_net_oi, 反指標)
+//
+//   背離指數 = 主力分 + 散戶反向分 ∈ [-4, +4]
+//     +4 = 主力進 + 散戶退 (最強多)
+//     -4 = 主力退 + 散戶進 (最強空)
+//      0 = 主散一致 (無明顯結構)
+function renderSmartRetailContrast() {
+  const el = document.getElementById('smartRetailContrast');
+  if (!el || !CURRENT_DATA) return;
+
+  // ─── 主力 1: 外資現貨 ───
+  const smartForeign = (() => {
+    const r = CURRENT_DATA.institutional_rankings?.foreign;
+    let netLot = null;
+    if (r?.buy && r?.sell) {
+      netLot = r.buy.reduce((s, x) => s + (x.foreign_net_lot || 0), 0)
+             + r.sell.reduce((s, x) => s + (x.foreign_net_lot || 0), 0);
+    }
+    if (netLot === null) return null;
+    let score, tag, tagCls;
+    const k = Math.round(netLot / 1000);
+    if (netLot >= 50000)      { score = 2; tag = '極多'; tagCls = 'bull'; }
+    else if (netLot >= 10000) { score = 1; tag = '偏多'; tagCls = 'bull-mild'; }
+    else if (netLot >= -10000){ score = 0; tag = '中性'; tagCls = 'neutral'; }
+    else if (netLot >= -50000){ score = -1; tag = '偏空'; tagCls = 'bear-mild'; }
+    else                      { score = -2; tag = '極空'; tagCls = 'bear'; }
+    return { name: '外資現貨', label: `${k >= 0 ? '+' : ''}${k}k 張`, raw: netLot, score, tag, tagCls };
+  })();
+
+  // ─── 主力 2: 投信現貨 ───
+  const smartTrust = (() => {
+    const r = CURRENT_DATA.institutional_rankings?.trust;
+    let netLot = null;
+    if (r?.buy && r?.sell) {
+      netLot = r.buy.reduce((s, x) => s + (x.trust_net_lot || 0), 0)
+             + r.sell.reduce((s, x) => s + (x.trust_net_lot || 0), 0);
+    }
+    if (netLot === null) return null;
+    let score, tag, tagCls;
+    const k = Math.round(netLot / 1000);
+    if (netLot >= 8000)       { score = 2; tag = '極多'; tagCls = 'bull'; }
+    else if (netLot >= 2000)  { score = 1; tag = '偏多'; tagCls = 'bull-mild'; }
+    else if (netLot >= -2000) { score = 0; tag = '中性'; tagCls = 'neutral'; }
+    else if (netLot >= -8000) { score = -1; tag = '偏空'; tagCls = 'bear-mild'; }
+    else                      { score = -2; tag = '極空'; tagCls = 'bear'; }
+    return { name: '投信現貨', label: `${k >= 0 ? '+' : ''}${k}k 張`, raw: netLot, score, tag, tagCls };
+  })();
+
+  // ─── 散戶 1: 融資熱度 (反指標 — 散戶追漲 = 看空主散背離) ───
+  const retailMargin = (() => {
+    const mr = CURRENT_DATA.margin_rankings;
+    if (!mr || !mr.top_margin_buy) return null;
+    const top5 = mr.top_margin_buy.slice(0, 5);
+    if (top5.length === 0) return null;
+    const totalIncrease = top5.reduce((s, x) => s + (x.margin_change || 0), 0);
+    const billion = totalIncrease / 1e8;
+    // raw direction (散戶買): 正 = 散戶追漲, 負 = 散戶減碼
+    // tag/score 用「散戶實際方向」(不反轉) — 反轉發生在背離計算
+    let score, tag, tagCls;
+    if (billion >= 30)        { score = 2; tag = '追漲熱'; tagCls = 'bull'; }
+    else if (billion >= 10)   { score = 1; tag = '加碼'; tagCls = 'bull-mild'; }
+    else if (billion >= -10)  { score = 0; tag = '平穩'; tagCls = 'neutral'; }
+    else if (billion >= -30)  { score = -1; tag = '減碼'; tagCls = 'bear-mild'; }
+    else                      { score = -2; tag = '退場'; tagCls = 'bear'; }
+    return { name: '散戶融資', label: `${billion >= 0 ? '+' : ''}${billion.toFixed(0)}億`, raw: billion, score, tag, tagCls };
+  })();
+
+  // ─── 散戶 2: 散戶小台 (反指標) ───
+  const retailMxf = (() => {
+    const mxf = CURRENT_DATA.futures_data?.summary?.retail_mxf_net_oi;
+    if (mxf === undefined || mxf === null) return null;
+    let score, tag, tagCls;
+    const k = Math.round(mxf / 1000);
+    // mxf 正 = 散戶看多 (反指標→空), mxf 負 = 散戶看空 (反指標→多)
+    if (mxf >= 8000)       { score = 2; tag = '看多'; tagCls = 'bull'; }
+    else if (mxf >= 2000)  { score = 1; tag = '偏多'; tagCls = 'bull-mild'; }
+    else if (mxf >= -2000) { score = 0; tag = '中性'; tagCls = 'neutral'; }
+    else if (mxf >= -8000) { score = -1; tag = '偏空'; tagCls = 'bear-mild'; }
+    else                   { score = -2; tag = '看空'; tagCls = 'bear'; }
+    return { name: '散戶小台', label: `${k >= 0 ? '+' : ''}${k}k 口`, raw: mxf, score, tag, tagCls };
+  })();
+
+  const smarts = [smartForeign, smartTrust].filter(s => s !== null);
+  const retails = [retailMargin, retailMxf].filter(s => s !== null);
+
+  if (smarts.length === 0 && retails.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+
+  // 主散背離指數
+  const smartScore = smarts.reduce((s, x) => s + x.score, 0);  // -4 to +4
+  const retailScore = retails.reduce((s, x) => s + x.score, 0);  // -4 to +4
+  // 散戶反向 (散戶看空 = 多頭信號)
+  const divergence = smartScore - retailScore;  // -8 to +8
+
+  let divLabel, divCls, divHint;
+  if (divergence >= 5)        { divLabel = '強烈主散背離 → 多'; divCls = 'strong-bull'; divHint = '主力進場 + 散戶退場(最佳結構)'; }
+  else if (divergence >= 2)   { divLabel = '輕度背離 → 多'; divCls = 'weak-bull'; divHint = '主力略強於散戶'; }
+  else if (divergence >= -1)  { divLabel = '主散一致'; divCls = 'flat'; divHint = '主散方向接近,結構不明'; }
+  else if (divergence >= -4)  { divLabel = '輕度背離 → 空'; divCls = 'weak-bear'; divHint = '散戶追漲 + 主力減碼'; }
+  else                        { divLabel = '強烈主散背離 → 空'; divCls = 'strong-bear'; divHint = '散戶 FOMO + 主力出貨(最差結構)'; }
+
+  const renderRow = (s) => `
+    <div class="src-row" title="${s.name}: 原始值 = ${s.raw}, 等級分 = ${s.score >= 0 ? '+' : ''}${s.score}">
+      <span class="src-row-name">${s.name}</span>
+      <span class="src-row-val ${s.score > 0 ? 'pos' : (s.score < 0 ? 'neg' : '')}">${s.label}</span>
+      <span class="src-row-tag ${s.tagCls}">${s.tag}</span>
+    </div>`;
+
+  el.innerHTML = `
+    <div class="src-header">
+      <span class="src-title">🆚 主散對照 <span style="font-size:11px;color:var(--text-3);font-weight:normal;margin-left:8px;">主力 ${smarts.length} 視角 · 散戶 ${retails.length} 視角</span></span>
+      <span class="src-divergence-badge ${divCls}" title="主力分 (${smartScore >= 0 ? '+' : ''}${smartScore}) − 散戶分 (${retailScore >= 0 ? '+' : ''}${retailScore}) = ${divergence >= 0 ? '+' : ''}${divergence}\n\n+8 = 主力極多 + 散戶極空 (最強買點)\n0 = 主散一致 (無背離)\n-8 = 主力極空 + 散戶極多 (最強警訊)">
+        <span class="src-div-num">${divergence >= 0 ? '+' : ''}${divergence}</span>
+        <span class="src-div-label">${divLabel}</span>
+      </span>
+    </div>
+    <div class="src-grid">
+      <div class="src-side src-side-smart">
+        <div class="src-side-title">
+          <span>👨‍💼 主力 (${smartScore >= 0 ? '+' : ''}${smartScore} 分)</span>
+          <span class="src-side-title-tag">SMART MONEY</span>
+        </div>
+        <div class="src-rows">${smarts.map(renderRow).join('')}</div>
+      </div>
+      <div class="src-side src-side-retail">
+        <div class="src-side-title">
+          <span>👥 散戶 (${retailScore >= 0 ? '+' : ''}${retailScore} 分)</span>
+          <span class="src-side-title-tag">RETAIL</span>
+        </div>
+        <div class="src-rows">${retails.map(renderRow).join('')}</div>
+      </div>
+    </div>
+    <div class="src-bottom-hint">
+      💡 <strong>背離指數 ${divergence >= 0 ? '+' : ''}${divergence}/8 · ${divLabel}</strong> · ${divHint}
+      <span style="color:var(--text-3);margin-left:8px;">公式: 主力分 (${smartScore}) − 散戶分 (${retailScore}) = ${divergence}</span>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  v3.25: 30 天溫度計趨勢 (Chart.js line chart)
+// ════════════════════════════════════════════════════════════════════
+let TEMP_HISTORY_CACHE = null;
+let TEMP_HISTORY_CHART = null;
+
+async function renderTempHistory() {
+  const wrap = document.getElementById('tempHistoryWrap');
+  if (!wrap) return;
+
+  // Fetch (with 24h cache to avoid spam)
+  if (!TEMP_HISTORY_CACHE) {
+    try {
+      const r = await fetch(`${DATA_BASE}/temp_history.json?_=${Date.now()}`);
+      if (!r.ok) {
+        wrap.innerHTML = '';  // 還沒累積資料,隱藏
+        return;
+      }
+      TEMP_HISTORY_CACHE = await r.json();
+    } catch (e) {
+      wrap.innerHTML = '';
+      return;
+    }
+  }
+
+  const hist = TEMP_HISTORY_CACHE?.history || [];
+  if (hist.length < 2) {
+    wrap.innerHTML = `
+      <div class="temp-history-empty">
+        📉 30 天溫度趨勢 — 累積中 (目前 ${hist.length} 天, 至少需 2 天才畫圖)
+      </div>`;
+    return;
+  }
+
+  // Build chart
+  const labels = hist.map(h => `${h.date.slice(4,6)}/${h.date.slice(6,8)}`);
+  const scores = hist.map(h => h.score);
+  const todayScore = scores[scores.length - 1];
+  const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  const maxScore = Math.max(...scores);
+  const minScore = Math.min(...scores);
+
+  // Colour each point by zone
+  const pointColors = scores.map(s => {
+    if (s >= 70) return '#ef4444';
+    if (s >= 55) return '#fb7185';
+    if (s >= 45) return '#fbbf24';
+    if (s >= 30) return '#86efac';
+    return '#10b981';
+  });
+
+  wrap.innerHTML = `
+    <div class="temp-history-header">
+      <span class="temp-history-title">📉 30 天溫度計趨勢 <span style="font-size:11px;color:var(--text-3);font-weight:normal;margin-left:8px;">${hist.length} 個交易日</span></span>
+      <div class="temp-history-stats">
+        <span class="temp-history-stat" title="今日溫度">今 <b>${todayScore}</b></span>
+        <span class="temp-history-stat" title="${hist.length} 天均值">均 <b>${avgScore}</b></span>
+        <span class="temp-history-stat" title="期間最高">高 <b style="color:#fca5a5;">${maxScore}</b></span>
+        <span class="temp-history-stat" title="期間最低">低 <b style="color:#86efac;">${minScore}</b></span>
+      </div>
+    </div>
+    <div class="temp-history-chart-wrap">
+      <canvas id="tempHistoryChart"></canvas>
+    </div>
+    <div class="temp-history-bottom-hint">
+      💡 紅(>70 偏多) · 粉(55-70 中偏多) · 黃(45-55 中性) · 淺綠(30-45 中偏空) · 深綠(<30 偏空)
+    </div>
+  `;
+
+  const canvas = document.getElementById('tempHistoryChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const ctx = canvas.getContext('2d');
+
+  if (TEMP_HISTORY_CHART) { TEMP_HISTORY_CHART.destroy(); }
+  TEMP_HISTORY_CHART = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: '溫度計分數',
+        data: scores,
+        borderColor: 'rgba(96,165,250,0.85)',
+        backgroundColor: 'rgba(96,165,250,0.10)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: pointColors,
+        pointBorderColor: pointColors,
+        pointHoverRadius: 6,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const h = hist[ctx.dataIndex];
+              const sigSummary = (h.signals || []).map(s => `${s.name}=${s.score}`).join(' · ');
+              return [`分數: ${ctx.parsed.y}/100`, sigSummary];
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          min: 0, max: 100,
+          ticks: { stepSize: 25, color: 'rgba(148,163,184,0.7)' },
+          grid: { color: 'rgba(148,163,184,0.1)' }
+        },
+        x: {
+          ticks: { color: 'rgba(148,163,184,0.7)', maxTicksLimit: 10 },
+          grid: { display: false }
+        }
+      }
+    }
+  });
 }
 
 // ========== v3.12 漲停狙擊 ==========
