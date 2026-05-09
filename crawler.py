@@ -1938,7 +1938,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.22",
+        "version": "3.24",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -1992,7 +1992,7 @@ def main():
         print(f"  [警報] 執行失敗: {e}")
     
     # ════════════════════════════════════════════════════════════════
-    # v3.22: 老闆版 Excel 日報 (在加密前用 branches 資料生成)
+    # v3.22+v3.23+v3.24: 老闆版 Excel 日報 (嚴格模仿手動版「分點觀察」)
     # ════════════════════════════════════════════════════════════════
     try:
         import excel_report
@@ -2057,7 +2057,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.22",
+            "version": "3.24",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）

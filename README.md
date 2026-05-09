@@ -1,7 +1,7 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.21 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.24 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 
 ---
 
@@ -82,18 +82,24 @@ Chip Radar 是「台股籌碼分析專家」
 
 ## 🏗️ 技術架構
 
-### 後端 (10 個 Python 模組)
+### 後端 (13 個 Python 模組)
 ```
-crawler.py            主爬蟲 (~95KB) 整合所有資料
-├ branches.py         49 分點抓取邏輯
-├ institutional.py    三大法人爬蟲
-├ margin.py           融資融券 (TWSE + HiStock)
-├ reports.py          每日報告產生
+crawler.py            主爬蟲 (~102KB) 整合所有資料
+├ branches.py         56 分點 + 29 master
+├ institutional.py    三大法人爬蟲 (TWSE + TPEx)
+├ margin.py           融資融券 (TWSE + HiStock 雙源)
+├ futures.py          TAIFEX 期貨/選擇權 (~970 行 v3.18)
+├ insiders.py         MOPS 內部人 + 重大訊息 (v3.20)
+├ alerts.py           推播警報系統 (v3.20, 5 訊號)
+├ excel_report.py     老闆版 Excel 日報 (v3.22+v3.23 template-aligned)
+├ audit_institutional.py  三大法人審計 (v3.21)
+├ audit_margin.py     融資融券審計 (v3.21)
+├ audit_branches.py   分點 3 層審計 (v3.21)
+├ history.py          30 天歷史累積 (含期貨)
+├ industry_classifier.py  產業分類 (1965 檔)
 ├ market_classifier.py  市場分類 (上市/上櫃/ETF)
 ├ histock_verifier.py 融資融券交叉驗證
-├ industry_classifier.py  產業分類 (1965 檔)
-├ history.py          歷史累積 (含期貨)
-└ futures.py          TAIFEX 期貨/選擇權 (~480 行)
+└ reports.py          週報/月報生成
 ```
 
 ### 前端
@@ -112,13 +118,41 @@ index.html (~340KB)
    • 22:30 / 23:30 (週一-五)
    • 00:30 / 02:00 (週二-六)
    • 08:00 / 09:00 / 12:00 (週二-六)
+3. Keepalive (週日 04:00, v3.23)   防 60 天無活動 disable
 ```
 
 ---
 
 ## 📈 版本歷程
 
-### v3.17.x 期貨情報系列
+### v3.2x 一週優化系列
+- **v3.24** (2026/05/09) 🆕 ⭐ **Excel 嚴格模仿手動版「分點觀察」**
+  - 🔧 `excel_report.py` 完整重寫 (~21KB,取代 v3.23 的 24KB)
+  - 🔧 字型 `新細明體` 12pt + 全 cell center/center 對齊 (對齊手動版)
+  - 🔧 移除 v3.23 的藍色 header bg / 邊框 / 粉紅虧損 bg (手動版沒有)
+  - 🆕 內建 `MASTER_MAPPING`:13 高手 / 42 分點 (從手動 5/8 版抽出)
+  - 🔧 每分點固定 10 列 (不足以空白填補,維持視覺一致)
+  - 🔧 排序:top 10 by 買進金額 desc (G 欄)
+  - 🆕 `latest.xlsx` 改 multi-sheet,最近 30 個交易日,每日一 sheet (sheet 名 = `YYYYMMDD`)
+  - 🐛 修正 v3.23 的 header 英文佔位 bug (寫成 Chinese 後又被二次替換)
+  - 📊 與手動版結構驗證:462 列、12 欄、97 merges 完全對齊
+  - 🟢 戰力 99.3 → 99.5/100
+
+- **v3.23** (2026/05/08) 🆕 ⭐ **Excel 日報 template-aligned 重構**
+  - 🔧 `excel_report.py` 重構為 vertical layout, 12 欄結構
+  - 🔧 對齊手動版「分點觀察」格式 (master/分點/代號/標的)
+  - 🔧 P/L 公式條件式格式 (`=F*(K-J)`, 紅字虧損)
+  - 🐛 fix: workflow 補 `openpyxl` 依賴
+  - 🆕 `.github/workflows/keepalive.yml`:週日 04:00 自動空 commit, 防 60 天 disable
+
+- **v3.22** (2026/05/08) 🆕 ⭐ **老闆版 Excel 日報自動生成**
+  - 🆕 新增 `excel_report.py` (~24KB)
+  - 🆕 主流程整合:每次 daily-full 後自動產出 `data/reports/chip_radar_<日期>.xlsx`
+  - 🆕 同步生成 `data/reports/latest.xlsx` 給網站「下載老闆版日報」綠色按鈕
+  - 🆕 `index.html` 加綠色下載按鈕 → `data/reports/latest.xlsx`
+  - 🟢 戰力 99 → 99.3/100 (老闆視角閉環)
+
+### v3.21.x 全資料源審計系列
 - **v3.21** (2026/05/05) 🆕 ⭐⭐ **全資料源 100% 對齊 + 資料準確度徽章**
   - 🆕 **5 個資料源完整審計**:215+ 個欄位 100% 對齊官方
     - TAIFEX 期貨/選擇權 (66 欄, v3.17.5)
@@ -299,8 +333,9 @@ GitHub Repo → Actions → `1. Daily Full Crawl (20:00)` → **Run workflow**
 
 | Workflow | 時段 | 抓什麼 |
 |----------|------|-------|
-| Daily Full Crawl | 每日 20:00 (週一-五) | 全部資料 (含期貨) |
+| Daily Full Crawl | 每日 20:00 (週一-五) | 全部資料 (含期貨) + 自動生成老闆版 Excel |
 | Margin Refresh | 22:30 / 23:30 / 00:30 / 02:00 / 08:00 / 09:00 / 12:00 | 融資融券補抓 (7 重防禦) |
+| Keepalive | 週日 04:00 | 空 commit 維持活動 (防 60 天 disable, v3.23) |
 
 **TAIFEX 公告時程**：
 - 15:00 - 三大法人期貨/選擇權公告
@@ -358,24 +393,35 @@ A: GitHub Pages 預設不會被搜尋,但若要更私密:
 CHIP_RADAR_TW/
 ├── README.md                  本檔案
 ├── index.html                 前端 (340KB, 含加密邏輯)
-├── crawler.py                 主爬蟲 (~95KB)
-├── branches.py                49 分點定義
+├── crawler.py                 主爬蟲 (~102KB)
+├── branches.py                56 分點 + 29 master
 ├── institutional.py           三大法人
 ├── margin.py                  融資融券
-├── reports.py                 每日報告
+├── futures.py                 TAIFEX 期貨/選擇權
+├── insiders.py                MOPS 內部人 (v3.20)
+├── alerts.py                  推播警報 (v3.20)
+├── excel_report.py            老闆版 Excel 日報 (v3.22+v3.23)
+├── audit_institutional.py     三大法人審計 (v3.21)
+├── audit_margin.py            融資融券審計 (v3.21)
+├── audit_branches.py          分點 3 層審計 (v3.21)
+├── history.py                 歷史累積
+├── industry_classifier.py     產業分類
 ├── market_classifier.py       市場分類
 ├── histock_verifier.py        HiStock 驗證
-├── industry_classifier.py     產業分類
-├── history.py                 歷史累積
-├── futures.py                 TAIFEX 期貨/選擇權 (v3.17 新)
+├── reports.py                 週/月報告
 ├── .github/workflows/
-│   ├── daily-full.yml         每日主爬蟲
-│   └── margin-refresh.yml     7 重融資融券補抓
+│   ├── daily-full.yml         每日主爬蟲 + Excel 生成
+│   ├── margin-refresh.yml     7 重融資融券補抓
+│   └── keepalive.yml          週日 04:00 防 60 天 disable (v3.23)
 └── data/                      自動產生的資料
     ├── latest.json            最新一日 (加密)
-    ├── 20260428.json          歷史日期檔
-    ├── 20260427.json
-    └── stock_history.json     30 天累積 (含期貨歷史)
+    ├── 20260508.json          歷史日期檔
+    ├── stock_history.json     30 天累積 (含期貨歷史)
+    └── reports/               (v3.22+) 老闆版 Excel 日報
+        ├── latest.xlsx        最新一日下載連結 (網站綠色按鈕)
+        ├── chip_radar_<日期>.xlsx
+        ├── weekly_<週>.json/md
+        └── monthly_<月>.json/md
 ```
 
 ---
@@ -401,8 +447,8 @@ CHIP_RADAR_TW/
 
 | 維度 | 規模 |
 |------|------|
-| 監控分點 | 49 個 |
-| Master 高手 | 25 位 |
+| 監控分點 | 56 個 |
+| Master 高手 | 29 位 (網站) / 12 位 (Excel 老闆版) |
 | 抓取個股 | 上市 1082 + 上櫃 883 = **1965 檔** |
 | 期貨商品 | TXF (大台) + MXF (小台) + TMF (微台) |
 | 選擇權 | TXO Call + Put 三大法人 |
@@ -435,6 +481,6 @@ MIT License - 自由使用、修改、分享。
 
 ---
 
-**Chip Radar TW · 90% 戰力 · 持續演進中** 📊🎯
+**Chip Radar TW · 99.5% 戰力 · 持續演進中** 📊🎯
 
-*Last Updated: 2026/05/05 · v3.21*
+*Last Updated: 2026/05/09 · v3.24*

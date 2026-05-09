@@ -1,0 +1,51 @@
+name: 3. Keepalive (Anti 60-day disable)
+
+# 用途: 公開 repo 60 天無活動會被 GitHub 自動 disable schedule。
+# 此 workflow 每週日 04:00 TW (Sat 20:00 UTC) 跑一次空 commit 維持活動,
+# 避免主排程 daily-full / margin-refresh 被 disable。
+# v3.23 新增。
+
+on:
+  schedule:
+    # Sunday 04:00 Asia/Taipei = Saturday 20:00 UTC
+    - cron: '0 20 * * 6'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Touch keepalive marker
+        run: |
+          mkdir -p .github
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > .github/.keepalive
+          echo "Last keepalive: $(cat .github/.keepalive)"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit & push (allow empty)
+        run: |
+          git add .github/.keepalive
+          if git diff --cached --quiet; then
+            git commit --allow-empty -m "🔄 [KEEPALIVE] $(date -u +%Y-%m-%d)"
+          else
+            git commit -m "🔄 [KEEPALIVE] $(date -u +%Y-%m-%d)"
+          fi
+          git pull --rebase origin main
+          git push origin main

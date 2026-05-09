@@ -1,398 +1,505 @@
 """
-excel_report.py - v3.23 Excel daily report generator (template-aligned)
+excel_report.py v3.24 - Manual-template-faithful Excel daily report
 
-Template format (matching user's manual report):
-  - Single sheet per day (sheet name = YYYYMMDD)
-  - Vertical layout: each branch = 1 header row + 10 data rows
-  - 12 columns: A-L
-  - Master grouping with merged cells in column A
-  - Branch name/code merged vertically in columns B/C
-  - Blue header rows per branch section
-  - Loss column with formula, negative in red
+Strict mimicry of user's hand-curated Excel ("分點觀察" boss report).
 
-Output:
-  data/reports/chip_radar_YYYY-MM-DD.xlsx
-  data/reports/latest.xlsx (always latest, for bookmarking)
-  data/reports/README.md (history index)
+Layout (per master block):
+  Row 1: full header [高手|分點|代號|標的|...|損益(萬)]   ← A="高手" label
+  Row 2: first data row of master's first branch          ← A=master_name (merged down)
+  Rows 2-11: 10 data rows for branch #1 (padded blank if <10 stocks)
+  Row 12: sub-header [(空)|分點|代號|標的|...]            ← A empty, under master merge
+  Rows 13-22: 10 data rows for branch #2
+  ...
+  Next master: full header row again, A=高手 label
+
+Visual style (matches manual file exactly):
+  - Font: 新細明體 (PMingLiU), 12pt
+  - All cells: center/center alignment
+  - NO fills, NO borders
+  - Header rows + master/branch/code labels: bold
+  - L column: =F*(K-J), format '0.00_ ;[Red]\\-0.00\\ ' (red text on negative)
+
+Outputs:
+  data/reports/chip_radar_YYYY-MM-DD.xlsx  - single-sheet daily snapshot
+  data/reports/latest.xlsx                  - multi-sheet, last 30 trading days
+  data/reports/README.md                    - history index
 """
 
-import os
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 from pathlib import Path
 
 try:
-    from openpyxl import Workbook
-    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, numbers
-    from openpyxl.utils import get_column_letter
+    from openpyxl import Workbook, load_workbook
+    from openpyxl.styles import Font, Alignment
+    from openpyxl.worksheet.worksheet import Worksheet
     OPENPYXL_AVAILABLE = True
 except ImportError:
     OPENPYXL_AVAILABLE = False
 
 
 # ============================================================
-#  Style constants (matching template)
+#  Master mapping (extracted from user's manual file 5/8 version)
+#  - 12 masters / 42 branch slots
+#  - Branch codes are TWSE codes (authoritative)
+#  - Branch names use canonical names from branches.py where possible
+#  - header_label: "分點" or "常下分點" (matches manual section style)
 # ============================================================
 
-# Header row: blue background, white bold text
-FILL_HEADER = lambda: PatternFill('solid', start_color='4472C4')
-FONT_HEADER = lambda: Font(name='Microsoft JhengHei', size=10, bold=True, color='FFFFFF')
-FONT_HEADER_LABEL = lambda: Font(name='Microsoft JhengHei', size=10, bold=True)
-
-# Master/branch label font
-FONT_MASTER = lambda: Font(name='Microsoft JhengHei', size=11, bold=True)
-FONT_BRANCH = lambda: Font(name='Microsoft JhengHei', size=10, bold=True)
-
-# Data font
-FONT_DATA = lambda: Font(name='Microsoft JhengHei', size=10)
-
-# Loss column: negative values get red font + pink background
-FILL_LOSS_NEG = lambda: PatternFill('solid', start_color='FFC7CE')
-FONT_LOSS_NEG = lambda: Font(name='Microsoft JhengHei', size=10, color='C00000')
-FONT_LOSS_POS = lambda: Font(name='Microsoft JhengHei', size=10)
-
-# Alignment
-ALIGN_CENTER = lambda: Alignment(horizontal='center', vertical='center')
-ALIGN_LEFT = lambda: Alignment(horizontal='left', vertical='center')
-ALIGN_RIGHT = lambda: Alignment(horizontal='right', vertical='center')
-
-# Border
-BORDER_THIN = lambda: Border(
-    left=Side(style='thin', color='B4C6E7'),
-    right=Side(style='thin', color='B4C6E7'),
-    top=Side(style='thin', color='B4C6E7'),
-    bottom=Side(style='thin', color='B4C6E7'),
-)
-
-# Column widths (matching template)
-COL_WIDTHS = {
-    'A': 19.3,   # master
-    'B': 18.3,   # branch name
-    'C': 11.9,   # branch code
-    'D': 20.3,   # stock name(code)
-    'E': 13.0,   # buy lots
-    'F': 13.0,   # sell lots
-    'G': 16.0,   # buy amount
-    'H': 16.0,   # sell amount
-    'I': 18.0,   # net buy diff
-    'J': 13.1,   # buy avg
-    'K': 11.4,   # sell avg
-    'L': 15.6,   # pnl
-}
-
-HEADER_LABELS = [
-    'master',       # A - only on first branch of each master group
-    'branch',       # B
-    'code',         # C
-    'target',       # D
-    'buy_lot',      # E
-    'sell_lot',     # F
-    'buy_amt',      # G
-    'sell_amt',     # H
-    'net_diff',     # I
-    'buy_avg',      # J
-    'sell_avg',     # K
-    'pnl',          # L
+MASTER_MAPPING: List[Dict] = [
+    {
+        "name": "民哥",
+        "header_label": "分點",
+        "branches": [
+            ("9B25", "台新-五權西"),
+            ("9666", "富邦-南屯"),
+            ("779W", "國票-彰化"),
+        ],
+    },
+    {
+        "name": "林滄海",
+        "header_label": "常下分點",
+        "branches": [
+            ("9658", "富邦-建國"),
+            ("9309", "華南永昌-古亭"),
+            ("1260", "宏遠證券"),
+            ("9216", "凱基-信義"),
+        ],
+    },
+    {
+        "name": "張濬安(航海王)",
+        "header_label": "常下分點",
+        "branches": [
+            ("779Z", "國票-安和"),
+            ("9B2E", "台新-城中"),
+            ("920F", "凱基-站前"),
+            ("6167", "中國信託-松江"),
+            ("961M", "富邦-木柵"),
+            ("9100", "群益金鼎證券"),
+        ],
+    },
+    {
+        # Manual file's first 5-branch block (A144:A198 with master name "陳族元")
+        "name": "陳族元",
+        "header_label": "常下分點",
+        "branches": [
+            ("8880", "國泰證券"),
+            ("9300", "華南永昌證券"),
+            ("9216", "凱基-信義"),
+            ("9661", "富邦-新店"),
+            ("9A9g", "永豐金-內湖"),
+        ],
+    },
+    {
+        # Manual file's unnamed 4-branch block (A200:A242 merge has no master name).
+        # Maps to "陳律師" per branches.py canonical naming.
+        "name": "陳律師",
+        "header_label": "常下分點",
+        "branches": [
+            ("700c", "兆豐-民生"),
+            ("8450", "康和總公司"),
+            ("9A9R", "永豐金-信義"),
+            ("585c", "統一-仁愛"),
+        ],
+    },
+    {
+        "name": "迷你哥/松山哥",
+        "header_label": "常下分點",
+        "branches": [
+            ("9217", "凱基-松山"),
+            ("9200", "凱基證券"),
+            ("9600", "富邦證券"),
+        ],
+    },
+    {
+        "name": "布哥/n_nchang",
+        "header_label": "常下分點",
+        "branches": [
+            ("9A8F", "永豐金-敦南"),
+        ],
+    },
+    {
+        "name": "強森",
+        "header_label": "分點",
+        "branches": [
+            ("9B25", "台新-五權西"),
+            ("9B2E", "台新-城中"),
+            ("9B2r", "台新-城東"),
+            ("984K", "元大-館前"),
+            ("989N", "元大-內湖"),
+            ("9215", "凱基-高美館"),
+            ("9B2D", "台新-大昌"),
+        ],
+    },
+    {
+        "name": "Tradow",
+        "header_label": "分點",
+        "branches": [
+            ("9B2a", "台新-松德"),
+        ],
+    },
+    {
+        "name": "巨人傑",
+        "header_label": "分點",
+        "branches": [
+            ("9B2n", "台新-西松"),
+            ("984K", "元大-館前"),
+            ("9B2z", "台新-文心"),
+        ],
+    },
+    {
+        "name": "蔣承翰",
+        "header_label": "分點",
+        "branches": [
+            ("9227", "凱基-城中"),
+            ("9B18", "台新-建北"),
+        ],
+    },
+    {
+        "name": "大牌分析師",
+        "header_label": "分點",
+        "branches": [
+            ("8563", "新光-新竹"),
+        ],
+    },
+    {
+        "name": "竹科主力分點",
+        "header_label": "分點",
+        "branches": [
+            ("700V", "兆豐-新竹"),
+            ("9647", "富邦-新竹"),
+        ],
+    },
 ]
 
-MAX_STOCKS = 10  # max stocks per branch (cap at 10)
+
+# ============================================================
+#  Layout constants (matching manual file exactly)
+# ============================================================
+
+FONT_NAME = "新細明體"  # PMingLiU - traditional Chinese serif (matches manual)
+FONT_SIZE = 12
+ROW_HEIGHT = 16.5
+
+COL_WIDTHS = {
+    "A": 19.28515625,
+    "B": 18.28515625,
+    "C": 11.85546875,
+    "D": 20.28515625,
+    "E": 18.42578125,
+    "F": 21.140625,
+    "G": 18.42578125,
+    "H": 21.140625,
+    "I": 13.0,
+    "J": 13.140625,
+    "K": 11.42578125,
+    "L": 15.5703125,
+}
+
+STOCKS_PER_BRANCH = 10  # fixed 10 rows per branch (pad blank if fewer)
+
+NUMBER_FMT_INT = "#,##0"
+NUMBER_FMT_PRICE = "0.00"
+NUMBER_FMT_PNL = '0.00_ ;[Red]\\-0.00\\ '
+
+
+def _font_bold() -> Font:
+    return Font(name=FONT_NAME, size=FONT_SIZE, bold=True)
+
+
+def _font_normal() -> Font:
+    return Font(name=FONT_NAME, size=FONT_SIZE, bold=False)
+
+
+def _font_pnl_neg() -> Font:
+    return Font(name=FONT_NAME, size=FONT_SIZE, bold=False, color="FFFF0000")
+
+
+def _align_center() -> Alignment:
+    return Alignment(horizontal="center", vertical="center")
+
+
+def _header_row(header_label: str, include_master_label: bool) -> List[str]:
+    """
+    12-column header.
+      header_label: "分點" or "常下分點" (master section style)
+      include_master_label: True for master's full header (A="高手"), False for sub-header (A=None)
+    """
+    code_col_label = "代號" if header_label == "分點" else "分點代號"
+    return [
+        "高手" if include_master_label else None,
+        header_label,
+        code_col_label,
+        "標的",
+        "買進(張)",
+        "賣出(張)",
+        "買進(萬元)",
+        "賣出(萬元)",
+        "淨買差(萬元)",
+        "買均",
+        "賣均",
+        "損益(萬)",
+    ]
 
 
 # ============================================================
-#  Build single-day sheet (template format)
+#  Stock selection: top 10 by buy_amt for a given branch
 # ============================================================
 
-def build_day_sheet(ws, branches_data: List[Dict], trade_date: str):
+def _top_stocks_for_branch(branch_data: Dict) -> List[Dict]:
     """
-    Build one sheet matching the template layout.
-
-    Layout per branch section (11 rows):
-      Row 0: header labels (blue bg)
-      Row 1-10: top 10 stocks by buy amount desc
-
-    Column A: master name (merged across all branches of same master)
-    Column B: branch name (merged across 10 data rows)
-    Column C: branch code (merged across 10 data rows)
-    Column D-L: stock data
+    Combine buys + sells lists, dedupe by code, sort by buy_amt desc, take top 10.
+    Returns list of stock dicts with keys: code, name, buy_lot, sell_lot, buy_amt, sell_amt
+    (buy_amt/sell_amt in 仟元 = thousand TWD per crawler convention).
     """
+    if not branch_data:
+        return []
+    seen: Dict[str, Dict] = {}
+    for s in (branch_data.get("buys") or []):
+        c = s.get("code", "")
+        if c and c not in seen:
+            seen[c] = s
+    for s in (branch_data.get("sells") or []):
+        c = s.get("code", "")
+        if c and c not in seen:
+            seen[c] = s
+    sorted_stocks = sorted(
+        seen.values(),
+        key=lambda x: x.get("buy_amt", 0) or 0,
+        reverse=True,
+    )
+    return sorted_stocks[:STOCKS_PER_BRANCH]
 
-    # -- Group and sort branches by master --
-    valid = [b for b in branches_data if b.get('buys') or b.get('sells')]
-    valid.sort(key=lambda b: (b.get('master', ''), b.get('name', '')))
 
-    # Group by master (preserve order)
-    master_groups = []
-    current_master = None
-    current_list = []
-    for b in valid:
-        m = b.get('master', '')
-        if m != current_master:
-            if current_list:
-                master_groups.append((current_master, current_list))
-            current_master = m
-            current_list = [b]
-        else:
-            current_list.append(b)
-    if current_list:
-        master_groups.append((current_master, current_list))
+# ============================================================
+#  Cell writing helpers
+# ============================================================
 
-    # -- Set column widths --
-    for col_letter, width in COL_WIDTHS.items():
-        ws.column_dimensions[col_letter].width = width
+def _write_header_row(ws: "Worksheet", row: int, header_label: str, include_master_label: bool):
+    """Write a 12-cell header row. All cells bold + centered."""
+    labels = _header_row(header_label, include_master_label)
+    for ci, val in enumerate(labels, start=1):
+        c = ws.cell(row=row, column=ci)
+        c.value = val
+        c.font = _font_bold()
+        c.alignment = _align_center()
 
-    # -- Write data --
-    row = 1  # current row (1-indexed)
-    master_merge_ranges = []  # (start_row, end_row, master_name)
 
-    for gi, (master_name, branches) in enumerate(master_groups):
-        master_start_row = row + 1  # first data row of this master group
+def _write_stock_row(ws: "Worksheet", row: int, stock: Dict):
+    """Write 9 data columns (D-L) for a single stock. E-I integer, J-K price, L formula."""
+    code = stock.get("code", "") or ""
+    name = stock.get("name", "") or code
+    buy_lot = stock.get("buy_lot", 0) or 0
+    sell_lot = stock.get("sell_lot", 0) or 0
+    buy_amt_k = stock.get("buy_amt", 0) or 0   # in 仟元
+    sell_amt_k = stock.get("sell_amt", 0) or 0
 
-        for bi, branch in enumerate(branches):
-            branch_name = branch.get('name', '')
-            branch_code = branch.get('code', '')
+    # 仟元 -> 萬元 (divide by 10, round to nearest)
+    buy_amt_w = round(buy_amt_k / 10) if buy_amt_k else 0
+    sell_amt_w = round(sell_amt_k / 10) if sell_amt_k else 0
+    net_w = buy_amt_w - sell_amt_w
 
-            # -- Header row --
-            is_first_of_master = (bi == 0)
+    # Average prices: buy_amt_k(仟元) / buy_lot(張) gives elem-wise TWD/張 in thousands;
+    # but per manual convention, we want TWD per share. 1張=1000股.
+    # Manual shows e.g. 買均=386.99 for 國巨 — that's TWD/share.
+    # So: buy_avg = buy_amt_k * 1000 / (buy_lot * 1000) = buy_amt_k / buy_lot (TWD/share)
+    buy_avg = round(buy_amt_k / buy_lot, 2) if (buy_lot > 0 and buy_amt_k > 0) else 0
+    sell_avg = round(sell_amt_k / sell_lot, 2) if (sell_lot > 0 and sell_amt_k > 0) else 0
 
-            # A column header label
-            ha = ws.cell(row=row, column=1)
-            if is_first_of_master:
-                ha.value = 'master'
-                ha.font = FONT_HEADER_LABEL()
-            # leave blank for subsequent branches
+    # D: stock label "name(code)"
+    c_d = ws.cell(row=row, column=4)
+    c_d.value = f"{name}({code})"
+    c_d.font = _font_normal()
+    c_d.alignment = _align_center()
 
-            # B-C header labels
-            ws.cell(row=row, column=2).value = 'branch'
-            ws.cell(row=row, column=3).value = 'code'
+    # E-I integer columns
+    for ci, val in [(5, buy_lot), (6, sell_lot), (7, buy_amt_w), (8, sell_amt_w), (9, net_w)]:
+        c = ws.cell(row=row, column=ci)
+        c.value = val
+        c.font = _font_normal()
+        c.alignment = _align_center()
+        c.number_format = NUMBER_FMT_INT
 
-            # D-L header labels
-            d_headers = [
-                'target', 'buy_lot', 'sell_lot',
-                'buy_amt_w', 'sell_amt_w', 'net_diff_w',
-                'buy_avg', 'sell_avg', 'pnl_w'
-            ]
-            for ci, label in enumerate(d_headers):
-                ws.cell(row=row, column=4 + ci).value = label
+    # J/K price columns
+    for ci, val in [(10, buy_avg), (11, sell_avg)]:
+        c = ws.cell(row=row, column=ci)
+        c.value = val if val else 0
+        c.font = _font_normal()
+        c.alignment = _align_center()
+        c.number_format = NUMBER_FMT_PRICE
 
-            # Apply header style (blue bg, white text) to D-L
-            for ci in range(4, 13):  # D=4 to L=12
-                c = ws.cell(row=row, column=ci)
-                c.fill = FILL_HEADER()
-                c.font = FONT_HEADER()
-                c.alignment = ALIGN_CENTER()
-                c.border = BORDER_THIN()
+    # L: P&L formula, red on negative
+    c_l = ws.cell(row=row, column=12)
+    c_l.value = f"=F{row}*(K{row}-J{row})"
+    c_l.alignment = _align_center()
+    c_l.number_format = NUMBER_FMT_PNL
+    pnl_value = sell_lot * (sell_avg - buy_avg)
+    if pnl_value < 0:
+        c_l.font = _font_pnl_neg()
+    else:
+        c_l.font = _font_normal()
 
-            # Style for A-C headers (no fill, bold)
-            for ci in range(1, 4):
-                c = ws.cell(row=row, column=ci)
-                c.font = FONT_HEADER_LABEL()
-                c.alignment = ALIGN_CENTER()
-                c.border = BORDER_THIN()
 
-            row += 1  # move to first data row
+def _write_blank_data_row(ws: "Worksheet", row: int):
+    """For padding rows when branch has fewer than 10 stocks. Apply formatting only."""
+    for ci in range(4, 13):  # D-L
+        c = ws.cell(row=row, column=ci)
+        c.font = _font_normal()
+        c.alignment = _align_center()
+        if ci in (5, 6, 7, 8, 9):
+            c.number_format = NUMBER_FMT_INT
+        elif ci in (10, 11):
+            c.number_format = NUMBER_FMT_PRICE
+        elif ci == 12:
+            c.number_format = NUMBER_FMT_PNL
 
-            # -- Prepare stock data --
-            all_stocks = []
-            for item in branch.get('buys', []):
-                all_stocks.append(item)
-            for item in branch.get('sells', []):
-                all_stocks.append(item)
 
-            # Deduplicate by stock code (in case same stock appears in both)
-            seen = {}
-            for s in all_stocks:
-                code = s.get('code', '')
-                if code not in seen:
-                    seen[code] = s
+# ============================================================
+#  Build single-day sheet
+# ============================================================
 
-            # Sort by buy_amt descending (top buyers first)
-            sorted_stocks = sorted(
-                seen.values(),
-                key=lambda x: x.get('buy_amt', 0),
-                reverse=True
-            )[:MAX_STOCKS]
+def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str):
+    """
+    Build one sheet matching manual template.
 
-            num_stocks = len(sorted_stocks)
-            if num_stocks == 0:
-                num_stocks = 1  # at least 1 row for branch name display
+    Args:
+      ws: openpyxl Worksheet (will be populated, sheet title set externally)
+      branches_data: list of branch dicts from crawler (each has code, name, buys, sells)
+      trade_date: YYYYMMDD string (used only for fallback display)
 
-            data_start = row
-            data_end = row + num_stocks - 1
+    Returns:
+      total_rows: number of rows written (1-indexed)
+    """
+    # Index branches by code for fast lookup
+    by_code: Dict[str, Dict] = {}
+    for b in branches_data:
+        c = b.get("code")
+        if c:
+            by_code[c] = b
 
-            # -- Write data rows (only as many as we have) --
-            for ri in range(num_stocks):
-                r = row + ri
-                if ri < len(sorted_stocks):
-                    s = sorted_stocks[ri]
-                    s_code = s.get('code', '')
-                    s_name = s.get('name', '')
-                    buy_lot = s.get('buy_lot', 0)
-                    sell_lot = s.get('sell_lot', 0)
-                    buy_amt = s.get('buy_amt', 0)  # in 仟元
-                    sell_amt = s.get('sell_amt', 0)  # in 仟元
+    # Apply column widths
+    for col, width in COL_WIDTHS.items():
+        ws.column_dimensions[col].width = width
 
-                    # Unit conversion: 仟元 -> 萬元 (divide by 10)
-                    buy_amt_w = round(buy_amt / 10, 0) if buy_amt else 0
-                    sell_amt_w = round(sell_amt / 10, 0) if sell_amt else 0
-                    net_diff_w = buy_amt_w - sell_amt_w
+    row = 1
+    for master in MASTER_MAPPING:
+        master_name = master["name"]
+        header_label = master["header_label"]
+        branches = master["branches"]
+        if not branches:
+            continue
 
-                    # Average price: 金額(仟元) / 張數 = TWD/share
-                    buy_avg = round(buy_amt / buy_lot, 2) if buy_lot > 0 and buy_amt > 0 else 0
-                    sell_avg = round(sell_amt / sell_lot, 2) if sell_lot > 0 and sell_amt > 0 else 0
+        # Full master header row (A="高手" label)
+        _write_header_row(ws, row, header_label, include_master_label=True)
+        row += 1
 
-                    # D: stock name(code) format
-                    ws.cell(row=r, column=4).value = f"{s_name}({s_code})"
-                    ws.cell(row=r, column=4).font = FONT_DATA()
-                    ws.cell(row=r, column=4).alignment = ALIGN_LEFT()
+        master_data_start = row  # first data row of this master block
 
-                    # E: buy lots
-                    ws.cell(row=r, column=5).value = buy_lot
-                    ws.cell(row=r, column=5).number_format = '#,##0'
+        for bi, (branch_code, branch_canonical_name) in enumerate(branches):
+            if bi > 0:
+                # Sub-header before subsequent branches under same master
+                _write_header_row(ws, row, header_label, include_master_label=False)
+                row += 1
 
-                    # F: sell lots
-                    ws.cell(row=r, column=6).value = sell_lot
-                    ws.cell(row=r, column=6).number_format = '#,##0'
+            # Lookup live branch data
+            bdata = by_code.get(branch_code, {})
+            stocks = _top_stocks_for_branch(bdata)
 
-                    # G: buy amount (萬元)
-                    ws.cell(row=r, column=7).value = int(buy_amt_w)
-                    ws.cell(row=r, column=7).number_format = '#,##0'
+            branch_first_row = row
+            branch_last_row = row + STOCKS_PER_BRANCH - 1
 
-                    # H: sell amount (萬元)
-                    ws.cell(row=r, column=8).value = int(sell_amt_w)
-                    ws.cell(row=r, column=8).number_format = '#,##0'
+            # Write 10 rows (data or blank padding)
+            for ri in range(STOCKS_PER_BRANCH):
+                r = branch_first_row + ri
+                if ri < len(stocks):
+                    _write_stock_row(ws, r, stocks[ri])
+                else:
+                    _write_blank_data_row(ws, r)
 
-                    # I: net buy diff (萬元)
-                    c_net = ws.cell(row=r, column=9)
-                    c_net.value = int(net_diff_w)
-                    c_net.number_format = '#,##0;[Red]-#,##0;-'
-
-                    # J: buy avg price
-                    ws.cell(row=r, column=10).value = buy_avg
-                    ws.cell(row=r, column=10).number_format = '#,##0.00'
-
-                    # K: sell avg price
-                    ws.cell(row=r, column=11).value = sell_avg
-                    ws.cell(row=r, column=11).number_format = '#,##0.00'
-
-                    # L: P&L formula =F*(K-J)
-                    pnl_formula = f'=F{r}*(K{r}-J{r})'
-                    c_pnl = ws.cell(row=r, column=12)
-                    c_pnl.value = pnl_formula
-                    c_pnl.number_format = '0.00_ ;[Red]\\-0.00 '
-
-                    # Compute actual P&L value for conditional formatting
-                    pnl_val = sell_lot * (sell_avg - buy_avg)
-                    if pnl_val < 0:
-                        c_pnl.fill = FILL_LOSS_NEG()
-                        c_pnl.font = FONT_LOSS_NEG()
-                    else:
-                        c_pnl.font = FONT_LOSS_POS()
-
-                # Apply font/border/alignment to data cells E-L
-                for ci in range(5, 13):
-                    c = ws.cell(row=r, column=ci)
-                    if not c.font or c.font == Font():
-                        c.font = FONT_DATA()
-                    c.alignment = ALIGN_RIGHT()
-                    c.border = BORDER_THIN()
-
-                # Border for D too
-                ws.cell(row=r, column=4).border = BORDER_THIN()
-
-            # -- Merge branch name (B) and code (C) across data rows --
-            if num_stocks > 1:
-                ws.merge_cells(
-                    start_row=data_start, start_column=2,
-                    end_row=data_end, end_column=2
-                )
-                ws.merge_cells(
-                    start_row=data_start, start_column=3,
-                    end_row=data_end, end_column=3
-                )
-
-            # Write branch name and code in first data row (merged cell)
-            c_bn = ws.cell(row=data_start, column=2)
-            c_bn.value = branch_name
-            c_bn.font = FONT_BRANCH()
-            c_bn.alignment = ALIGN_CENTER()
-            c_bn.border = BORDER_THIN()
-
-            c_bc = ws.cell(row=data_start, column=3)
-            c_bc.value = branch_code
-            c_bc.font = FONT_BRANCH()
-            c_bc.alignment = ALIGN_CENTER()
-            c_bc.border = BORDER_THIN()
-
-            # Border for A column data rows
-            for ri in range(num_stocks):
-                ws.cell(row=data_start + ri, column=1).border = BORDER_THIN()
-
-            row = data_end + 1  # next branch starts here
-
-        # -- Merge master name (A) across all branches of this master --
-        master_end_row = row - 1  # last data row of this master group
-        if master_start_row <= master_end_row:
+            # B column: branch name (merged across 10 rows)
+            cb = ws.cell(row=branch_first_row, column=2)
+            cb.value = branch_canonical_name
+            cb.font = _font_bold()
+            cb.alignment = _align_center()
             ws.merge_cells(
-                start_row=master_start_row, start_column=1,
-                end_row=master_end_row, end_column=1
+                start_row=branch_first_row, start_column=2,
+                end_row=branch_last_row, end_column=2,
             )
-            c_m = ws.cell(row=master_start_row, column=1)
-            c_m.value = master_name
-            c_m.font = FONT_MASTER()
-            c_m.alignment = ALIGN_CENTER()
+            # C column: branch code (merged across 10 rows)
+            cc = ws.cell(row=branch_first_row, column=3)
+            cc.value = branch_code
+            cc.font = _font_bold()
+            cc.alignment = _align_center()
+            ws.merge_cells(
+                start_row=branch_first_row, start_column=3,
+                end_row=branch_last_row, end_column=3,
+            )
 
-    # -- Now replace placeholder header labels with Chinese --
-    # Walk through all header rows and set proper labels
-    header_labels_zh = {
-        'A': {'first': 'master', 'rest': ''},  # handled by master merge
-        'B': 'branch',
-        'C': 'code',
-    }
-    d_labels_zh = ['target', 'buy_lot', 'sell_lot',
-                   'buy_amt_w', 'sell_amt_w', 'net_diff_w',
-                   'buy_avg', 'sell_avg', 'pnl_w']
+            row = branch_last_row + 1  # advance to next branch
 
-    # Second pass: replace English placeholder labels with Chinese
-    for r in range(1, row + 1):
-        d_val = ws.cell(row=r, column=4).value
-        if d_val == 'target':
-            # This is a header row - replace labels
-            a_val = ws.cell(row=r, column=1).value
-            if a_val == 'master':
-                ws.cell(row=r, column=1).value = 'master'
-            ws.cell(row=r, column=2).value = 'branch'
-            ws.cell(row=r, column=3).value = 'code'
-            ws.cell(row=r, column=4).value = 'target'
-            ws.cell(row=r, column=5).value = 'buy_lot'
-            ws.cell(row=r, column=6).value = 'sell_lot'
-            ws.cell(row=r, column=7).value = 'buy_amt_w'
-            ws.cell(row=r, column=8).value = 'sell_amt_w'
-            ws.cell(row=r, column=9).value = 'net_diff_w'
-            ws.cell(row=r, column=10).value = 'buy_avg'
-            ws.cell(row=r, column=11).value = 'sell_avg'
-            ws.cell(row=r, column=12).value = 'pnl_w'
+        # A column: master name (merged from first data row to last data row)
+        master_data_end = row - 1
+        ws.merge_cells(
+            start_row=master_data_start, start_column=1,
+            end_row=master_data_end, end_column=1,
+        )
+        ca = ws.cell(row=master_data_start, column=1)
+        ca.value = master_name
+        ca.font = _font_bold()
+        ca.alignment = _align_center()
 
-    # Final pass: set actual Chinese labels
-    for r in range(1, row + 1):
-        d_val = ws.cell(row=r, column=4).value
-        if d_val == 'target':
-            a_cell = ws.cell(row=r, column=1)
-            if a_cell.value == 'master':
-                a_cell.value = '高手'  # 高手
+    # Apply uniform row height
+    for r in range(1, row):
+        ws.row_dimensions[r].height = ROW_HEIGHT
 
-            ws.cell(row=r, column=2).value = '分點'  # 分點
-            ws.cell(row=r, column=3).value = '代號'  # 代號
-            ws.cell(row=r, column=4).value = '標的'  # 標的
-            ws.cell(row=r, column=5).value = '買進(張)'  # 買進(張)
-            ws.cell(row=r, column=6).value = '賣出(張)'  # 賣出(張)
-            ws.cell(row=r, column=7).value = '買進(萬元)'  # 買進(萬元)
-            ws.cell(row=r, column=8).value = '賣出(萬元)'  # 賣出(萬元)
-            ws.cell(row=r, column=9).value = '淨買差(萬元)'  # 淨買差(萬元)
-            ws.cell(row=r, column=10).value = '買均'  # 買均
-            ws.cell(row=r, column=11).value = '賣均'  # 賣均
-            ws.cell(row=r, column=12).value = '損益(萬)'  # 損益(萬)
+    return row - 1
 
-    return row  # total rows written
+
+# ============================================================
+#  Multi-sheet latest.xlsx (D6=b spec: 30 trading days, one sheet per day)
+# ============================================================
+
+def _update_latest_multi_sheet(latest_path: Path, branches_data: List[Dict],
+                                trade_date: str, max_sheets: int = 30):
+    """
+    Update latest.xlsx to include current trade_date as a sheet.
+    Keep only the most recent `max_sheets` sheets (by sheet name desc).
+    Newest sheet is set as the active one.
+    """
+    if latest_path.exists():
+        try:
+            wb = load_workbook(str(latest_path))
+        except Exception as e:
+            print(f"  [Excel] latest.xlsx unreadable, recreating: {e}")
+            wb = Workbook()
+            # remove default sheet
+            for s in list(wb.sheetnames):
+                del wb[s]
+    else:
+        wb = Workbook()
+        for s in list(wb.sheetnames):
+            del wb[s]
+
+    # Remove existing sheet with same name (will rebuild)
+    if trade_date in wb.sheetnames:
+        del wb[trade_date]
+
+    # Create new sheet for trade_date
+    ws = wb.create_sheet(title=trade_date)
+    build_day_sheet(ws, branches_data, trade_date)
+
+    # Sort sheets by name desc; trim to max_sheets
+    sheet_names_sorted = sorted(wb.sheetnames, reverse=True)
+    keep = sheet_names_sorted[:max_sheets]
+    drop = sheet_names_sorted[max_sheets:]
+    for n in drop:
+        del wb[n]
+
+    # Reorder so newest first
+    wb._sheets = [wb[n] for n in keep]
+    wb.active = 0  # show newest sheet on open
+
+    wb.save(str(latest_path))
 
 
 # ============================================================
@@ -400,17 +507,17 @@ def build_day_sheet(ws, branches_data: List[Dict], trade_date: str):
 # ============================================================
 
 def generate_excel_report(branches_data: List[Dict], trade_date: str,
-                          output_dir: str = "data/reports") -> Optional[str]:
+                           output_dir: str = "data/reports") -> Optional[str]:
     """
-    Generate Excel daily report.
+    Generate Excel daily report (mimics manual 「分點觀察」 layout).
 
     Args:
-        branches_data: list of branch dicts (with buys/sells)
-        trade_date: trading day (YYYYMMDD, e.g. '20260507')
-        output_dir: output directory (default data/reports)
+      branches_data: list of branch dicts from crawler (with buys/sells)
+      trade_date: trading day in YYYYMMDD format (e.g. '20260508')
+      output_dir: output directory (default 'data/reports')
 
     Returns:
-        file path on success, None on failure
+      file path of the daily snapshot on success, None on failure.
     """
     if not OPENPYXL_AVAILABLE:
         print("  [Excel] openpyxl not installed, skipping")
@@ -423,156 +530,102 @@ def generate_excel_report(branches_data: List[Dict], trade_date: str,
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # File name: chip_radar_YYYY-MM-DD.xlsx
     if len(trade_date) == 8 and trade_date.isdigit():
         readable_date = f"{trade_date[:4]}-{trade_date[4:6]}-{trade_date[6:8]}"
     else:
         readable_date = trade_date
 
-    file_path = out_dir / f"chip_radar_{readable_date}.xlsx"
+    daily_path = out_dir / f"chip_radar_{readable_date}.xlsx"
     latest_path = out_dir / "latest.xlsx"
 
-    is_overwrite = file_path.exists()
-    if is_overwrite:
-        print(f"  [Excel] existing file detected, will overwrite")
-
-    valid_count = len([b for b in branches_data if b.get('buys') or b.get('sells')])
-    print(f"  [Excel] generating... ({valid_count} branches, date {readable_date})")
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = trade_date  # sheet name = YYYYMMDD
+    valid_count = sum(1 for b in branches_data if b.get("buys") or b.get("sells"))
+    print(f"  [Excel] generating v3.24 ({valid_count} branches with data, date {readable_date})")
 
     try:
-        total_rows = build_day_sheet(ws, branches_data, trade_date)
-        wb.save(str(file_path))
-        wb.save(str(latest_path))
+        # 1. Daily single-sheet file
+        wb = Workbook()
+        ws = wb.active
+        ws.title = trade_date
+        build_day_sheet(ws, branches_data, trade_date)
+        wb.save(str(daily_path))
 
+        # 2. Multi-sheet latest.xlsx (last 30 trading days)
+        _update_latest_multi_sheet(latest_path, branches_data, trade_date, max_sheets=30)
+
+        # 3. Update README index
         _update_reports_readme(out_dir)
 
-        size_kb = file_path.stat().st_size / 1024
-        print(f"  [Excel] OK ({size_kb:.1f} KB):")
-        print(f"     {file_path.name}")
-        print(f"     latest.xlsx")
-        if is_overwrite:
-            print(f"     (overwritten)")
-        return str(file_path)
+        size_kb = daily_path.stat().st_size / 1024
+        latest_size_kb = latest_path.stat().st_size / 1024
+        print(f"  [Excel] OK")
+        print(f"     {daily_path.name} ({size_kb:.1f} KB)")
+        print(f"     latest.xlsx ({latest_size_kb:.1f} KB, multi-sheet)")
+        return str(daily_path)
 
     except Exception as e:
         print(f"  [Excel] FAILED: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return None
 
 
 def _update_reports_readme(reports_dir: Path):
-    """Update reports/README.md with file index"""
+    """Update reports/README.md with auto-generated file index."""
     try:
         excel_files = sorted(
             reports_dir.glob("chip_radar_*.xlsx"),
             key=lambda p: p.name,
-            reverse=True
+            reverse=True,
         )
 
         readme = reports_dir / "README.md"
-        lines = [
-            "# Chip Radar Excel Daily Report",
-            "",
-            "Auto-generated after each Daily Full Crawl.",
-            "",
-            "## Latest",
-            "",
-            "[**latest.xlsx**](./latest.xlsx) - always the most recent day",
-            "",
-            "## History",
-            "",
-            f"{len(excel_files)} trading days:",
-            "",
-            "| File | Size | Link |",
-            "|------|------|------|",
-        ]
-        for p in excel_files[:30]:
-            size_kb = p.stat().st_size / 1024
-            lines.append(f"| {p.name} | {size_kb:.1f} KB | [Download](./{p.name}) |")
+        master_count = len(MASTER_MAPPING)
+        branch_count = sum(len(m["branches"]) for m in MASTER_MAPPING)
 
-        if len(excel_files) > 30:
-            lines.append(f"")
-            lines.append(f"...and {len(excel_files) - 30} older files")
+        lines = [
+            "# Chip Radar 老闆版 Excel 日報",
+            "",
+            "由 `excel_report.py` v3.24 自動生成,模仿手動版「分點觀察」格式。",
+            "",
+            "## 最新檔案",
+            "",
+            "- [**latest.xlsx**](./latest.xlsx) — 多 sheet, 最近 30 個交易日",
+            "  - 每個 sheet 命名 = `YYYYMMDD`,開啟時顯示最新一日",
+            "",
+            "## 結構",
+            "",
+            f"- {master_count} 位高手 / {branch_count} 個分點 slot (含跨高手共用分點)",
+            "- 每分點固定 10 列 (top 10 by 買進金額, 不足以空白填補)",
+            "- 12 欄: 高手 / 分點 / 代號 / 標的 / 買進(張) / 賣出(張) / "
+            "買進(萬元) / 賣出(萬元) / 淨買差(萬元) / 買均 / 賣均 / 損益(萬)",
+            "- L 欄公式: `=F*(K-J)` (賣出張數 × (賣均-買均)),負值紅字",
+            "",
+            "## 每日歷史",
+            "",
+        ]
+
+        if excel_files:
+            lines.append(f"近 {min(len(excel_files), 30)} 個交易日 (共 {len(excel_files)} 個檔案):")
+            lines.append("")
+            lines.append("| 日期 | 檔案 | 大小 |")
+            lines.append("|------|------|------|")
+            for p in excel_files[:30]:
+                size_kb = p.stat().st_size / 1024
+                # 從檔名抽日期
+                stem = p.stem  # chip_radar_2026-05-08
+                date_part = stem.replace("chip_radar_", "")
+                lines.append(f"| {date_part} | [{p.name}](./{p.name}) | {size_kb:.1f} KB |")
+            if len(excel_files) > 30:
+                lines.append("")
+                lines.append(f"…另有 {len(excel_files) - 30} 個更舊檔案")
 
         lines.extend([
             "",
             "---",
             "",
-            "## Structure",
-            "",
-            "Single sheet per day (YYYYMMDD), vertical layout:",
-            "- Each branch: header row + top 10 stocks by buy amount",
-            "- 12 columns: Master / Branch / Code / Stock / Buy lots / Sell lots / "
-            "Buy amt / Sell amt / Net diff / Buy avg / Sell avg / P&L",
-            "",
             f"*Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}*",
         ])
 
-        readme.write_text('\n'.join(lines), encoding='utf-8')
+        readme.write_text("\n".join(lines), encoding="utf-8")
     except Exception as e:
         print(f"  [Excel] README update failed: {e}")
-
-
-# ============================================================
-#  CLI test (mock data)
-# ============================================================
-if __name__ == '__main__':
-    mock = [
-        {
-            'code': '9B25', 'name': '元富-台中', 'master': '民哥',
-            'buys': [
-                {'code': '2454', 'name': '聯發科', 'buy_amt': 213521, 'sell_amt': 51477, 'net_amt': 162044, 'buy_lot': 102, 'sell_lot': 25, 'net_lot': 77},
-                {'code': '2303', 'name': '聯電', 'buy_amt': 58370, 'sell_amt': 17660, 'net_amt': 40710, 'buy_lot': 755, 'sell_lot': 224, 'net_lot': 531},
-                {'code': '3189', 'name': '景碩', 'buy_amt': 45350, 'sell_amt': 7000, 'net_amt': 38350, 'buy_lot': 108, 'sell_lot': 16, 'net_lot': 92},
-                {'code': '6182', 'name': '合晶', 'buy_amt': 39910, 'sell_amt': 40320, 'net_amt': -410, 'buy_lot': 1021, 'sell_lot': 1030, 'net_lot': -9},
-                {'code': '5483', 'name': '中美晶', 'buy_amt': 27160, 'sell_amt': 1670, 'net_amt': 25490, 'buy_lot': 202, 'sell_lot': 12, 'net_lot': 190},
-                {'code': '4977', 'name': '眾達-KY', 'buy_amt': 26940, 'sell_amt': 2030, 'net_amt': 24910, 'buy_lot': 111, 'sell_lot': 8, 'net_lot': 103},
-                {'code': '8046', 'name': '南電', 'buy_amt': 22960, 'sell_amt': 2440, 'net_amt': 20520, 'buy_lot': 29, 'sell_lot': 3, 'net_lot': 26},
-                {'code': '5439', 'name': '高技', 'buy_amt': 22100, 'sell_amt': 6130, 'net_amt': 15970, 'buy_lot': 50, 'sell_lot': 14, 'net_lot': 36},
-                {'code': '3105', 'name': '穩懋', 'buy_amt': 18920, 'sell_amt': 121830, 'net_amt': -102910, 'buy_lot': 32, 'sell_lot': 209, 'net_lot': -177},
-                {'code': '3037', 'name': '欣興', 'buy_amt': 15480, 'sell_amt': 1530, 'net_amt': 13950, 'buy_lot': 22, 'sell_lot': 2, 'net_lot': 20},
-            ],
-            'sells': [],
-        },
-        {
-            'code': '9666', 'name': '富邦-南屯', 'master': '民哥',
-            'buys': [
-                {'code': '8074', 'name': '鉅橡', 'buy_amt': 130080, 'sell_amt': 23180, 'net_amt': 106900, 'buy_lot': 1662, 'sell_lot': 303, 'net_lot': 1359},
-                {'code': '8046', 'name': '南電', 'buy_amt': 120320, 'sell_amt': 50670, 'net_amt': 69650, 'buy_lot': 151, 'sell_lot': 64, 'net_lot': 87},
-                {'code': '3081', 'name': '聯亞', 'buy_amt': 88660, 'sell_amt': 81410, 'net_amt': 7250, 'buy_lot': 31, 'sell_lot': 29, 'net_lot': 2},
-                {'code': '8299', 'name': '群聯', 'buy_amt': 66520, 'sell_amt': 9300, 'net_amt': 57220, 'buy_lot': 41, 'sell_lot': 5, 'net_lot': 36},
-                {'code': '6213', 'name': '聯茂', 'buy_amt': 54720, 'sell_amt': 30410, 'net_amt': 24310, 'buy_lot': 193, 'sell_lot': 107, 'net_lot': 86},
-                {'code': '2330', 'name': '台積電', 'buy_amt': 45000, 'sell_amt': 13550, 'net_amt': 31450, 'buy_lot': 22, 'sell_lot': 6, 'net_lot': 16},
-                {'code': '6182', 'name': '合晶', 'buy_amt': 42320, 'sell_amt': 38710, 'net_amt': 3610, 'buy_lot': 1076, 'sell_lot': 985, 'net_lot': 91},
-                {'code': '3653', 'name': '健策', 'buy_amt': 35110, 'sell_amt': 820, 'net_amt': 34290, 'buy_lot': 7, 'sell_lot': 0, 'net_lot': 7},
-                {'code': '5347', 'name': '世界', 'buy_amt': 32260, 'sell_amt': 32290, 'net_amt': -30, 'buy_lot': 223, 'sell_lot': 228, 'net_lot': -5},
-                {'code': '5439', 'name': '高技', 'buy_amt': 31760, 'sell_amt': 15170, 'net_amt': 16590, 'buy_lot': 72, 'sell_lot': 35, 'net_lot': 37},
-            ],
-            'sells': [],
-        },
-        {
-            'code': '779W', 'name': '國票彰化', 'master': '民哥',
-            'buys': [
-                {'code': '6531', 'name': '愛普*', 'buy_amt': 12560, 'sell_amt': 4800, 'net_amt': 7760, 'buy_lot': 18, 'sell_lot': 7, 'net_lot': 11},
-                {'code': '1802', 'name': '台玻', 'buy_amt': 12040, 'sell_amt': 10980, 'net_amt': 1060, 'buy_lot': 163, 'sell_lot': 148, 'net_lot': 15},
-                {'code': '7769', 'name': '鴻勁', 'buy_amt': 9640, 'sell_amt': 9000, 'net_amt': 640, 'buy_lot': 2, 'sell_lot': 2, 'net_lot': 0},
-            ],
-            'sells': [],
-        },
-        {
-            'code': '9658', 'name': '富邦-建國', 'master': '林滄海',
-            'buys': [
-                {'code': '2330', 'name': '台積電', 'buy_amt': 268770, 'sell_amt': 172890, 'net_amt': 95880, 'buy_lot': 131, 'sell_lot': 84, 'net_lot': 47},
-                {'code': '2454', 'name': '聯發科', 'buy_amt': 120000, 'sell_amt': 30000, 'net_amt': 90000, 'buy_lot': 60, 'sell_lot': 15, 'net_lot': 45},
-            ],
-            'sells': [],
-        },
-    ]
-
-    result = generate_excel_report(mock, '20260507', output_dir='data/reports')
-    if result:
-        print(f"\n  Test OK: {result}")

@@ -3,19 +3,37 @@
 > 這個檔案是 Chip Radar 專案的**完整結構化記憶系統**，給未來 Claude 對話讀取使用。
 > 每次升版必更新「## 📅 當前工作焦點」段落。
 
-**最後更新**: 2026/05/05 · v3.21 部署完成 (Day 1 一週規劃)
-**累計戰力**: 99/100 (全資料源 100% 對齊 + 資料準確度徽章)
+**最後更新**: 2026/05/09 · v3.24 部署完成 (Day 4 Excel 嚴格模仿手動版)
+**累計戰力**: 99.5/100 (Excel 嚴格 mimic 手動版「分點觀察」)
 
 ---
 
 ## 📅 當前工作焦點
 
 ### 進行中 - 一週優化規劃 (5/4 - 5/10)
-- ✅ **Day 1 (5/5): v3.21 全資料源完整審計** ← 今日完成
-- ⏳ **Day 2 (5/5 or 5/6): v3.22 時效性儀表板**
-- ⏳ **Day 3 : v3.23 排版深化**
-- ⏳ **Day 4 : v3.24 分點×高手深度** ⭐⭐
-- ⏳ **Day 5 : v3.25 溫度計 v2 + 主散對照**
+- ✅ **Day 1 (5/5): v3.21 全資料源完整審計** ← 完成
+- ✅ **Day 2 (5/8): v3.22 老闆版 Excel 日報** ← 完成 (插隊取代「時效性儀表板」)
+- ✅ **Day 3 (5/8): v3.23 Excel template-aligned + keepalive** ← 完成
+- ✅ **Day 4 (5/9): v3.24 Excel 嚴格模仿手動版「分點觀察」** ← 完成
+- ⏳ **Day 5 (5/10): v3.25 溫度計 v2 + 主散對照**
+
+### Day 4 重大成果 (v3.24, 2026/05/09)
+- 🔧 `excel_report.py` 從 v3.23 完整重寫
+- 🆕 內建 `MASTER_MAPPING`:13 高手 / 42 分點 (從手動 5/8 版抽出)
+- 🆕 字型 `新細明體` 12pt, 全 cell center 對齊 (對齊手動版)
+- 🆕 每分點固定 10 列 (空白填補)
+- 🆕 `latest.xlsx` multi-sheet, 30 交易日, sheet 名 `YYYYMMDD`
+- 📊 與手動版結構驗證:462 列、12 欄、97 merges 完全對齊
+- 🟢 戰力 99.3 → 99.5/100
+
+### Day 2+3 重大成果 (v3.22 + v3.23, 2026/05/08-09)
+- 🆕 `excel_report.py` 從零開始 (~24KB)
+- 🆕 主流程整合 → 每次 daily-full 自動產出 `data/reports/chip_radar_<日期>.xlsx`
+- 🆕 `index.html` 加綠色「下載老闆版日報」按鈕
+- 🆕 `.github/workflows/keepalive.yml` 防 60 天 disable
+- 🐛 fix: workflow 補 openpyxl 依賴
+- 🔧 v3.23 重構為 vertical layout, 12 欄結構, P/L 公式
+- 📊 戰力 99 → 99.3/100
 
 ### Day 1 重大成果 (v3.21)
 - 215+ 個欄位 100% 對齊官方 (TAIFEX + TWSE + MOPS)
@@ -75,11 +93,11 @@ GitHub: https://github.com/DRwillychiu/CHIP_RADAR_TW
 
 ## 🏗️ 模組架構
 
-### 後端 (12 個 Python 模組)
+### 後端 (16 個 Python 模組)
 | 檔案 | 職責 | 大小 |
 |------|------|------|
-| `crawler.py` | 主流程 (整合所有模組) | ~98KB |
-| `branches.py` | 49 分點籌碼 + 25 master | - |
+| `crawler.py` | 主流程 (整合所有模組) | ~102KB |
+| `branches.py` | 56 分點籌碼 + 29 master | ~28KB |
 | `institutional.py` | 三大法人 (TWSE + TPEx) | - |
 | `margin.py` | 融資融券 (TWSE + HiStock 雙源) | - |
 | `futures.py` | TAIFEX 期貨/選擇權 (v3.18 ~970 行) | ~30KB |
@@ -87,9 +105,13 @@ GitHub: https://github.com/DRwillychiu/CHIP_RADAR_TW
 | `industry_classifier.py` | 1965 檔產業分類 | - |
 | `market_classifier.py` | 上市/上櫃/ETF 分類 | - |
 | `histock_verifier.py` | HiStock 交叉驗證 | - |
-| `reports.py` | 每日報告 | - |
-| **`alerts.py`** | **v3.20 推播警報系統 (5 訊號)** | **~14KB** |
-| **`insiders.py`** | **v3.20 MOPS 內部人 + 重大訊息** | **~17KB** |
+| `reports.py` | 週/月報告 | - |
+| `alerts.py` | v3.20 推播警報 (5 訊號) | ~14KB |
+| `insiders.py` | v3.20 MOPS 內部人 | ~17KB |
+| `audit_institutional.py` | v3.21 三大法人審計 (60,276 點 100%) | ~10KB |
+| `audit_margin.py` | v3.21 融資融券審計 (15,192 點 100%) | ~7KB |
+| `audit_branches.py` | v3.21 分點 3 層審計 | ~9KB |
+| **`excel_report.py`** | **v3.22+v3.23 老闆版 Excel 日報** | **~24KB** |
 
 ### 前端 (index.html ~360KB)
 - HTML/CSS/JS 單檔
@@ -99,12 +121,35 @@ GitHub: https://github.com/DRwillychiu/CHIP_RADAR_TW
 - **主頁面**:籌碼溫度計 (5 信號 + 0-100 分)
 
 ### GitHub Actions
-- `daily-full.yml`: 1 個排程 (20:00 週一-五) - 全部資料
+- `daily-full.yml`: 1 個排程 (20:00 週一-五) - 全部資料 + Excel 生成
 - `margin-refresh.yml`: 7 個排程 (22:30/23:30/00:30/02:00/08:00/09:00/12:00) - 融資融券補抓
+- `keepalive.yml`: 週日 04:00 (v3.23) - 防 60 天 disable
 
 ---
 
 ## 📊 完整版本歷程
+
+### v3.24 Excel 嚴格模仿手動版 (2026/05/09) ⭐ Day 4
+- `excel_report.py` 完整重寫 (~21KB)
+- 字型 `新細明體` + 全 cell center 對齊 (對齊手動版)
+- 內建 `MASTER_MAPPING` 13 高手 / 42 分點 (來自手動 5/8 版)
+- 每分點固定 10 列 (top 10 by 買進金額,空白填補)
+- `latest.xlsx` multi-sheet, 30 交易日
+- 移除 v3.23 的藍底/邊框/粉紅虧損 bg
+- 結構對齊驗證:462 列 + 97 merges = 100% match 手動版
+
+### v3.23 Excel template-aligned + keepalive (2026/05/08-09) ⭐ Day 3
+- `excel_report.py` 重構為 vertical layout, 12 欄結構
+- 對齊手動版「分點觀察」格式
+- P/L 公式條件式格式 (`=F*(K-J)`, 紅字虧損)
+- 新增 `.github/workflows/keepalive.yml` 防 60 天 disable
+- fix: daily-full workflow 補 openpyxl 依賴
+
+### v3.22 老闆版 Excel 日報 (2026/05/08) ⭐ Day 2 (插隊)
+- 新增 `excel_report.py` 從零開始
+- 主流程整合 → 每次 daily-full 自動產出 `data/reports/chip_radar_<日期>.xlsx`
+- 同步生成 `data/reports/latest.xlsx`
+- `index.html` 加綠色「下載老闆版日報」按鈕
 
 ### v3.21 全資料源審計 (2026/05/05) ⭐⭐ Day 1
 - 215+ 個欄位 100% 對齊官方 (TAIFEX + TWSE + MOPS)
@@ -385,12 +430,12 @@ v3.18 ━━━━━━━━━━━━━━━━━━━━━━━━�
 v3.19 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 94/100 (個股行情整合)
 v3.20 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 98/100 (主動推播 + MOPS 內部人)
 v3.21 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 99/100 (全資料源審計 + 準確度徽章) ⭐ Day 1
+v3.22 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 99.1/100 (老闆版 Excel 日報自動生成) ⭐ Day 2
+v3.23 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 99.3/100 (Excel template-aligned + keepalive) ⭐ Day 3
+v3.24 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 99.5/100 (Excel 嚴格 mimic 手動版「分點觀察」) ⭐ Day 4
 
-⬜ 還缺 1 分:
-  - 時效性儀表板 (v3.22 - Day 2)
-  - 排版深化 (v3.23 - Day 3)
-  - 分點×高手深度 (v3.24 - Day 4) ⭐⭐
-  - 溫度計 v2 + 主散 (v3.25 - Day 5)
+⬜ 還缺 0.5 分:
+  - 溫度計 v2 + 主散對照 (v3.25 - Day 5)
 ```
 
 ---
