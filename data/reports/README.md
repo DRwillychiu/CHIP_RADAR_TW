@@ -1,26 +1,28 @@
-# Chip Radar Excel Daily Report
+# Chip Radar 老闆版 Excel 日報
 
-Auto-generated after each Daily Full Crawl.
+由 `excel_report.py` v3.24 自動生成,模仿手動版「分點觀察」格式。
 
-## Latest
+## 最新檔案
 
-[**latest.xlsx**](./latest.xlsx) - always the most recent day
+- [**latest.xlsx**](./latest.xlsx) — 多 sheet, 最近 30 個交易日
+  - 每個 sheet 命名 = `YYYYMMDD`,開啟時顯示最新一日
 
-## History
+## 結構
 
-2 trading days:
+- 13 位高手 / 42 個分點 slot (含跨高手共用分點)
+- 每分點固定 10 列 (top 10 by 買進金額, 不足以空白填補)
+- 12 欄: 高手 / 分點 / 代號 / 標的 / 買進(張) / 賣出(張) / 買進(萬元) / 賣出(萬元) / 淨買差(萬元) / 買均 / 賣均 / 損益(萬)
+- L 欄公式: `=F*(K-J)` (賣出張數 × (賣均-買均)),負值紅字
 
-| File | Size | Link |
+## 每日歷史
+
+近 2 個交易日 (共 2 個檔案):
+
+| 日期 | 檔案 | 大小 |
 |------|------|------|
-| chip_radar_2026-05-08.xlsx | 48.0 KB | [Download](./chip_radar_2026-05-08.xlsx) |
-| chip_radar_2026-05-07.xlsx | 336.6 KB | [Download](./chip_radar_2026-05-07.xlsx) |
+| 2026-05-08 | [chip_radar_2026-05-08.xlsx](./chip_radar_2026-05-08.xlsx) | 35.4 KB |
+| 2026-05-07 | [chip_radar_2026-05-07.xlsx](./chip_radar_2026-05-07.xlsx) | 336.6 KB |
 
 ---
 
-## Structure
-
-Single sheet per day (YYYYMMDD), vertical layout:
-- Each branch: header row + top 10 stocks by buy amount
-- 12 columns: Master / Branch / Code / Stock / Buy lots / Sell lots / Buy amt / Sell amt / Net diff / Buy avg / Sell avg / P&L
-
-*Updated: 2026-05-08 13:40*
+*Updated: 2026-05-10 02:16*
