@@ -1,5 +1,8 @@
 """
-excel_report.py v3.24 - Manual-template-faithful Excel daily report
+excel_report.py v3.26 - Style-aware Excel daily report
+
+v3.26 change: 隔日沖 / 當沖 master 的資料源自動切換為「今天買的漲停股」,
+波段 / 長線 master 維持原 Top 10 by 買超。視覺格式與手動版完全一致。
 
 Strict mimicry of user's hand-curated Excel ("分點觀察" boss report).
 
@@ -19,6 +22,11 @@ Visual style (matches manual file exactly):
   - Header rows + master/branch/code labels: bold
   - L column: =F*(K-J), format '0.00_ ;[Red]\\-0.00\\ ' (red text on negative)
 
+Data source routing (v3.26):
+  - sniper master (next_day_flipper / day_trader) → top 10 漲停股 by buy_amt
+  - other master (swing / longterm / unmapped)    → top 10 全部個股 by buy_amt (legacy)
+  - sniper master with no limit-up buys today     → 10 blank rows (intentional, not fallback)
+
 Outputs:
   data/reports/chip_radar_YYYY-MM-DD.xlsx  - single-sheet daily snapshot
   data/reports/latest.xlsx                  - multi-sheet, last 30 trading days
@@ -36,6 +44,19 @@ try:
     OPENPYXL_AVAILABLE = True
 except ImportError:
     OPENPYXL_AVAILABLE = False
+
+try:
+    from branches import MASTER_STYLES
+except ImportError:
+    MASTER_STYLES = {}
+
+SNIPER_STYLES = {"next_day_flipper", "day_trader"}
+
+
+def _is_sniper_master(master_name: str) -> bool:
+    """v3.26: 隔日沖 / 當沖 master → 改用漲停股資料源"""
+    styles = MASTER_STYLES.get(master_name, [])
+    return bool(SNIPER_STYLES.intersection(styles))
 
 
 # ============================================================
@@ -246,11 +267,14 @@ def _header_row(header_label: str, include_master_label: bool) -> List[str]:
 #  Stock selection: top 10 by buy_amt for a given branch
 # ============================================================
 
-def _top_stocks_for_branch(branch_data: Dict) -> List[Dict]:
+def _top_stocks_for_branch(branch_data: Dict, sniper_mode: bool = False) -> List[Dict]:
     """
     Combine buys + sells lists, dedupe by code, sort by buy_amt desc, take top 10.
     Returns list of stock dicts with keys: code, name, buy_lot, sell_lot, buy_amt, sell_amt
     (buy_amt/sell_amt in 仟元 = thousand TWD per crawler convention).
+
+    v3.26: when sniper_mode=True, restrict to limit-up stocks only (is_limit_up True).
+    Returns empty list if sniper master had zero limit-up buys today (intentional).
     """
     if not branch_data:
         return []
@@ -263,8 +287,11 @@ def _top_stocks_for_branch(branch_data: Dict) -> List[Dict]:
         c = s.get("code", "")
         if c and c not in seen:
             seen[c] = s
+    candidates = list(seen.values())
+    if sniper_mode:
+        candidates = [s for s in candidates if s.get("is_limit_up")]
     sorted_stocks = sorted(
-        seen.values(),
+        candidates,
         key=lambda x: x.get("buy_amt", 0) or 0,
         reverse=True,
     )
@@ -382,12 +409,19 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
         ws.column_dimensions[col].width = width
 
     row = 1
+    sniper_count = 0
+    sniper_with_data = 0
     for master in MASTER_MAPPING:
         master_name = master["name"]
         header_label = master["header_label"]
         branches = master["branches"]
         if not branches:
             continue
+
+        sniper_mode = _is_sniper_master(master_name)
+        if sniper_mode:
+            sniper_count += 1
+            master_has_limit_up = False
 
         # Full master header row (A="高手" label)
         _write_header_row(ws, row, header_label, include_master_label=True)
@@ -403,7 +437,9 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
 
             # Lookup live branch data
             bdata = by_code.get(branch_code, {})
-            stocks = _top_stocks_for_branch(bdata)
+            stocks = _top_stocks_for_branch(bdata, sniper_mode=sniper_mode)
+            if sniper_mode and stocks:
+                master_has_limit_up = True
 
             branch_first_row = row
             branch_last_row = row + STOCKS_PER_BRANCH - 1
@@ -448,9 +484,16 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
         ca.font = _font_bold()
         ca.alignment = _align_center()
 
+        if sniper_mode and master_has_limit_up:
+            sniper_with_data += 1
+
     # Apply uniform row height
     for r in range(1, row):
         ws.row_dimensions[r].height = ROW_HEIGHT
+
+    if sniper_count:
+        print(f"  [Excel v3.26] sniper-mode masters: {sniper_with_data}/{sniper_count} "
+              f"have limit-up buys today (others get blank rows)")
 
     return row - 1
 
@@ -539,7 +582,7 @@ def generate_excel_report(branches_data: List[Dict], trade_date: str,
     latest_path = out_dir / "latest.xlsx"
 
     valid_count = sum(1 for b in branches_data if b.get("buys") or b.get("sells"))
-    print(f"  [Excel] generating v3.24 ({valid_count} branches with data, date {readable_date})")
+    print(f"  [Excel] generating v3.26 ({valid_count} branches with data, date {readable_date})")
 
     try:
         # 1. Daily single-sheet file
@@ -585,7 +628,7 @@ def _update_reports_readme(reports_dir: Path):
         lines = [
             "# Chip Radar 老闆版 Excel 日報",
             "",
-            "由 `excel_report.py` v3.24 自動生成,模仿手動版「分點觀察」格式。",
+            "由 `excel_report.py` v3.26 自動生成,模仿手動版「分點觀察」格式。",
             "",
             "## 最新檔案",
             "",
@@ -595,10 +638,23 @@ def _update_reports_readme(reports_dir: Path):
             "## 結構",
             "",
             f"- {master_count} 位高手 / {branch_count} 個分點 slot (含跨高手共用分點)",
-            "- 每分點固定 10 列 (top 10 by 買進金額, 不足以空白填補)",
+            "- 每分點固定 10 列 (不足以空白填補)",
             "- 12 欄: 高手 / 分點 / 代號 / 標的 / 買進(張) / 賣出(張) / "
             "買進(萬元) / 賣出(萬元) / 淨買差(萬元) / 買均 / 賣均 / 損益(萬)",
             "- L 欄公式: `=F*(K-J)` (賣出張數 × (賣均-買均)),負值紅字",
+            "",
+            "## v3.26 風格分流規則",
+            "",
+            "資料源依 `branches.py` 的 `MASTER_STYLES` 自動切換:",
+            "",
+            "| Master 風格 | Top 10 資料源 |",
+            "|---|---|",
+            "| ⚡ 隔日沖 (`next_day_flipper`) | **今日漲停股 by 買進金額** (漲跌幅 ≥ 9.5%) |",
+            "| 🔥 當沖 (`day_trader`) | **今日漲停股 by 買進金額** (漲跌幅 ≥ 9.5%) |",
+            "| 🌙 波段 (`swing`) | 全部個股 by 買進金額 |",
+            "| 💎 長線 (`longterm`) | 全部個股 by 買進金額 |",
+            "",
+            "隔日沖/當沖 master 今天若沒搶任何漲停股 → 整 10 列空白 (不 fallback,維持風格純度)",
             "",
             "## 每日歷史",
             "",

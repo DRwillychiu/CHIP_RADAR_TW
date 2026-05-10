@@ -1,7 +1,7 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.25 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.26 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 
 ---
 
@@ -126,7 +126,17 @@ index.html (~340KB)
 ## 📈 版本歷程
 
 ### v3.2x 一週優化系列
-- **v3.25** (2026/05/09) 🆕 ⭐⭐ **溫度計 v2 + 主散對照 + 30 天趨勢**
+- **v3.26** (2026/05/10) 🆕 ⭐ **Excel 風格分流 (隔日沖/當沖 → 漲停股 Top 10)**
+  - 🔧 `excel_report.py` 加 `_is_sniper_master()` + `SNIPER_STYLES = {next_day_flipper, day_trader}`
+  - 🔧 `_top_stocks_for_branch()` 新增 `sniper_mode` 參數,sniper master 自動過濾 `is_limit_up=True`
+  - 🆕 從 `branches.py` 讀 `MASTER_STYLES` 作為單一真實來源 (try/except 容錯)
+  - 🎯 解決:蔣承翰(隔日沖)、迷你哥(當沖)、Tradow、巨人傑 4 位 sniper 的 Top 10 不再被「全部買超」淹沒,改顯示「今天搶了哪幾檔漲停」
+  - 🛡️ 沒搶任何漲停 → 整 10 列空白 (不 fallback 回 Top 10,維持風格純度)
+  - 🛡️ 視覺格式 100% 跟手動版一致 (字型/欄寬/合併儲存格全部不變)
+  - 📋 本地測試:民哥(swing)3 檔全留 / 蔣承翰(sniper)濾掉台積電留 2 漲停 / 迷你哥(sniper)0 漲停全空白 → 全數通過
+  - 🟢 戰力 99.7 → 99.8/100 (資料對齊度)
+
+- **v3.25** (2026/05/09) ⭐⭐ **溫度計 v2 + 主散對照 + 30 天趨勢**
   - 🔧 **T-a 透明化權重**:每信號顯示 `score/20` badge + 加權公式列
   - 🆕 **M-a 主散對照面板**:主力 (外資現貨 + 投信現貨) vs 散戶 (融資熱度 + 散戶小台) 4 視角並列
   - 🆕 **M-b 主散背離指數**:`主力分 − 散戶分` ∈ [-8, +8],+8 = 主力進+散戶退最強多
@@ -489,6 +499,6 @@ MIT License - 自由使用、修改、分享。
 
 ---
 
-**Chip Radar TW · 99.7% 戰力 · 持續演進中** 📊🎯
+**Chip Radar TW · 99.8% 戰力 · 持續演進中** 📊🎯
 
-*Last Updated: 2026/05/09 · v3.25*
+*Last Updated: 2026/05/10 · v3.26*
