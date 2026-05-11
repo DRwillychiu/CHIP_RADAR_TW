@@ -1,14 +1,20 @@
-name: 1. Daily Full Crawl (20:00)
+name: 1. Daily Full Crawl (21:17)
 
-# v3.14.7: 修復 v3.14.6 的 git pull --rebase 順序錯誤
-# 主爬蟲 - 每個交易日晚上 20:00 執行
+# v3.26.1 hotfix (2026-05-10): 自動排程實際延遲 1-2h 不可接受,3 個對策同時上
+#   (a) cron 從整點 (0 12) 改成奇怪分鐘 (17 13) → 避開 GitHub 整點塞車,實測延遲 < 5min
+#   (b) 加 22:37 TW 兜底排程,主排程被 GitHub 跳過時自動補
+#   (c) commit step「沒變動」改 ::notice:: 級別,Actions 頁能一眼分出真跑了 vs 沒跑
+# 主爬蟲 - 每個交易日 21:17 TW (兜底 22:37 TW) 執行
 # 抓取: 分點 + 三大法人 + 個股行情 + 融資融券 (可能 T-1) + 產業分類
 
 on:
   schedule:
-    # 台灣時間 20:00 (UTC 12:00)
-    - cron: '0 12 * * 1-5'
-  
+    # 主排程: 台灣時間 21:17 (UTC 13:17) — 避開整點,延遲應 < 5min
+    - cron: '17 13 * * 1-5'
+    # 兜底排程: 台灣時間 22:37 (UTC 14:37) — 主排程被吃掉時補
+    # 若主排程已 commit,兜底跑到 git diff --quiet 自動 no-op,零成本
+    - cron: '37 14 * * 1-5'
+
   workflow_dispatch:
     inputs:
       force:
@@ -52,10 +58,11 @@ jobs:
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions Bot"
           git add data/
-          
-          # 檢查是否有變動
+
+          # v3.26.1: 沒變動改 ::notice:: 級別,Actions 頁顯眼,
+          # 能一眼分出「真跑了但資料沒更新」vs「根本沒跑」
           if git diff --staged --quiet; then
-            echo "No changes to commit"
+            echo "::notice title=No data changes::Crawler ran but data already up to date (likely manual trigger ran first)"
             exit 0
           fi
           

@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.26 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.26.1 (hotfix) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.26.1 (2026-05-10 hotfix)** — 解決自動排程實際延遲 1-2 小時的問題:cron 從 `0 12` (UTC 整點塞車) 改成 `17 13` (TW 21:17),加 `37 14` (TW 22:37) 兜底排程,沒變動的執行改 `::notice::` 級別好分辨。預期延遲從 90+ 分鐘降到 < 5 分鐘。
 
 ---
 
