@@ -248,35 +248,64 @@ def fetch_tpex_3insti(timeout=30, retries=3) -> Dict[str, dict]:
 #  TWSE 上市收盤行情
 # ════════════════════════════════════════════════════════════════════
 
-def fetch_twse_daily_quotes(timeout=30, retries=3) -> Dict[str, dict]:
+def _yyyymmdd_to_roc(yyyymmdd: str) -> str:
+    """v3.27.3: 西元 20260511 → 民國 1150511 (TWSE OpenAPI 格式)"""
+    if not yyyymmdd or len(yyyymmdd) != 8 or not yyyymmdd.isdigit():
+        return ""
+    y = int(yyyymmdd[:4]) - 1911
+    return f"{y:03d}{yyyymmdd[4:]}"
+
+
+def fetch_twse_daily_quotes(expected_trade_date: str = None,
+                             timeout=30, retries=3) -> Dict[str, dict]:
     """
     抓 TWSE 上市股票當日收盤行情
-    
+
+    v3.27.3 新增 expected_trade_date 參數:
+      若回傳資料 Date 欄位 ≠ 預期 ROC 日期 → TWSE OpenAPI 延遲,回傳 {} 觸發 MIS fallback。
+      這修補了 2026-05-11 觀察到的問題:TWSE OpenAPI STOCK_DAY_ALL 21:30 還在發布 5/8 資料,
+      但 chip_radar 沒檢查日期直接全盤接收,導致 Excel 個股 close 全部錯。
+
+    Args:
+      expected_trade_date: YYYYMMDD (e.g. '20260511')。傳 None 跳過日期檢查 (向後相容)。
+
     Returns:
-        {code: {close, open, high, low, volume_lot, change, change_pct}}
+        {code: {close, open, high, low, volume_lot, change, change_pct, source, quote_date}}
+        若偵測到 stale → 回傳 {}
     """
+    expected_roc = _yyyymmdd_to_roc(expected_trade_date) if expected_trade_date else ""
+
     for attempt in range(retries):
         try:
             r = requests.get(TWSE_STOCK_DAY_ALL_URL, timeout=timeout, headers=DEFAULT_HEADERS)
             r.raise_for_status()
             data = r.json()
-            
+
+            # v3.27.3: 檢查回傳資料的日期
+            response_date = ""
+            if isinstance(data, list) and data:
+                response_date = (data[0].get('Date') or '').strip()
+            if expected_roc and response_date and response_date != expected_roc:
+                print(f"  ⚠️ TWSE STOCK_DAY_ALL stale: 回傳 Date={response_date} ≠ 預期 {expected_roc} "
+                      f"(today {expected_trade_date}) → 回傳 {{}} 觸發 MIS fallback")
+                return {}
+
             result = {}
             for item in data:
                 code = (item.get('Code') or '').strip()
                 if not code:
                     continue
-                
+
                 close = _safe_float(item.get('ClosingPrice'))
                 open_ = _safe_float(item.get('OpeningPrice'))
                 high = _safe_float(item.get('HighestPrice'))
                 low = _safe_float(item.get('LowestPrice'))
                 volume = _safe_int(item.get('TradeVolume'))  # 股數
                 change = _safe_float(item.get('Change'))
-                
+
                 prev_close = close - change if change else close
                 change_pct = (change / prev_close * 100) if prev_close else 0.0
-                
+
                 result[code] = {
                     "close": close,
                     "open": open_,
@@ -286,15 +315,16 @@ def fetch_twse_daily_quotes(timeout=30, retries=3) -> Dict[str, dict]:
                     "change": change,
                     "change_pct": round(change_pct, 2),
                     "source": "twse",
+                    "quote_date": response_date,  # v3.27.3: 標記實際資料日期
                 }
-            
+
             return result
-            
+
         except Exception as e:
             print(f"  ⚠️ TWSE daily quotes 第 {attempt+1}/{retries} 次失敗: {e}")
             if attempt < retries - 1:
                 time.sleep(10 + attempt * 5)  # v3.14.2: 10s → 15s → 20s
-    
+
     return {}
 
 
@@ -302,30 +332,46 @@ def fetch_twse_daily_quotes(timeout=30, retries=3) -> Dict[str, dict]:
 #  TPEx 上櫃收盤行情
 # ════════════════════════════════════════════════════════════════════
 
-def fetch_tpex_daily_quotes(timeout=30, retries=3) -> Dict[str, dict]:
-    """抓 TPEx 上櫃股票當日收盤行情"""
+def fetch_tpex_daily_quotes(expected_trade_date: str = None,
+                             timeout=30, retries=3) -> Dict[str, dict]:
+    """抓 TPEx 上櫃股票當日收盤行情
+
+    v3.27.3: 同 fetch_twse_daily_quotes — 加 expected_trade_date 偵測 stale。
+    TPEx OpenAPI 也有 Date 欄位 (民國格式)。
+    """
+    expected_roc = _yyyymmdd_to_roc(expected_trade_date) if expected_trade_date else ""
+
     for attempt in range(retries):
         try:
             r = requests.get(TPEX_DAILY_URL, timeout=timeout, headers=DEFAULT_HEADERS)
             r.raise_for_status()
             data = r.json()
-            
+
+            # v3.27.3: 檢查回傳資料的日期
+            response_date = ""
+            if isinstance(data, list) and data:
+                response_date = (data[0].get('Date') or '').strip()
+            if expected_roc and response_date and response_date != expected_roc:
+                print(f"  ⚠️ TPEx daily_quotes stale: 回傳 Date={response_date} ≠ 預期 {expected_roc} "
+                      f"(today {expected_trade_date}) → 回傳 {{}} 觸發 MIS fallback")
+                return {}
+
             result = {}
             for item in data:
                 code = (item.get('SecuritiesCompanyCode') or '').strip()
                 if not code:
                     continue
-                
+
                 close = _safe_float(item.get('Close'))
                 open_ = _safe_float(item.get('Open'))
                 high = _safe_float(item.get('High'))
                 low = _safe_float(item.get('Low'))
                 volume = _safe_int(item.get('TradingShares'))
                 change = _safe_float(item.get('Change'))
-                
+
                 prev_close = close - change if change else close
                 change_pct = (change / prev_close * 100) if prev_close else 0.0
-                
+
                 result[code] = {
                     "close": close,
                     "open": open_,
@@ -335,15 +381,16 @@ def fetch_tpex_daily_quotes(timeout=30, retries=3) -> Dict[str, dict]:
                     "change": change,
                     "change_pct": round(change_pct, 2),
                     "source": "tpex",
+                    "quote_date": response_date,  # v3.27.3
                 }
-            
+
             return result
-            
+
         except Exception as e:
             print(f"  ⚠️ TPEx daily quotes 第 {attempt+1}/{retries} 次失敗: {e}")
             if attempt < retries - 1:
                 time.sleep(10 + attempt * 5)  # v3.14.2: 10s → 15s → 20s
-    
+
     return {}
 
 
@@ -479,38 +526,61 @@ def fetch_all_public_data(trade_date: str, priority_codes=None):
     time.sleep(5)
     
     # 收盤行情
+    # v3.27.3: 傳 trade_date 觸發 stale-data 偵測
     print("  [3/4] TWSE 上市收盤行情...")
-    twse_quotes = fetch_twse_daily_quotes()
+    twse_quotes = fetch_twse_daily_quotes(expected_trade_date=trade_date)
     print(f"    ✓ {len(twse_quotes)} 檔")
     time.sleep(5)
-    
+
     print("  [4/4] TPEx 上櫃收盤行情...")
-    tpex_quotes = fetch_tpex_daily_quotes()
+    tpex_quotes = fetch_tpex_daily_quotes(expected_trade_date=trade_date)
     print(f"    ✓ {len(tpex_quotes)} 檔")
-    
-    # 合併（上櫃優先級較低，上市會覆蓋）
+
+    # 合併(上櫃優先級較低，上市會覆蓋)
     institutional = {**tpex_insti, **twse_insti}
     quotes = {**tpex_quotes, **twse_quotes}
-    
-    # v3.14.2 Fallback：如果 quotes 太少 且有 priority_codes（我的分點出現的股票）
-    # 用 MIS API 補抓
-    fallback_count = 0
-    if priority_codes:
-        missing = [c for c in priority_codes if c not in quotes]
-        if missing:
-            # 只在主 API 大量失敗時 fallback（避免每次都打）
-            total_expected = 2000  # TWSE + TPEx 合計應該 >2000 檔
-            if len(quotes) < total_expected or len(missing) > 20:
-                print(f"  [!] 主 API 取得 {len(quotes)} 檔 (預期 >{total_expected})")
-                print(f"      我的分點股票中有 {len(missing)} 檔缺行情 → 啟動 MIS Fallback")
-                time.sleep(5)
-                mis_quotes = fetch_mis_fallback_quotes(missing)
-                quotes.update(mis_quotes)
-                fallback_count = len(mis_quotes)
-    
+
+    # v3.27.3: 偵測 stale → 強制全量 MIS fallback (用 priority_codes 補)
+    twse_stale = (len(twse_quotes) == 0)  # 回傳 {} 可能是 fetch 失敗或 stale
+    tpex_stale = (len(tpex_quotes) == 0)
+    if (twse_stale or tpex_stale) and priority_codes:
+        print(f"  ⚠️ v3.27.3 stale 偵測:TWSE={'STALE' if twse_stale else 'OK'} / "
+              f"TPEx={'STALE' if tpex_stale else 'OK'}")
+        print(f"      → 對所有 {len(priority_codes)} 個 priority codes 強制走 MIS fallback")
+        time.sleep(5)
+        mis_quotes = fetch_mis_fallback_quotes(priority_codes)
+        # mis 結果**覆蓋** TWSE/TPEx (因為 stale 或缺失) — MIS 是 real-time API
+        quotes.update(mis_quotes)
+        fallback_count = len(mis_quotes)
+    else:
+        # v3.14.2 既有 fallback (缺檔補抓)
+        fallback_count = 0
+        if priority_codes:
+            missing = [c for c in priority_codes if c not in quotes]
+            if missing:
+                total_expected = 2000  # TWSE + TPEx 合計應該 >2000 檔
+                if len(quotes) < total_expected or len(missing) > 20:
+                    print(f"  [!] 主 API 取得 {len(quotes)} 檔 (預期 >{total_expected})")
+                    print(f"      我的分點股票中有 {len(missing)} 檔缺行情 → 啟動 MIS Fallback")
+                    time.sleep(5)
+                    mis_quotes = fetch_mis_fallback_quotes(missing)
+                    quotes.update(mis_quotes)
+                    fallback_count = len(mis_quotes)
+
+    # v3.27.3: audit summary — 每個 quote source 計數 + stale 警告
+    source_counts = {}
+    for c, q in quotes.items():
+        src = q.get('source', 'unknown')
+        source_counts[src] = source_counts.get(src, 0) + 1
+    source_str = ', '.join(f"{k}={v}" for k, v in sorted(source_counts.items()))
+
     print(f"[公開資訊] ✓ 三大法人 {len(institutional)} 檔 / 收盤 {len(quotes)} 檔" +
           (f" (MIS fallback 補 {fallback_count} 檔)" if fallback_count else ""))
-    
+    print(f"           source 分布: {source_str}")
+    if twse_stale or tpex_stale:
+        print(f"  🚨 v3.27.3 警告: 主 OpenAPI 端點返回 stale 資料 — 已 fallback 到 MIS,"
+              f"但要注意非 priority_codes 個股(全市場掃描用)沒被覆蓋")
+
     return institutional, quotes
 
 

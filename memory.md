@@ -3,8 +3,8 @@
 > 這個檔案是 Chip Radar 專案的**完整結構化記憶系統**，給未來 Claude 對話讀取使用。
 > 每次升版必更新「## 📅 當前工作焦點」段落。
 
-**最後更新**: 2026/05/10 · v3.27.2 部署完成 (高價股盲點修補)
-**累計戰力**: 99.95/100 (TWSE Top 15 限制盲點修補,Excel/網站全面對齊)
+**最後更新**: 2026/05/11 · v3.27.3 部署完成 (TWSE OpenAPI stale 偵測)
+**累計戰力**: 99.97/100 (TWSE OpenAPI 延遲 stale 資料偵測 + 強制 MIS fallback)
 
 ---
 
@@ -21,6 +21,52 @@
 - ✅ **Day 6 (5/10): v3.27 籌碼溫度計 7 信號 (T-c 完成)** ← 完成
 - ✅ **Day 6 (5/10): v3.27.1 v3.28 校準前置工程** ← 完成
 - ✅ **Day 6 (5/10): v3.27.2 高價股盲點修補 (user 主動發現)** ← 完成
+- ✅ **Day 7 (5/11): v3.27.3 TWSE OpenAPI stale 偵測 (user 主動要求完整修)** ← 完成
+
+### Day 7 v3.27.3 成果 (2026/05/11 21:50)
+- 🐛 **問題** (用戶要求交叉驗證 5/11 Excel 可信度時發現):
+  - 5/11 21:30 TWSE OpenAPI STOCK_DAY_ALL 還在 publish 5/8 資料
+  - 同時 MI_INDEX 也卡 5/8 資料
+  - chip_radar 沒檢查回傳 Date 欄位,直接全盤接收
+  - 結果: stock_history.json 5/11 entry 跟 5/8 完全一樣 (2330=2290 / TAIEX=41603.94)
+  - Excel 個股 close/change_pct/is_limit_up 全部錯
+  - 影響:v3.26 風格分流的「漲停股」分類錯誤,v3.27.2 高價股反推用錯誤 close
+- 🔍 **根因**:TWSE OpenAPI 端點延遲 publish。chip_radar 缺日期校驗
+- 🔧 **修法 (3 層防護)**:
+  1. **fetch_twse_daily_quotes** + **fetch_tpex_daily_quotes** + **_fetch_taiex_index**
+     - 加 `expected_trade_date` 參數
+     - 比對回傳 Date 欄位 (ROC 民國格式)
+     - 不符合 → 回傳空 dict / None,觸發 fallback
+  2. **fetch_all_public_data** 偵測 stale 後,**強制全量 MIS fallback**:
+     - 不只補缺檔,而是把所有 priority_codes 都用 MIS 重抓
+     - 因為 MIS API (`mis.twse.com.tw/stock/api/getStockInfo.jsp`) 是即時報價,不受 OpenAPI 延遲影響
+  3. **crawler.py audit summary**:
+     - 每個 stock 多 `quote_date` + `quote_stale` 欄位
+     - main 流程列印「fresh=X / stale=Y / missing=Z, source 分布: twse=a, mis_tse=b, tpex=c」
+     - 仍有 stale → 印 🚨 警告
+- 🛠️ **helper 新增**:`_yyyymmdd_to_roc()` 西元↔民國轉換(institutional.py + history.py 各一份)
+- 📋 **本地測試 11/11 PASS** (test_v3273_stale_detect.py):
+  - 西元↔民國轉換 6 case
+  - TWSE/TPEx stale → 空 dict ✅
+  - TWSE/TPEx fresh → 正常解析 + quote_date 欄位 ✅
+  - MI_INDEX stale → None ✅
+  - MI_INDEX fresh → 正常 + quote_date ✅
+  - backward compat: 不傳 expected_trade_date → 跟以前行為一樣 ✅
+- 🛡️ **回歸**: v3.27/v3.27.1/v3.27.2 三個既有測試套件全 PASS
+- ⏳ **後續觀察**:
+  - 5/12 (二) 21:17 排程 fire 時 → log 應印「quote_date=1150512 fresh」
+  - 若 OpenAPI 還卡舊 → 自動 fallback MIS,log 印 🚨 + source 分布 mis_tse 居多
+- 🟢 戰力 99.95 → 99.97/100
+
+### Day 6/7 完整成果回顧
+| 版本 | 修什麼 | Commit |
+|---|---|---|
+| v3.26 | Excel 風格分流 | 1d56c79 |
+| v3.26.1 | 排程 cron 移時段 + 兜底 + notice | 0d18ab3 |
+| v3.27 | 籌碼溫度計 7 信號 | 7caa8cb |
+| v3.27.1 | 校準資料管線 | c80bc79 |
+| v3.27.2 | 高價股 lot/amt 反推 | f4dbf12 |
+| v3.27.3 | TWSE OpenAPI stale 偵測 | (本次) |
 
 ### Day 6 v3.27.2 成果 (2026/05/10 21:40)
 - 🐛 **問題** (用戶手動 review Excel 截圖發現):

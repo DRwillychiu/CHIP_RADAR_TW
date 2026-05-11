@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.27.2 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.27.3 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.27.3 (2026-05-11)** — **TWSE OpenAPI Stale 偵測**。5/11 觀察到 TWSE OpenAPI `STOCK_DAY_ALL` + `MI_INDEX` 兩個端點在 21:30 還在 publish 5/8 舊資料,chip_radar 沒檢查 `Date` 欄位直接全盤接收 → Excel 個股 close/change_pct/is_limit_up 全被汙染。3 層防護:(1) 各 fetch 函式比對回傳 `Date` ≠ 預期 → 回傳空觸發 fallback,(2) `fetch_all_public_data` 偵測 stale 後**強制全量 MIS fallback**(覆蓋所有 priority_codes,而非只補缺檔),(3) 每筆 quote 標 `quote_date` + `quote_stale`,crawler 列印 audit summary。MIS API 是即時報價,不受 OpenAPI 延遲影響。11/11 本地測試 PASS。
 
 > **v3.27.2 (2026-05-10)** — **高價股盲點修補**。TWSE 分點頁面每分點只 publish Top 15 金額榜 + Top 15 張數榜,創意(5210元)/緯穎(5200元)/台積電(2290元) 等高價股因「張數少」擠不進張數榜 → buy_lot=0 但 buy_amt 幾億,Excel 顯示「0 張+幾億金額」嚴重誤導。現在用 close 反推 `lot = amt / close`,加 `lot_source: estimated_from_close` 旗標保留誠實。6/6 真實案例驗證 PASS (創意 104 張 / 緯穎 17 張 / 台積電 54 張,與截圖反推完全對應)。同時修反向 case (低價股 amt 漏 → 反推金額)。
 

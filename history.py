@@ -54,28 +54,51 @@ MAX_DAYS = 30  # 保留最近 30 天
 TAIEX_URL = 'https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX'
 
 
-def _fetch_taiex_index(max_retries: int = 2) -> Optional[Dict[str, float]]:
+def _yyyymmdd_to_roc(yyyymmdd: str) -> str:
+    """v3.27.3: 西元 → 民國 (TWSE OpenAPI 日期格式)"""
+    if not yyyymmdd or len(yyyymmdd) != 8 or not yyyymmdd.isdigit():
+        return ""
+    y = int(yyyymmdd[:4]) - 1911
+    return f"{y:03d}{yyyymmdd[4:]}"
+
+
+def _fetch_taiex_index(expected_trade_date: str = None,
+                       max_retries: int = 2) -> Optional[Dict[str, float]]:
     """
     抓大盤加權指數 + 漲跌%
     TWSE OpenAPI MI_INDEX 每日更新當日各類股指數和大盤
-    
-    Returns: {"index": 22850.31, "change_pct": 0.85} 或 None
+
+    v3.27.3: 加 expected_trade_date 偵測 stale 資料。MI_INDEX 也屬於 TWSE OpenAPI
+    家族,跟 STOCK_DAY_ALL 一樣在 2026-05-11 21:30 觀察到 publish 5/8 舊資料。
+
+    Returns: {"index": 22850.31, "change_pct": 0.85, "quote_date": "1150511"} 或 None
     """
+    expected_roc = _yyyymmdd_to_roc(expected_trade_date) if expected_trade_date else ""
+
     for attempt in range(max_retries):
         try:
-            r = requests.get(TAIEX_URL, timeout=20, 
+            r = requests.get(TAIEX_URL, timeout=20,
                            headers={'User-Agent': 'Mozilla/5.0'})
             if r.status_code != 200:
                 print(f"    ⚠️ TAIEX 第 {attempt+1}/{max_retries} 次: HTTP {r.status_code}")
                 if attempt < max_retries - 1:
                     time.sleep(5 + attempt * 3)
                 continue
-            
+
             r.encoding = 'utf-8'
             data = json.loads(r.text)
-            
+
+            # v3.27.3: 檢查回傳資料的 Date (MI_INDEX 每筆都有 Date 欄位)
+            response_date = ""
+            if isinstance(data, list) and data:
+                response_date = (data[0].get('Date') or '').strip()
+            if expected_roc and response_date and response_date != expected_roc:
+                print(f"    ⚠️ TAIEX MI_INDEX stale: 回傳 Date={response_date} ≠ 預期 {expected_roc} "
+                      f"(today {expected_trade_date}) → 跳過本次更新,維持上次資料")
+                return None
+
             # MI_INDEX 回傳格式:
-            # [{"指數": "發行量加權股價指數", "收盤指數": "22,850.31", "漲跌": "+", "漲跌點數": "192.45", "漲跌百分比": "0.85"}, ...]
+            # [{"Date": "1150511", "指數": "發行量加權股價指數", "收盤指數": "...", ...}, ...]
             for row in data:
                 name = row.get('指數', '').strip()
                 if name == '發行量加權股價指數' or '加權' in name:
@@ -87,14 +110,18 @@ def _fetch_taiex_index(max_retries: int = 2) -> Optional[Dict[str, float]]:
                         pct = float(pct_str) if pct_str else 0
                         if sign == '-':
                             pct = -pct
-                        return {"index": close, "change_pct": round(pct, 2)}
+                        return {
+                            "index": close,
+                            "change_pct": round(pct, 2),
+                            "quote_date": response_date,  # v3.27.3
+                        }
                     except ValueError:
                         pass
         except Exception as e:
             print(f"    ⚠️ TAIEX 第 {attempt+1}/{max_retries} 次: {e}")
             if attempt < max_retries - 1:
                 time.sleep(5)
-    
+
     return None
 
 
@@ -247,14 +274,15 @@ def update_history(
         }
     print(f"  ✓ 運算 {len(industry_stats)} 個產業平均")
     
-    # 4. 抓大盤指數
+    # 4. 抓大盤指數 (v3.27.3: 傳 trade_date 偵測 stale)
     print(f"  [大盤] 抓取 TWSE 加權指數...")
-    taiex = _fetch_taiex_index()
+    taiex = _fetch_taiex_index(expected_trade_date=trade_date)
     if taiex:
         history["market"][trade_date] = taiex
-        print(f"  ✓ 大盤 {taiex['index']} ({taiex['change_pct']:+.2f}%)")
+        print(f"  ✓ 大盤 {taiex['index']} ({taiex['change_pct']:+.2f}%) "
+              f"[quote_date={taiex.get('quote_date', 'N/A')}]")
     else:
-        print(f"  ⚠️ 大盤指數抓取失敗,跳過本次")
+        print(f"  ⚠️ 大盤指數抓取失敗或 stale,跳過本次 (保留前次資料)")
     
     # 5. 更新 dates 清單
     if trade_date not in history["dates"]:

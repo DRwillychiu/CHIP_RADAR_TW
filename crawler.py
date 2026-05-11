@@ -1937,7 +1937,13 @@ def main():
                 s["volume_lot"] = quote["volume_lot"]
                 # v3.14.2: 標記資料來源 (twse / tpex / mis_tse / mis_otc)
                 s["quote_source"] = quote.get("source", "")
-                s["quote_stale"] = False  # 本次爬蟲抓到的都是即時資料
+                s["quote_date"] = quote.get("quote_date", "")  # v3.27.3: ROC 日期
+                # v3.27.3: 真實 stale 檢查 (有資料但日期不對)
+                _expected_roc = ""
+                if trade_date and len(trade_date) == 8 and trade_date.isdigit():
+                    _expected_roc = f"{int(trade_date[:4]) - 1911:03d}{trade_date[4:]}"
+                _qd = (quote.get("quote_date") or "").strip()
+                s["quote_stale"] = bool(_expected_roc and _qd and _qd != _expected_roc)
 
                 # ════════════════════════════════════════════════════════════
                 # v3.27.2 高價股盲點修補
@@ -2009,6 +2015,32 @@ def main():
     
     print(f"[公開資訊] ✓ 注入完成 — 三大法人 {inst_inject_count} 筆 / 收盤行情 {quote_inject_count} 筆")
     print(f"          對齊統計：與外資同向 {align_aligned} / 反向 {align_opposing}")
+
+    # v3.27.3 quote audit: 統計各個股 quote 新鮮度 + source 分布
+    _audit_fresh = 0
+    _audit_stale = 0
+    _audit_missing = 0
+    _audit_sources = {}
+    _audit_lot_estimated = 0
+    for br in results:
+        for s in (br.get("buys", []) + br.get("sells", [])):
+            if s.get("quote_stale"):
+                _audit_stale += 1
+            elif s.get("close_price") is not None:
+                _audit_fresh += 1
+            else:
+                _audit_missing += 1
+            src = s.get("quote_source") or "none"
+            _audit_sources[src] = _audit_sources.get(src, 0) + 1
+            if s.get("lot_source") == "estimated_from_close":
+                _audit_lot_estimated += 1
+    print(f"[Quote Audit v3.27.3] fresh={_audit_fresh} / stale={_audit_stale} / missing={_audit_missing}")
+    print(f"                     source: " + ", ".join(f"{k}={v}" for k, v in sorted(_audit_sources.items())))
+    if _audit_lot_estimated:
+        print(f"                     lot 反推估算: {_audit_lot_estimated} 筆 (高價股 TWSE Top 15 盲點)")
+    if _audit_stale > 0:
+        print(f"  🚨 警告:仍有 {_audit_stale} 筆 quote 標記 stale — MIS fallback 沒涵蓋到的全市場股票")
+        print(f"           分點+法人欄位資料不受影響,但部分非優先股票顯示可能為舊資料")
     
     # 計算各期間匯總（含當日風格指標）
     summaries = compute_period_summaries(positions, trade_date, today_branches_data=results)
@@ -2314,7 +2346,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.27.2",
+        "version": "3.27.3",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -2444,7 +2476,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.27.2",
+            "version": "3.27.3",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
