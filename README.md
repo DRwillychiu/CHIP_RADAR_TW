@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.27 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.27.1 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.27.1 (2026-05-10)** — v3.28 閾值校準前置工程。`temp_history.json` 加 3 個欄位:每信號的 `value` (raw 數值)、`taiex_change_pct` (大盤當日)、`next_day_change_pct` (次日大盤,由隔天 crawl 自動回填)。max_days 30 → 60。新增 `signal_audit.py` — 累積 ≥ 30 天後可印「各信號 × level hit rate」+ 校準建議。隨附 `test_signal_audit.py` (35 天 fixture 模擬 PASS)。
 
 > **v3.27 (2026-05-10)** — 籌碼溫度計從 5 信號擴到 **7 信號**:新增「法人共識」(外資+投信同向 + 雙條件量達標) + 「結算日壓力」(距結算日 × 外資期貨等效 OI,結算週反指標)。閾值是 v3.27 初版,標記 `⚠️ pending backtest calibration`,待 30-60 個交易日資料校準。21/21 本地測試 PASS。
 > 

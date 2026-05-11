@@ -3,8 +3,8 @@
 > 這個檔案是 Chip Radar 專案的**完整結構化記憶系統**，給未來 Claude 對話讀取使用。
 > 每次升版必更新「## 📅 當前工作焦點」段落。
 
-**最後更新**: 2026/05/10 · v3.27 部署完成 (籌碼溫度計 7 信號)
-**累計戰力**: 99.9/100 (法人共識 + 結算日壓力 信號)
+**最後更新**: 2026/05/10 · v3.27.1 部署完成 (校準前置工程)
+**累計戰力**: 99.92/100 (signal raw value + 次日報酬 持久化基礎建立)
 
 ---
 
@@ -19,6 +19,31 @@
 - ✅ **Day 6 (5/10): v3.26 Excel 風格分流 (隔日沖/當沖 → 漲停股)** ← 完成
 - ✅ **Day 6 (5/10): v3.26.1 hotfix 排程自動化修復** ← 完成
 - ✅ **Day 6 (5/10): v3.27 籌碼溫度計 7 信號 (T-c 完成)** ← 完成
+- ✅ **Day 6 (5/10): v3.27.1 v3.28 校準前置工程** ← 完成
+
+### Day 6 v3.27.1 成果 (校準前置, 2026/05/10)
+- 🎯 **動機**:v3.27 的 7 信號閾值是初版,需要實戰資料校準。但目前 `temp_history.json` 沒存 raw value 也沒存次日報酬 → 校準無法進行。先建好資料管線
+- 🆕 **temp_history.json 結構升級** (backward compat):
+  - 每個 signal 多 `value` field (foreign_net=15000 之類,持久化原始數值)
+  - 每個 entry 多 `taiex_index` + `taiex_change_pct` (從 stock_history.json 的 market 區段讀)
+  - 每個 entry 多 `next_day_change_pct` placeholder,**隔天 crawl 自動回填**
+  - max_days 30 → 60 (校準窗口)
+  - 加 `_calibration_meta` block 含閾值快照、min_days_for_calibration=30、ideal=60
+- 🆕 **signal_audit.py 新工具**:
+  - 用法: `python signal_audit.py`
+  - 印 4 段報告: 累積狀況進度條 / 信號×level 分布 / 預測力評估 (hit rate) / 校準建議
+  - 累積 < 30 天: 印「還差 X 天」,跳過 hit rate 分析
+  - 累積 ≥ 30 天: 對每個 (signal, level) 算次日報酬 hit rate (預期方向 vs 實際),hit rate < 45% 標 ❌ 並建議檢視
+  - 只「印報告」,不改任何閾值 — 校準仍須人工 review
+- 🆕 **test_signal_audit.py 回歸測試**:
+  - 生成 35 天 fixture (含強相關信號 + 弱相關控制組)
+  - 驗證腳本正確抓出 hit rate 強弱 (PASS)
+- 🐛 *未發現新 bug*
+- ⏳ **資料累積期**: 從 5/11 (週一) 開始,每天 v3.27.1 crawl 會自動累積一個 entry + 回填前日次日報酬
+  - 5/11 (Mon): 第一個 v3.27.1 entry, 5/8 entry 被回填 next_day_change_pct
+  - 約 5 週後 (~6/15) 累積到 30 天 → 第一次校準
+  - 約 11 週後 (~7/25) 累積到 60 天 → 信心校準
+- 🟢 戰力 99.9 → 99.92/100
 
 ### Day 6 v3.27 成果 (2026/05/10)
 - 🎯 **T-c**: 籌碼溫度計從 5 信號擴成 **7 信號**(memory.md v3.27+ TODO 第 1 項完成)

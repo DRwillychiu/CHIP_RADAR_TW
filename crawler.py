@@ -325,8 +325,16 @@ def compute_chip_temperature(raw_output, trade_date=None):
     }
 
 
-def update_temp_history(data_dir, trade_date, temp_result, max_days=30):
-    """更新 data/temp_history.json (前端 chart 讀取). 保留最近 max_days 個交易日."""
+def update_temp_history(data_dir, trade_date, temp_result, max_days=60):
+    """更新 data/temp_history.json (前端 chart 讀取 + v3.27.1 校準資料源).
+
+    v3.27.1 變更:
+      - max_days 30 → 60 (校準需要更長窗口)
+      - 每個 signal 多 'value' field (raw 數值, 供未來 v3.28 重算分數)
+      - 每個 entry 多 'taiex_index'/'taiex_change_pct' (從 stock_history 的 market 區段)
+      - 每個 entry 多 'next_day_change_pct' (今天 entry 寫 None, 隔天 entry 寫入時順便回填昨日的)
+      - 加 _calibration_meta block (記錄當前閾值快照, v3.28 校準時參照)
+    """
     hist_file = data_dir / "temp_history.json"
     history = []
     if hist_file.exists():
@@ -335,25 +343,72 @@ def update_temp_history(data_dir, trade_date, temp_result, max_days=30):
                 history = json.load(f).get('history', [])
         except Exception:
             history = []
+
+    # 從 stock_history.json 讀今日大盤 TAIEX
+    taiex_today = None
+    try:
+        sh_file = data_dir / "stock_history.json"
+        if sh_file.exists():
+            with open(sh_file, 'r', encoding='utf-8') as f:
+                sh = json.load(f)
+            taiex_today = sh.get('market', {}).get(trade_date)
+    except Exception:
+        pass
+
     # 移除同日重複
     history = [h for h in history if h.get('date') != trade_date]
-    # 追加今日
+
+    # 追加今日 entry (v3.27.1: persist raw value + taiex + next_day_return placeholder)
     entry = {
         'date': trade_date,
         'score': temp_result['score'],
         'signals': [
-            {'name': s['name'], 'score': s['score'], 'level': s['level']}
+            {
+                'name': s['name'],
+                'score': s['score'],
+                'level': s['level'],
+                'value': s.get('value'),  # v3.27.1: 持久化 raw value, 供 v3.28 校準
+            }
             for s in temp_result['signals']
         ],
+        'taiex_index': taiex_today.get('index') if taiex_today else None,
+        'taiex_change_pct': taiex_today.get('change_pct') if taiex_today else None,
+        'next_day_change_pct': None,  # 隔天 run 才會回填
     }
     history.append(entry)
-    # 排序 + 截斷
+
+    # 排序
     history.sort(key=lambda h: h.get('date', ''))
+
+    # v3.27.1: 回填「最近一筆前一日 entry」的 next_day_change_pct
+    # 例: 5/11 跑完寫入 5/11 entry 同時把 5/8 entry 的 next_day_change_pct 填成 5/11 的 taiex_change_pct
+    if taiex_today and len(history) >= 2:
+        # 找到剛追加的今日 entry 位置
+        for i in range(len(history) - 1, -1, -1):
+            if history[i]['date'] == trade_date:
+                # 回填 i-1 (前一個交易日)
+                if i >= 1 and history[i-1].get('next_day_change_pct') is None:
+                    history[i-1]['next_day_change_pct'] = taiex_today.get('change_pct')
+                break
+
+    # 截斷
     history = history[-max_days:]
+
     payload = {
         'updated_at': now_tw().isoformat(),
         'count': len(history),
         'history': history,
+        # v3.27.1 校準 metadata
+        '_calibration_meta': {
+            'min_days_for_calibration': 30,
+            'ideal_days_for_calibration': 60,
+            'thresholds_snapshot': dict(TEMP_THRESHOLDS),
+            'last_calibrated_at': None,  # v3.28+ 校準工具寫入
+            'note': (
+                "raw 'value' per signal + taiex_change_pct + next_day_change_pct "
+                "are the 3 fields v3.28 calibration needs. signal_audit.py 可 inspect."
+            ),
+        },
     }
     with open(hist_file, 'w', encoding='utf-8') as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
@@ -2214,7 +2269,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.27",
+        "version": "3.27.1",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -2344,7 +2399,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.27",
+            "version": "3.27.1",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
