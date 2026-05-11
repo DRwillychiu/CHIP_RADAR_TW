@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.27.1 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.27.2 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.27.2 (2026-05-10)** — **高價股盲點修補**。TWSE 分點頁面每分點只 publish Top 15 金額榜 + Top 15 張數榜,創意(5210元)/緯穎(5200元)/台積電(2290元) 等高價股因「張數少」擠不進張數榜 → buy_lot=0 但 buy_amt 幾億,Excel 顯示「0 張+幾億金額」嚴重誤導。現在用 close 反推 `lot = amt / close`,加 `lot_source: estimated_from_close` 旗標保留誠實。6/6 真實案例驗證 PASS (創意 104 張 / 緯穎 17 張 / 台積電 54 張,與截圖反推完全對應)。同時修反向 case (低價股 amt 漏 → 反推金額)。
 
 > **v3.27.1 (2026-05-10)** — v3.28 閾值校準前置工程。`temp_history.json` 加 3 個欄位:每信號的 `value` (raw 數值)、`taiex_change_pct` (大盤當日)、`next_day_change_pct` (次日大盤,由隔天 crawl 自動回填)。max_days 30 → 60。新增 `signal_audit.py` — 累積 ≥ 30 天後可印「各信號 × level hit rate」+ 校準建議。隨附 `test_signal_audit.py` (35 天 fixture 模擬 PASS)。
 

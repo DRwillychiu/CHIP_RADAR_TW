@@ -1938,7 +1938,51 @@ def main():
                 # v3.14.2: 標記資料來源 (twse / tpex / mis_tse / mis_otc)
                 s["quote_source"] = quote.get("source", "")
                 s["quote_stale"] = False  # 本次爬蟲抓到的都是即時資料
-                
+
+                # ════════════════════════════════════════════════════════════
+                # v3.27.2 高價股盲點修補
+                # TWSE 分點頁面只 publish Top 15 金額榜 + Top 15 張數榜。
+                # 創意(5210元)/緯穎(5200元)/台積電(2290元) 等高價股因「張數少」
+                # 擠不進張數榜 → buy_lot=0 但 buy_amt 幾億,Excel/網站顯示
+                # 「0 張 + 幾億金額」嚴重誤導。
+                # 用 close 反推: amt(仟元) = lot(張) × close(元/股), 即 lot = amt/close
+                # 加 lot_source 旗標保留誠實性,下游可區分真資料 vs 估算
+                # ════════════════════════════════════════════════════════════
+                cp_close = quote["close"]
+                lot_source = "twse"  # 預設: TWSE 原始排行榜資料
+                if cp_close and cp_close > 0:
+                    buy_amt_k = s.get("buy_amt", 0) or 0
+                    sell_amt_k = s.get("sell_amt", 0) or 0
+                    buy_lot_raw = s.get("buy_lot", 0) or 0
+                    sell_lot_raw = s.get("sell_lot", 0) or 0
+                    estimated = False
+                    # 買進: 高價股「金額榜上 + 張數榜沒上」→ 反推張數
+                    if buy_lot_raw == 0 and buy_amt_k > 0:
+                        s["buy_lot"] = round(buy_amt_k / cp_close)
+                        s["buy_avg"] = round(cp_close, 2)
+                        estimated = True
+                    # 賣出: 同上
+                    if sell_lot_raw == 0 and sell_amt_k > 0:
+                        s["sell_lot"] = round(sell_amt_k / cp_close)
+                        s["sell_avg"] = round(cp_close, 2)
+                        estimated = True
+                    # 反向: 低價股「張數榜上 + 金額榜沒上」→ 反推金額
+                    # amt(仟元) = lot(張) × 1000股 × close(元/股) / 1000 = lot × close
+                    if buy_amt_k == 0 and buy_lot_raw > 0:
+                        s["buy_amt"] = int(round(buy_lot_raw * cp_close))
+                        s["buy_avg"] = round(cp_close, 2)
+                        estimated = True
+                    if sell_amt_k == 0 and sell_lot_raw > 0:
+                        s["sell_amt"] = int(round(sell_lot_raw * cp_close))
+                        s["sell_avg"] = round(cp_close, 2)
+                        estimated = True
+                    if estimated:
+                        # 重算 net 欄位以保持一致
+                        s["net_amt"] = (s.get("buy_amt", 0) or 0) - (s.get("sell_amt", 0) or 0)
+                        s["net_lot"] = (s.get("buy_lot", 0) or 0) - (s.get("sell_lot", 0) or 0)
+                        lot_source = "estimated_from_close"
+                s["lot_source"] = lot_source
+
                 # 計算當日浮盈（買均 vs 收盤）
                 buy_avg = s.get("buy_avg", 0) or 0
                 if buy_avg and quote["close"]:
@@ -1961,6 +2005,7 @@ def main():
                 s["is_near_limit_up"] = False
                 s["quote_source"] = None
                 s["quote_stale"] = True  # 沒抓到，標記為過時
+                s["lot_source"] = "twse"  # 沒 close 無法估算,維持原 TWSE 排行榜資料
     
     print(f"[公開資訊] ✓ 注入完成 — 三大法人 {inst_inject_count} 筆 / 收盤行情 {quote_inject_count} 筆")
     print(f"          對齊統計：與外資同向 {align_aligned} / 反向 {align_opposing}")
@@ -2269,7 +2314,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.27.1",
+        "version": "3.27.2",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -2399,7 +2444,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.27.1",
+            "version": "3.27.2",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
