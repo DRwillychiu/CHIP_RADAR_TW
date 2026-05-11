@@ -4862,7 +4862,70 @@ function renderChipTemperature() {
     return { name: '融資熱度', label, level, hint, tab: 'margin' };
   })();
   
-  const signals = [sig1, sig2, sig3, sig4, sig5].filter(s => s !== null);
+  // ─── 信號 6 (v3.27 新): 法人共識 (外資 + 投信 雙條件) ───
+  // ⚠️ 閾值 v3.27 初版,待 30-60 個交易日回測校準
+  const sig6 = (() => {
+    const ir = CURRENT_DATA.institutional_rankings || {};
+    const fr = ir.foreign, tr = ir.trust;
+    if (!fr || !tr) return null;
+    const fNet = ((fr.buy || []).reduce((s, x) => s + (x.foreign_net_lot || 0), 0)
+                + (fr.sell || []).reduce((s, x) => s + (x.foreign_net_lot || 0), 0));
+    const tNet = ((tr.buy || []).reduce((s, x) => s + (x.trust_net_lot || 0), 0)
+                + (tr.sell || []).reduce((s, x) => s + (x.trust_net_lot || 0), 0));
+    if (!fNet && !tNet) return null;
+    const F_THR = 30000, T_THR = 3000;  // v3.27 初版閾值
+    let level, hint;
+    if (fNet >= F_THR && tNet >= T_THR) { level = 'extreme-bull'; hint = '外資+投信 共識做多 (大量同向)'; }
+    else if (fNet > 0 && tNet > 0) { level = 'bull'; hint = '外資+投信 同向買超'; }
+    else if (fNet <= -F_THR && tNet <= -T_THR) { level = 'extreme-bear'; hint = '外資+投信 共識做空 (大量同向)'; }
+    else if (fNet < 0 && tNet < 0) { level = 'bear'; hint = '外資+投信 同向賣超'; }
+    else { level = 'neutral'; hint = '外資投信分歧 (一買一賣)'; }
+    const fK = Math.round(fNet / 1000), tK = Math.round(tNet / 1000);
+    const fSign = fNet >= 0 ? '+' : '', tSign = tNet >= 0 ? '+' : '';
+    return { name: '法人共識', label: `外${fSign}${fK}k/投${tSign}${tK}k`, level, hint, tab: 'institutional' };
+  })();
+
+  // ─── 信號 7 (v3.27 新): 結算日壓力 (距結算日 × 外資期貨 OI) ───
+  // ⚠️ 閾值 v3.27 初版,待 30-60 個交易日回測校準
+  const sig7 = (() => {
+    const eq = CURRENT_DATA.futures_data?.summary?.foreign_equivalent_net_oi;
+    const td = CURRENT_DATA.trade_date || CURRENT_DATA.date;  // YYYYMMDD
+    if (eq === undefined || eq === null || !td || td.length !== 8) return null;
+    // 第三個週三
+    const y = parseInt(td.slice(0, 4)), mo = parseInt(td.slice(4, 6)), dd = parseInt(td.slice(6, 8));
+    const date = new Date(Date.UTC(y, mo - 1, dd));
+    const thirdWed = (yy, mm) => {
+      const first = new Date(Date.UTC(yy, mm - 1, 1));
+      const offset = (3 - first.getUTCDay() + 7) % 7;  // JS: Sun=0,Wed=3
+      return new Date(Date.UTC(yy, mm - 1, 1 + offset + 14));
+    };
+    const diffDays = (a, b) => Math.round((a - b) / 86400000);
+    const py = mo === 1 ? y - 1 : y, pm = mo === 1 ? 12 : mo - 1;
+    const ny = mo === 12 ? y + 1 : y, nm = mo === 12 ? 1 : mo + 1;
+    const candidates = [thirdWed(py, pm), thirdWed(y, mo), thirdWed(ny, nm)];
+    const diffs = candidates.map(c => diffDays(c, date));
+    // 過去結算日只保留 >= -3 天(餘波範圍),再取絕對值最小
+    const relevant = diffs.filter(x => x >= -3);
+    const pool = relevant.length ? relevant : [diffs[1]];
+    const d = pool.reduce((best, x) => Math.abs(x) < Math.abs(best) ? x : best);
+    const NEAR_THR = 20000, WEEK_THR = 10000;  // v3.27 初版閾值
+    let level, hint;
+    if (Math.abs(d) <= 1) {
+      if (eq <= -NEAR_THR) { level = 'extreme-bull'; hint = `結算日±${Math.abs(d)} 外資大空 → 預期反彈`; }
+      else if (eq >= NEAR_THR) { level = 'extreme-bear'; hint = `結算日±${Math.abs(d)} 外資大多 → 預期回檔`; }
+      else { level = 'neutral'; hint = `結算日±${Math.abs(d)} 外資中性`; }
+    } else if (Math.abs(d) <= 3) {
+      if (eq <= -WEEK_THR) { level = 'bull'; hint = `結算週 (D${d > 0 ? '-' : '+'}${Math.abs(d)}) 外資偏空`; }
+      else if (eq >= WEEK_THR) { level = 'bear'; hint = `結算週 (D${d > 0 ? '-' : '+'}${Math.abs(d)}) 外資偏多`; }
+      else { level = 'neutral'; hint = `結算週 (D${d > 0 ? '-' : '+'}${Math.abs(d)}) 中性`; }
+    } else {
+      level = 'neutral'; hint = `距結算 ${Math.abs(d)} 天 (非結算週)`;
+    }
+    const dLabel = d === 0 ? '當日' : (d > 0 ? `D-${d}` : `D+${Math.abs(d)}`);
+    return { name: '結算日壓力', label: dLabel, level, hint, tab: 'futures' };
+  })();
+
+  const signals = [sig1, sig2, sig3, sig4, sig5, sig6, sig7].filter(s => s !== null);
 
   if (signals.length === 0) {
     el.innerHTML = '';

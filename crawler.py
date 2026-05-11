@@ -91,6 +91,37 @@ ROW_PATTERN = re.compile(
 #  加總 / 最大值 × 100 = 0-100 分)。每次 daily-full 後寫入
 #  data/temp_history.json (前端 chart 用)。
 
+# ════════════════════════════════════════════════════════════════════
+#  v3.27 籌碼溫度計閾值表 — ⚠️ 初版上線,待回測校準
+# ────────────────────────────────────────────────────────────────────
+#  這些閾值是 v3.27 (2026-05-10) 上線時的初始值,基於 logical reasoning
+#  + 5/4-5/10 觀察 (非統計回測)。實戰跑一段時間後應該:
+#    1. 收集每日 (score, 次日漲跌) 對應
+#    2. 統計各區段 hit rate
+#    3. 若極端區段預測力差 → 收緊閾值; 若中性區段佔比過高 → 拉開
+#    4. 預期 v3.28+ 用 30-60 個交易日資料校準
+#  欄位形式 = (extreme_bull, bull, neutral_low, bear) → score 20/15/10/5/0
+# ════════════════════════════════════════════════════════════════════
+TEMP_THRESHOLDS = {
+    # 信號 1: 外資現貨買賣超 (張)
+    'foreign_cash':       (50000,  10000, -10000, -50000),
+    # 信號 2: 外資期貨等效大台淨 OI (口)
+    'foreign_futures_eq': (30000,  10000, -10000, -30000),
+    # 信號 3: P/C OI Ratio (反指標,高 PCR = 散戶極空 = 反向看多)
+    'pc_ratio_oi':        (1.3,    1.0,   0.8,    0.6),
+    # 信號 4: 分點漲停股數 (無 bear/extreme-bear 區隔,因下限是 0)
+    'limit_up_count':     (8,      4,     1,      0),     # >=8/4/1/0
+    # 信號 5: 融資熱度 Top5 變化 (億, 反指標, 散戶追漲 = 看空)
+    'margin_top5_yi':     (30,     10,    -10,    -30),   # +30/+10/-10/-30 → 0/5/10/15/20
+    # 信號 6 (v3.27 新): 法人共識 — 用「外資量達標 AND 投信量達標 AND 同向」雙條件
+    'consensus_foreign':  30000,   # 張 (外資門檻)
+    'consensus_trust':    3000,    # 張 (投信門檻)
+    # 信號 7 (v3.27 新): 結算日壓力 — 距結算日 d 天 × 外資期貨 OI
+    'settlement_near_oi': 20000,   # 結算日±1 內的 OI 門檻
+    'settlement_week_oi': 10000,   # 結算日±3 內的 OI 門檻 (排除 ±1)
+}
+
+
 def _temp_signal_score(value, thresholds):
     """thresholds = (extreme_bull, bull, neutral_low, bear)
     回傳 (score, level)。score = 20/15/10/5/0, level = 'extreme-bull'/etc."""
@@ -104,12 +135,53 @@ def _temp_signal_score(value, thresholds):
     return (0, 'extreme-bear')
 
 
-def compute_chip_temperature(raw_output):
+def _days_to_settlement(trade_date_str):
+    """v3.27: 計算距離下一個結算日(每月第三個週三)的天數。
+    d=0 = 當日就是結算日; d>0 = 還有 d 天; d<0 = 結算日已過 d 天。
+
+    規則:
+      1. 候選: 上月/本月/下月 三個結算日
+      2. 過去的結算日只有「≤ 3 天前」才視為相關(結算後 1-3 天還有餘波)
+      3. 在相關候選中取絕對值最小 (最近的結算日)
     """
-    從 raw_output 計算籌碼溫度計分數 (0-100) + 5 信號明細.
+    try:
+        from datetime import date as _date
+        y = int(trade_date_str[:4])
+        m = int(trade_date_str[4:6])
+        d = int(trade_date_str[6:8])
+        td = _date(y, m, d)
+
+        def third_wed(yy, mm):
+            first = _date(yy, mm, 1)
+            # weekday: Mon=0 ... Wed=2 ... Sun=6
+            offset_to_first_wed = (2 - first.weekday()) % 7
+            first_wed_day = 1 + offset_to_first_wed
+            return _date(yy, mm, first_wed_day + 14)
+
+        py, pm = (y - 1, 12) if m == 1 else (y, m - 1)
+        ny, nm = (y + 1, 1) if m == 12 else (y, m + 1)
+        candidates = [third_wed(py, pm), third_wed(y, m), third_wed(ny, nm)]
+        diffs = [(c - td).days for c in candidates]
+        # 過去的結算日只保留 >= -3 天的(餘波範圍)
+        relevant = [x for x in diffs if x >= -3]
+        if not relevant:
+            return diffs[1]  # fallback to current month
+        return min(relevant, key=abs)
+    except Exception:
+        return None
+
+
+def compute_chip_temperature(raw_output, trade_date=None):
+    """
+    從 raw_output 計算籌碼溫度計分數 (0-100) + 信號明細.
+    v3.27: 7 信號 (新增「法人共識」+「結算日壓力」)。
     與前端 renderChipTemperature() 對齊。
 
-    Returns: dict { score: int, signals: [...], components: {...} } 或 None
+    Args:
+      raw_output: crawler 主流程組好的 dict
+      trade_date: YYYYMMDD 字串(必要 — 信號 7 需要)。若 None,信號 7 略過。
+
+    Returns: dict { score: int, signals: [...], total, max_total, signal_count } 或 None
     """
     signals = []
 
@@ -121,7 +193,7 @@ def compute_chip_temperature(raw_output):
         if buy or sell:
             net = (sum(x.get('foreign_net_lot', 0) or 0 for x in buy)
                    + sum(x.get('foreign_net_lot', 0) or 0 for x in sell))
-            sc = _temp_signal_score(net, (50000, 10000, -10000, -50000))
+            sc = _temp_signal_score(net, TEMP_THRESHOLDS['foreign_cash'])
             if sc:
                 signals.append({'name': '外資現貨', 'score': sc[0], 'level': sc[1], 'value': net})
     except Exception:
@@ -130,7 +202,7 @@ def compute_chip_temperature(raw_output):
     # 信號 2: 外資期貨等效大台
     try:
         eq = raw_output.get('futures_data', {}).get('summary', {}).get('foreign_equivalent_net_oi')
-        sc = _temp_signal_score(eq, (30000, 10000, -10000, -30000))
+        sc = _temp_signal_score(eq, TEMP_THRESHOLDS['foreign_futures_eq'])
         if sc:
             signals.append({'name': '外資期貨', 'score': sc[0], 'level': sc[1], 'value': eq})
     except Exception:
@@ -139,7 +211,7 @@ def compute_chip_temperature(raw_output):
     # 信號 3: P/C Ratio (反指標 — PCR 高 = 散戶極空 = 反向看多)
     try:
         pc = raw_output.get('futures_data', {}).get('summary', {}).get('pc_ratio_oi')
-        sc = _temp_signal_score(pc, (1.3, 1.0, 0.8, 0.6))
+        sc = _temp_signal_score(pc, TEMP_THRESHOLDS['pc_ratio_oi'])
         if sc:
             signals.append({'name': 'P/C Ratio', 'score': sc[0], 'level': sc[1], 'value': pc})
     except Exception:
@@ -149,11 +221,11 @@ def compute_chip_temperature(raw_output):
     try:
         lus = raw_output.get('limit_up_summary') or {}
         n = len(lus.get('limit_up_stocks') or [])
-        # thresholds: 8 / 4 / 1 / 0
-        if n >= 8:    sc = (20, 'extreme-bull')
-        elif n >= 4:  sc = (15, 'bull')
-        elif n >= 1:  sc = (10, 'neutral')
-        else:         sc = (5, 'bear')
+        thr = TEMP_THRESHOLDS['limit_up_count']  # (8, 4, 1, 0)
+        if n >= thr[0]:   sc = (20, 'extreme-bull')
+        elif n >= thr[1]: sc = (15, 'bull')
+        elif n >= thr[2]: sc = (10, 'neutral')
+        else:             sc = (5, 'bear')
         signals.append({'name': '分點漲停', 'score': sc[0], 'level': sc[1], 'value': n})
     except Exception:
         pass
@@ -165,15 +237,77 @@ def compute_chip_temperature(raw_output):
         if buy_top:
             total_increase = sum(x.get('margin_change', 0) or 0 for x in buy_top)
             billion = total_increase / 1e8
+            thr = TEMP_THRESHOLDS['margin_top5_yi']  # (30, 10, -10, -30)
             # 反指標: 散戶大幅追漲 = 看空
-            if billion >= 30:    sc = (0, 'extreme-bear')
-            elif billion >= 10:  sc = (5, 'bear')
-            elif billion >= -10: sc = (10, 'neutral')
-            elif billion >= -30: sc = (15, 'bull')
-            else:                sc = (20, 'extreme-bull')
+            if billion >= thr[0]:   sc = (0, 'extreme-bear')
+            elif billion >= thr[1]: sc = (5, 'bear')
+            elif billion >= thr[2]: sc = (10, 'neutral')
+            elif billion >= thr[3]: sc = (15, 'bull')
+            else:                   sc = (20, 'extreme-bull')
             signals.append({'name': '融資熱度', 'score': sc[0], 'level': sc[1], 'value': round(billion, 2)})
     except Exception:
         pass
+
+    # 信號 6 (v3.27 新): 法人共識 — 外資 + 投信 同向 且 雙方量達標
+    try:
+        ir = raw_output.get('institutional_rankings', {}) or {}
+        fr = ir.get('foreign') or {}
+        tr = ir.get('trust') or {}
+        f_buy, f_sell = fr.get('buy') or [], fr.get('sell') or []
+        t_buy, t_sell = tr.get('buy') or [], tr.get('sell') or []
+        if (f_buy or f_sell) and (t_buy or t_sell):
+            f_net = (sum(x.get('foreign_net_lot', 0) or 0 for x in f_buy)
+                     + sum(x.get('foreign_net_lot', 0) or 0 for x in f_sell))
+            t_net = (sum(x.get('trust_net_lot', 0) or 0 for x in t_buy)
+                     + sum(x.get('trust_net_lot', 0) or 0 for x in t_sell))
+            f_thr = TEMP_THRESHOLDS['consensus_foreign']
+            t_thr = TEMP_THRESHOLDS['consensus_trust']
+            # 雙條件: 同向 + 雙方各自量達標
+            if f_net >= f_thr and t_net >= t_thr:
+                sc = (20, 'extreme-bull')
+            elif f_net > 0 and t_net > 0:
+                sc = (15, 'bull')
+            elif f_net <= -f_thr and t_net <= -t_thr:
+                sc = (0, 'extreme-bear')
+            elif f_net < 0 and t_net < 0:
+                sc = (5, 'bear')
+            else:
+                # 一正一負 = 分歧, 中性
+                sc = (10, 'neutral')
+            signals.append({
+                'name': '法人共識', 'score': sc[0], 'level': sc[1],
+                'value': {'foreign_net': f_net, 'trust_net': t_net},
+            })
+    except Exception:
+        pass
+
+    # 信號 7 (v3.27 新): 結算日壓力 — 距結算日 d 天 × 外資期貨等效 OI
+    if trade_date:
+        try:
+            d = _days_to_settlement(trade_date)
+            eq = raw_output.get('futures_data', {}).get('summary', {}).get('foreign_equivalent_net_oi')
+            if d is not None and eq is not None:
+                near_thr = TEMP_THRESHOLDS['settlement_near_oi']
+                week_thr = TEMP_THRESHOLDS['settlement_week_oi']
+                if abs(d) <= 1:
+                    # 結算當日±1: 反指標放大 (外資大空 → 預期反彈)
+                    if eq <= -near_thr:    sc = (20, 'extreme-bull')
+                    elif eq >= near_thr:   sc = (0, 'extreme-bear')
+                    else:                  sc = (10, 'neutral')
+                elif abs(d) <= 3:
+                    # 結算週 (但非當日±1): 弱反指標
+                    if eq <= -week_thr:    sc = (15, 'bull')
+                    elif eq >= week_thr:   sc = (5, 'bear')
+                    else:                  sc = (10, 'neutral')
+                else:
+                    # 非結算週: 信號退化為中性, 不污染溫度計
+                    sc = (10, 'neutral')
+                signals.append({
+                    'name': '結算日壓力', 'score': sc[0], 'level': sc[1],
+                    'value': {'days_to_settle': d, 'foreign_eq_oi': eq},
+                })
+        except Exception:
+            pass
 
     if not signals:
         return None
@@ -2080,7 +2214,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.26",
+        "version": "3.27",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -2154,7 +2288,7 @@ def main():
     # v3.25: 籌碼溫度計分數 + 30 天歷史累積 (前端 chart 用)
     # ════════════════════════════════════════════════════════════════
     try:
-        temp_result = compute_chip_temperature(raw_output)
+        temp_result = compute_chip_temperature(raw_output, trade_date=trade_date)
         if temp_result:
             entry = update_temp_history(data_dir, trade_date, temp_result)
             print(f"  [溫度計] 今日 {entry['score']}/100 ({len(entry['signals'])} 信號)")
@@ -2210,7 +2344,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.26",
+            "version": "3.27",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
