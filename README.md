@@ -3,7 +3,7 @@
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
 > **當前版本**:v3.27.4 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 
-> **v3.27.4 (2026-05-12)** — **零股反推保底修正**。v3.27.2 的 `round(amt/close)` 在高價股零股交易（<1 張）時仍回傳 0，改用 `max(1, round(amt/close))` 確保有金額就至少顯示 1 張。影響 17 筆高價股零股記錄（台積電/緯穎/世芯/健策/群聯等）。
+> **v3.27.4 (2026-05-12)** — **漲停判定深度優化 + 零股保底**。三層強化：(L1) change_pct 交叉驗證 — 用 stock_history 前日 close 獨立計算 change_pct，與 TWSE/MIS 的 API 值比對，差異 >1% 自動修正並印警告，消除 Change 欄位錯誤的連鎖風險。(L3) Limit-Up Audit — 每次 run 印出所有漲停判定明細（Top10 + Bottom3 + 可疑邊界），可疑股即時告警。(L4) Excel sniper 區段標的欄附漲幅 `▲X.XX%`，使用者一眼驗證是否真的漲停。另修 v3.27.2 零股 `round()→max(1,round())`。
 
 > **v3.27.3 (2026-05-11)** — **TWSE OpenAPI Stale 偵測**。5/11 觀察到 TWSE OpenAPI `STOCK_DAY_ALL` + `MI_INDEX` 兩個端點在 21:30 還在 publish 5/8 舊資料,chip_radar 沒檢查 `Date` 欄位直接全盤接收 → Excel 個股 close/change_pct/is_limit_up 全被汙染。3 層防護:(1) 各 fetch 函式比對回傳 `Date` ≠ 預期 → 回傳空觸發 fallback,(2) `fetch_all_public_data` 偵測 stale 後**強制全量 MIS fallback**(覆蓋所有 priority_codes,而非只補缺檔),(3) 每筆 quote 標 `quote_date` + `quote_stale`,crawler 列印 audit summary。MIS API 是即時報價,不受 OpenAPI 延遲影響。11/11 本地測試 PASS。
 

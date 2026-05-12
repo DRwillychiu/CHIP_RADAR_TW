@@ -1893,6 +1893,48 @@ def main():
         print(f"  ⚠️ 公開資訊抓取整體失敗: {e}（繼續執行，不影響主流程）")
         institutional_map, daily_quotes_map = {}, {}
     
+    # ════════════════════════════════════════════════════════════════
+    # v3.27.4 L1: change_pct 交叉驗證 — 用 stock_history 的前日 close
+    # 取代 TWSE/TPEx 的反推 prev_close,消除 Change 欄位錯誤風險
+    # ════════════════════════════════════════════════════════════════
+    _prev_close_map = {}  # {code: prev_day_close}
+    _l1_overrides = 0
+    try:
+        _sh_path = data_dir / "stock_history.json"
+        if _sh_path.exists() and daily_quotes_map:
+            with open(_sh_path, 'r', encoding='utf-8') as _f:
+                _sh = json.load(_f)
+            _sh_dates = sorted(_sh.get('dates', []))
+            # Find the trading day immediately before trade_date
+            _prev_dates = [d for d in _sh_dates if d < trade_date]
+            if _prev_dates:
+                _prev_date = _prev_dates[-1]
+                _sh_stocks = _sh.get('stocks', {})
+                for _code, _q in daily_quotes_map.items():
+                    _s_hist = _sh_stocks.get(_code, {}).get('daily', {}).get(_prev_date, {})
+                    _prev_c = _s_hist.get('close')
+                    if _prev_c and _prev_c > 0:
+                        _prev_close_map[_code] = _prev_c
+                        # Independently verify change_pct
+                        _cur_close = _q.get('close', 0)
+                        if _cur_close and _cur_close > 0:
+                            _verified_pct = round((_cur_close - _prev_c) / _prev_c * 100, 2)
+                            _api_pct = _q.get('change_pct', 0)
+                            _diff = abs(_verified_pct - _api_pct)
+                            if _diff > 1.0:
+                                print(f"  ⚠️ [L1 Override] {_code}: API change_pct={_api_pct}% "
+                                      f"vs history-verified={_verified_pct}% (diff={_diff:.2f}%) "
+                                      f"prev_close={_prev_c} cur_close={_cur_close} → 採用 verified")
+                                _q['change_pct'] = _verified_pct
+                                _q['change_pct_source'] = 'history_verified'
+                                _q['change_pct_api_original'] = _api_pct
+                                _l1_overrides += 1
+                            else:
+                                _q['change_pct_source'] = 'api_confirmed'
+                print(f"[L1 交叉驗證] prev_date={_prev_date} | 可比對 {len(_prev_close_map)} 檔 | 修正 {_l1_overrides} 筆")
+    except Exception as _e:
+        print(f"  [L1] stock_history 載入失敗 ({_e}),跳過交叉驗證")
+
     # 為每檔股票注入三大法人資料 + 收盤行情 + 浮盈
     inst_inject_count = 0
     quote_inject_count = 0
@@ -2042,6 +2084,52 @@ def main():
         print(f"  🚨 警告:仍有 {_audit_stale} 筆 quote 標記 stale — MIS fallback 沒涵蓋到的全市場股票")
         print(f"           分點+法人欄位資料不受影響,但部分非優先股票顯示可能為舊資料")
     
+    # ════════════════════════════════════════════════════════════════
+    # v3.27.4 L3: Limit-Up Audit — 漲停判定透明化
+    # 印出所有被標為 is_limit_up=True 的個股及判定依據
+    # ════════════════════════════════════════════════════════════════
+    _lu_audit = {}  # {code: {name, close, change_pct, source, prev_close}}
+    _lu_suspicious = []
+    for br in results:
+        for s in (br.get("buys", []) + br.get("sells", [])):
+            code = s.get("code")
+            if not code or code in _lu_audit:
+                continue
+            if s.get("is_limit_up"):
+                _lu_audit[code] = {
+                    'name': s.get('name', ''),
+                    'close': s.get('close_price'),
+                    'change_pct': s.get('change_pct'),
+                    'source': s.get('quote_source', ''),
+                    'prev_close': _prev_close_map.get(code),
+                }
+                # Suspicious: marked limit-up but change_pct < 9.5 or near boundary
+                _cp = s.get('change_pct') or 0
+                if _cp < LIMIT_UP_THRESHOLD:
+                    _lu_suspicious.append((code, s.get('name', ''), _cp, 'below_threshold'))
+                elif _cp < 9.8:
+                    _lu_suspicious.append((code, s.get('name', ''), _cp, 'near_boundary'))
+
+    print(f"\n[Limit-Up Audit v3.27.4] 今日漲停股: {len(_lu_audit)} 檔 (LIMIT_UP_THRESHOLD={LIMIT_UP_THRESHOLD}%)")
+    if _lu_audit:
+        # Print top 10 by change_pct desc + any suspicious
+        _sorted_lu = sorted(_lu_audit.items(), key=lambda x: x[1].get('change_pct') or 0, reverse=True)
+        _show = _sorted_lu[:10]
+        print(f"  Top 10: ", end="")
+        print(" | ".join(f"{v['name']}({k}) {v['change_pct']}%" for k, v in _show))
+        if len(_sorted_lu) > 10:
+            _bottom3 = _sorted_lu[-3:]
+            print(f"  Bottom3:", end="")
+            print(" | ".join(f"{v['name']}({k}) {v['change_pct']}%" for k, v in _bottom3))
+    if _lu_suspicious:
+        print(f"  🚨 可疑漲停判定 ({len(_lu_suspicious)} 筆):")
+        for _code, _name, _cp, _reason in _lu_suspicious:
+            _pv = _prev_close_map.get(_code)
+            print(f"    {_name}({_code}): change_pct={_cp}% reason={_reason}"
+                  f"{f' prev_close={_pv}' if _pv else ''}")
+    else:
+        print(f"  ✅ 所有漲停判定一致 (change_pct ≥ {LIMIT_UP_THRESHOLD}%)")
+
     # 計算各期間匯總（含當日風格指標）
     summaries = compute_period_summaries(positions, trade_date, today_branches_data=results)
     

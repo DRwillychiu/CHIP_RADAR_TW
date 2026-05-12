@@ -312,8 +312,9 @@ def _write_header_row(ws: "Worksheet", row: int, header_label: str, include_mast
         c.alignment = _align_center()
 
 
-def _write_stock_row(ws: "Worksheet", row: int, stock: Dict):
-    """Write 9 data columns (D-L) for a single stock. E-I integer, J-K price, L formula."""
+def _write_stock_row(ws: "Worksheet", row: int, stock: Dict, sniper_mode: bool = False):
+    """Write 9 data columns (D-L) for a single stock. E-I integer, J-K price, L formula.
+    v3.27.4 L4: sniper_mode=True 時在標的欄顯示漲幅%, 讓使用者一眼驗證漲停。"""
     code = stock.get("code", "") or ""
     name = stock.get("name", "") or code
     buy_lot = stock.get("buy_lot", 0) or 0
@@ -333,9 +334,13 @@ def _write_stock_row(ws: "Worksheet", row: int, stock: Dict):
     buy_avg = round(buy_amt_k / buy_lot, 2) if (buy_lot > 0 and buy_amt_k > 0) else 0
     sell_avg = round(sell_amt_k / sell_lot, 2) if (sell_lot > 0 and sell_amt_k > 0) else 0
 
-    # D: stock label "name(code)"
+    # D: stock label "name(code)" — v3.27.4 L4: sniper 加漲幅驗證
     c_d = ws.cell(row=row, column=4)
-    c_d.value = f"{name}({code})"
+    if sniper_mode and stock.get("change_pct") is not None:
+        _chg = stock["change_pct"]
+        c_d.value = f"{name}({code}) ▲{_chg}%"
+    else:
+        c_d.value = f"{name}({code})"
     c_d.font = _font_normal()
     c_d.alignment = _align_center()
 
@@ -448,7 +453,7 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
             for ri in range(STOCKS_PER_BRANCH):
                 r = branch_first_row + ri
                 if ri < len(stocks):
-                    _write_stock_row(ws, r, stocks[ri])
+                    _write_stock_row(ws, r, stocks[ri], sniper_mode=sniper_mode)
                 else:
                     _write_blank_data_row(ws, r)
 
