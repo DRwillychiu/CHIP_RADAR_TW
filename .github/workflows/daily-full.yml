@@ -6,6 +6,12 @@ name: 1. Daily Full Crawl (21:17)
 #   (c) commit step「沒變動」改 ::notice:: 級別,Actions 頁能一眼分出真跑了 vs 沒跑
 # 主爬蟲 - 每個交易日 21:17 TW (兜底 22:37 TW) 執行
 # 抓取: 分點 + 三大法人 + 個股行情 + 融資融券 (可能 T-1) + 產業分類
+#
+# v3.28.0 hotfix (2026-05-12 21:33 觀察):
+#   21:17 那次 run 卡 15m21s 在 `git fetch --depth=1`,GitHub Actions runner
+#   一次性網路 outage 導致 checkout 緩慢 → 直接 timeout cancel,crawler 根本沒跑。
+#   修法: timeout-minutes 15 → 25 (crawler 正常 11min,留 14min 給 checkout +
+#         install + git push 的可能延遲)。fetch-concurrent timeout 也加長。
 
 on:
   schedule:
@@ -28,11 +34,15 @@ permissions:
 jobs:
   crawl:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    
+    # v3.28.0: 15 → 25 防禦 GitHub Actions runner 偶發網路延遲 (5/12 21:17 卡 git fetch)
+    timeout-minutes: 25
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          # v3.28.0: 顯式設定 timeout 給 git fetch (不然 default 沒有, 卡到死才 abort)
+          fetch-depth: 1
       
       - name: Setup Python
         uses: actions/setup-python@v5
