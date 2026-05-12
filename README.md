@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.27.4 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.28.0 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.28.0 (2026-05-12)** — **Bug C 根因修復**。兩條對策同時上:**(任務 1) institutional.py 改源頭** — `fetch_twse_daily_quotes` + `fetch_tpex_daily_quotes` + `fetch_all_public_data` 加 `prev_close_map` 參數,從 stock_history 載入前日 close,取代有捨入誤差的 `close - change` 反推,每筆 quote 多 `change_pct_source` + `prev_close` 欄位。**(任務 2) L5 精確漲停價** — 新 `price_utils.py` 用 tick-size 規則(< 10/0.01, < 50/0.05, < 100/0.1, < 500/0.5, < 1000/1, ≥1000/5)算精確漲停價,取代 9.5% threshold 近似。**5/12 實戰驗證:抓出睿生光電(6861) 9.51% 的 False Positive**(真實漲停 9.90%,9.5% threshold 誤判)。30/30 v3.28 測試 + 4 套既有測試全 PASS。
 
 > **v3.27.4 (2026-05-12)** — **漲停判定深度優化 + 零股保底**。三層強化：(L1) change_pct 交叉驗證 — 用 stock_history 前日 close 獨立計算 change_pct，與 TWSE/MIS 的 API 值比對，差異 >1% 自動修正並印警告，消除 Change 欄位錯誤的連鎖風險。(L3) Limit-Up Audit — 每次 run 印出所有漲停判定明細（Top10 + Bottom3 + 可疑邊界），可疑股即時告警。(L4) Excel sniper 區段標的欄附漲幅 `▲X.XX%`，使用者一眼驗證是否真的漲停。另修 v3.27.2 零股 `round()→max(1,round())`。
 

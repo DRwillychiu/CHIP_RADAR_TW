@@ -1887,8 +1887,36 @@ def main():
     priority_codes = list(priority_codes)
     print(f"  (我的分點今日涉及 {len(priority_codes)} 檔個股)")
     
+    # ════════════════════════════════════════════════════════════════
+    # v3.28: 預先從 stock_history 構建 prev_close_map
+    # 取代 institutional.py 的 `prev_close = close - change` 反推
+    # 在 fetch 階段就用正確 prev_close 算 change_pct, 不需事後 L1 修正
+    # ════════════════════════════════════════════════════════════════
+    _prev_close_map_for_fetch = {}
     try:
-        institutional_map, daily_quotes_map = fetch_all_public_data(trade_date, priority_codes=priority_codes)
+        _sh_path = data_dir / "stock_history.json"
+        if _sh_path.exists():
+            with open(_sh_path, 'r', encoding='utf-8') as _f:
+                _sh = json.load(_f)
+            _sh_dates = sorted(_sh.get('dates', []))
+            _prev_dates = [d for d in _sh_dates if d < trade_date]
+            if _prev_dates:
+                _prev_date_for_fetch = _prev_dates[-1]
+                _sh_stocks = _sh.get('stocks', {})
+                for _code, _stk in _sh_stocks.items():
+                    _prev_c = _stk.get('daily', {}).get(_prev_date_for_fetch, {}).get('close')
+                    if _prev_c and _prev_c > 0:
+                        _prev_close_map_for_fetch[_code] = _prev_c
+                print(f"  [v3.28] prev_close_map 從 history({_prev_date_for_fetch}) 載入 {len(_prev_close_map_for_fetch)} 檔")
+    except Exception as _e:
+        print(f"  [v3.28] prev_close_map 載入失敗 ({_e}),institutional.py fallback 回 close-change 反推")
+
+    try:
+        institutional_map, daily_quotes_map = fetch_all_public_data(
+            trade_date,
+            priority_codes=priority_codes,
+            prev_close_map=_prev_close_map_for_fetch,
+        )
     except Exception as e:
         print(f"  ⚠️ 公開資訊抓取整體失敗: {e}（繼續執行，不影響主流程）")
         institutional_map, daily_quotes_map = {}, {}
@@ -2038,9 +2066,20 @@ def main():
                 else:
                     s["floating_pnl_pct"] = None
                 
-                # v3.12 漲停判定
+                # v3.28 精確漲跌停判定 (取代 v3.12 的 9.5% threshold 近似)
+                # 用 tick-size 規則算精確漲停價, fallback 才用 9.5% 近似
                 cp = quote["change_pct"] or 0
-                s["is_limit_up"] = cp >= LIMIT_UP_THRESHOLD
+                _prev_c_for_lu = quote.get("prev_close") or _prev_close_map_for_fetch.get(code)
+                if _prev_c_for_lu and _prev_c_for_lu > 0 and quote.get("close"):
+                    from price_utils import is_limit_up_exact, calc_limit_up_price
+                    s["is_limit_up"] = is_limit_up_exact(quote["close"], _prev_c_for_lu)
+                    s["limit_up_price"] = calc_limit_up_price(_prev_c_for_lu)
+                    s["limit_up_source"] = "exact"
+                else:
+                    # fallback: 沒有 prev_close 仍用 9.5% 近似
+                    s["is_limit_up"] = cp >= LIMIT_UP_THRESHOLD
+                    s["limit_up_price"] = None
+                    s["limit_up_source"] = "approximate"
                 s["is_near_limit_up"] = cp >= NEAR_LIMIT_UP_THRESHOLD
                 
                 quote_inject_count += 1
@@ -2434,7 +2473,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.27.4",
+        "version": "3.28.0",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -2564,7 +2603,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.27.4",
+            "version": "3.28.0",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）

@@ -257,23 +257,30 @@ def _yyyymmdd_to_roc(yyyymmdd: str) -> str:
 
 
 def fetch_twse_daily_quotes(expected_trade_date: str = None,
+                             prev_close_map: Dict[str, float] = None,
                              timeout=30, retries=3) -> Dict[str, dict]:
     """
     抓 TWSE 上市股票當日收盤行情
 
     v3.27.3 新增 expected_trade_date 參數:
       若回傳資料 Date 欄位 ≠ 預期 ROC 日期 → TWSE OpenAPI 延遲,回傳 {} 觸發 MIS fallback。
-      這修補了 2026-05-11 觀察到的問題:TWSE OpenAPI STOCK_DAY_ALL 21:30 還在發布 5/8 資料,
-      但 chip_radar 沒檢查日期直接全盤接收,導致 Excel 個股 close 全部錯。
+
+    v3.28 新增 prev_close_map 參數:
+      取代 `prev_close = close - change` 反推 (有捨入誤差)。
+      若有提供且該 code 在 map 中 → 用 map[code] 直接算 change_pct,標 change_pct_source='history'
+      若 map 沒有該 code → fallback 回舊邏輯,標 change_pct_source='derived'
 
     Args:
-      expected_trade_date: YYYYMMDD (e.g. '20260511')。傳 None 跳過日期檢查 (向後相容)。
+      expected_trade_date: YYYYMMDD (e.g. '20260512')。傳 None 跳過日期檢查 (向後相容)。
+      prev_close_map: {code: prev_day_close (元)} 從 stock_history 載入。None 跳過 (向後相容)。
 
     Returns:
-        {code: {close, open, high, low, volume_lot, change, change_pct, source, quote_date}}
+        {code: {close, open, high, low, volume_lot, change, change_pct, change_pct_source,
+                source, quote_date, prev_close}}
         若偵測到 stale → 回傳 {}
     """
     expected_roc = _yyyymmdd_to_roc(expected_trade_date) if expected_trade_date else ""
+    prev_close_map = prev_close_map or {}
 
     for attempt in range(retries):
         try:
@@ -303,8 +310,16 @@ def fetch_twse_daily_quotes(expected_trade_date: str = None,
                 volume = _safe_int(item.get('TradeVolume'))  # 股數
                 change = _safe_float(item.get('Change'))
 
-                prev_close = close - change if change else close
-                change_pct = (change / prev_close * 100) if prev_close else 0.0
+                # v3.28: 優先用 history 的 prev_close, fallback 才用 close - change 反推
+                history_prev = prev_close_map.get(code)
+                if history_prev and history_prev > 0 and close:
+                    prev_close = history_prev
+                    change_pct = (close - prev_close) / prev_close * 100
+                    change_pct_source = "history"
+                else:
+                    prev_close = close - change if change else close
+                    change_pct = (change / prev_close * 100) if prev_close else 0.0
+                    change_pct_source = "derived" if history_prev is None else "history_no_data"
 
                 result[code] = {
                     "close": close,
@@ -314,8 +329,10 @@ def fetch_twse_daily_quotes(expected_trade_date: str = None,
                     "volume_lot": volume // 1000,
                     "change": change,
                     "change_pct": round(change_pct, 2),
+                    "change_pct_source": change_pct_source,  # v3.28
+                    "prev_close": prev_close,                # v3.28: 下游算精確漲停價用
                     "source": "twse",
-                    "quote_date": response_date,  # v3.27.3: 標記實際資料日期
+                    "quote_date": response_date,
                 }
 
             return result
@@ -333,13 +350,15 @@ def fetch_twse_daily_quotes(expected_trade_date: str = None,
 # ════════════════════════════════════════════════════════════════════
 
 def fetch_tpex_daily_quotes(expected_trade_date: str = None,
+                             prev_close_map: Dict[str, float] = None,
                              timeout=30, retries=3) -> Dict[str, dict]:
     """抓 TPEx 上櫃股票當日收盤行情
 
-    v3.27.3: 同 fetch_twse_daily_quotes — 加 expected_trade_date 偵測 stale。
-    TPEx OpenAPI 也有 Date 欄位 (民國格式)。
+    v3.27.3: 加 expected_trade_date 偵測 stale。
+    v3.28: 加 prev_close_map (取代 close - change 反推) + change_pct_source 標記
     """
     expected_roc = _yyyymmdd_to_roc(expected_trade_date) if expected_trade_date else ""
+    prev_close_map = prev_close_map or {}
 
     for attempt in range(retries):
         try:
@@ -369,8 +388,16 @@ def fetch_tpex_daily_quotes(expected_trade_date: str = None,
                 volume = _safe_int(item.get('TradingShares'))
                 change = _safe_float(item.get('Change'))
 
-                prev_close = close - change if change else close
-                change_pct = (change / prev_close * 100) if prev_close else 0.0
+                # v3.28: history prev_close 優先
+                history_prev = prev_close_map.get(code)
+                if history_prev and history_prev > 0 and close:
+                    prev_close = history_prev
+                    change_pct = (close - prev_close) / prev_close * 100
+                    change_pct_source = "history"
+                else:
+                    prev_close = close - change if change else close
+                    change_pct = (change / prev_close * 100) if prev_close else 0.0
+                    change_pct_source = "derived" if history_prev is None else "history_no_data"
 
                 result[code] = {
                     "close": close,
@@ -380,8 +407,10 @@ def fetch_tpex_daily_quotes(expected_trade_date: str = None,
                     "volume_lot": volume // 1000,
                     "change": change,
                     "change_pct": round(change_pct, 2),
+                    "change_pct_source": change_pct_source,  # v3.28
+                    "prev_close": prev_close,                # v3.28
                     "source": "tpex",
-                    "quote_date": response_date,  # v3.27.3
+                    "quote_date": response_date,
                 }
 
             return result
@@ -497,43 +526,45 @@ def fetch_mis_fallback_quotes(missing_codes: list, batch_size=40, batch_delay=3)
     return result
 
 
-def fetch_all_public_data(trade_date: str, priority_codes=None):
+def fetch_all_public_data(trade_date: str, priority_codes=None, prev_close_map=None):
     """
     抓全部公開資訊：三大法人 + 收盤行情
-    
-    v3.14.2 升級:
-      - 查詢間 delay 從 1.5s → 5s
-      - TWSE/TPEx daily_quotes 失敗時，用 MIS API fallback 補抓
-    
+
     Args:
         trade_date: 日期
-        priority_codes: 優先補抓的個股代號 list（例如我的分點出現的股票）
-    
+        priority_codes: 優先補抓的個股代號 list (我的分點涉及股票)
+        prev_close_map: {code: prev_day_close} (v3.28 新, 從 stock_history 載入)
+
     Returns:
         (institutional_map, daily_quotes_map)
     """
     print("[公開資訊] 抓取三大法人 + 收盤行情 (v3.14.2 增強版限流處理)...")
-    
+
     # 三大法人
     print("  [1/4] TWSE 上市三大法人 (T86)...")
     twse_insti = fetch_twse_t86(trade_date)
     print(f"    ✓ {len(twse_insti)} 檔")
-    time.sleep(5)   # v3.14.2: 1.5s → 5s
-    
+    time.sleep(5)
+
     print("  [2/4] TPEx 上櫃三大法人...")
     tpex_insti = fetch_tpex_3insti()
     print(f"    ✓ {len(tpex_insti)} 檔")
     time.sleep(5)
-    
-    # 收盤行情
-    # v3.27.3: 傳 trade_date 觸發 stale-data 偵測
+
+    # 收盤行情 (v3.27.3: 偵 stale / v3.28: 傳 prev_close_map 取代 close-change 反推)
     print("  [3/4] TWSE 上市收盤行情...")
-    twse_quotes = fetch_twse_daily_quotes(expected_trade_date=trade_date)
+    twse_quotes = fetch_twse_daily_quotes(
+        expected_trade_date=trade_date,
+        prev_close_map=prev_close_map,
+    )
     print(f"    ✓ {len(twse_quotes)} 檔")
     time.sleep(5)
 
     print("  [4/4] TPEx 上櫃收盤行情...")
-    tpex_quotes = fetch_tpex_daily_quotes(expected_trade_date=trade_date)
+    tpex_quotes = fetch_tpex_daily_quotes(
+        expected_trade_date=trade_date,
+        prev_close_map=prev_close_map,
+    )
     print(f"    ✓ {len(tpex_quotes)} 檔")
 
     # 合併(上櫃優先級較低，上市會覆蓋)
