@@ -1964,12 +1964,12 @@ def main():
                     estimated = False
                     # 買進: 高價股「金額榜上 + 張數榜沒上」→ 反推張數
                     if buy_lot_raw == 0 and buy_amt_k > 0:
-                        s["buy_lot"] = round(buy_amt_k / cp_close)
+                        s["buy_lot"] = max(1, round(buy_amt_k / cp_close))
                         s["buy_avg"] = round(cp_close, 2)
                         estimated = True
                     # 賣出: 同上
                     if sell_lot_raw == 0 and sell_amt_k > 0:
-                        s["sell_lot"] = round(sell_amt_k / cp_close)
+                        s["sell_lot"] = max(1, round(sell_amt_k / cp_close))
                         s["sell_avg"] = round(cp_close, 2)
                         estimated = True
                     # 反向: 低價股「張數榜上 + 金額榜沒上」→ 反推金額
@@ -2346,7 +2346,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.27.3",
+        "version": "3.27.4",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -2476,7 +2476,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.27.3",
+            "version": "3.27.4",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
