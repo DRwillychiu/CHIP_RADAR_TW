@@ -274,7 +274,15 @@ def _top_stocks_for_branch(branch_data: Dict, sniper_mode: bool = False) -> List
     (buy_amt/sell_amt in 仟元 = thousand TWD per crawler convention).
 
     v3.26: when sniper_mode=True, restrict to limit-up stocks only (is_limit_up True).
-    Returns empty list if sniper master had zero limit-up buys today (intentional).
+    v3.28.1: 修補 sniper 過濾遺漏 net-seller 問題。
+      使用者 review 發現 5/13 蔣承翰兩個分點都顯示微星,但實際 微星 是淨賣超。
+      根因:TWSE 分點頁面 publish 兩榜 (買榜 Top 15 + 賣榜 Top 15),
+            一檔股票若 grossly traded 兩邊大量,會同時在兩榜出現。
+            v3.26 只 filter is_limit_up,沒檢查 net_amt > 0,
+            於是「淨賣 但 gross 進買榜」的漲停股仍被選入 sniper 區段。
+      用戶定義的正確語意:「先挑漲停股、觀察分點 *買超* 哪幾檔」 →
+            net_amt > 0 (或 net_lot > 0) 才是真正 sniper 動作。
+    Returns empty list if sniper master had zero net-bought limit-up stocks today (intentional).
     """
     if not branch_data:
         return []
@@ -289,7 +297,12 @@ def _top_stocks_for_branch(branch_data: Dict, sniper_mode: bool = False) -> List
             seen[c] = s
     candidates = list(seen.values())
     if sniper_mode:
-        candidates = [s for s in candidates if s.get("is_limit_up")]
+        # v3.28.1: 必須同時滿足「漲停 + 淨買超」
+        candidates = [
+            s for s in candidates
+            if s.get("is_limit_up")
+            and ((s.get("net_amt", 0) or 0) > 0 or (s.get("net_lot", 0) or 0) > 0)
+        ]
     sorted_stocks = sorted(
         candidates,
         key=lambda x: x.get("buy_amt", 0) or 0,

@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.28.0 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.28.1 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.28.1 (2026-05-13)** — **Sniper 過濾遺漏 net-seller 修補**。用戶 review 5/13 Excel 發現蔣承翰兩個分點都顯示微星(2377),但實際當日微星是淨賣超。根因:`_top_stocks_for_branch(sniper_mode=True)` 只 filter `is_limit_up`,沒檢查 `net_amt > 0` — TWSE 分點頁面 publish 雙榜(買榜+賣榜),一檔股票可能 gross 大量交易兩邊都上榜,淨賣的也會被選入 sniper 區段。修法:sniper_mode 加 `(net_amt > 0 or net_lot > 0)` 雙條件 — 用戶語意「分點 *買超* 哪幾檔漲停」才是真 sniper。8/8 邊界測試 PASS (微星 / 聯電 net=0 / 鴻海淨賣 全部排除)。
 
 > **v3.28.0 (2026-05-12)** — **Bug C 根因修復**。兩條對策同時上:**(任務 1) institutional.py 改源頭** — `fetch_twse_daily_quotes` + `fetch_tpex_daily_quotes` + `fetch_all_public_data` 加 `prev_close_map` 參數,從 stock_history 載入前日 close,取代有捨入誤差的 `close - change` 反推,每筆 quote 多 `change_pct_source` + `prev_close` 欄位。**(任務 2) L5 精確漲停價** — 新 `price_utils.py` 用 tick-size 規則(< 10/0.01, < 50/0.05, < 100/0.1, < 500/0.5, < 1000/1, ≥1000/5)算精確漲停價,取代 9.5% threshold 近似。**5/12 實戰驗證:抓出睿生光電(6861) 9.51% 的 False Positive**(真實漲停 9.90%,9.5% threshold 誤判)。30/30 v3.28 測試 + 4 套既有測試全 PASS。
 
