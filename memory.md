@@ -3,8 +3,43 @@
 > 這個檔案是 Chip Radar 專案的**完整結構化記憶系統**，給未來 Claude 對話讀取使用。
 > 每次升版必更新「## 📅 當前工作焦點」段落。
 
-**最後更新**: 2026/05/11 · v3.27.3 部署完成 (TWSE OpenAPI stale 偵測)
-**累計戰力**: 99.97/100 (TWSE OpenAPI 延遲 stale 資料偵測 + 強制 MIS fallback)
+**最後更新**: 2026/05/14 · v3.28.1 部署完成 + **破壞式 review KILL 4 項 / PARK 3 項**
+**累計戰力**: 99.991/100 (sniper net-buyer + 8 個版本累積防禦)
+
+---
+
+## 🔪 v3.29+ Backlog 大整理 (2026-05-14 破壞式 review)
+
+**KILLED**(從 backlog 移除,理由如下):
+
+| 項目 | 砍掉理由 |
+|---|---|
+| ❌ L2 雙源交叉比對 (TWSE + MIS) | v3.27.3 stale detect + 強制全量 MIS fallback 已 100% 救援 5/11-5/13 連 3 天,L2 純錦上添花。實測零次需要。 |
+| ❌ T-d 過去 7 天信號觸發時間軸 | Backtest 上線後 hit rate 分析更深,7 天 visual 多餘。 |
+| ❌ M-c 30 天主散背離趨勢 chart | v3.25 已有「30 天溫度趨勢 chart」涵蓋,重複建設;且 user 4 天 review 都沒打開過 chart。 |
+| ❌ Excel γ 漲停股 2 欄 (漲停買進均價 + 距漲停價差%) | sniper 入選個股本就接近漲停,兩欄資訊量 ≈ 0,且老闆要的是「蔣承翰買 11 檔漲停」事實,不是價差細節。 |
+
+**PARKED**(暫時擱置,等觸發條件):
+
+| 項目 | 觸發條件 |
+|---|---|
+| ⏸️ M-d 主散背離 → alerts.py 推播 | 等 alerts.py 復活 (Discord/Slack/Line/email 任一) |
+| ⏸️ lot_source / quote_stale / limit_up_source UI 視覺化 | 等 user 反饋是否需要透明度 |
+| ⏸️ 新上市股前 5 天 uncapped 邊界 | 等真踩到誤判 case |
+
+**ACTIVE backlog (v3.29+)**:
+
+| 優先序 | 項目 | 預估 |
+|---|---|---|
+| 🔴 高 | **latest.json 瘦身** (10.49 MB → ~4 MB gzip) | 1-2h |
+| 🔴 高 | **Backtest 補洞**:寫 `backtester.py` 拉 TWSE 歷史 1 年資料,模擬 7 信號 + sniper,算 hit rate (取代 T-c 等 30 天累積) | 4-6h |
+| 🟡 中 | **Signal Engine**:後端 build「明日 actionable signals」+ 信心區間,砍 7 信號自己解讀。**需 Backtest 結果做 prerequisite** | 8-12h |
+| 🟢 降級 | ~~T-c 校準~~:Backtest 上線後 obsolete | (廢棄) |
+
+**設計哲學變更**:
+- **過去 4 天 90% 力氣花在 data infrastructure 防禦** (audit / fallback / verify),沒 proportional 提升 user value
+- **轉向「資料 → 決策」**:不再讓 user 自己看 7 信號拼湊,改成 actionable signal + 信心區間
+- **砍 incremental visualization** (T-d/M-c/Excel γ),投資 backtest + signal engine
 
 ---
 
