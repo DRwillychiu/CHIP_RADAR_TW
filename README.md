@@ -1,7 +1,12 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.28.1 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.29.0 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.29.0 (2026-05-14)** — **破壞式思考 → Signal Engine MVP**。從「展示 raw data 讓 user 自己解讀」轉「給 user actionable 答案 + 信心區間」。
+> - **`backtester.py` 1 年 backtest 247 配對** 揭示:信號 2 外資期貨 hit 40-41% < 隨機(全年外資長期淨空,反指標假設失效)→ **廢除**。信號 3 PCR hit 58.7%、信號 7 結算週 D±3 hit 63.6% → **保留為 alpha**。
+> - **`signal_engine.py` 用 backtest hit rate 當權重**, 組合多信號 → 每日生成 `data/daily_signal.json`:市場方向(偏多/中性/偏空 + 信心%)+ 個股 Top 3(sniper consensus 排名)+ 廢除信號透明告知。6/6 本地測試 PASS。
+> - 整合進 crawler.py 主流程,每次 daily-full 自動生成 daily_signal.json。前端整合押 v3.29.1。
 
 > **v3.28.1 (2026-05-13)** — **Sniper 過濾遺漏 net-seller 修補**。用戶 review 5/13 Excel 發現蔣承翰兩個分點都顯示微星(2377),但實際當日微星是淨賣超。根因:`_top_stocks_for_branch(sniper_mode=True)` 只 filter `is_limit_up`,沒檢查 `net_amt > 0` — TWSE 分點頁面 publish 雙榜(買榜+賣榜),一檔股票可能 gross 大量交易兩邊都上榜,淨賣的也會被選入 sniper 區段。修法:sniper_mode 加 `(net_amt > 0 or net_lot > 0)` 雙條件 — 用戶語意「分點 *買超* 哪幾檔漲停」才是真 sniper。8/8 邊界測試 PASS (微星 / 聯電 net=0 / 鴻海淨賣 全部排除)。
 

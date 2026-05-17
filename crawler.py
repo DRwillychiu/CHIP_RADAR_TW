@@ -2473,7 +2473,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.28.1",
+        "version": "3.29.0",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -2551,6 +2551,23 @@ def main():
         if temp_result:
             entry = update_temp_history(data_dir, trade_date, temp_result)
             print(f"  [溫度計] 今日 {entry['score']}/100 ({len(entry['signals'])} 信號)")
+
+            # v3.29 Signal Engine: 把 raw signals 變 actionable daily signal
+            try:
+                import signal_engine
+                daily_sig = signal_engine.generate_daily_signal(
+                    raw_output, temp_result, trade_date
+                )
+                sig_path = signal_engine.save_daily_signal(data_dir, daily_sig)
+                md = daily_sig.get('market_direction', {})
+                stocks = daily_sig.get('top_focus_stocks', [])
+                print(f"  [Signal Engine v3.29] {daily_sig.get('headline', '')}")
+                print(f"                       寫入 {sig_path.name} ({sig_path.stat().st_size / 1024:.1f} KB)")
+                if stocks:
+                    print(f"                       Top focus: " +
+                          ", ".join(f"{s['code']}({s['name']}) conf={s['confidence_pct']}%" for s in stocks[:3]))
+            except Exception as _se:
+                print(f"  [Signal Engine] 失敗 (不影響主流程): {_se}")
     except Exception as e:
         print(f"  [溫度計] 失敗: {e}")
 
@@ -2603,7 +2620,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.28.1",
+            "version": "3.29.0",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
