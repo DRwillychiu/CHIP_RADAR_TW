@@ -1,0 +1,1178 @@
+{
+  "generated_at": "2026-05-17T23:12:59.862796",
+  "range": {
+    "start": "2026-03-10",
+    "end": "2026-05-16",
+    "days_requested": 60
+  },
+  "thresholds_used": {
+    "foreign_cash": [
+      50000,
+      10000,
+      -10000,
+      -50000
+    ],
+    "foreign_futures_eq": [
+      30000,
+      10000,
+      -10000,
+      -30000
+    ],
+    "pc_ratio_oi": [
+      1.3,
+      1.0,
+      0.8,
+      0.6
+    ],
+    "limit_up_count": [
+      8,
+      4,
+      1,
+      0
+    ],
+    "margin_top5_yi": [
+      30,
+      10,
+      -10,
+      -30
+    ],
+    "consensus_foreign": 30000,
+    "consensus_trust": 3000,
+    "settlement_near_oi": 20000,
+    "settlement_week_oi": 10000
+  },
+  "total_pairs": 45,
+  "pairs": [
+    {
+      "date": "20260310",
+      "next_date": "20260311",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -35767.1,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.1273,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 8,
+            "foreign_eq_oi": -35767.1
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 4.1
+    },
+    {
+      "date": "20260311",
+      "next_date": "20260312",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -38998.8,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.6358,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 7,
+            "foreign_eq_oi": -38998.8
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -1.56
+    },
+    {
+      "date": "20260312",
+      "next_date": "20260313",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -42262.1,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.4416,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 6,
+            "foreign_eq_oi": -42262.1
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -0.54
+    },
+    {
+      "date": "20260313",
+      "next_date": "20260316",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -39143.8,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.5891,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 5,
+            "foreign_eq_oi": -39143.8
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -0.17
+    },
+    {
+      "date": "20260316",
+      "next_date": "20260317",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -37525.8,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.4017,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 2,
+            "foreign_eq_oi": -37525.8
+          },
+          "score": 15,
+          "level": "bull"
+        }
+      },
+      "next_day_change_pct": 1.48
+    },
+    {
+      "date": "20260317",
+      "next_date": "20260318",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -34638.2,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.4839,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 1,
+            "foreign_eq_oi": -34638.2
+          },
+          "score": 20,
+          "level": "extreme-bull"
+        }
+      },
+      "next_day_change_pct": 1.51
+    },
+    {
+      "date": "20260318",
+      "next_date": "20260319",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -33659.2,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.5506,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 0,
+            "foreign_eq_oi": -33659.2
+          },
+          "score": 20,
+          "level": "extreme-bull"
+        }
+      },
+      "next_day_change_pct": -1.92
+    },
+    {
+      "date": "20260319",
+      "next_date": "20260320",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -40625.9,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.0958,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": -1,
+            "foreign_eq_oi": -40625.9
+          },
+          "score": 20,
+          "level": "extreme-bull"
+        }
+      },
+      "next_day_change_pct": -0.43
+    },
+    {
+      "date": "20260320",
+      "next_date": "20260323",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -35020.4,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.4558,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": -2,
+            "foreign_eq_oi": -35020.4
+          },
+          "score": 15,
+          "level": "bull"
+        }
+      },
+      "next_day_change_pct": -2.45
+    },
+    {
+      "date": "20260323",
+      "next_date": "20260324",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -38065.0,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.1009,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 23,
+            "foreign_eq_oi": -38065.0
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -0.34
+    },
+    {
+      "date": "20260324",
+      "next_date": "20260325",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -33120.8,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.113,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 22,
+            "foreign_eq_oi": -33120.8
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 2.54
+    },
+    {
+      "date": "20260325",
+      "next_date": "20260326",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -34836.9,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.4119,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 21,
+            "foreign_eq_oi": -34836.9
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -0.3
+    },
+    {
+      "date": "20260326",
+      "next_date": "20260327",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -36282.7,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.286,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 20,
+            "foreign_eq_oi": -36282.7
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -0.68
+    },
+    {
+      "date": "20260327",
+      "next_date": "20260330",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -39940.2,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.3117,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 19,
+            "foreign_eq_oi": -39940.2
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -1.8
+    },
+    {
+      "date": "20260330",
+      "next_date": "20260331",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -37084.9,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.2229,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 16,
+            "foreign_eq_oi": -37084.9
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -2.45
+    },
+    {
+      "date": "20260331",
+      "next_date": "20260401",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -37345.2,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.0659,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 15,
+            "foreign_eq_oi": -37345.2
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 4.58
+    },
+    {
+      "date": "20260401",
+      "next_date": "20260402",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -29975.6,
+          "score": 5,
+          "level": "bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.4246,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 14,
+            "foreign_eq_oi": -29975.6
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -1.82
+    },
+    {
+      "date": "20260402",
+      "next_date": "20260407",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -34978.1,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.4076,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 13,
+            "foreign_eq_oi": -34978.1
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 2.02
+    },
+    {
+      "date": "20260407",
+      "next_date": "20260408",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -30050.6,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.3918,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 8,
+            "foreign_eq_oi": -30050.6
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 4.61
+    },
+    {
+      "date": "20260408",
+      "next_date": "20260409",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -30670.2,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.2363,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 7,
+            "foreign_eq_oi": -30670.2
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 0.29
+    },
+    {
+      "date": "20260409",
+      "next_date": "20260410",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -33084.9,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.0919,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 6,
+            "foreign_eq_oi": -33084.9
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 1.6
+    },
+    {
+      "date": "20260410",
+      "next_date": "20260413",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -33516.9,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.4114,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 5,
+            "foreign_eq_oi": -33516.9
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 0.11
+    },
+    {
+      "date": "20260413",
+      "next_date": "20260414",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -35434.8,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.4089,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 2,
+            "foreign_eq_oi": -35434.8
+          },
+          "score": 15,
+          "level": "bull"
+        }
+      },
+      "next_day_change_pct": 2.37
+    },
+    {
+      "date": "20260414",
+      "next_date": "20260415",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -35803.0,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.654,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 1,
+            "foreign_eq_oi": -35803.0
+          },
+          "score": 20,
+          "level": "extreme-bull"
+        }
+      },
+      "next_day_change_pct": 1.17
+    },
+    {
+      "date": "20260415",
+      "next_date": "20260416",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -36901.2,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.4968,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 0,
+            "foreign_eq_oi": -36901.2
+          },
+          "score": 20,
+          "level": "extreme-bull"
+        }
+      },
+      "next_day_change_pct": 1.12
+    },
+    {
+      "date": "20260416",
+      "next_date": "20260417",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -39285.2,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.3539,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": -1,
+            "foreign_eq_oi": -39285.2
+          },
+          "score": 20,
+          "level": "extreme-bull"
+        }
+      },
+      "next_day_change_pct": -0.88
+    },
+    {
+      "date": "20260417",
+      "next_date": "20260420",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -41388.8,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.3172,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": -2,
+            "foreign_eq_oi": -41388.8
+          },
+          "score": 15,
+          "level": "bull"
+        }
+      },
+      "next_day_change_pct": 0.42
+    },
+    {
+      "date": "20260420",
+      "next_date": "20260421",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -42085.8,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.0693,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 30,
+            "foreign_eq_oi": -42085.8
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 1.75
+    },
+    {
+      "date": "20260421",
+      "next_date": "20260422",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -40177.7,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.1915,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 29,
+            "foreign_eq_oi": -40177.7
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 0.73
+    },
+    {
+      "date": "20260422",
+      "next_date": "20260423",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -42168.3,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.3967,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 28,
+            "foreign_eq_oi": -42168.3
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -0.43
+    },
+    {
+      "date": "20260423",
+      "next_date": "20260424",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -44262.4,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.1111,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 27,
+            "foreign_eq_oi": -44262.4
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 3.23
+    },
+    {
+      "date": "20260424",
+      "next_date": "20260427",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -39614.8,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.758,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 26,
+            "foreign_eq_oi": -39614.8
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 1.76
+    },
+    {
+      "date": "20260427",
+      "next_date": "20260428",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -44162.4,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.3686,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 23,
+            "foreign_eq_oi": -44162.4
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -0.24
+    },
+    {
+      "date": "20260428",
+      "next_date": "20260429",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -46301.3,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.205,
+          "score": 15,
+          "level": "bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 22,
+            "foreign_eq_oi": -46301.3
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -0.55
+    },
+    {
+      "date": "20260429",
+      "next_date": "20260430",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -46628.0,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.7112,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 21,
+            "foreign_eq_oi": -46628.0
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -0.96
+    },
+    {
+      "date": "20260430",
+      "next_date": "20260504",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -42884.9,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.5896,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 20,
+            "foreign_eq_oi": -42884.9
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 4.57
+    },
+    {
+      "date": "20260504",
+      "next_date": "20260505",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -42181.9,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.6991,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 16,
+            "foreign_eq_oi": -42181.9
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 0.16
+    },
+    {
+      "date": "20260505",
+      "next_date": "20260506",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -48066.8,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.5464,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 15,
+            "foreign_eq_oi": -48066.8
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 0.91
+    },
+    {
+      "date": "20260506",
+      "next_date": "20260507",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -50921.8,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.7759,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 14,
+            "foreign_eq_oi": -50921.8
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 1.93
+    },
+    {
+      "date": "20260507",
+      "next_date": "20260508",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -51035.3,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.7413,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 13,
+            "foreign_eq_oi": -51035.3
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": -0.79
+    },
+    {
+      "date": "20260508",
+      "next_date": "20260511",
+      "signals": {
+        "foreign_futures_eq": {
+          "value": -54097.1,
+          "score": 0,
+          "level": "extreme-bear"
+        },
+        "pc_ratio_oi": {
+          "value": 1.8136,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": {
+          "value": {
+            "days_to_settle": 12,
+            "foreign_eq_oi": -54097.1
+          },
+          "score": 10,
+          "level": "neutral"
+        }
+      },
+      "next_day_change_pct": 0.45
+    },
+    {
+      "date": "20260511",
+      "next_date": "20260512",
+      "signals": {
+        "foreign_futures_eq": null,
+        "pc_ratio_oi": {
+          "value": 1.6233,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": null
+      },
+      "next_day_change_pct": 0.26
+    },
+    {
+      "date": "20260512",
+      "next_date": "20260513",
+      "signals": {
+        "foreign_futures_eq": null,
+        "pc_ratio_oi": {
+          "value": 1.6165,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": null
+      },
+      "next_day_change_pct": -1.25
+    },
+    {
+      "date": "20260513",
+      "next_date": "20260514",
+      "signals": {
+        "foreign_futures_eq": null,
+        "pc_ratio_oi": {
+          "value": 1.6931,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": null
+      },
+      "next_day_change_pct": 0.91
+    },
+    {
+      "date": "20260514",
+      "next_date": "20260515",
+      "signals": {
+        "foreign_futures_eq": null,
+        "pc_ratio_oi": {
+          "value": 1.6246,
+          "score": 20,
+          "level": "extreme-bull"
+        },
+        "settlement_pressure": null
+      },
+      "next_day_change_pct": -1.39
+    }
+  ],
+  "hit_rate_report": {
+    "foreign_futures_eq": {
+      "bear": {
+        "n": 1,
+        "mean_next_day_pct": -1.82,
+        "hit_rate": 100.0,
+        "enough_cases": false
+      },
+      "extreme-bear": {
+        "n": 40,
+        "mean_next_day_pct": 0.673,
+        "hit_rate": 42.5,
+        "enough_cases": true
+      }
+    },
+    "pc_ratio_oi": {
+      "extreme-bull": {
+        "n": 32,
+        "mean_next_day_pct": 0.289,
+        "hit_rate": 53.1,
+        "enough_cases": true
+      },
+      "bull": {
+        "n": 13,
+        "mean_next_day_pct": 1.105,
+        "hit_rate": 61.5,
+        "enough_cases": true
+      }
+    },
+    "settlement_pressure": {
+      "extreme-bull": {
+        "n": 6,
+        "mean_next_day_pct": 0.095,
+        "hit_rate": 50.0,
+        "enough_cases": true
+      },
+      "bull": {
+        "n": 4,
+        "mean_next_day_pct": 0.455,
+        "hit_rate": 75.0,
+        "enough_cases": false
+      },
+      "neutral": {
+        "n": 31,
+        "mean_next_day_pct": 0.733,
+        "hit_rate": 29.0,
+        "enough_cases": true
+      }
+    }
+  }
+}
