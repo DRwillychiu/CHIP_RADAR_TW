@@ -3,8 +3,8 @@
 > 這個檔案是 Chip Radar 專案的**完整結構化記憶系統**，給未來 Claude 對話讀取使用。
 > 每次升版必更新「## 📅 當前工作焦點」段落。
 
-**最後更新**: 2026/05/14 · v3.28.1 部署完成 + **破壞式 review KILL 4 項 / PARK 3 項**
-**累計戰力**: 99.991/100 (sniper net-buyer + 8 個版本累積防禦)
+**最後更新**: 2026/05/14 深夜 · v3.29.0 部署完成 (**Signal Engine MVP** — actionable signals + backtest-derived weights)
+**累計戰力**: 99.995/100 (設計哲學翻轉: raw data 展示 → actionable 答案)
 
 ---
 
