@@ -1,0 +1,98 @@
+{
+  "date": "20260518",
+  "generated_at": "2026-05-18T13:29:07.373019",
+  "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
+  "headline": "偏多 信心72.3% (高信心) · 3 檔個股關注",
+  "market_direction": {
+    "direction": "偏多",
+    "confidence_pct": 72.3,
+    "net_weight": 0.223,
+    "contributing": [
+      {
+        "name": "P/C Ratio",
+        "level": "extreme-bull",
+        "weight": 0.087,
+        "sign": "bull"
+      },
+      {
+        "name": "結算日壓力",
+        "level": "bull",
+        "weight": 0.136,
+        "sign": "bull"
+      }
+    ],
+    "ignored": [
+      "外資現貨",
+      "外資期貨",
+      "分點漲停",
+      "融資熱度",
+      "法人共識"
+    ]
+  },
+  "top_focus_stocks": [
+    {
+      "rank": 1,
+      "code": "2327",
+      "name": "國巨*",
+      "change_pct": 9.99,
+      "tier": "consensus",
+      "master_count": 0,
+      "masters": [],
+      "total_buy_amt_K": 14379242,
+      "total_buy_amt_yi": 143.79,
+      "confidence_pct": 52,
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.99%, 共淨買 143.79 億",
+      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
+    },
+    {
+      "rank": 2,
+      "code": "2313",
+      "name": "華通",
+      "change_pct": 9.98,
+      "tier": "consensus",
+      "master_count": 0,
+      "masters": [],
+      "total_buy_amt_K": 8096430,
+      "total_buy_amt_yi": 80.96,
+      "confidence_pct": 52,
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.98%, 共淨買 80.96 億",
+      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
+    },
+    {
+      "rank": 3,
+      "code": "2481",
+      "name": "強茂",
+      "change_pct": 9.79,
+      "tier": "consensus",
+      "master_count": 0,
+      "masters": [],
+      "total_buy_amt_K": 1075666,
+      "total_buy_amt_yi": 10.76,
+      "confidence_pct": 52,
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.79%, 共淨買 10.76 億",
+      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
+    }
+  ],
+  "killed_signals": {
+    "外資期貨等效大台淨 OI": {
+      "reason": "1 年 backtest 96% 樣本歸到偏空/極空, 全年外資長期淨空, 反指標假設失效",
+      "evidence": "hit 40.8% (偏空 n=98) / 41.4% (極空 n=140), 比隨機 50% 還差",
+      "killed_in": "v3.29 Signal Engine",
+      "recall_condition": "若市場結構翻轉 (外資轉淨多 ≥30 天連續), 重啟 backtest 評估"
+    }
+  },
+  "meta": {
+    "backtest_basis": "data/backtest_results.json (1-year, 247 pairs, 5/2025-5/2026)",
+    "phase_a_signals": [
+      "P/C Ratio",
+      "結算日壓力"
+    ],
+    "phase_b_pending": [
+      "外資現貨",
+      "分點漲停",
+      "融資熱度",
+      "法人共識"
+    ],
+    "note": "Phase A 只啟用 backtest 證實有 alpha 的 信號 3 (PCR) + 信號 7 (結算日 D±3)。信號 2 (外資期貨) 已廢除,理由詳 killed_signals。信號 1/4/5/6 待 Phase B backtest 後納入。"
+  }
+}
