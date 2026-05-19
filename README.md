@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.29.0 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.29.1 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.29.1 (2026-05-19)** — **Net-buyer filter 擴大到所有 master**(swing + sniper)。用戶 review 5/19 Excel 發現 大牌分析師-新光新竹 (8563) 顯示 矽格(6257) 但實際淨賣 -1412 萬。系統性掃描全 Excel:**359 row 有資料,48 row (13%) 是淨賣股污染**。最嚴重 航海王 國票安和 國巨\*(2327) 淨賣 -21,019 萬 (2.1 億) 仍被顯示。根因:v3.28.1 只對 sniper_mode 加 net filter,swing master 仍按 buy_amt desc 排序漏掉 net 檢查。修法:`_top_stocks_for_branch` 對所有 master 都加 `net_amt > 0 or net_lot > 0` filter,sniper_mode 再額外限定 `is_limit_up`。15/15 新測試 PASS,既有 7 套回歸 PASS。
 
 > **v3.29.0 (2026-05-14)** — **破壞式思考 → Signal Engine MVP**。從「展示 raw data 讓 user 自己解讀」轉「給 user actionable 答案 + 信心區間」。
 > - **`backtester.py` 1 年 backtest 247 配對** 揭示:信號 2 外資期貨 hit 40-41% < 隨機(全年外資長期淨空,反指標假設失效)→ **廢除**。信號 3 PCR hit 58.7%、信號 7 結算週 D±3 hit 63.6% → **保留為 alpha**。

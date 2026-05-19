@@ -296,13 +296,21 @@ def _top_stocks_for_branch(branch_data: Dict, sniper_mode: bool = False) -> List
         if c and c not in seen:
             seen[c] = s
     candidates = list(seen.values())
+
+    # v3.29.1: 對 *所有* master (包含 swing) 加 net_buyer filter
+    # 5/19 用戶 review 發現: 大牌分析師-新光新竹 顯示 6257 但實際淨賣 -1412 萬。
+    # 系統性掃描全 Excel: 359 row 有資料,48 row (13%) 是淨賣股被選入 (e.g. 航海王 國票安和 國巨* 淨賣 2.1 億).
+    # 根因: v3.28.1 只對 sniper_mode 加 net filter, swing master 仍按 buy_amt desc 排序,
+    #       gross buy_amt 高 但 net 為負的個股污染 Excel.
+    # 修法: 所有 master 先 filter net > 0, sniper_mode 再額外限定 is_limit_up.
+    candidates = [
+        s for s in candidates
+        if (s.get("net_amt", 0) or 0) > 0 or (s.get("net_lot", 0) or 0) > 0
+    ]
+
     if sniper_mode:
-        # v3.28.1: 必須同時滿足「漲停 + 淨買超」
-        candidates = [
-            s for s in candidates
-            if s.get("is_limit_up")
-            and ((s.get("net_amt", 0) or 0) > 0 or (s.get("net_lot", 0) or 0) > 0)
-        ]
+        # sniper master 額外限定: 只看漲停股
+        candidates = [s for s in candidates if s.get("is_limit_up")]
     sorted_stocks = sorted(
         candidates,
         key=lambda x: x.get("buy_amt", 0) or 0,

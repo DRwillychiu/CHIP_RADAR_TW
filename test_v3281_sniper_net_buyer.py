@@ -90,15 +90,23 @@ for code in expected_out:
         print(f"  ❌ {code} 應排除 → 被選入 [FAIL]")
         all_pass = False
 
-# 對比: sniper_mode=False (swing master) 不該被新邏輯影響
-print(f"\nsniper_mode=False (swing master) 不該受影響:")
+# v3.29.1 更新: sniper_mode=False (swing master) 也加 net_buyer filter
+# 原 v3.28.1 行為 "全 6 入選" 已修正 (5/19 用戶 review 發現 13% rows 是淨賣污染)
+print(f"\nsniper_mode=False (swing master) v3.29.1 後也 filter net_buyer:")
 result_swing = _top_stocks_for_branch(branch_data, sniper_mode=False)
 result_swing_codes = [s["code"] for s in result_swing]
 print(f"  入選 ({len(result_swing)} 檔): {result_swing_codes}")
-# Should include all 6 (no filter for swing)
-swing_ok = len(result_swing) == 6 and "2377" in result_swing_codes  # 微星 swing 仍可入(波段大買大賣是常態)
-print(f"  {'✅' if swing_ok else '❌'} swing master 行為不變: {'PASS' if swing_ok else 'FAIL'}")
+# v3.29.1: swing 也 filter net > 0. 預期入選:
+#   3443 (淨買漲停), 6679 (net_lot>0 漲停), 2330 (淨買非漲停 — swing 可入, sniper 不可)
+# 預期排除:
+#   2377 微星 (淨賣 v3.28.1 fixture 已標), 2303 net=0, 2317 鴻海淨賣
+expected_in_swing_v3291 = {"3443", "6679", "2330"}
+expected_out_swing_v3291 = {"2377", "2303", "2317"}
+actual_set = set(result_swing_codes)
+swing_ok = (expected_in_swing_v3291 <= actual_set and not (expected_out_swing_v3291 & actual_set))
+print(f"  {'✅' if swing_ok else '❌'} swing master v3.29.1 行為 (filter net_buyer): {'PASS' if swing_ok else 'FAIL'}")
 if not swing_ok:
+    print(f"     expected_in: {expected_in_swing_v3291}, actual: {actual_set}")
     all_pass = False
 
 # 邊界: 全空 branch_data
