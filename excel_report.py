@@ -355,13 +355,11 @@ def _write_stock_row(ws: "Worksheet", row: int, stock: Dict, sniper_mode: bool =
     buy_avg = round(buy_amt_k / buy_lot, 2) if (buy_lot > 0 and buy_amt_k > 0) else 0
     sell_avg = round(sell_amt_k / sell_lot, 2) if (sell_lot > 0 and sell_amt_k > 0) else 0
 
-    # D: stock label "name(code)" — v3.27.4 L4: sniper 加漲幅驗證
+    # D: stock label "name(code)"
+    # v3.29.4: 移除 v3.27.4 L4 的 ▲X.XX% 標籤 (user 5/22 review 不希望直接看漲幅)
+    # 漲停驗證改為間接靠 buy_amt 趨勢 / 額外 audit 工具
     c_d = ws.cell(row=row, column=4)
-    if sniper_mode and stock.get("change_pct") is not None:
-        _chg = stock["change_pct"]
-        c_d.value = f"{name}({code}) ▲{_chg}%"
-    else:
-        c_d.value = f"{name}({code})"
+    c_d.value = f"{name}({code})"
     c_d.font = _font_normal()
     c_d.alignment = _align_center()
 
@@ -408,16 +406,33 @@ def _write_blank_data_row(ws: "Worksheet", row: int):
 
 
 def _write_empty_branch_notice_row(ws: "Worksheet", row: int, sniper_mode: bool):
-    """v3.29.2: 該分點有 TWSE 資料但 filter 後全空 → 在 D 欄寫提示行,告訴老闆「不是 bug」.
+    """v3.29.2: 該分點有 TWSE 資料但 filter 後 *完全* 空白 (0 stocks) → 在 D 欄寫提示行.
 
-    sniper_mode=True: '⚪ 此分點今日未搶漲停'
-                       (master 在這分點有交易其他股, 但沒任何漲停 + 淨買 符合 sniper 規則)
+    sniper_mode=True:  '⚪ 此分點今日未搶漲停'
     sniper_mode=False: '⚪ 此分點今日無淨買超個股'
-                       (swing master 在這分點交易但全部淨賣 / net=0, v3.29.1 filter 全濾)
-
-    其他欄維持空白格式 (同 _write_blank_data_row), 只在 D 欄寫提示.
     """
     notice = '⚪ 此分點今日未搶漲停' if sniper_mode else '⚪ 此分點今日無淨買超個股'
+    _write_notice_row(ws, row, notice)
+
+
+def _write_partial_branch_notice_row(ws: "Worksheet", row: int, n_stocks: int, sniper_mode: bool):
+    """v3.29.4: 該分點 partial fill (1-9 stocks 入選) → 在第 N+1 列寫提示告訴老闆「就這樣」.
+
+    用戶 5/22 反映「凱基-松山 9217 顯示 4 stocks 後 6 row 空白看起來像 bug」.
+    這個提示行區分「sniper 沒搶更多漲停」vs「我們漏抓」.
+
+    sniper_mode=True:  '⚪ 今日漲停僅 N 檔'
+    sniper_mode=False: '⚪ 今日淨買僅 N 檔'
+    """
+    if sniper_mode:
+        notice = f'⚪ 今日漲停僅 {n_stocks} 檔'
+    else:
+        notice = f'⚪ 今日淨買僅 {n_stocks} 檔'
+    _write_notice_row(ws, row, notice)
+
+
+def _write_notice_row(ws: "Worksheet", row: int, notice: str):
+    """共用 helper: 在 D 欄寫灰色斜體提示, E-L 維持空白格式 (跟 _write_blank_data_row 同)."""
     c_d = ws.cell(row=row, column=4)
     c_d.value = notice
     c_d.font = Font(name=FONT_NAME, size=FONT_SIZE, bold=False, italic=True, color="FF808080")
@@ -495,22 +510,27 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
             if sniper_mode and stocks:
                 master_has_limit_up = True
 
-            # v3.29.2: 判斷該分點是否「有 TWSE 資料但 filter 後全空」
-            # 這種狀況加 notice 行區分 "TWSE 沒返回資料" vs "有資料但不符合 filter 條件"
+            # v3.29.2/v3.29.4: 判斷該分點空白狀態
+            # 完全空 (0 stocks + 有 TWSE 資料): v3.29.2 寫「未搶漲停 / 無淨買超」提示
+            # Partial 空 (1-9 stocks): v3.29.4 在第 N+1 列寫「今日漲停僅 N 檔」提示
+            # 完全沒 TWSE 資料 (bdata 空): 全空白, 不加任何提示 (避免誤導)
             has_branch_data = bool(bdata and (bdata.get('buys') or bdata.get('sells')))
-            empty_with_data = (len(stocks) == 0 and has_branch_data)
+            n_stocks = len(stocks)
 
             branch_first_row = row
             branch_last_row = row + STOCKS_PER_BRANCH - 1
 
-            # Write 10 rows (data or blank padding)
+            # Write 10 rows (data + notice + blank padding)
             for ri in range(STOCKS_PER_BRANCH):
                 r = branch_first_row + ri
-                if ri < len(stocks):
+                if ri < n_stocks:
                     _write_stock_row(ws, r, stocks[ri], sniper_mode=sniper_mode)
-                elif ri == 0 and empty_with_data:
-                    # v3.29.2: 第一列加 by-design 提示, 避免老闆以為是 bug
-                    _write_empty_branch_notice_row(ws, r, sniper_mode=sniper_mode)
+                elif ri == n_stocks and has_branch_data:
+                    # 第一個空白 row 加 by-design 提示
+                    if n_stocks == 0:
+                        _write_empty_branch_notice_row(ws, r, sniper_mode=sniper_mode)
+                    else:
+                        _write_partial_branch_notice_row(ws, r, n_stocks, sniper_mode=sniper_mode)
                 else:
                     _write_blank_data_row(ws, r)
 

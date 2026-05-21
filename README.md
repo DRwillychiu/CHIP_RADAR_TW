@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.29.3 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.29.4 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.29.4 (2026-05-22)** — **Partial 空白提示 + 移除 ▲% 標籤**。用戶 5/22 review 5/20 Excel 凱基-松山 9217 (迷你哥 sniper) 顯示 4 stocks 後 6 row 空白看起來像 bug。v3.29.2 只處理「完全空白(0 stocks)」case,**partial (1-9 stocks) 沒提示**。修法:`_write_partial_branch_notice_row` 在 partial 第 N+1 列寫「⚪ 今日漲停僅 N 檔」(sniper) 或「⚪ 今日淨買僅 N 檔」(swing)。同時 reverse v3.27.4 L4 — **移除標的欄的 `▲X.XX%` 漲幅標籤**(user 不希望直接顯示)。10/10 測試 PASS(6 新 + 9 既有回歸)。
 
 > **v3.29.3 (2026-05-21)** — **W1 + W2:融資 cross-check + 自動化 audit + Windows toast 通知**。
 > - **W2 auto_audit.py**:V1 全分點掃描邏輯 module 化,crawler 跑完 Excel 後立刻 audit,verdict PASS/WARN/FAIL 寫入 `data/daily_audit.json`,GitHub Actions log 印 ::error::/::warning::/::notice::。
