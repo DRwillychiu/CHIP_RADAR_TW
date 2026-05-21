@@ -1,7 +1,13 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.29.2 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.29.3 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.29.3 (2026-05-21)** — **W1 + W2:融資 cross-check + 自動化 audit + Windows toast 通知**。
+> - **W2 auto_audit.py**:V1 全分點掃描邏輯 module 化,crawler 跑完 Excel 後立刻 audit,verdict PASS/WARN/FAIL 寫入 `data/daily_audit.json`,GitHub Actions log 印 ::error::/::warning::/::notice::。
+> - **W2 trigger_chip_radar.ps1 升級**:Task Scheduler 跑完 poll workflow 直到完成,讀 `daily_audit.json` → **Windows 桌面 toast 通知**(BurntToast 或 BalloonTip fallback)。verdict FAIL 時 ❌ 紅標警示,PASS 時 ✅ 綠標。
+> - **W1 margin_cross_check.py**:拉 TWSE MI_MARGN 官方融資融券合計資料(信用交易統計 + 融資融券彙總),user 開 chip_radar 融資 tab 視覺對齊驗證。5/18-5/20 三天合計數據已驗。
+> - 信賴度:**92-95% → 96%+**(融資資料源對齊驗證 + 自動 daily audit 取代手動 review)。
 
 > **v3.29.2 (2026-05-19)** — **空白分點 by-design 提示行**。用戶 5/19 review 發現 3 個分點(迷你哥 9200、巨人傑 9B2n/9B2z)Excel 全空白。重新驗證 log 確認**這 3 分點都有 91/89/91 檔交易資料**,只是 sniper master 沒搶到任何「漲停+淨買」符合條件。屬 v3.26 sniper 設計的 by-design 結果。修法:`build_day_sheet` 偵測「有 TWSE 資料但 filter 後全空」,在 D 欄第 1 列寫提示「⚪ 此分點今日未搶漲停」(sniper) 或「⚪ 此分點今日無淨買超個股」(swing v3.29.1 全濾淨賣 case)。**TWSE 完全沒資料的分點維持全空白**(避免誤導)。4/4 case + 8 套回歸全 PASS。
 

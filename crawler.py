@@ -2473,7 +2473,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.29.2",
+        "version": "3.29.3",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -2538,6 +2538,19 @@ def main():
         )
         if excel_path:
             print(f"  [Excel 日報] 生成成功:{excel_path}")
+
+            # v3.29.3 W2: Excel 生成後立刻 auto_audit (V1 全分點掃描) + ::warning:: 級別
+            try:
+                import auto_audit
+                audit_rpt = auto_audit.run_audit(data_dir)
+                auto_audit.save_audit_report(data_dir, audit_rpt)
+                verdict = audit_rpt.get('overall_verdict', 'SKIP')
+                summary = audit_rpt.get('summary', '')
+                print(f"  [Auto Audit v3.29.3] {verdict}: {summary}")
+                # GitHub Actions log marker (::error/::warning/::notice::)
+                auto_audit._emit_github_actions_marker(audit_rpt)
+            except Exception as _ae:
+                print(f"  [Auto Audit] 失敗 (不影響主流程): {_ae}")
     except ImportError:
         print("  [Excel 日報] excel_report 模組未安裝, 略過")
     except Exception as e:
@@ -2620,7 +2633,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.29.2",
+            "version": "3.29.3",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）
