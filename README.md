@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.29.1 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.29.2 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.29.2 (2026-05-19)** — **空白分點 by-design 提示行**。用戶 5/19 review 發現 3 個分點(迷你哥 9200、巨人傑 9B2n/9B2z)Excel 全空白。重新驗證 log 確認**這 3 分點都有 91/89/91 檔交易資料**,只是 sniper master 沒搶到任何「漲停+淨買」符合條件。屬 v3.26 sniper 設計的 by-design 結果。修法:`build_day_sheet` 偵測「有 TWSE 資料但 filter 後全空」,在 D 欄第 1 列寫提示「⚪ 此分點今日未搶漲停」(sniper) 或「⚪ 此分點今日無淨買超個股」(swing v3.29.1 全濾淨賣 case)。**TWSE 完全沒資料的分點維持全空白**(避免誤導)。4/4 case + 8 套回歸全 PASS。
 
 > **v3.29.1 (2026-05-19)** — **Net-buyer filter 擴大到所有 master**(swing + sniper)。用戶 review 5/19 Excel 發現 大牌分析師-新光新竹 (8563) 顯示 矽格(6257) 但實際淨賣 -1412 萬。系統性掃描全 Excel:**359 row 有資料,48 row (13%) 是淨賣股污染**。最嚴重 航海王 國票安和 國巨\*(2327) 淨賣 -21,019 萬 (2.1 億) 仍被顯示。根因:v3.28.1 只對 sniper_mode 加 net filter,swing master 仍按 buy_amt desc 排序漏掉 net 檢查。修法:`_top_stocks_for_branch` 對所有 master 都加 `net_amt > 0 or net_lot > 0` filter,sniper_mode 再額外限定 `is_limit_up`。15/15 新測試 PASS,既有 7 套回歸 PASS。
 

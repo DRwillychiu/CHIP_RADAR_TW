@@ -407,6 +407,34 @@ def _write_blank_data_row(ws: "Worksheet", row: int):
             c.number_format = NUMBER_FMT_PNL
 
 
+def _write_empty_branch_notice_row(ws: "Worksheet", row: int, sniper_mode: bool):
+    """v3.29.2: 該分點有 TWSE 資料但 filter 後全空 → 在 D 欄寫提示行,告訴老闆「不是 bug」.
+
+    sniper_mode=True: '⚪ 此分點今日未搶漲停'
+                       (master 在這分點有交易其他股, 但沒任何漲停 + 淨買 符合 sniper 規則)
+    sniper_mode=False: '⚪ 此分點今日無淨買超個股'
+                       (swing master 在這分點交易但全部淨賣 / net=0, v3.29.1 filter 全濾)
+
+    其他欄維持空白格式 (同 _write_blank_data_row), 只在 D 欄寫提示.
+    """
+    notice = '⚪ 此分點今日未搶漲停' if sniper_mode else '⚪ 此分點今日無淨買超個股'
+    c_d = ws.cell(row=row, column=4)
+    c_d.value = notice
+    c_d.font = Font(name=FONT_NAME, size=FONT_SIZE, bold=False, italic=True, color="FF808080")
+    c_d.alignment = _align_center()
+    # 其他欄 (E-L) 維持空白格式
+    for ci in range(5, 13):
+        c = ws.cell(row=row, column=ci)
+        c.font = _font_normal()
+        c.alignment = _align_center()
+        if ci in (5, 6, 7, 8, 9):
+            c.number_format = NUMBER_FMT_INT
+        elif ci in (10, 11):
+            c.number_format = NUMBER_FMT_PRICE
+        elif ci == 12:
+            c.number_format = NUMBER_FMT_PNL
+
+
 # ============================================================
 #  Build single-day sheet
 # ============================================================
@@ -467,6 +495,11 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
             if sniper_mode and stocks:
                 master_has_limit_up = True
 
+            # v3.29.2: 判斷該分點是否「有 TWSE 資料但 filter 後全空」
+            # 這種狀況加 notice 行區分 "TWSE 沒返回資料" vs "有資料但不符合 filter 條件"
+            has_branch_data = bool(bdata and (bdata.get('buys') or bdata.get('sells')))
+            empty_with_data = (len(stocks) == 0 and has_branch_data)
+
             branch_first_row = row
             branch_last_row = row + STOCKS_PER_BRANCH - 1
 
@@ -475,6 +508,9 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
                 r = branch_first_row + ri
                 if ri < len(stocks):
                     _write_stock_row(ws, r, stocks[ri], sniper_mode=sniper_mode)
+                elif ri == 0 and empty_with_data:
+                    # v3.29.2: 第一列加 by-design 提示, 避免老闆以為是 bug
+                    _write_empty_branch_notice_row(ws, r, sniper_mode=sniper_mode)
                 else:
                     _write_blank_data_row(ws, r)
 
