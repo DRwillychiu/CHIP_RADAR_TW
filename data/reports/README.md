@@ -33,7 +33,7 @@
 
 | 日期 | 檔案 | 大小 |
 |------|------|------|
-| 2026-05-22 | [chip_radar_2026-05-22.xlsx](./chip_radar_2026-05-22.xlsx) | 37.1 KB |
+| 2026-05-22 | [chip_radar_2026-05-22.xlsx](./chip_radar_2026-05-22.xlsx) | 37.8 KB |
 | 2026-05-21 | [chip_radar_2026-05-21.xlsx](./chip_radar_2026-05-21.xlsx) | 37.3 KB |
 | 2026-05-20 | [chip_radar_2026-05-20.xlsx](./chip_radar_2026-05-20.xlsx) | 35.7 KB |
 | 2026-05-19 | [chip_radar_2026-05-19.xlsx](./chip_radar_2026-05-19.xlsx) | 35.3 KB |
@@ -48,4 +48,4 @@
 
 ---
 
-*Updated: 2026-05-22 17:10*
+*Updated: 2026-05-23 06:13*
