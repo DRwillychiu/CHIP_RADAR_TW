@@ -217,7 +217,20 @@ COL_WIDTHS = {
     "L": 15.5703125,
 }
 
-STOCKS_PER_BRANCH = 10  # fixed 10 rows per branch (pad blank if fewer)
+STOCKS_PER_BRANCH = 10  # default: 10 rows per branch (pad blank if fewer)
+
+# v3.29.5 (2026-05-23): per-branch override 客製化 row 數
+# User 5/23 要求 大牌分析師 新光-新竹 (8563) 改 Top 20 (其他維持 10).
+# TWSE 分點頁面 publish Top 15 買榜 + Top 15 賣榜 = 最多 30 unique 個股, Top 20 用既有資料就夠.
+# 要再加分點就直接編這個 dict, e.g. {"8563": 20, "9227": 15} (蔣承翰城中改 15).
+BRANCH_STOCK_OVERRIDES: Dict[str, int] = {
+    "8563": 20,   # 大牌分析師 / 新光-新竹 → Top 20 (5/23 user request)
+}
+
+
+def _branch_stocks_size(branch_code: str) -> int:
+    """v3.29.5: 取得單一分點的 row 數 (override 優先, fallback default 10)."""
+    return BRANCH_STOCK_OVERRIDES.get(branch_code, STOCKS_PER_BRANCH)
 
 NUMBER_FMT_INT = "#,##0"
 NUMBER_FMT_PRICE = "0.00"
@@ -267,7 +280,8 @@ def _header_row(header_label: str, include_master_label: bool) -> List[str]:
 #  Stock selection: top 10 by buy_amt for a given branch
 # ============================================================
 
-def _top_stocks_for_branch(branch_data: Dict, sniper_mode: bool = False) -> List[Dict]:
+def _top_stocks_for_branch(branch_data: Dict, sniper_mode: bool = False,
+                            n_top: int = None) -> List[Dict]:
     """
     Combine buys + sells lists, dedupe by code, sort by buy_amt desc, take top 10.
     Returns list of stock dicts with keys: code, name, buy_lot, sell_lot, buy_amt, sell_amt
@@ -316,7 +330,9 @@ def _top_stocks_for_branch(branch_data: Dict, sniper_mode: bool = False) -> List
         key=lambda x: x.get("buy_amt", 0) or 0,
         reverse=True,
     )
-    return sorted_stocks[:STOCKS_PER_BRANCH]
+    # v3.29.5: n_top 預設 STOCKS_PER_BRANCH, 但允許 per-branch override (e.g. 8563→20)
+    limit = n_top if n_top is not None else STOCKS_PER_BRANCH
+    return sorted_stocks[:limit]
 
 
 # ============================================================
@@ -504,24 +520,24 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
                 _write_header_row(ws, row, header_label, include_master_label=False)
                 row += 1
 
+            # v3.29.5: 該分點是否有 override row 數 (e.g. 8563→20, 其他→10)
+            branch_size = _branch_stocks_size(branch_code)
+
             # Lookup live branch data
             bdata = by_code.get(branch_code, {})
-            stocks = _top_stocks_for_branch(bdata, sniper_mode=sniper_mode)
+            stocks = _top_stocks_for_branch(bdata, sniper_mode=sniper_mode, n_top=branch_size)
             if sniper_mode and stocks:
                 master_has_limit_up = True
 
             # v3.29.2/v3.29.4: 判斷該分點空白狀態
-            # 完全空 (0 stocks + 有 TWSE 資料): v3.29.2 寫「未搶漲停 / 無淨買超」提示
-            # Partial 空 (1-9 stocks): v3.29.4 在第 N+1 列寫「今日漲停僅 N 檔」提示
-            # 完全沒 TWSE 資料 (bdata 空): 全空白, 不加任何提示 (避免誤導)
             has_branch_data = bool(bdata and (bdata.get('buys') or bdata.get('sells')))
             n_stocks = len(stocks)
 
             branch_first_row = row
-            branch_last_row = row + STOCKS_PER_BRANCH - 1
+            branch_last_row = row + branch_size - 1
 
-            # Write 10 rows (data + notice + blank padding)
-            for ri in range(STOCKS_PER_BRANCH):
+            # Write branch_size rows (data + notice + blank padding)
+            for ri in range(branch_size):
                 r = branch_first_row + ri
                 if ri < n_stocks:
                     _write_stock_row(ws, r, stocks[ri], sniper_mode=sniper_mode)

@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.29.4 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.29.5 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.29.5 (2026-05-23)** — **Per-branch row 數 override**。用戶 5/23 要求 大牌分析師 新光-新竹 (8563) 改 Top 20(其他維持 10)。`BRANCH_STOCK_OVERRIDES = {"8563": 20}` 一行設定,未來其他分點要客製化同樣加。`_top_stocks_for_branch` 加 `n_top` 參數,`build_day_sheet` 每分點 lookup override 後動態決定 row 數 + 自動調整 A/B/C 列 merge 範圍。**TWSE 分點頁面已有 Top 15 買榜 + Top 15 賣榜 = 最多 30 unique 個股,Top 20 不需要重抓**。5/5 新 case + 10 套回歸全 PASS。
 
 > **v3.29.4 (2026-05-22)** — **Partial 空白提示 + 移除 ▲% 標籤**。用戶 5/22 review 5/20 Excel 凱基-松山 9217 (迷你哥 sniper) 顯示 4 stocks 後 6 row 空白看起來像 bug。v3.29.2 只處理「完全空白(0 stocks)」case,**partial (1-9 stocks) 沒提示**。修法:`_write_partial_branch_notice_row` 在 partial 第 N+1 列寫「⚪ 今日漲停僅 N 檔」(sniper) 或「⚪ 今日淨買僅 N 檔」(swing)。同時 reverse v3.27.4 L4 — **移除標的欄的 `▲X.XX%` 漲幅標籤**(user 不希望直接顯示)。10/10 測試 PASS(6 新 + 9 既有回歸)。
 
