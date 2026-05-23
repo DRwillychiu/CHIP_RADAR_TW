@@ -4405,6 +4405,95 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   <div class="drawer-body" id="drawerBody"></div>
 </div>
 
+<!-- v3.30.0: AI 解讀 popup (lightweight, 不同於右側 drawer) -->
+<style>
+.insight-popup-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75); z-index: 99999;
+  align-items: center; justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+.insight-popup-overlay.show { display: flex; }
+.insight-popup-card {
+  background: var(--card, #1a1d23);
+  border: 1px solid var(--border, #2a2e36);
+  border-radius: 14px; padding: 22px 22px 18px;
+  max-width: 500px; width: 92%;
+  color: var(--text, #e6e9ef);
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  animation: popupIn 0.18s ease;
+}
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes popupIn { from { transform: scale(0.92); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+.insight-popup-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; margin-bottom: 12px;
+}
+.insight-popup-head h3 {
+  margin: 0; font-size: 18px; font-weight: 600;
+  color: var(--text, #e6e9ef);
+}
+.insight-popup-close {
+  background: none; border: none; color: var(--text-3, #888);
+  font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1;
+}
+.insight-popup-close:hover { color: var(--text, #e6e9ef); }
+.insight-popup-meta {
+  font-size: 13px; color: var(--text-2, #aaa);
+  margin-bottom: 12px; line-height: 1.6;
+}
+.insight-popup-meta strong { color: var(--text, #e6e9ef); }
+.insight-popup-pattern-tag {
+  display: inline-block; padding: 3px 12px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; margin-left: 6px;
+}
+.insight-popup-pattern-tag.flip { background: #5f2424; color: #ffa6a6; }
+.insight-popup-pattern-tag.day  { background: #5a3e1c; color: #ffc987; }
+.insight-popup-pattern-tag.swing { background: #1f3a5a; color: #93c5fd; }
+.insight-popup-pattern-tag.partial { background: #3d2d5c; color: #c4b5fd; }
+.insight-popup-pattern-tag.unknown { background: #2a2e36; color: #888; }
+.insight-popup-narrative {
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid var(--accent, #6ad);
+  padding: 12px 14px; border-radius: 6px;
+  font-size: 14px; line-height: 1.7; color: var(--text, #e6e9ef);
+  margin-top: 8px;
+}
+.insight-popup-foot {
+  font-size: 11px; color: var(--text-3, #888);
+  margin-top: 10px; text-align: right;
+}
+.insight-trigger-btn {
+  display: inline-block; padding: 2px 8px;
+  background: rgba(110,180,230,0.18); color: #93c5fd;
+  border: 1px solid rgba(110,180,230,0.4); border-radius: 6px;
+  font-size: 11px; cursor: pointer; margin-left: 6px;
+  font-family: system-ui, sans-serif;
+}
+.insight-trigger-btn:hover { background: rgba(110,180,230,0.3); }
+</style>
+<div id="insightPopup" class="insight-popup-overlay"
+     onclick="if(event.target.id==='insightPopup')hideInsightPopup()">
+  <div class="insight-popup-card">
+    <div class="insight-popup-head">
+      <h3 id="insightPopup-stock">—</h3>
+      <button class="insight-popup-close" onclick="hideInsightPopup()">✕</button>
+    </div>
+    <div class="insight-popup-meta">
+      <div>分點: <strong id="insightPopup-branch">—</strong>
+           (<span id="insightPopup-master">—</span>)</div>
+      <div style="margin-top:4px;">模式:
+        <span id="insightPopup-pattern" class="insight-popup-pattern-tag">—</span>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--text-2,#aaa);margin-bottom:4px;">📋 AI 解讀</div>
+    <p id="insightPopup-narrative" class="insight-popup-narrative">—</p>
+    <div class="insight-popup-foot">
+      規則式分類 + 模板生成 · v3.30.0 · Phase 2 押真 AI
+    </div>
+  </div>
+</div>
+
 </div><!-- /app-content -->
 
 <!-- v3.16.1: Chart.js for 三線比較圖 -->
@@ -5413,11 +5502,13 @@ function renderLimitUpPanel() {
       // 漲停股 details
       let detailsHTML = '';
       if (sniperView === 'branch' && sn.limit_up_details) {
-        detailsHTML = sn.limit_up_details.slice(0, 20).map(d => 
-          `<span class="sniper-detail-chip" onclick="showStockDetail('${d.code}','${(d.name||'').replace(/'/g,"\\'")}')">
-            ${d.name} <span class="code">${d.code}</span> +${(d.change_pct||0).toFixed(1)}% <span style="color:#fca5a5;">${fmtAmtWan(d.buy_amt)}</span>
-          </span>`
-        ).join('');
+        // v3.30.0: chip 內加 📋 AI 解讀 按鈕 (branch 模式才有 branch_code 可用)
+        detailsHTML = sn.limit_up_details.slice(0, 20).map(d => {
+          const aiBtn = insightBtnHTML(sn.master, sn.branch_code, sn.branch_name, d.code, d.name);
+          return `<span class="sniper-detail-chip" onclick="showStockDetail('${d.code}','${(d.name||'').replace(/'/g,"\\'")}')">
+            ${d.name} <span class="code">${d.code}</span> +${(d.change_pct||0).toFixed(1)}% <span style="color:#fca5a5;">${fmtAmtWan(d.buy_amt)}</span>${aiBtn}
+          </span>`;
+        }).join('');
       } else if (sniperView === 'master' && sn.limit_up_codes) {
         // Master 視角：列出個股代碼
         detailsHTML = sn.limit_up_codes.slice(0, 30).map(c => 
@@ -9152,10 +9243,13 @@ function renderMasterView() {
       const brInfo = s.branches.length === 1 
         ? br.name
         : `${s.branches.length} 分點共買`;
+      // v3.30.0: 高手合併 top_stocks row 加 📋 AI (用 s.branches[0] 作為代表分點)
+      const repBr = s.branches?.[0];
+      const aiBtn = repBr ? insightBtnHTML(m.master_name || m.master, repBr.code, repBr.name, s.code, s.name) : '';
       return `<tr onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
         <td class="num" style="color:var(--gold-bright);">#${i+1}</td>
         <td><div class="stock-cell">
-          <span class="stock-name">${s.name}${stockInfo ? renderMarketChip(stockInfo) : ''}${renderQuoteChip(s.code)}</span>
+          <span class="stock-name">${s.name}${stockInfo ? renderMarketChip(stockInfo) : ''}${renderQuoteChip(s.code)}${aiBtn}</span>
           <span class="stock-code">${s.code}</span>
         </div></td>
         <td class="num ${s.total_net_amt>0?'pos-strong':'neg-strong'}">${fmtAmt(s.total_net_amt)}</td>
@@ -9164,7 +9258,7 @@ function renderMasterView() {
         <td style="color:var(--text-2);font-size:12px;">${brInfo}</td>
       </tr>`;
     }).join('');
-    
+
     topStocksHTML = `
       <div class="section-title" style="margin-top:24px;">🎯 今日進出前 20 名個股<span class="section-sub">${filteredTop.length}/${m.top_stocks.length} 檔（已篩選）</span></div>
       <div class="table-wrap">
@@ -9283,6 +9377,8 @@ function renderBranches() {
                    <div class="amt" style="color:var(--text-3);">（金額未排進前30）</div>`;
       }
       
+      // v3.30.0: 分點動態 row 加 📋 AI 解讀 按鈕
+      const aiBtn = insightBtnHTML(b.master, b.code, b.name, s.code, s.name);
       return `<div class="stock-row" onclick="showStockDetail('${s.code}','${s.name.replace(/'/g,"\\'")}')">
         <div class="left">
           <span class="sname">${s.name}${renderMarketChip(s)}</span>
@@ -9291,6 +9387,7 @@ function renderBranches() {
         </div>
         <div class="middle">
           ${pnlInfo}
+          ${aiBtn}
         </div>
         <div class="right">
           ${amtLine}
@@ -10519,6 +10616,68 @@ function openMasterView(masterName) {
 function closeDrawer() {
   document.getElementById('overlay').classList.remove('show');
   document.getElementById('drawer').classList.remove('show');
+}
+
+// ========== v3.30.0 AI 解讀 popup (small modal) ==========
+// 從 CURRENT_DATA.branches[].buys/sells 找 (branch_code, stock_code) match 的 stock dict
+// → render trade_pattern + insight_narrative
+function findInsightForStock(branchCode, stockCode) {
+  if (!CURRENT_DATA || !CURRENT_DATA.branches) return null;
+  for (const br of CURRENT_DATA.branches) {
+    if (br.code !== branchCode) continue;
+    for (const side of ['buys', 'sells']) {
+      const list = br[side] || [];
+      for (const s of list) {
+        if (s.code === stockCode) return s;
+      }
+    }
+  }
+  return null;
+}
+
+// pattern 樣式 class 對應
+const _patternClassMap = {
+  '隔日沖': 'flip',
+  '當沖':   'day',
+  '波段持股': 'swing',
+  '部分當沖': 'partial',
+  '未明':   'unknown',
+};
+
+// args 都是字串, 從 onclick 字面值傳入
+function showInsightPopup(masterName, branchCode, branchName, stockCode, stockName) {
+  const stock = findInsightForStock(branchCode, stockCode);
+  if (!stock) {
+    alert('找不到該分點 × 個股的 AI 解讀資料 (可能 v3.30 前產出, 5/26 後新資料才會有)');
+    return;
+  }
+  const pattern = stock.trade_pattern || '未明';
+  const narrative = stock.insight_narrative || '此筆無 AI 解讀 narrative';
+
+  document.getElementById('insightPopup-stock').textContent =
+    `${stockName || stock.name || ''}(${stockCode})`;
+  document.getElementById('insightPopup-branch').textContent =
+    branchName || branchCode;
+  document.getElementById('insightPopup-master').textContent =
+    masterName || '—';
+
+  const patternEl = document.getElementById('insightPopup-pattern');
+  patternEl.textContent = pattern;
+  patternEl.className = 'insight-popup-pattern-tag ' + (_patternClassMap[pattern] || 'unknown');
+
+  document.getElementById('insightPopup-narrative').textContent = narrative;
+  document.getElementById('insightPopup').classList.add('show');
+}
+
+function hideInsightPopup() {
+  document.getElementById('insightPopup').classList.remove('show');
+}
+
+// 給 render functions 用: 生成 📋 觸發 button HTML
+// 用引號逃逸避免 onclick 字面值出錯
+function insightBtnHTML(masterName, branchCode, branchName, stockCode, stockName) {
+  const esc = s => String(s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  return `<button class="insight-trigger-btn" onclick="event.stopPropagation();showInsightPopup('${esc(masterName)}','${esc(branchCode)}','${esc(branchName)}','${esc(stockCode)}','${esc(stockName)}')">📋 AI</button>`;
 }
 
 // ========== 格式化 ==========

@@ -2473,7 +2473,7 @@ def main():
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.29.7",
+        "version": "3.30.0",
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -2584,6 +2584,31 @@ def main():
     except Exception as e:
         print(f"  [溫度計] 失敗: {e}")
 
+    # ════════════════════════════════════════════════════════════════
+    # v3.30.0 AI 解讀層: trade_pattern + insight_narrative (per stock)
+    # 規則式分類 + 模板式 50-100 字 narrative, 前端 popup 讀
+    # 必須在加密前注入 (因為要寫進 raw_output['branches'] 各 stock dict)
+    # ════════════════════════════════════════════════════════════════
+    try:
+        import trade_pattern
+        injected_count = trade_pattern.inject_trade_patterns(
+            results,                # 56 個分點的 buys/sells
+            WATCHED_BRANCHES,       # branches.py 設定
+            MASTER_STYLES,          # branches.py MASTER_STYLES dict
+        )
+        # 統計各 pattern 分布
+        from collections import Counter
+        _pc = Counter()
+        for br in results:
+            for side in ('buys', 'sells'):
+                for s in br.get(side, []) or []:
+                    _pc[s.get('trade_pattern', '未明')] += 1
+        _summary = ', '.join(f'{k}={v}' for k, v in _pc.most_common())
+        print(f"  [Trade Pattern v3.30] {injected_count} stock 注入 trade_pattern + narrative")
+        print(f"                       分布: {_summary}")
+    except Exception as _tpe:
+        print(f"  [Trade Pattern] 失敗 (不影響主流程): {_tpe}")
+
     plaintext = json.dumps(raw_output, ensure_ascii=False)
     print(f"[加密] 原始大小: {len(plaintext)/1024:.1f} KB")
     encrypted_token = encrypt_data(plaintext, password)
@@ -2633,7 +2658,7 @@ def main():
             "branches_count": len(unique_branches),
             "baseline_date": BASELINE_DATE,
             "encrypted": True,
-            "version": "3.29.7",
+            "version": "3.30.0",
         }, f, ensure_ascii=False, indent=2)
     
     # v3.9 週報/月報自動生成（僅在週一/月初觸發）

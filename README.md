@@ -1,7 +1,13 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.29.7 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.30.0 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.30.0 (2026-05-24)** — **AI 解讀層 MVP(規則式分類 + 模板 narrative + popup)**。從 raw data 升級到解讀層,讓每筆 (master × branch × stock) 都有「囤貨 / 隔日沖 / 當沖 / 波段持股 / 部分當沖」模式判斷 + 50-100 字中性專業說明。
+> - **後端 `trade_pattern.py`**: `classify_trade_pattern()` 規則式判斷 + `generate_narrative()` 模板生成,crawler 整合自動注入每個 stock 的 `trade_pattern` + `insight_narrative` 兩個 field。
+> - **前端 popup**: 點 涨停狙击 sniper chip / 分點動態 row / 高手合併視圖 top_stocks row 的 **📋 AI** button → 彈出小視窗顯示模式 tag + narrative,輕量設計不擋背景。
+> - **AI provider**: AI-c 模板式(沒 API 成本,Phase 2 押 Anthropic Claude API)。
+> - 13/13 case 全 PASS(含模式分類 + narrative 字數驗證 + crawler 注入整合)。
 
 > **v3.29.7 (2026-05-24)** — **ETF 過濾完整版**(修 v3.29.6 兩個漏網)。用戶反映「還是會出現原油(00715L 期街口布蘭特正2)和白銀(00738U 期元大道瓊白銀)」。v3.29.6 兩個 bug:(1) `EXCLUDED_MARKET_TYPES = {"ETF"}` 大寫不 match `market_classifier` 回傳的 lowercase `"etf"` / `"etf_active"`;(2) heuristic 只擋 `len in (4, 5)`,漏 6-char 期信 ETN(00715L/00738U)。v3.29.7 修:`EXCLUDED_MARKET_TYPES = {"etf", "etf_active"}` lowercase,heuristic 改成 `code.startswith('00')` 不限長度(根據 `market_classifier.py` L72-76「所有 00 開頭 code 都是 ETF」)。14/14 case PASS,5/22 漏網 3 檔(00646 / 00715L / 00738U)全部攔截,2330 / 2454 個股保留。
 
