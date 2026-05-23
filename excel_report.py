@@ -228,11 +228,16 @@ BRANCH_STOCK_OVERRIDES: Dict[str, int] = {
 }
 
 
-# v3.29.6 (2026-05-24): 排除非個股 market_type — 老闆 Excel 只看個股, 不要 ETF
-# User 5/24 反映「無論 Top 10 / Top 20 都會出現 ETF」.
-# 過濾條件: stock.market_type in EXCLUDED_MARKET_TYPES 或 code 00 開頭 (heuristic fallback).
-# 未來要排除其他類型 (e.g. 權證 / 特別股), 加進這個 set.
-EXCLUDED_MARKET_TYPES: set = {"ETF"}
+# v3.29.7 (2026-05-24): 排除非個股 — 老闆 Excel 只看個股
+# v3.29.6 第一版漏掉:
+#   1. market_classifier 回傳 lowercase 'etf' / 'etf_active', 之前用 {"ETF"} 不 match
+#   2. heuristic 只擋 4-5 char ('0050', '00878'), 漏 6-char 期信 ETN ('00715L 期街口布蘭特正2', '00738U 期元大道瓊白銀')
+# v3.29.7 修法:
+#   - EXCLUDED_MARKET_TYPES 改 lowercase + 含 'etf_active'
+#   - Heuristic 改成 code.startswith('00') (不限長度)
+#     根據 market_classifier.py L72: 「所有 '00' 開頭 code 都歸類為 ETF」
+# 未來要排除其他類型 (e.g. 'preferred' 特別股), 加進這個 set 即可
+EXCLUDED_MARKET_TYPES: set = {"etf", "etf_active"}
 
 
 def _branch_stocks_size(branch_code: str) -> int:
@@ -241,21 +246,22 @@ def _branch_stocks_size(branch_code: str) -> int:
 
 
 def _is_excluded_by_market_type(stock: Dict) -> bool:
-    """v3.29.6: 判斷該 stock 是否為非個股 (ETF / 衍生) 應排除.
+    """v3.29.7: 判斷該 stock 是否為非個股 (ETF / 衍生 / 期信 / 商品) 應排除.
 
     判斷順序:
-      1. stock['market_type'] 在 EXCLUDED_MARKET_TYPES → 排除
+      1. stock['market_type'].lower() 在 EXCLUDED_MARKET_TYPES → 排除
          (crawler.py 主流程已注入 market_type, 此為最可靠來源)
-      2. code 開頭 '00' 且長度 4-5 (e.g. '0050', '00878') → 排除 (heuristic fallback)
-         (若 crawler 沒注入 market_type 時的 defensive 防護)
-      3. 其他 → 保留
+      2. code 開頭 '00' → 排除 (heuristic, 不限長度)
+         根據 market_classifier.py L72-76:
+           「所有 '00' 開頭 code 都歸類為 ETF (含 etf_active)」
+         涵蓋: 普通 ETF (0050, 00878, 00646), 6-char ETN/期信 (00715L, 00738U),
+              主動型 ETF (006208A)
     """
-    mt = (stock.get('market_type') or '').strip()
+    mt = (stock.get('market_type') or '').strip().lower()
     if mt in EXCLUDED_MARKET_TYPES:
         return True
-    # Heuristic fallback: ETF 代號模式
     code = (stock.get('code') or '').strip()
-    if code.startswith('00') and len(code) in (4, 5):
+    if code.startswith('00'):
         return True
     return False
 

@@ -56,12 +56,17 @@ print("A-F. _is_excluded_by_market_type 邏輯")
 
 cases = [
     # (desc, stock, expected_excluded)
-    ('A. market_type=ETF',           make_stock('0050', '元大台灣50', market_type='ETF'),  True),
-    ('B. market_type=上市',           make_stock('2330', '台積電',    market_type='上市'), False),
+    ('A. market_type=ETF (大寫)',     make_stock('0050', '元大台灣50', market_type='ETF'),  True),
+    ('A2. market_type=etf (lowercase)', make_stock('0050', '元大台灣50', market_type='etf'), True),  # v3.29.7
+    ('A3. market_type=etf_active',    make_stock('006208A', '主動 ETF', market_type='etf_active'), True),  # v3.29.7
+    ('B. market_type=上市',           make_stock('2330', '台積電',    market_type='listed'), False),
     ('C. code=0050 無 market_type',  make_stock('0050', '元大台灣50'),                    True),
     ('D. code=00878 無 market_type', make_stock('00878', '國泰永續高股息'),              True),
     ('E. code=2330 無 market_type',  make_stock('2330', '台積電'),                       False),
-    ('F. code=006208 (6 位)',         make_stock('006208', '富邦台50'),                   False),  # 6 位不擋 (避免誤殺非 ETF)
+    # v3.29.7: 6-char 也擋
+    ('F. code=006208 (6 位普通 ETF)', make_stock('006208', '富邦台50'),                   True),
+    ('F2. code=00715L (期信 原油)',   make_stock('00715L', '期街口布蘭特正2'),           True),  # v3.29.7
+    ('F3. code=00738U (期信 白銀)',   make_stock('00738U', '期元大道瓊白銀'),            True),  # v3.29.7
 ]
 for desc, stock, expected in cases:
     actual = _is_excluded_by_market_type(stock)

@@ -1,7 +1,9 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.29.6 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.29.7 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.29.7 (2026-05-24)** — **ETF 過濾完整版**(修 v3.29.6 兩個漏網)。用戶反映「還是會出現原油(00715L 期街口布蘭特正2)和白銀(00738U 期元大道瓊白銀)」。v3.29.6 兩個 bug:(1) `EXCLUDED_MARKET_TYPES = {"ETF"}` 大寫不 match `market_classifier` 回傳的 lowercase `"etf"` / `"etf_active"`;(2) heuristic 只擋 `len in (4, 5)`,漏 6-char 期信 ETN(00715L/00738U)。v3.29.7 修:`EXCLUDED_MARKET_TYPES = {"etf", "etf_active"}` lowercase,heuristic 改成 `code.startswith('00')` 不限長度(根據 `market_classifier.py` L72-76「所有 00 開頭 code 都是 ETF」)。14/14 case PASS,5/22 漏網 3 檔(00646 / 00715L / 00738U)全部攔截,2330 / 2454 個股保留。
 
 > **v3.29.6 (2026-05-24)** — **ETF 過濾(Excel 只顯示個股)**。用戶 5/24 反映「Top 10/20 都會出現 ETF」(0050/0056/00878 等),老闆 Excel 只關心個股,不需 ETF。`EXCLUDED_MARKET_TYPES = {"ETF"}` 一行設定,`_is_excluded_by_market_type()` 判斷:(1) `stock.market_type in EXCLUDED_MARKET_TYPES` 排除(crawler 主流程已注入),(2) heuristic fallback `code 00 開頭 + len 4-5` 排除(防 market_type 沒注入時的防線)。`_top_stocks_for_branch` filter 順序:**ETF 排除 → net_buyer → sniper limit_up → Top N**,確保 ETF 不占 Top N 名額。未來要排除權證/特別股,加進 set 即可。10/10 新 case + 11 套回歸全 PASS。
 
