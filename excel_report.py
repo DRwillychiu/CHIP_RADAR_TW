@@ -228,9 +228,36 @@ BRANCH_STOCK_OVERRIDES: Dict[str, int] = {
 }
 
 
+# v3.29.6 (2026-05-24): 排除非個股 market_type — 老闆 Excel 只看個股, 不要 ETF
+# User 5/24 反映「無論 Top 10 / Top 20 都會出現 ETF」.
+# 過濾條件: stock.market_type in EXCLUDED_MARKET_TYPES 或 code 00 開頭 (heuristic fallback).
+# 未來要排除其他類型 (e.g. 權證 / 特別股), 加進這個 set.
+EXCLUDED_MARKET_TYPES: set = {"ETF"}
+
+
 def _branch_stocks_size(branch_code: str) -> int:
     """v3.29.5: 取得單一分點的 row 數 (override 優先, fallback default 10)."""
     return BRANCH_STOCK_OVERRIDES.get(branch_code, STOCKS_PER_BRANCH)
+
+
+def _is_excluded_by_market_type(stock: Dict) -> bool:
+    """v3.29.6: 判斷該 stock 是否為非個股 (ETF / 衍生) 應排除.
+
+    判斷順序:
+      1. stock['market_type'] 在 EXCLUDED_MARKET_TYPES → 排除
+         (crawler.py 主流程已注入 market_type, 此為最可靠來源)
+      2. code 開頭 '00' 且長度 4-5 (e.g. '0050', '00878') → 排除 (heuristic fallback)
+         (若 crawler 沒注入 market_type 時的 defensive 防護)
+      3. 其他 → 保留
+    """
+    mt = (stock.get('market_type') or '').strip()
+    if mt in EXCLUDED_MARKET_TYPES:
+        return True
+    # Heuristic fallback: ETF 代號模式
+    code = (stock.get('code') or '').strip()
+    if code.startswith('00') and len(code) in (4, 5):
+        return True
+    return False
 
 NUMBER_FMT_INT = "#,##0"
 NUMBER_FMT_PRICE = "0.00"
@@ -310,6 +337,10 @@ def _top_stocks_for_branch(branch_data: Dict, sniper_mode: bool = False,
         if c and c not in seen:
             seen[c] = s
     candidates = list(seen.values())
+
+    # v3.29.6: 排除 ETF 等非個股 (老闆 Excel 只看個股)
+    # 必須在 net_buyer + sniper filter *之前* 跑, 避免 ETF 占用 Top N 名額.
+    candidates = [s for s in candidates if not _is_excluded_by_market_type(s)]
 
     # v3.29.1: 對 *所有* master (包含 swing) 加 net_buyer filter
     # 5/19 用戶 review 發現: 大牌分析師-新光新竹 顯示 6257 但實際淨賣 -1412 萬。
