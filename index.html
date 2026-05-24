@@ -4523,6 +4523,16 @@ async function decryptToken(token, password) {
   const ct = raw.slice(28);
   const key = await deriveKey(password, salt);
   const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+
+  // v3.30.1: gzip magic bytes (1F 8B) auto-detect.
+  // 後端 encrypt_data 預設 use_gzip=True 起, latest.json 壓縮版用 DecompressionStream 解.
+  // 舊未壓縮版 plaintext 開頭 '{' (0x7B) ≠ 0x1F, 跳過 gzip 段, backward compat.
+  const bytes = new Uint8Array(plainBuf);
+  if (bytes.length >= 2 && bytes[0] === 0x1F && bytes[1] === 0x8B) {
+    const stream = new Blob([plainBuf]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const inflated = await new Response(stream).arrayBuffer();
+    return new TextDecoder().decode(inflated);
+  }
   return new TextDecoder().decode(plainBuf);
 }
 

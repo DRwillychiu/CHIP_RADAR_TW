@@ -1,7 +1,13 @@
 # 📊 Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.30.0 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.30.1 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+
+> **v3.30.1 (2026-05-24)** — **專業審視 A.1 + A.2 + A.3:gzip 瘦身 + pip-audit + size limit**。
+> - **A.1 latest.json gzip 瘦身**: `encrypt_data(use_gzip=True)` 預設壓縮,`decrypt_data` 用 magic bytes (1F 8B) auto-detect。前端 JS `decryptToken` 同樣 auto-detect + `DecompressionStream` API decompress。**100% backward compat**(舊未壓縮 ciphertext 仍能正常解)。預期 latest.json 10.49 MB → ~3-4 MB(60-70% 縮減,real production 數字看 5/26 跑完)。
+> - **A.2 pip-audit CI**: 新 workflow `security-audit.yml` 每週一 03:00 TW 跑 `pip-audit` + `safety`,發現 vulnerability 自動 ::warning::。
+> - **A.3 response size limit**: 新 module `safe_fetch.py` 用 stream + chunk 累積監控,超過 50 MB 直接 raise `ResponseTooLargeError`,防止 compromised/misconfigured 端點導致 OOM。
+> - 15/15 case PASS + 14 套既有測試全 PASS。
 
 > **v3.30.0 (2026-05-24)** — **AI 解讀層 MVP(規則式分類 + 模板 narrative + popup)**。從 raw data 升級到解讀層,讓每筆 (master × branch × stock) 都有「囤貨 / 隔日沖 / 當沖 / 波段持股 / 部分當沖」模式判斷 + 50-100 字中性專業說明。
 > - **後端 `trade_pattern.py`**: `classify_trade_pattern()` 規則式判斷 + `generate_narrative()` 模板生成,crawler 整合自動注入每個 stock 的 `trade_pattern` + `insight_narrative` 兩個 field。

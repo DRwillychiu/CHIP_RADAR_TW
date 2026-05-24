@@ -1,0 +1,54 @@
+name: 4. Security Audit (Weekly)
+
+# v3.30.1 (2026-05-24) — 專業審視 A.2: Python dependency vulnerability scan
+# 每週一上午跑 pip-audit, 發現 CVE 自動 ::error:: 標示
+# Trigger: 週一 03:00 TW (避開市場時間), 或 manual dispatch
+
+on:
+  schedule:
+    - cron: '0 19 * * 0'   # 週日 19:00 UTC = 週一 03:00 TW
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install scan tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit safety
+
+      - name: Audit requirements.txt
+        run: |
+          echo "::group::pip-audit (requirements.txt)"
+          pip-audit --requirement requirements.txt --format markdown || true
+          echo "::endgroup::"
+
+      - name: Audit transitive (full env)
+        run: |
+          # 安裝 crawler 主要 deps, 然後審計整個環境的 transitive deps
+          pip install requests cryptography openpyxl
+          echo "::group::pip-audit (full transitive)"
+          pip-audit --format markdown || echo "::warning::pip-audit 發現 vulnerability, 詳見上方"
+          echo "::endgroup::"
+
+      - name: Safety scan
+        run: |
+          echo "::group::safety scan"
+          safety check --json || echo "::warning::safety 發現 vulnerability, 詳見上方"
+          echo "::endgroup::"
+        continue-on-error: true
