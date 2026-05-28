@@ -42,11 +42,11 @@ print("=" * 70)
 all_pass = True
 
 # ========== Case A: sniper master 該分點有交易但全濾掉 ==========
-# 巨人傑 是 sniper (next_day_flipper + day_trader), 用他第 1 個分點 9B2n
-print("\nA. 巨人傑 9B2n: 有買榜+賣榜但無漲停淨買 → 提示「未搶漲停」")
+# v3.30.5: sniper 白名單僅蔣承翰, 用他第 1 個分點 9227 (凱基-城中)
+print("\nA. 蔣承翰 9227: 有買榜+賣榜但無漲停淨買 → 提示「未搶漲停」")
 branches_data_a = [
     {
-        "code": "9B2n", "name": "台新-西松",
+        "code": "9227", "name": "凱基-城中",
         "buys": [
             make_stock("2317", "鴻海", buy_amt=400_000, sell_amt=100_000, is_limit_up=False),
             make_stock("2330", "台積電", buy_amt=600_000, sell_amt=50_000, is_limit_up=False),
@@ -59,20 +59,20 @@ branches_data_a = [
 # 加其他必要分點 0 資料避免錯
 for m in MASTER_MAPPING:
     for code, _ in m["branches"]:
-        if code != "9B2n":
+        if code != "9227":
             branches_data_a.append({"code": code, "name": "_", "buys": [], "sells": []})
 
 wb = Workbook()
 ws = wb.active
 build_day_sheet(ws, branches_data_a, "20260519")
 
-# 找 巨人傑 master block
-master_row = find_master_block(ws, "巨人傑")
+# 找 蔣承翰 master block
+master_row = find_master_block(ws, "蔣承翰")
 if master_row is None:
-    print("  ❌ 找不到 巨人傑 row [FAIL]")
+    print("  ❌ 找不到 蔣承翰 row [FAIL]")
     all_pass = False
 else:
-    # 該 row 對應的 D 欄應該是「⚪ 此分點今日未搶漲停」(因為 9B2n 是 master 第一個分點)
+    # 該 row 對應的 D 欄應該是「⚪ 此分點今日未搶漲停」(因為 9227 是 master 第一個分點)
     d_value = ws.cell(master_row, 4).value
     if d_value and '未搶漲停' in str(d_value):
         print(f"  ✅ row {master_row} D 欄: {d_value}")

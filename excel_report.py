@@ -52,9 +52,19 @@ except ImportError:
 
 SNIPER_STYLES = {"next_day_flipper", "day_trader"}
 
+# v3.30.5: 使用者要求 Excel 只有「蔣承翰」用漲停股抓取法。
+# 原 v3.26 是「所有 next_day_flipper/day_trader style 的 master 都用漲停法」
+# (蔣承翰 / 迷你哥-松山哥 / Tradow / 巨人傑),現縮為白名單僅蔣承翰一人,
+# 其餘 sniper-style master 全部改回一般買超 Top N (其餘不變)。
+# 未來要再加 sniper master,把名字加進這個 set 即可。
+SNIPER_MASTER_WHITELIST = {"蔣承翰"}
+
 
 def _is_sniper_master(master_name: str) -> bool:
-    """v3.26: 隔日沖 / 當沖 master → 改用漲停股資料源"""
+    """v3.26: 隔日沖 / 當沖 master → 改用漲停股資料源。
+    v3.30.5: 限縮為白名單 (僅蔣承翰);不在名單者即使 style 符合也用一般買超 Top N。"""
+    if master_name not in SNIPER_MASTER_WHITELIST:
+        return False
     styles = MASTER_STYLES.get(master_name, [])
     return bool(SNIPER_STYLES.intersection(styles))
 
@@ -778,18 +788,17 @@ def _update_reports_readme(reports_dir: Path):
             "買進(萬元) / 賣出(萬元) / 淨買差(萬元) / 買均 / 賣均 / 損益(萬)",
             "- L 欄公式: `=F*(K-J)` (賣出張數 × (賣均-買均)),負值紅字",
             "",
-            "## v3.26 風格分流規則",
+            "## v3.30.5 風格分流規則 (僅蔣承翰用漲停法)",
             "",
-            "資料源依 `branches.py` 的 `MASTER_STYLES` 自動切換:",
+            "Excel 抓取法依 master 切換:",
             "",
-            "| Master 風格 | Top 10 資料源 |",
+            "| Master | Top N 資料源 |",
             "|---|---|",
-            "| ⚡ 隔日沖 (`next_day_flipper`) | **今日漲停股 by 買進金額** (漲跌幅 ≥ 9.5%) |",
-            "| 🔥 當沖 (`day_trader`) | **今日漲停股 by 買進金額** (漲跌幅 ≥ 9.5%) |",
-            "| 🌙 波段 (`swing`) | 全部個股 by 買進金額 |",
-            "| 💎 長線 (`longterm`) | 全部個股 by 買進金額 |",
+            "| ⭐ 蔣承翰 (隔日沖) | **今日漲停股 by 買進金額** (漲跌幅 ≥ 9.5%) |",
+            "| 其餘所有 master | 全部個股 by 買進金額 (淨買超 Top N) |",
             "",
-            "隔日沖/當沖 master 今天若沒搶任何漲停股 → 整 10 列空白 (不 fallback,維持風格純度)",
+            "蔣承翰今天若沒搶任何漲停股 → 整列空白 (不 fallback,維持風格純度)。",
+            "(v3.26~v3.30.4 原為所有隔日沖/當沖 master 都用漲停法;v3.30.5 依使用者要求縮為僅蔣承翰)",
             "",
             "## 每日歷史",
             "",

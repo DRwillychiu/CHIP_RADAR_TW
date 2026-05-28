@@ -55,9 +55,9 @@ all_pass = True
 
 # ========== Case A: sniper 5 stocks → partial notice ==========
 print("\nA. sniper master 5 stocks: row N+1 寫「漲停僅 5 檔」")
-# 迷你哥/松山哥 sniper master. 9217 凱基-松山
+# v3.30.5: sniper 白名單僅蔣承翰. 9227 凱基-城中
 sniper_branch = {
-    "code": "9217", "name": "凱基-松山",
+    "code": "9227", "name": "凱基-城中",
     "buys": [
         make_stock(f"100{i}", f"漲停{i}", buy_amt=500_000, sell_amt=50_000,
                    buy_lot=100, sell_lot=10, is_limit_up=True, change_pct=9.99) for i in range(5)
@@ -67,7 +67,7 @@ sniper_branch = {
 branches_data_a = [sniper_branch]
 for m in MASTER_MAPPING:
     for code, _ in m["branches"]:
-        if code != "9217":
+        if code != "9227":
             branches_data_a.append({"code": code, "name": "_", "buys": [], "sells": []})
 
 wb = Workbook()
@@ -147,14 +147,14 @@ else:
 # ========== Case D: sniper 0 stocks + 有資料 → 完全空白 notice ==========
 print("\nD. sniper 0 stocks + 有 TWSE 交易: 完全空白「未搶漲停」notice (v3.29.2 邏輯保留)")
 zero_branch = {
-    "code": "9B2n", "name": "台新-西松",  # 巨人傑 sniper
+    "code": "9B18", "name": "台新-建北",  # v3.30.5 蔣承翰 sniper (第二分點)
     "buys": [make_stock("2330", "台積電", buy_amt=500_000, sell_amt=100_000, is_limit_up=False)],
     "sells": [],
 }
 branches_data_d = [zero_branch]
 for m in MASTER_MAPPING:
     for code, _ in m["branches"]:
-        if code != "9B2n":
+        if code != "9B18":
             branches_data_d.append({"code": code, "name": "_", "buys": [], "sells": []})
 
 wb4 = Workbook()
