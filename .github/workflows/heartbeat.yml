@@ -1,0 +1,102 @@
+name: 5. Data Heartbeat (資料新鮮度告警)
+
+# v3.30.3 (2026-05-28): 5/27-5/28 連兩天 21:17 排程沒跑事故的「主動告警」對策。
+#
+# 問題: GitHub cron 連兩天塞車沒觸發 + Windows Task Scheduler 也沒跑,
+#       latest.json/Excel 停在前一天,但 daily-full workflow 顯示綠燈
+#       (crawler step continue-on-error),零告警 → 用戶自己發現才知道。
+#
+# 對策: 獨立 heartbeat 每天檢查 latest.json 的 crawled_at (外層明文,免密碼),
+#       過時 → ::error:: + 自動開 GitHub issue (GitHub 會 email repo owner,
+#       這是免設 webhook 最可靠的主動告警管道)。
+#
+# 檢查時點 (排在 daily-full 三層兜底 21:17/22:37/23:47 全部之後):
+#   00:30 TW (16:30 UTC) — 23:47 兜底跑完後,夜間最終檢查
+#   09:00 TW (01:00 UTC) — 隔天早上補檢,夜間若都失敗確保早上一定收到
+
+on:
+  schedule:
+    - cron: '30 16 * * *'  # 每天 00:30 TW (23:47 兜底之後)
+    - cron: '0 1 * * *'    # 每天 09:00 TW
+  workflow_dispatch:        # 手動隨時可檢查
+
+permissions:
+  contents: read
+  issues: write             # 開 issue 用
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run heartbeat check
+        id: hb
+        run: |
+          # heartbeat_check.py 讀 latest.json 外層明文,不需密碼
+          # FAIL → exit 1,但我們用 continue-on-error 接住,改用 verdict 決定後續
+          python heartbeat_check.py --latest data/latest.json --output /tmp/heartbeat.json || true
+          VERDICT=$(python -c "import json; print(json.load(open('/tmp/heartbeat.json'))['verdict'])")
+          MESSAGE=$(python -c "import json; print(json.load(open('/tmp/heartbeat.json'))['message'])")
+          echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
+          echo "message=$MESSAGE" >> "$GITHUB_OUTPUT"
+          echo "Heartbeat verdict: $VERDICT — $MESSAGE"
+
+      - name: Open issue if data is stale
+        if: steps.hb.outputs.verdict == 'FAIL'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="🚨 資料未更新告警 ($(TZ=Asia/Taipei date +%Y-%m-%d))"
+          MESSAGE="${{ steps.hb.outputs.message }}"
+          NOW="$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M:%S')"
+
+          # 組 issue body 到檔案 (避免 YAML block scalar 縮排 / heredoc column-0 問題)
+          {
+            echo "## 🚨 Chip Radar 資料新鮮度告警"
+            echo ""
+            echo "**Heartbeat 判定**: FAIL"
+            echo "**訊息**: $MESSAGE"
+            echo "**檢查時間**: $NOW TW"
+            echo ""
+            echo "### 可能原因 (依機率)"
+            echo "1. GitHub cron (daily-full 21:17 / 22:37 / 23:47) 連續塞車沒觸發"
+            echo "2. Windows Task Scheduler (ChipRadar_DailyFull) 沒在 21:17 觸發"
+            echo "3. crawler 跑了但 crash (看 daily-full 最近 run log)"
+            echo ""
+            echo "### 立即補救"
+            echo '    gh workflow run daily-full.yml --repo DRwillychiu/CHIP_RADAR_TW'
+            echo ""
+            echo "### 排查 Windows 端"
+            echo '    Get-ScheduledTask -TaskName "ChipRadar_DailyFull" | Get-ScheduledTaskInfo'
+            echo '    gh auth status'
+            echo ""
+            echo "> 若今天是國定假日(台股休市),此告警可忽略並關閉。"
+            echo "> 此 issue 由 heartbeat.yml 自動建立。資料恢復更新後請手動關閉。"
+          } > "$RUNNER_TEMP/issue_body.md"
+
+          # 避免重複開:檢查是否已有 open 的告警 issue
+          EXISTING=$(gh issue list --state open --search "in:title 資料未更新告警" --limit 1 --json number -q '.[0].number // empty')
+
+          if [ -n "$EXISTING" ]; then
+            echo "::notice::已有 open 告警 issue #$EXISTING,補一則 comment"
+            gh issue comment "$EXISTING" --body "再次檢查仍 stale ($NOW TW): $MESSAGE"
+          else
+            gh issue create --title "$TITLE" --body-file "$RUNNER_TEMP/issue_body.md"
+            echo "::notice::已開新告警 issue"
+          fi
+
+      - name: Emit summary
+        run: |
+          echo "### Heartbeat: ${{ steps.hb.outputs.verdict }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ steps.hb.outputs.message }}" >> "$GITHUB_STEP_SUMMARY"
