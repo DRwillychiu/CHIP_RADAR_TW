@@ -65,6 +65,8 @@ jobs:
           {
             echo "## 🚨 Chip Radar 資料新鮮度告警"
             echo ""
+            echo "@DRwillychiu 資料可能未更新,請確認 (此 @mention + assignee 確保 email/手機通知)。"
+            echo ""
             echo "**Heartbeat 判定**: FAIL"
             echo "**訊息**: $MESSAGE"
             echo "**檢查時間**: $NOW TW"
@@ -90,9 +92,12 @@ jobs:
 
           if [ -n "$EXISTING" ]; then
             echo "::notice::已有 open 告警 issue #$EXISTING,補一則 comment"
-            gh issue comment "$EXISTING" --body "再次檢查仍 stale ($NOW TW): $MESSAGE"
+            gh issue comment "$EXISTING" --body "@DRwillychiu 再次檢查仍 stale ($NOW TW): $MESSAGE"
           else
-            gh issue create --title "$TITLE" --body-file "$RUNNER_TEMP/issue_body.md"
+            # --assignee 確保被指派人一定收通知 (比 watch 設定可靠);
+            # 萬一 assignee 失敗 (權限/帳號問題) fallback 無 assignee 版仍開 issue
+            gh issue create --title "$TITLE" --body-file "$RUNNER_TEMP/issue_body.md" --assignee DRwillychiu \
+              || gh issue create --title "$TITLE" --body-file "$RUNNER_TEMP/issue_body.md"
             echo "::notice::已開新告警 issue"
           fi
 
