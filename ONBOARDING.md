@@ -245,6 +245,30 @@ Action:      Program: powershell.exe
 
 `gh` 須先 `gh auth login` 過。
 
+### 4.4 ⚠️ 改完 .ps1 務必驗語法(5/22-5/28 事故教訓)
+
+**真實事故**:`trigger_chip_radar.ps1` 某次改動引入 `"$verdict: $summary"` —— PowerShell 把 `$verdict:` 當成 drive-qualified 變數(像 `$env:`),冒號後沒接合法變數名 → **整檔 parse 失敗**。
+
+`powershell.exe -File` 執行會**先 parse 整個腳本**,語法錯誤就**一行都不跑**(連寫 log 第一行都沒執行)→ exit 1。後果:Task Scheduler 每天準時觸發,但腳本 **silent fail 連續 7 天**,沒 log、沒 toast、沒人知道,資料一直停在舊日。
+
+**鐵則**:
+1. 字串內變數後接冒號要用 `"${var}:"` 不是 `"$var:"`
+2. 改完 .ps1 **一定**跑語法檢查(不執行就能抓 parse error):
+   ```powershell
+   $errors = $null
+   [System.Management.Automation.PSParser]::Tokenize((Get-Content 腳本.ps1 -Raw), [ref]$errors)
+   $errors   # 應該空
+   ```
+3. 診斷「Task 有沒有真的跑」看兩個地方:
+   ```powershell
+   Get-ScheduledTask -TaskName "ChipRadar_DailyFull" | Get-ScheduledTaskInfo
+   # LastTaskResult 0x0 = 成功, 0x1 = 腳本 exit 1 (多半 parse fail 或 dispatch fail)
+   Get-Content "$env:USERPROFILE\Desktop\chip_radar_trigger.log" -Tail 20
+   # 完全沒新 entry = 腳本 parse 階段就掛 (一行都沒跑)
+   ```
+
+> 這就是為什麼 v3.30.3 加了 `heartbeat.yml` —— 不管根因是 cron / 腳本 / crash,只要資料 stale,GitHub 會主動開 issue email 你,不再靠人眼發現。
+
 ---
 
 ## Day 5:跑測試 + 看 audit
