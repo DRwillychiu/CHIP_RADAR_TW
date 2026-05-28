@@ -3633,12 +3633,12 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- v3.22: 老闆版 Excel 日報下載 -->
-  <a href="data/reports/latest.xlsx" download="chip_radar_daily.xlsx" id="excelDownloadBtn"
+  <a href="data/reports/latest.xlsx" id="excelDownloadBtn" onclick="return downloadBossExcel(event, this)"
      style="margin:10px 0;padding:12px 18px;background:linear-gradient(135deg,#10b981 0%,#059669 100%);border:1px solid rgba(16,185,129,0.6);border-radius:10px;display:flex;align-items:center;gap:14px;text-decoration:none;color:#fff;cursor:pointer;transition:all 0.2s;flex-wrap:wrap;box-shadow:0 2px 8px rgba(16,185,129,0.25);">
     <span style="font-size:24px;">📊</span>
     <div style="flex:1;min-width:200px;">
       <div style="font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        下載老闆版日報 (Excel)
+        <span data-dl-label>下載老闆版日報 (Excel)</span>
         <span style="font-size:10px;font-weight:600;background:rgba(255,255,255,0.25);padding:1px 6px;border-radius:8px;">v3.22 新</span>
       </div>
       <div style="font-size:11px;opacity:0.92;margin-top:2px;">
@@ -4139,9 +4139,9 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
       </div>
       
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <a href="data/reports/latest.xlsx" download="chip_radar_daily_latest.xlsx"
+        <a href="data/reports/latest.xlsx" onclick="return downloadBossExcel(event, this)"
            style="flex:1;min-width:200px;padding:12px 18px;background:linear-gradient(135deg,#10b981 0%,#059669 100%);border:1px solid rgba(16,185,129,0.6);border-radius:8px;color:#fff;text-decoration:none;font-weight:700;font-size:14px;text-align:center;box-shadow:0 2px 8px rgba(16,185,129,0.25);">
-          ⬇️ 下載最新 Excel 日報
+          <span data-dl-label>⬇️ 下載最新 Excel 日報</span>
         </a>
         <a href="data/reports/" target="_blank"
            style="padding:12px 18px;background:rgba(99,102,241,0.15);border:1px solid var(--brand);border-radius:8px;color:var(--brand);text-decoration:none;font-weight:600;font-size:13px;">
@@ -4538,6 +4538,38 @@ async function decryptToken(token, password) {
 
 // ========== 狀態 ==========
 const DATA_BASE = './data';
+
+// v3.30.4: 老闆版 Excel 下載 — JS blob 單次下載
+// 修「瀏覽器多檔下載攔截」(原 <a download> 連點觸發) + 加 loading 回饋 + 繞 CDN cache
+async function downloadBossExcel(ev, btnEl) {
+  if (ev) ev.preventDefault();
+  if (btnEl && btnEl.dataset.dl === '1') return false;   // 防連點 (核心修法)
+  const label = btnEl ? btnEl.querySelector('[data-dl-label]') : null;
+  const origText = label ? label.textContent : '';
+  if (label) label.textContent = '下載中…';
+  if (btnEl) { btnEl.dataset.dl = '1'; btnEl.style.opacity = '0.7'; }
+  const fallbackUrl = location.href.replace(/[^/]*(\?.*)?$/, '') + 'data/reports/latest.xlsx';
+  try {
+    const r = await fetch(`${DATA_BASE}/reports/latest.xlsx?_=${Date.now()}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chip_radar_daily.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    if (label) { label.textContent = '✅ 已下載最新'; setTimeout(() => { label.textContent = origText; }, 2500); }
+  } catch (e) {
+    if (label) label.textContent = origText;
+    alert('下載失敗 (' + e.message + ')。\n可直接在瀏覽器開啟此網址:\n' + fallbackUrl);
+  } finally {
+    if (btnEl) { btnEl.dataset.dl = '0'; btnEl.style.opacity = '1'; }
+  }
+  return false;
+}
 let CURRENT_DATA = null;
 let AVAILABLE_DATES = [];
 let ALL_HISTORY = {};
