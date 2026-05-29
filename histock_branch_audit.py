@@ -11,7 +11,7 @@ Module: histock_branch_audit.py  (v3.30.2 新增)
 
 驗證邏輯:
   1. buy_lot (張數) 直接比對:差異 > 5% warning, > 20% error
-  2. buy_amt (金額) 反推比對:implied_amt = buy_lot × avg_price × 1000
+  2. buy_amt (金額) 反推比對:implied_amt(仟元) = buy_lot × avg_price (our buy_amt 單位是仟元)
      差異 > 10% warning, > 30% error (均價是近似,容忍寬一點)
 
 Sample 策略:
@@ -320,9 +320,13 @@ def cross_check_stock(stock_code: str,
                     'severity': severity,
                 })
 
-        # === Check 2: buy_amt 反推比對 (implied = buy_lot × avg × 1000) ===
+        # === Check 2: buy_amt 反推比對 ===
+        # ⚠️ 單位: our buy_amt 是「仟元」(crawler convention, 見 excel_report L331/L406).
+        #   總金額(元) = 張數 × 1000股/張 × 均價(元/股)
+        #   仟元 = 元 / 1000 = 張數 × 均價  (1000股/張 與 1000元/仟元 相消)
+        #   故 implied(仟元) = hi_buy_lot × hi_avg, 不可再 × 1000 (v3.30.2 bug, v3.30.6 修)
         if hi_buy_lot > 0 and hi_avg > 0:
-            implied_amt = hi_buy_lot * hi_avg * 1000
+            implied_amt = hi_buy_lot * hi_avg
             if our_buy_amt > 0 or implied_amt > 0:
                 denom = max(implied_amt, our_buy_amt, 1)
                 diff = abs(our_buy_amt - implied_amt)

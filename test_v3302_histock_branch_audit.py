@@ -77,9 +77,10 @@ if not ok:
     all_pass = False
 
 # ── 3. cross_check 完全匹配 ──
+# 單位: buy_amt 仟元 (crawler convention). implied(仟元) = 550 × 2291.96 = 1,260,578
 print("\n3. cross_check 完全匹配 → PASS")
 our = [
-    {'branch_code': '9A9g', 'buy_lot': 550, 'buy_amt': 1_260_578_000, 'sell_lot': 25, 'sell_amt': 57_299_000},
+    {'branch_code': '9A9g', 'buy_lot': 550, 'buy_amt': 1_260_578, 'sell_lot': 25, 'sell_amt': 57_299},  # 仟元
 ]
 hi = {
     'buys': [{'bno': '9A9g', 'name': '永豐金-內湖', 'buy_lot': 550, 'sell_lot': 25, 'net': 524, 'avg_price': 2291.96}],
@@ -95,7 +96,8 @@ if not ok:
 # ── 4. cross_check buy_lot 差 5% → WARN ──
 print("\n4. cross_check buy_lot 差 8% → WARN")
 our = [
-    {'branch_code': '9A9g', 'buy_lot': 595, 'buy_amt': 1_363_715_000, 'sell_lot': 25, 'sell_amt': 0},  # 550 → 595 = +8%
+    # buy_amt 設成與 implied 一致 (1,260,578 仟元) → 純測 buy_lot 8% 差異, buy_amt 不觸發
+    {'branch_code': '9A9g', 'buy_lot': 595, 'buy_amt': 1_260_578, 'sell_lot': 25, 'sell_amt': 0},  # 550 → 595 = +8% (仟元)
 ]
 hi = {
     'buys': [{'bno': '9A9g', 'name': '永豐金-內湖', 'buy_lot': 550, 'sell_lot': 25, 'net': 524, 'avg_price': 2291.96}],
@@ -112,7 +114,7 @@ if not ok:
 # ── 5. cross_check buy_lot 差 30% → FAIL ──
 print("\n5. cross_check buy_lot 差 50% → FAIL (error)")
 our = [
-    {'branch_code': '9A9g', 'buy_lot': 275, 'buy_amt': 630_289_000, 'sell_lot': 25, 'sell_amt': 0},  # 550 → 275 = -50%
+    {'branch_code': '9A9g', 'buy_lot': 275, 'buy_amt': 630_289, 'sell_lot': 25, 'sell_amt': 0},  # 550 → 275 = -50% (仟元)
 ]
 hi = {
     'buys': [{'bno': '9A9g', 'name': '永豐金-內湖', 'buy_lot': 550, 'sell_lot': 25, 'net': 524, 'avg_price': 2291.96}],
@@ -148,12 +150,12 @@ print(f"  {'OK' if ok else 'FAIL'} 從 by-branch 反向組 by-stock: {ours}")
 if not ok:
     all_pass = False
 
-# ── 8. buy_amt 反推差異 (avg × lot × 1000) ──
+# ── 8. buy_amt 反推差異 (仟元: implied = lot × avg) ──
 print("\n8. buy_amt implied 計算正確")
-# implied = 550 * 2291.96 * 1000 = 1,260,578,000
-# 我們 buy_amt 1,260,578,000 → 0% diff → PASS
-# 我們 buy_amt 800,000,000 → 36.5% diff → FAIL (error >30%)
-our = [{'branch_code': '9A9g', 'buy_lot': 550, 'buy_amt': 800_000_000, 'sell_lot': 25, 'sell_amt': 0}]
+# implied(仟元) = 550 * 2291.96 = 1,260,578
+# our buy_amt 1,260,578 仟元 → 0% diff → PASS
+# our buy_amt 800,000 仟元 → 36.5% diff → FAIL (error >30%)
+our = [{'branch_code': '9A9g', 'buy_lot': 550, 'buy_amt': 800_000, 'sell_lot': 25, 'sell_amt': 0}]  # 仟元
 hi = {
     'buys': [{'bno': '9A9g', 'name': '永豐金-內湖', 'buy_lot': 550, 'sell_lot': 25, 'net': 524, 'avg_price': 2291.96}],
     'sells': [],
