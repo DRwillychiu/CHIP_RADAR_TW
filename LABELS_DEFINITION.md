@@ -1,9 +1,12 @@
 # Chip Radar TW · master_profile 策略標籤完整定義文件
 
 > **目的**:給每個策略標籤一個**透明、可驗證、可調整**的定義。任何標籤的觸發都能逐步回溯到 raw data。
-> **版本**:v3.30.9 Phase 1(**13 標籤** — v3.30.9 加 🔒鎖漲停 + 📈長線持有)
+> **版本**:v3.30.11 Phase 1(**14 標籤** — v3.30.11 加 🎯族群專家)
 > **配套 code**:`master_profile.py` 的 `THRESH` dict + `generate_labels()` 函式
 > **最後修訂**:2026-05-30
+
+> **v3.30.11 變動摘要**:
+> - 新增 🎯 **族群專家**(獨立,可與所有標籤共存):用 `industry_classifier` 1965 檔產業分類,單一族群買進金額占比 > 60% 觸發。族群名顯示在 narrative「主攻 X 族群」。解業界印象「航海王=航運專家」現有標籤無法表達的盲點 #3。
 
 > **v3.30.9 變動摘要**:
 > - 新增 🔒 **鎖漲停**(獨立,可與漲停獵手共存):用 `buy_avg ≥ 漲停價 × 99%` 判定真實鎖漲停成交
@@ -283,7 +286,25 @@ elif overnight_ratio > 0.5:
 
 ---
 
-### 3.5 節奏類(1 個,獨立)
+### 3.5 族群類(1 個,獨立,v3.30.11 新增)
+
+#### 🎯 族群專家
+
+| 項 | 內容 |
+|---|---|
+| **意圖** | 該 master 的買進金額高度集中在單一產業族群(航運/PCB/半導體 等) |
+| **公式** | 對該 master 所有 trades:用 `industry_classifier.py` 反查 `code → 產業`,加總每族群買進金額,取最大族群占比 |
+| 額外 metrics | `top_industry`(族群名)、`top_industry_pct`(最大族群%)、`industry_count`(觸及族群數)、`top3_industries`(前 3 族群分布,在 narrative 顯示) |
+| **觸發** | `top_industry_pct > 60`(`THRESH['top_industry_pct_high']`) |
+| **閾值依據** | 60% 表示「該 master 過半買進都在單一族群」= 明顯專家定位。台股 33 個產業類別均分應約 3%/族群,60% 是均分 20 倍。航海王、半導體專家、PCB 玩家 都應觸發 |
+| **互斥規則** | **獨立**,可與所有標籤共存 |
+| **族群名來源** | TWSE 官方產業分類(`industry_classifier.py` v3.15.0,33 類 + DR);族群名顯示在 narrative「主攻 X 族群 (Y%)」,標籤本身固定 `🎯 族群專家` |
+| **典型代表** | **張濬安(航海王)**:航運業 > 80%;**Tradow**:可能集中半導體/電子業;其他 swing master 多在 1-2 主攻族群 |
+| **邊界 case** | (1) industry_classifier 未涵蓋的 code(新上市股、特殊類別)歸「未分類」,可能誤觸發。(2) 若 master 集中 5 檔同族群但只有少量交易 → top_industry_pct 高但樣本少,信心降 |
+| **資料源** | `industry_classifier.get_industry_map(data_dir)['stock_industry']` 反查表,7 天快取(產業分類年度調整,變動頻率低) |
+| **⚠️ 限制** | 「未分類」 code 若占比高會觸發但無意義,真實使用要確認 `industry_classification_available: true` |
+
+### 3.6 節奏類(1 個,獨立)
 
 #### 🔄 連續部署
 
@@ -456,6 +477,8 @@ if timing.get('settlement_week_trades_pct', 0) > THRESH['settlement_week_high']:
 高頻交易            active_days / window_days > 0.85                         timing.active_days_ratio
 精選出手            active_days_ratio < 0.4                                  timing.active_days_ratio
 連續部署            max_streak_days > 8 (跨週末 ≤3 天視為連續)               timing.max_streak_days
+🎯 族群專家 (v3.30.11) top_industry_pct > 60                                    op.top_industry_pct
+                    (需 industry_classifier 1965 檔產業分類, narrative 顯示族群名)
 ```
 
 ---

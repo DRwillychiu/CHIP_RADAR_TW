@@ -94,6 +94,8 @@ THRESH = {
     'locked_at_lu_ratio_amt': 0.40,   # 鎖漲停金額占比 > 40% → 🔒鎖漲停標籤
     'long_term_days_threshold': 5,    # 單檔在窗口內被加碼天數 ≥ 5 → 視為長線持倉
     'long_term_amt_ratio': 0.50,      # 長線持倉金額占比 > 50% → 📈長線持有標籤
+    # v3.30.11 新增 — 族群專家 (盲點 #3)
+    'top_industry_pct_high': 60.0,    # 單一族群買進金額占比 > 60% → 🎯族群專家標籤
 }
 
 
@@ -133,6 +135,37 @@ def _is_locked_at_lu(stock: Dict[str, Any], tolerance: float = 0.99) -> bool:
     if not lu_price or lu_price <= 0:
         return False
     return buy_avg >= lu_price * tolerance
+
+
+def _compute_industry_metrics(trades: List[Dict[str, Any]],
+                                stock_industry_map: Optional[Dict[str, str]]
+                                ) -> Optional[Dict[str, Any]]:
+    """v3.30.11: 族群集中度. 用 industry_classifier 的 stock_industry 反查表.
+    回傳: {top_industry, top_industry_pct, industry_count, top3_industries}
+    或 None (無資料 / 無分類表)."""
+    if not trades or not stock_industry_map:
+        return None
+    industry_amt = defaultdict(int)
+    total_amt = 0
+    for t in trades:
+        code = t.get('stock_code')
+        amt = t.get('buy_amt', 0) or 0
+        industry = stock_industry_map.get(code, '未分類')
+        industry_amt[industry] += amt
+        total_amt += amt
+    if total_amt == 0:
+        return None
+    sorted_ind = sorted(industry_amt.items(), key=lambda x: -x[1])
+    top_industry, top_amt = sorted_ind[0]
+    return {
+        'top_industry': top_industry,
+        'top_industry_pct': round(top_amt / total_amt * 100, 1),
+        'industry_count': len(industry_amt),
+        'top3_industries': [
+            {'name': name, 'pct': round(amt / total_amt * 100, 1)}
+            for name, amt in sorted_ind[:3]
+        ],
+    }
 
 
 def _compute_long_term_metrics(trades: List[Dict[str, Any]],
@@ -240,8 +273,11 @@ def extract_master_trades(history: List[Dict[str, Any]],
 #  維度 1: 操作類型 metrics (最高優先)
 # ════════════════════════════════════════════════════════════════════
 
-def compute_operation_metrics(trades: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    """風格分布 + 漲停命中 + 集中度 + 一致性."""
+def compute_operation_metrics(trades: List[Dict[str, Any]],
+                                stock_industry_map: Optional[Dict[str, str]] = None
+                                ) -> Optional[Dict[str, Any]]:
+    """風格分布 + 漲停命中 + 集中度 + 一致性 + (v3.30.11) 族群集中度.
+    stock_industry_map 為 None 時跳過族群計算 (向後相容)."""
     if not trades:
         return None
     total = len(trades)
@@ -280,7 +316,10 @@ def compute_operation_metrics(trades: List[Dict[str, Any]]) -> Optional[Dict[str
         trades, THRESH['long_term_days_threshold']
     )
 
-    return {
+    # v3.30.11: 🎯 族群專家 metric (用 industry_classifier)
+    industry_metrics = _compute_industry_metrics(trades, stock_industry_map)
+
+    result = {
         'trades_count': total,
         'unique_stocks': len(stock_amt),
         'daytrade_ratio': round(daytrade, 3),
@@ -298,6 +337,9 @@ def compute_operation_metrics(trades: List[Dict[str, Any]]) -> Optional[Dict[str
         'long_term_stocks_count': long_term_stocks_count,
         'long_term_amt_ratio': long_term_amt_ratio,
     }
+    if industry_metrics:
+        result.update(industry_metrics)   # top_industry / top_industry_pct / industry_count / top3_industries
+    return result
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -402,6 +444,10 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any]) -> List[str]:
     if timing['max_streak_days'] > THRESH['streak_long']:
         labels.append('連續部署')
 
+    # v3.30.11: 🎯 族群專家 (獨立, 跟其他標籤都可共存; 族群名在 narrative)
+    if op.get('top_industry_pct', 0) > THRESH['top_industry_pct_high']:
+        labels.append('🎯 族群專家')
+
     return labels
 
 
@@ -436,11 +482,17 @@ def generate_narrative(master_name: str,
     lt_n = op.get('long_term_stocks_count', 0)
     lt_part = (f", 長線部位 {lt_ratio:.0f}% ({lt_n} 檔)" if lt_n > 0 else "")
 
+    # v3.30.11: 族群主攻補充 (族群名在這顯示, 標籤本身固定為「🎯 族群專家」)
+    top_ind = op.get('top_industry')
+    top_ind_pct = op.get('top_industry_pct', 0)
+    ind_part = (f", 主攻 {top_ind} ({top_ind_pct:.0f}%)"
+                if top_ind and top_ind_pct > 30 else "")  # > 30% 才提, 避免雜訊
+
     return (
         f"{master_name} 近 {timing['active_days']}/{timing['total_window_days']} 交易日出手 "
         f"{op['trades_count']} 次 ({op['unique_stocks']} 檔), "
         f"風格分布: {style_str}, {lu_part}, "
-        f"前 5 大集中 {op['concentration_top5_pct']:.0f}%{lt_part}。"
+        f"前 5 大集中 {op['concentration_top5_pct']:.0f}%{lt_part}{ind_part}。"
         f" 主軸: {label_str}。"
     )
 
@@ -451,8 +503,11 @@ def generate_narrative(master_name: str,
 
 def build_master_profile(master_name: str,
                           history: List[Dict[str, Any]],
-                          master_styles: Dict[str, List[str]]) -> Dict[str, Any]:
-    """組一個 master 的完整 profile."""
+                          master_styles: Dict[str, List[str]],
+                          stock_industry_map: Optional[Dict[str, str]] = None
+                          ) -> Dict[str, Any]:
+    """組一個 master 的完整 profile.
+    stock_industry_map (v3.30.11): code → 產業名稱反查表, 算 🎯族群專家用。"""
     trades = extract_master_trades(history, master_name)
     declared = master_styles.get(master_name, [])
 
@@ -464,7 +519,7 @@ def build_master_profile(master_name: str,
             'narrative': f"{master_name} 在窗口內無交易紀錄。",
         }
 
-    op = compute_operation_metrics(trades)
+    op = compute_operation_metrics(trades, stock_industry_map)
     timing = compute_timing_metrics(trades, len(history))
     labels = generate_labels(op, timing)
     narrative = generate_narrative(master_name, op, timing, labels)
@@ -484,14 +539,29 @@ def build_master_profile(master_name: str,
 # ════════════════════════════════════════════════════════════════════
 
 def build_all_profiles(history: List[Dict[str, Any]],
-                        master_filter: Optional[str] = None) -> Dict[str, Any]:
-    """對所有個人大戶建 profile."""
+                        master_filter: Optional[str] = None,
+                        data_dir: str = 'data') -> Dict[str, Any]:
+    """對所有個人大戶建 profile.
+    v3.30.11: 自動載入 industry_map (用於🎯族群專家). 失敗則跳過 (向後相容)."""
     indiv = get_individual_masters()
     targets = {master_filter: indiv.get(master_filter, [])} if master_filter else indiv
 
+    # 載入產業對照表 (v3.30.11)
+    stock_industry_map = None
+    try:
+        from industry_classifier import get_industry_map
+        from pathlib import Path
+        ind_data = get_industry_map(Path(data_dir))
+        stock_industry_map = ind_data.get('stock_industry') if ind_data else None
+        if stock_industry_map:
+            print(f"  [Industry] 載入 {len(stock_industry_map)} 檔產業分類")
+    except Exception as e:
+        print(f"  ⚠️ industry_classifier 載入失敗 (跳過族群分析): {type(e).__name__}: {e}",
+              file=sys.stderr)
+
     masters_out = {}
     for m in targets:
-        masters_out[m] = build_master_profile(m, history, indiv)
+        masters_out[m] = build_master_profile(m, history, indiv, stock_industry_map)
 
     dates = [d['date'] for d in history]
     return {
@@ -499,6 +569,7 @@ def build_all_profiles(history: List[Dict[str, Any]],
         'window_days': len(history),
         'trade_date_range': [dates[0], dates[-1]] if dates else [],
         'master_count': len(masters_out),
+        'industry_classification_available': stock_industry_map is not None,
         'masters': masters_out,
     }
 
@@ -539,7 +610,7 @@ def main():
     print(f"  載入 {len(history)} 天: {history[0]['date']} ~ {history[-1]['date']}")
 
     print(f"[Master Profile] 計算 {'單一 master' if args.master else '全部個人大戶'}...")
-    result = build_all_profiles(history, master_filter=args.master)
+    result = build_all_profiles(history, master_filter=args.master, data_dir=args.data_dir)
 
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -550,17 +621,23 @@ def main():
 
     # 印 summary 表
     print()
-    print(f"{'Master':25s} {'交易次':>5s} {'活躍天':>5s} {'漲停%':>6s} {'集中%':>6s}  Labels")
-    print("─" * 100)
+    print(f"{'Master':25s} {'交易次':>5s} {'活躍天':>5s} {'漲停%':>6s} {'集中%':>6s} "
+          f"{'主攻族群':>14s}  Labels")
+    print("─" * 120)
     for m, p in result['masters'].items():
         if p.get('no_data'):
             print(f"{m:25s} {'(無資料)':>30s}")
             continue
         op = p['operation_metrics']
         tm = p['timing_metrics']
-        labels = '/'.join(p['strategy_labels'][:4])
+        labels = '/'.join(p['strategy_labels'][:5])
+        # v3.30.11: 主攻族群欄 (族群名前 6 字 + %)
+        top_ind = op.get('top_industry') or ''
+        top_ind_pct = op.get('top_industry_pct', 0)
+        ind_col = f"{top_ind[:6]}{top_ind_pct:>3.0f}%" if top_ind else '-'
         print(f"{m:25s} {op['trades_count']:>5d} {tm['active_days']:>5d} "
-              f"{op['limit_up_hit_ratio'] * 100:>5.0f}% {op['concentration_top5_pct']:>5.0f}%  {labels}")
+              f"{op['limit_up_hit_ratio'] * 100:>5.0f}% {op['concentration_top5_pct']:>5.0f}% "
+              f"{ind_col:>14s}  {labels}")
 
 
 if __name__ == '__main__':
