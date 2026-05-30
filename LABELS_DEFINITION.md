@@ -1,9 +1,12 @@
 # Chip Radar TW · master_profile 策略標籤完整定義文件
 
 > **目的**:給每個策略標籤一個**透明、可驗證、可調整**的定義。任何標籤的觸發都能逐步回溯到 raw data。
-> **版本**:v3.30.12 Phase 1(**14 標籤 + per-branch 細分機制**)
+> **版本**:v3.30.13 Phase 1(**15 標籤 + per-branch 細分機制**)
 > **配套 code**:`master_profile.py` 的 `THRESH` dict + `generate_labels()` 函式
 > **最後修訂**:2026-05-30
+
+> **v3.30.13 變動摘要**:
+> - 新增 ⚠️ **處置股獵手**(獨立,風險偏好維度):用 `disposal_fetcher.py` 從 chengwaye 抓「差1次/差2次/處置中」85 檔 union set,觸發 `disposal_amt_ratio > 0.30`(該 master 買進金額 30% 以上在處置股)。narrative 顯示「⚠️ 處置股部位 X% (N 檔)」。**資料源限制誠實揭露**:TWSE 處置股無公開 JSON API(試 9 端點全 404),繞 chengwaye(robots.txt 允許 + 全免費 + 使用者自用),但 chengwaye 改 HTML/關站我們會 break,fallback = 跳過此 metric。
 
 > **v3.30.12 變動摘要**:
 > - 新增 **per-branch 細分**(不是新標籤,是新機制):master 有 >1 分點時,每個分點獨立計算 metrics + labels,放在 `per_branch_profiles` 子結構。解業界印象「巨人傑雙風格 master 在 9B2n 純隔日沖、9B2z 純當沖」現有 master 整體層級看不出的盲點 #5。`extract_master_trades` 加 `branch_code` filter,`build_master_profile` 加 `branch_filter` 參數(branch_filter 模式不再遞迴,避免無限)。main summary 表只印「分點 labels 跟 master 整體不同」的細分(差才有資訊量)。
@@ -482,6 +485,9 @@ if timing.get('settlement_week_trades_pct', 0) > THRESH['settlement_week_high']:
 連續部署            max_streak_days > 8 (跨週末 ≤3 天視為連續)               timing.max_streak_days
 🎯 族群專家 (v3.30.11) top_industry_pct > 60                                    op.top_industry_pct
                     (需 industry_classifier 1965 檔產業分類, narrative 顯示族群名)
+⚠️ 處置股獵手 (v3.30.13) disposal_amt_ratio > 0.30                              op.disposal_amt_ratio
+                    (需 disposal_fetcher 抓 chengwaye, 風險偏好維度,
+                     narrative 顯示「⚠️ 處置股部位 X% (N 檔)」)
 ```
 
 ---

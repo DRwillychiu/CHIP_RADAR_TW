@@ -96,6 +96,8 @@ THRESH = {
     'long_term_amt_ratio': 0.50,      # 長線持倉金額占比 > 50% → 📈長線持有標籤
     # v3.30.11 新增 — 族群專家 (盲點 #3)
     'top_industry_pct_high': 60.0,    # 單一族群買進金額占比 > 60% → 🎯族群專家標籤
+    # v3.30.13 新增 — 處置股獵手 (盲點 #6, 風險偏好維度)
+    'disposal_amt_ratio_high': 0.30,  # 處置股買進金額占比 > 30% → ⚠️處置股獵手標籤
 }
 
 
@@ -165,6 +167,31 @@ def _compute_industry_metrics(trades: List[Dict[str, Any]],
             {'name': name, 'pct': round(amt / total_amt * 100, 1)}
             for name, amt in sorted_ind[:3]
         ],
+    }
+
+
+def _compute_disposal_metrics(trades: List[Dict[str, Any]],
+                                disposal_codes: Optional[set]) -> Optional[Dict[str, Any]]:
+    """v3.30.13: 處置股買進占比 (風險偏好維度).
+    disposal_codes: 當前窗口內被處置/即將處置的個股 set (from chengwaye).
+    回傳: {disposal_stocks_count, disposal_amt_ratio} 或 None (無資料/無 set)."""
+    if not trades or not disposal_codes:
+        return None
+    disposal_amt = 0
+    disposal_codes_seen = set()
+    total_amt = 0
+    for t in trades:
+        amt = t.get('buy_amt', 0) or 0
+        total_amt += amt
+        code = t.get('stock_code')
+        if code and code in disposal_codes:
+            disposal_amt += amt
+            disposal_codes_seen.add(code)
+    if total_amt == 0:
+        return None
+    return {
+        'disposal_stocks_count': len(disposal_codes_seen),
+        'disposal_amt_ratio': round(disposal_amt / total_amt, 3),
     }
 
 
@@ -294,10 +321,12 @@ def extract_master_trades(history: List[Dict[str, Any]],
 # ════════════════════════════════════════════════════════════════════
 
 def compute_operation_metrics(trades: List[Dict[str, Any]],
-                                stock_industry_map: Optional[Dict[str, str]] = None
+                                stock_industry_map: Optional[Dict[str, str]] = None,
+                                disposal_codes: Optional[set] = None
                                 ) -> Optional[Dict[str, Any]]:
-    """風格分布 + 漲停命中 + 集中度 + 一致性 + (v3.30.11) 族群集中度.
-    stock_industry_map 為 None 時跳過族群計算 (向後相容)."""
+    """風格分布 + 漲停命中 + 集中度 + 一致性 + (v3.30.11) 族群集中度
+       + (v3.30.13) 處置股風險偏好.
+    optional 參數 None 時跳過對應計算 (向後相容)."""
     if not trades:
         return None
     total = len(trades)
@@ -339,6 +368,9 @@ def compute_operation_metrics(trades: List[Dict[str, Any]],
     # v3.30.11: 🎯 族群專家 metric (用 industry_classifier)
     industry_metrics = _compute_industry_metrics(trades, stock_industry_map)
 
+    # v3.30.13: ⚠️ 處置股獵手 metric (用 chengwaye disposal-forecast)
+    disposal_metrics = _compute_disposal_metrics(trades, disposal_codes)
+
     result = {
         'trades_count': total,
         'unique_stocks': len(stock_amt),
@@ -359,6 +391,8 @@ def compute_operation_metrics(trades: List[Dict[str, Any]],
     }
     if industry_metrics:
         result.update(industry_metrics)   # top_industry / top_industry_pct / industry_count / top3_industries
+    if disposal_metrics:
+        result.update(disposal_metrics)   # disposal_stocks_count / disposal_amt_ratio
     return result
 
 
@@ -468,6 +502,10 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any]) -> List[str]:
     if op.get('top_industry_pct', 0) > THRESH['top_industry_pct_high']:
         labels.append('🎯 族群專家')
 
+    # v3.30.13: ⚠️ 處置股獵手 (獨立, 風險偏好維度, 可與所有標籤共存)
+    if op.get('disposal_amt_ratio', 0) > THRESH['disposal_amt_ratio_high']:
+        labels.append('⚠️ 處置股獵手')
+
     return labels
 
 
@@ -508,11 +546,17 @@ def generate_narrative(master_name: str,
     ind_part = (f", 主攻 {top_ind} ({top_ind_pct:.0f}%)"
                 if top_ind and top_ind_pct > 30 else "")  # > 30% 才提, 避免雜訊
 
+    # v3.30.13: 處置股部位補充 (高風險偏好揭露)
+    disp_ratio = op.get('disposal_amt_ratio', 0) * 100
+    disp_n = op.get('disposal_stocks_count', 0)
+    disp_part = (f", ⚠️ 處置股部位 {disp_ratio:.0f}% ({disp_n} 檔)"
+                 if disp_n > 0 else "")
+
     return (
         f"{master_name} 近 {timing['active_days']}/{timing['total_window_days']} 交易日出手 "
         f"{op['trades_count']} 次 ({op['unique_stocks']} 檔), "
         f"風格分布: {style_str}, {lu_part}, "
-        f"前 5 大集中 {op['concentration_top5_pct']:.0f}%{lt_part}{ind_part}。"
+        f"前 5 大集中 {op['concentration_top5_pct']:.0f}%{lt_part}{ind_part}{disp_part}。"
         f" 主軸: {label_str}。"
     )
 
@@ -525,12 +569,14 @@ def build_master_profile(master_name: str,
                           history: List[Dict[str, Any]],
                           master_styles: Dict[str, List[str]],
                           stock_industry_map: Optional[Dict[str, str]] = None,
-                          branch_filter: Optional[str] = None
+                          branch_filter: Optional[str] = None,
+                          disposal_codes: Optional[set] = None
                           ) -> Dict[str, Any]:
     """組一個 master 的完整 profile.
     stock_industry_map (v3.30.11): code → 產業名稱反查表, 算 🎯族群專家用。
     branch_filter (v3.30.12): 非 None 時只算該分點 (per-branch 細分用,
-                              且不再遞迴算 per_branch_profiles 截斷遞迴)."""
+                              且不再遞迴算 per_branch_profiles 截斷遞迴)。
+    disposal_codes (v3.30.13): 處置股 code set (from chengwaye), 算 ⚠️處置股獵手用。"""
     trades = extract_master_trades(history, master_name, branch_code=branch_filter)
     declared = master_styles.get(master_name, [])
 
@@ -545,7 +591,7 @@ def build_master_profile(master_name: str,
             result['branch_filter'] = branch_filter
         return result
 
-    op = compute_operation_metrics(trades, stock_industry_map)
+    op = compute_operation_metrics(trades, stock_industry_map, disposal_codes)
     timing = compute_timing_metrics(trades, len(history))
     labels = generate_labels(op, timing)
     narrative = generate_narrative(master_name, op, timing, labels)
@@ -572,6 +618,7 @@ def build_master_profile(master_name: str,
                     master_name, history, master_styles,
                     stock_industry_map=stock_industry_map,
                     branch_filter=code,
+                    disposal_codes=disposal_codes,
                 )
                 bp['branch_name'] = name
                 per_branch[code] = bp
@@ -606,9 +653,24 @@ def build_all_profiles(history: List[Dict[str, Any]],
         print(f"  ⚠️ industry_classifier 載入失敗 (跳過族群分析): {type(e).__name__}: {e}",
               file=sys.stderr)
 
+    # 載入處置股清單 (v3.30.13)
+    disposal_codes = None
+    try:
+        from disposal_fetcher import get_disposal_map
+        disposal_data = get_disposal_map(data_dir)
+        disposal_codes = disposal_data.get('all_risky') if disposal_data else None
+        if disposal_codes:
+            print(f"  [Disposal] 載入 {len(disposal_codes)} 檔處置/即將處置股 "
+                  f"(來源 chengwaye disposal-forecast)")
+    except Exception as e:
+        print(f"  ⚠️ disposal_fetcher 載入失敗 (跳過處置股分析): {type(e).__name__}: {e}",
+              file=sys.stderr)
+
     masters_out = {}
     for m in targets:
-        masters_out[m] = build_master_profile(m, history, indiv, stock_industry_map)
+        masters_out[m] = build_master_profile(m, history, indiv,
+                                               stock_industry_map=stock_industry_map,
+                                               disposal_codes=disposal_codes)
 
     dates = [d['date'] for d in history]
     return {
@@ -617,6 +679,7 @@ def build_all_profiles(history: List[Dict[str, Any]],
         'trade_date_range': [dates[0], dates[-1]] if dates else [],
         'master_count': len(masters_out),
         'industry_classification_available': stock_industry_map is not None,
+        'disposal_classification_available': disposal_codes is not None,
         'masters': masters_out,
     }
 
