@@ -2709,7 +2709,27 @@ def main():
     except Exception as e:
         print(f"  ⚠️ 報告生成錯誤（不影響主流程）: {e}")
         import traceback; traceback.print_exc()
-    
+
+    # ════════════════════════════════════════════════════════════════
+    # v3.30.14: master_profile 自動生成 (15 標籤 + per-branch + 族群 + 處置股)
+    # 寫 data/master_profiles.json (不加密, 給網站 tab14 直接 fetch)
+    # ════════════════════════════════════════════════════════════════
+    try:
+        import master_profile as mp
+        history = mp.load_history(str(data_dir), window_days=None, password=password)
+        if history:
+            mp_result = mp.build_all_profiles(history, data_dir=str(data_dir))
+            mp_path = data_dir / "master_profiles.json"
+            with open(mp_path, "w", encoding="utf-8") as f:
+                json.dump(mp_result, f, ensure_ascii=False, indent=2)
+            print(f"\n[Master Profile v3.30.14] ✓ {mp_result['master_count']} 大戶畫像 → {mp_path.name}")
+            print(f"                          窗口 {mp_result['window_days']} 天 | "
+                  f"族群={'✅' if mp_result.get('industry_classification_available') else '⚠️'} | "
+                  f"處置股={'✅' if mp_result.get('disposal_classification_available') else '⚠️'}")
+    except Exception as _mpe:
+        print(f"  ⚠️ master_profile 生成錯誤（不影響主流程）: {_mpe}")
+        import traceback; traceback.print_exc()
+
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")
     print(f"  成功: {success_count} / 失敗: {fail_count} / 無資料: {empty_count}")

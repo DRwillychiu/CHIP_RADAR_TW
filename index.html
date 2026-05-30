@@ -3686,6 +3686,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <button class="tab" data-tab="master"><span class="tab-num">11</span>👥 單分點偏好</button>
     <button class="tab" data-tab="reports"><span class="tab-num">12</span>📊 報告中心</button>
     <button class="tab" data-tab="watchlist"><span class="tab-num">13</span>⚙️ 關注設定</button>
+    <button class="tab" data-tab="masterprofile"><span class="tab-num">14</span>📊 大戶畫像</button>
   </div>
 
   <!-- 01 今日三視角 (新主頁) -->
@@ -4176,6 +4177,15 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="reportContent"></div>
   </div>
 
+  <!-- v3.30.14: 14 大戶畫像 — fetch data/master_profiles.json (不加密) + render 15 master × 15 標籤 -->
+  <div class="panel" id="panel-masterprofile">
+    <div id="mp-container" style="padding:18px;">
+      <div style="text-align:center;color:var(--text-2);padding:60px 20px;">
+        🔄 載入大戶畫像中... (若一直停留在此, 表示 data/master_profiles.json 尚未生成, 等待下次 daily-full crawler 跑完)
+      </div>
+    </div>
+  </div>
+
   <!-- 10 關注設定 (v3.8 完整客製化) -->
   <div class="panel" id="panel-watchlist">
     <div class="help-card">
@@ -4570,6 +4580,159 @@ async function downloadBossExcel(ev, btnEl) {
   }
   return false;
 }
+
+// ============================================================
+// v3.30.14: 📊 大戶畫像 tab (master_profile.py 輸出 data/master_profiles.json)
+// 不加密 fetch + render 15 個個人大戶 × 15 標籤 + per-branch 細分
+// ============================================================
+let MP_CACHE = null;
+
+async function loadMasterProfileTab(forceRefresh) {
+  const cont = document.getElementById('mp-container');
+  if (!cont) return;
+  if (MP_CACHE && !forceRefresh) { renderMP(); return; }
+  cont.innerHTML = '<div style="text-align:center;color:var(--text-2);padding:40px;">⏳ 載入 master_profiles.json...</div>';
+  try {
+    const r = await fetch(`${DATA_BASE}/master_profiles.json?_=${Date.now()}`, { cache: 'no-store' });
+    if (!r.ok) {
+      cont.innerHTML = `<div style="padding:30px;color:#fca5a5;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.4);border-radius:8px;">⚠️ <strong>master_profiles.json 不存在 (HTTP ${r.status})</strong><br><br>原因: 下一次 daily-full crawler 跑完才會自動生成 (v3.30.14 起整合)。可手動跑:<br><code style="background:#0f1525;padding:4px 8px;border-radius:4px;display:inline-block;margin-top:8px;">CHIP_RADAR_PASSWORD=&lt;prod&gt; python master_profile.py</code></div>`;
+      return;
+    }
+    MP_CACHE = await r.json();
+    renderMP();
+  } catch (e) {
+    cont.innerHTML = `<div style="color:#fca5a5;padding:30px;">❌ 載入失敗: ${e.message}</div>`;
+  }
+}
+
+function renderMP() {
+  const cont = document.getElementById('mp-container');
+  if (!cont || !MP_CACHE) return;
+  const d = MP_CACHE;
+  const masters = Object.entries(d.masters || {});
+  const ind_ok = d.industry_classification_available ? '✅' : '⚠️';
+  const disp_ok = d.disposal_classification_available ? '✅' : '⚠️';
+
+  let html = `
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+      <h2 style="margin:0;color:var(--gold-bright);">📊 大戶操作畫像 <span style="font-size:13px;color:var(--text-2);font-weight:400;">(${masters.length} 個個人大戶 × 15 標籤)</span></h2>
+      <button onclick="loadMasterProfileTab(true)" style="padding:6px 12px;background:rgba(99,102,241,0.15);border:1px solid var(--brand);border-radius:6px;color:var(--brand);cursor:pointer;">🔄 重抓</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:14px;">
+      📅 窗口 <strong>${d.trade_date_range?.[0] || '?'} ~ ${d.trade_date_range?.[1] || '?'}</strong> (${d.window_days} 天)
+      ｜ 更新 ${(d.generated_at || '').slice(0,16)}
+      ｜ ${ind_ok} 族群分類 ｜ ${disp_ok} 處置股清單
+      ｜ <span style="color:var(--text-3)">點 master 列查看完整 narrative + per-branch 細分</span>
+    </div>
+    <div style="overflow-x:auto;border:1px solid var(--line);border-radius:8px;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:rgba(99,102,241,0.1);color:var(--gold-bright);text-align:left;">
+          <th style="padding:8px 10px;">Master</th>
+          <th style="padding:8px 6px;text-align:right;">交易次</th>
+          <th style="padding:8px 6px;text-align:right;">活躍天</th>
+          <th style="padding:8px 6px;text-align:right;">漲停%</th>
+          <th style="padding:8px 6px;text-align:right;">🔒鎖漲停%</th>
+          <th style="padding:8px 6px;text-align:right;">集中%</th>
+          <th style="padding:8px 6px;">主攻族群</th>
+          <th style="padding:8px 6px;text-align:right;">⚠️處置%</th>
+          <th style="padding:8px 10px;">策略標籤</th>
+        </tr>
+      </thead><tbody>`;
+
+  for (const [name, p] of masters) {
+    if (p.no_data) {
+      html += `<tr style="opacity:0.5;border-top:1px solid var(--line);"><td style="padding:8px 10px;">${name}</td><td colspan="8" style="padding:8px;color:var(--text-3);">(窗口內無交易)</td></tr>`;
+      continue;
+    }
+    const op = p.operation_metrics, tm = p.timing_metrics;
+    const labels = (p.strategy_labels || []).map(l =>
+      `<span style="display:inline-block;padding:2px 7px;margin:1px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);border-radius:10px;font-size:11px;color:#86efac;">${l}</span>`
+    ).join('');
+    const topInd = op.top_industry ? `${op.top_industry.slice(0,5)} ${(op.top_industry_pct||0).toFixed(0)}%` : '-';
+    const dispR = op.disposal_amt_ratio;
+    const disp = dispR ? `<span style="color:#fca5a5;">${(dispR*100).toFixed(0)}% (${op.disposal_stocks_count})</span>` : '-';
+    const lockR = op.limit_up_locked_ratio_amt || 0;
+    html += `
+      <tr style="border-top:1px solid var(--line);cursor:pointer;" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background=''" onclick="showMPDetail('${name.replace(/'/g, "\\'")}')">
+        <td style="padding:8px 10px;font-weight:600;color:var(--gold-bright);">${name}</td>
+        <td style="padding:8px 6px;text-align:right;">${op.trades_count}</td>
+        <td style="padding:8px 6px;text-align:right;">${tm.active_days}</td>
+        <td style="padding:8px 6px;text-align:right;">${(op.limit_up_hit_ratio*100).toFixed(0)}%</td>
+        <td style="padding:8px 6px;text-align:right;color:${lockR>0.4?'#fca5a5':'inherit'};">${(lockR*100).toFixed(0)}%</td>
+        <td style="padding:8px 6px;text-align:right;">${op.concentration_top5_pct.toFixed(0)}%</td>
+        <td style="padding:8px 6px;font-size:11px;">${topInd}</td>
+        <td style="padding:8px 6px;text-align:right;font-size:11px;">${disp}</td>
+        <td style="padding:8px 10px;">${labels}</td>
+      </tr>`;
+  }
+  html += `</tbody></table></div><div id="mp-detail" style="margin-top:18px;"></div>`;
+  cont.innerHTML = html;
+}
+
+function showMPDetail(name) {
+  const p = MP_CACHE?.masters?.[name];
+  const pane = document.getElementById('mp-detail');
+  if (!p || !pane) return;
+  if (p.no_data) { pane.innerHTML = `<div style="color:var(--text-2);">${name} 窗口內無交易紀錄。</div>`; return; }
+  const op = p.operation_metrics, tm = p.timing_metrics;
+  const declared = (p.declared_styles || []).join(' / ') || '-';
+
+  let html = `
+    <div style="background:rgba(99,102,241,0.08);border:1px solid var(--brand);border-radius:10px;padding:16px;">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;">
+        <h3 style="margin:0;color:var(--gold-bright);">${name}</h3>
+        <span style="font-size:11px;color:var(--text-2);background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:10px;">declared: ${declared}</span>
+      </div>
+      <div style="font-size:14px;line-height:1.7;color:var(--text-1);margin-bottom:14px;background:rgba(15,21,37,0.5);padding:12px;border-radius:8px;">
+        ${p.narrative}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;font-size:12px;">
+        <div>📈 風格 (隔日沖 / 當沖 / 留倉): <strong>${(op.partial_ratio*100).toFixed(0)}% / ${(op.daytrade_ratio*100).toFixed(0)}% / ${(op.overnight_ratio*100).toFixed(0)}%</strong></div>
+        <div>🎯 漲停命中: <strong>${(op.limit_up_hit_ratio*100).toFixed(0)}%</strong> | 🔒鎖漲停: <strong>${((op.limit_up_locked_ratio_amt||0)*100).toFixed(0)}%</strong></div>
+        <div>📊 集中度 (前5大): <strong>${op.concentration_top5_pct.toFixed(0)}%</strong> | 一致性: <strong>${op.consistency.toFixed(2)}</strong></div>
+        <div>⏱️ 活躍: <strong>${tm.active_days}/${tm.total_window_days} 天 (${(tm.active_days_ratio*100).toFixed(0)}%)</strong> | 最長連續: <strong>${tm.max_streak_days} 天</strong></div>
+        ${op.long_term_amt_ratio ? `<div>📈 長線部位: <strong>${(op.long_term_amt_ratio*100).toFixed(0)}% (${op.long_term_stocks_count} 檔)</strong></div>` : ''}
+        ${op.top_industry ? `<div>🎯 主攻族群: <strong>${op.top_industry} ${op.top_industry_pct.toFixed(0)}%</strong> (${op.industry_count} 族群觸及)</div>` : ''}
+        ${op.disposal_amt_ratio ? `<div style="color:#fca5a5;">⚠️ 處置股部位: <strong>${(op.disposal_amt_ratio*100).toFixed(0)}% (${op.disposal_stocks_count} 檔)</strong></div>` : ''}
+        <div>💰 總買進金額: <strong>${(op.total_buy_amt_wan || 0).toLocaleString()} 萬</strong></div>
+      </div>`;
+
+  // per-branch 細分 (v3.30.12)
+  if (p.per_branch_profiles) {
+    const branches = Object.entries(p.per_branch_profiles).filter(([k,bp]) => !bp.no_data);
+    if (branches.length > 0) {
+      html += `<div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;">
+        <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px;">📍 分點細分 (${p.per_branch_count} 個分點)</div>`;
+      for (const [code, bp] of branches) {
+        const bop = bp.operation_metrics;
+        const blabels = (bp.strategy_labels || []).map(l =>
+          `<span style="display:inline-block;padding:1px 6px;background:rgba(99,102,241,0.15);border-radius:8px;font-size:10px;color:var(--brand);margin:1px;">${l}</span>`
+        ).join('');
+        html += `<div style="margin-bottom:8px;padding:8px 12px;background:rgba(15,21,37,0.5);border-radius:6px;font-size:12px;">
+          <strong>${code} ${bp.branch_name || ''}</strong>:
+          ${bop.trades_count}筆 · 漲停${(bop.limit_up_hit_ratio*100).toFixed(0)}% · 集中${bop.concentration_top5_pct.toFixed(0)}%
+          <div style="margin-top:4px;">${blabels}</div>
+          <div style="margin-top:4px;color:var(--text-2);font-size:11px;">${bp.narrative}</div>
+        </div>`;
+      }
+      html += `</div>`;
+    }
+  }
+  html += `</div>`;
+  pane.innerHTML = html;
+  pane.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+// hook: 點 tab 14 自動載入 (一次性 cache)
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-tab="masterprofile"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setTimeout(() => loadMasterProfileTab(false), 50);   // 等 switchTab class 切完
+    });
+  });
+});
+
 let CURRENT_DATA = null;
 let AVAILABLE_DATES = [];
 let ALL_HISTORY = {};
