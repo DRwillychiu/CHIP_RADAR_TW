@@ -1,9 +1,12 @@
 # Chip Radar TW · master_profile 策略標籤完整定義文件
 
 > **目的**:給每個策略標籤一個**透明、可驗證、可調整**的定義。任何標籤的觸發都能逐步回溯到 raw data。
-> **版本**:v3.30.11 Phase 1(**14 標籤** — v3.30.11 加 🎯族群專家)
+> **版本**:v3.30.12 Phase 1(**14 標籤 + per-branch 細分機制**)
 > **配套 code**:`master_profile.py` 的 `THRESH` dict + `generate_labels()` 函式
 > **最後修訂**:2026-05-30
+
+> **v3.30.12 變動摘要**:
+> - 新增 **per-branch 細分**(不是新標籤,是新機制):master 有 >1 分點時,每個分點獨立計算 metrics + labels,放在 `per_branch_profiles` 子結構。解業界印象「巨人傑雙風格 master 在 9B2n 純隔日沖、9B2z 純當沖」現有 master 整體層級看不出的盲點 #5。`extract_master_trades` 加 `branch_code` filter,`build_master_profile` 加 `branch_filter` 參數(branch_filter 模式不再遞迴,避免無限)。main summary 表只印「分點 labels 跟 master 整體不同」的細分(差才有資訊量)。
 
 > **v3.30.11 變動摘要**:
 > - 新增 🎯 **族群專家**(獨立,可與所有標籤共存):用 `industry_classifier` 1965 檔產業分類,單一族群買進金額占比 > 60% 觸發。族群名顯示在 narrative「主攻 X 族群」。解業界印象「航海王=航運專家」現有標籤無法表達的盲點 #3。

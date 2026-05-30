@@ -243,12 +243,32 @@ def load_history(data_dir: str, window_days: Optional[int], password: str) -> Li
 #  抽取 master 交易紀錄
 # ════════════════════════════════════════════════════════════════════
 
+def _list_master_branches(history: List[Dict[str, Any]],
+                           master_name: str) -> Dict[str, str]:
+    """v3.30.12: 掃 history 找該 master 出現的所有分點 (含 co_masters 共用).
+    回傳 {branch_code: branch_name}."""
+    branches: Dict[str, str] = {}
+    for day in history:
+        for br in day['data'].get('branches', []):
+            br_master = br.get('master')
+            co = br.get('co_masters') or []
+            if br_master == master_name or master_name in co:
+                code = br.get('code')
+                if code:
+                    branches[code] = br.get('name', '')
+    return branches
+
+
 def extract_master_trades(history: List[Dict[str, Any]],
-                          master_name: str) -> List[Dict[str, Any]]:
-    """從歷史抽出該 master 所有買進紀錄 (含 co_masters 共用分點的情境)."""
+                          master_name: str,
+                          branch_code: Optional[str] = None) -> List[Dict[str, Any]]:
+    """從歷史抽出該 master 所有買進紀錄 (含 co_masters 共用分點的情境).
+    v3.30.12: branch_code 非 None 時只抽該分點 (per-branch 細分用)."""
     trades = []
     for day in history:
         for br in day['data'].get('branches', []):
+            if branch_code is not None and br.get('code') != branch_code:
+                continue
             br_master = br.get('master')
             co = br.get('co_masters') or []
             if br_master != master_name and master_name not in co:
@@ -504,27 +524,33 @@ def generate_narrative(master_name: str,
 def build_master_profile(master_name: str,
                           history: List[Dict[str, Any]],
                           master_styles: Dict[str, List[str]],
-                          stock_industry_map: Optional[Dict[str, str]] = None
+                          stock_industry_map: Optional[Dict[str, str]] = None,
+                          branch_filter: Optional[str] = None
                           ) -> Dict[str, Any]:
     """組一個 master 的完整 profile.
-    stock_industry_map (v3.30.11): code → 產業名稱反查表, 算 🎯族群專家用。"""
-    trades = extract_master_trades(history, master_name)
+    stock_industry_map (v3.30.11): code → 產業名稱反查表, 算 🎯族群專家用。
+    branch_filter (v3.30.12): 非 None 時只算該分點 (per-branch 細分用,
+                              且不再遞迴算 per_branch_profiles 截斷遞迴)."""
+    trades = extract_master_trades(history, master_name, branch_code=branch_filter)
     declared = master_styles.get(master_name, [])
 
     if not trades:
-        return {
+        result = {
             'master': master_name,
             'declared_styles': declared,
             'no_data': True,
             'narrative': f"{master_name} 在窗口內無交易紀錄。",
         }
+        if branch_filter:
+            result['branch_filter'] = branch_filter
+        return result
 
     op = compute_operation_metrics(trades, stock_industry_map)
     timing = compute_timing_metrics(trades, len(history))
     labels = generate_labels(op, timing)
     narrative = generate_narrative(master_name, op, timing, labels)
 
-    return {
+    result = {
         'master': master_name,
         'declared_styles': declared,
         'operation_metrics': op,
@@ -532,6 +558,27 @@ def build_master_profile(master_name: str,
         'strategy_labels': labels,
         'narrative': narrative,
     }
+    if branch_filter:
+        result['branch_filter'] = branch_filter
+
+    # v3.30.12: per-branch 細分 (僅 master 整體層級, 且該 master 有 >1 分點時)
+    # 解盲點 #5 — 巨人傑等雙風格 master 在不同分點各自可能是純風格
+    if branch_filter is None:
+        branches = _list_master_branches(history, master_name)
+        if len(branches) > 1:
+            per_branch = {}
+            for code, name in branches.items():
+                bp = build_master_profile(
+                    master_name, history, master_styles,
+                    stock_industry_map=stock_industry_map,
+                    branch_filter=code,
+                )
+                bp['branch_name'] = name
+                per_branch[code] = bp
+            result['per_branch_profiles'] = per_branch
+            result['per_branch_count'] = len(per_branch)
+
+    return result
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -638,6 +685,21 @@ def main():
         print(f"{m:25s} {op['trades_count']:>5d} {tm['active_days']:>5d} "
               f"{op['limit_up_hit_ratio'] * 100:>5.0f}% {op['concentration_top5_pct']:>5.0f}% "
               f"{ind_col:>14s}  {labels}")
+
+        # v3.30.12: per-branch 細分 — 顯示條件: 該 master 有 >1 分點且某分點 labels 跟整體不同
+        pb = p.get('per_branch_profiles')
+        if pb:
+            master_label_set = set(p['strategy_labels'])
+            for code, bp in pb.items():
+                if bp.get('no_data'):
+                    continue
+                bp_labels = bp['strategy_labels']
+                # 只印「跟 master 整體 labels 有差」的分點 (差才有資訊量)
+                if set(bp_labels) != master_label_set:
+                    bp_op = bp['operation_metrics']
+                    bp_labels_str = '/'.join(bp_labels[:5])
+                    print(f"  └ {code} {bp['branch_name'][:10]:10s} {bp_op['trades_count']:>4d}筆  "
+                          f"{bp_op['limit_up_hit_ratio']*100:>3.0f}%漲停  {bp_labels_str}")
 
 
 if __name__ == '__main__':
