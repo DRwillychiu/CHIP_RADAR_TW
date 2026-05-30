@@ -89,11 +89,71 @@ THRESH = {
     'active_ratio_high': 0.85,        # 活躍天 > 85% → 高頻交易
     'active_ratio_low': 0.4,          # 活躍天 < 40% → 精選出手
     'streak_long': 8,                 # 連續部署 > 8 個交易日
+    # v3.30.9 新增 — 解 LABELS_DEFINITION §9 已知限制 (鎖漲停 + 長線持有盲點)
+    'locked_at_lu_tolerance': 0.99,   # buy_avg ≥ lu_price × 99% → 視為「鎖漲停」成交
+    'locked_at_lu_ratio_amt': 0.40,   # 鎖漲停金額占比 > 40% → 🔒鎖漲停標籤
+    'long_term_days_threshold': 5,    # 單檔在窗口內被加碼天數 ≥ 5 → 視為長線持倉
+    'long_term_amt_ratio': 0.50,      # 長線持倉金額占比 > 50% → 📈長線持有標籤
 }
 
 
 def now_tw() -> datetime:
     return datetime.now(TW_TZ)
+
+
+# ════════════════════════════════════════════════════════════════════
+#  v3.30.9 helpers — 鎖漲停 + 長線持有
+# ════════════════════════════════════════════════════════════════════
+
+def _derive_limit_up_price(stock: Dict[str, Any]) -> Optional[float]:
+    """從 stock dict 推算當日漲停價 (元/股).
+    優先順序: 直接欄位 limit_up_price → 用 price_utils 從 prev_close 算 → None."""
+    lu = stock.get('limit_up_price')
+    if lu and lu > 0:
+        return float(lu)
+    prev = stock.get('prev_close')
+    if not prev or prev <= 0:
+        return None
+    try:
+        from price_utils import calc_limit_up_price
+        return float(calc_limit_up_price(float(prev)))
+    except Exception:
+        # fallback: 粗略 10% (大多數股票, 不準確的 tick 邊界)
+        return float(prev) * 1.10
+
+
+def _is_locked_at_lu(stock: Dict[str, Any], tolerance: float = 0.99) -> bool:
+    """判定該筆 trade 是否在漲停價附近成交 (買均 ≥ 漲停價 × tolerance)."""
+    buy_lot = stock.get('buy_lot', 0) or 0
+    buy_amt = stock.get('buy_amt', 0) or 0
+    if buy_lot <= 0 or buy_amt <= 0:
+        return False
+    buy_avg = buy_amt / buy_lot   # 仟元/張 = 元/股 (單位相消)
+    lu_price = _derive_limit_up_price(stock)
+    if not lu_price or lu_price <= 0:
+        return False
+    return buy_avg >= lu_price * tolerance
+
+
+def _compute_long_term_metrics(trades: List[Dict[str, Any]],
+                                 days_threshold: int) -> Tuple[int, float]:
+    """單檔在窗口內被加碼 ≥ N 天 → 長線持倉。
+    回傳: (長線股數, 長線金額占比)."""
+    if not trades:
+        return 0, 0.0
+    # 對每檔 stock 算被加碼的不重複日數
+    stock_days = defaultdict(set)
+    stock_amt = defaultdict(int)
+    for t in trades:
+        c = t.get('stock_code')
+        if c:
+            stock_days[c].add(t['date'])
+            stock_amt[c] += t['buy_amt']
+    long_term_stocks = {c for c, days in stock_days.items() if len(days) >= days_threshold}
+    long_term_amt = sum(stock_amt[c] for c in long_term_stocks)
+    total_amt = sum(stock_amt.values())
+    ratio = (long_term_amt / total_amt) if total_amt else 0.0
+    return len(long_term_stocks), round(ratio, 3)
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -197,16 +257,36 @@ def compute_operation_metrics(trades: List[Dict[str, Any]]) -> Optional[Dict[str
     # 一致性 (主導風格佔比)
     consistency = max(daytrade, partial, overnight) if total else 0.0
 
+    # v3.30.9: 🔒 鎖漲停 metric
+    locked_trades = [t for t in trades if _is_locked_at_lu(t, THRESH['locked_at_lu_tolerance'])]
+    locked_amt = sum(t['buy_amt'] for t in locked_trades)
+    locked_lot = sum(t['buy_lot'] for t in locked_trades)
+    total_lot = sum(t['buy_lot'] for t in trades)
+    locked_ratio_amt = (locked_amt / total_amt) if total_amt else 0.0
+    locked_ratio_lot = (locked_lot / total_lot) if total_lot else 0.0
+
+    # v3.30.9: 📈 長線持有 metric (單檔被加碼 ≥ N 天)
+    long_term_stocks_count, long_term_amt_ratio = _compute_long_term_metrics(
+        trades, THRESH['long_term_days_threshold']
+    )
+
     return {
         'trades_count': total,
         'unique_stocks': len(stock_amt),
         'daytrade_ratio': round(daytrade, 3),
         'partial_ratio': round(partial, 3),       # 近似隔日沖
-        'overnight_ratio': round(overnight, 3),    # 波段
+        'overnight_ratio': round(overnight, 3),    # 波段/留倉
         'limit_up_hit_ratio': round(limit_up_hit, 3),
         'concentration_top5_pct': round(concentration, 1),
         'consistency': round(consistency, 3),
         'total_buy_amt_wan': round(total_amt / 10),   # 仟元轉萬元
+        # v3.30.9: 鎖漲停精度
+        'limit_up_locked_trades_count': len(locked_trades),
+        'limit_up_locked_ratio_amt': round(locked_ratio_amt, 3),
+        'limit_up_locked_ratio_lot': round(locked_ratio_lot, 3),
+        # v3.30.9: 長線 vs 中短期波段拆分
+        'long_term_stocks_count': long_term_stocks_count,
+        'long_term_amt_ratio': long_term_amt_ratio,
     }
 
 
@@ -274,12 +354,22 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any]) -> List[str]:
     # 風格主導 (互斥, 取最強)
     if op['limit_up_hit_ratio'] > THRESH['limit_up_hit_high']:
         labels.append('漲停獵手')
+
+    # v3.30.9: 🔒 鎖漲停 — 真實在漲停價成交 (vs 漲停獵手只看當日是否漲停股)
+    # 跟「漲停獵手」獨立, 可共存 (蔣承翰兩者都觸發, 迷你哥可能只「漲停獵手」)
+    if op.get('limit_up_locked_ratio_amt', 0) > THRESH['locked_at_lu_ratio_amt']:
+        labels.append('🔒 鎖漲停')
+
     if op['daytrade_ratio'] > THRESH['style_dominant']:
         labels.append('當沖客')
     elif op['partial_ratio'] > THRESH['style_dominant']:
         labels.append('短打型')          # 近似隔日沖
     elif op['overnight_ratio'] > THRESH['style_dominant']:
-        labels.append('波段囤貨')
+        # v3.30.9: 拆波段 vs 長線 — 兩者互斥 (overnight 高 + 持續加碼 = 真長線)
+        if op.get('long_term_amt_ratio', 0) > THRESH['long_term_amt_ratio']:
+            labels.append('📈 長線持有')
+        else:
+            labels.append('波段囤貨(中短期)')
 
     # 集中度
     if op['concentration_top5_pct'] > THRESH['concentration_high']:
@@ -320,16 +410,27 @@ def generate_narrative(master_name: str,
     if op['daytrade_ratio'] >= 0.1:
         style_parts.append(f"當沖 {op['daytrade_ratio'] * 100:.0f}%")
     if op['overnight_ratio'] >= 0.1:
-        style_parts.append(f"波段 {op['overnight_ratio'] * 100:.0f}%")
+        style_parts.append(f"留倉 {op['overnight_ratio'] * 100:.0f}%")
     style_str = " / ".join(style_parts) if style_parts else "風格不明"
 
-    label_str = "/".join(labels[:3]) if labels else "未明"
+    label_str = "/".join(labels[:4]) if labels else "未明"
+
+    # v3.30.9: 鎖漲停精度補充說明
+    lu_hit = op['limit_up_hit_ratio'] * 100
+    lu_lock = op.get('limit_up_locked_ratio_amt', 0) * 100
+    lu_part = (f"漲停命中 {lu_hit:.0f}% (其中 🔒鎖漲停 {lu_lock:.0f}%)"
+               if lu_hit > 0 else "漲停命中 0%")
+
+    # v3.30.9: 長線部位補充
+    lt_ratio = op.get('long_term_amt_ratio', 0) * 100
+    lt_n = op.get('long_term_stocks_count', 0)
+    lt_part = (f", 長線部位 {lt_ratio:.0f}% ({lt_n} 檔)" if lt_n > 0 else "")
 
     return (
         f"{master_name} 近 {timing['active_days']}/{timing['total_window_days']} 交易日出手 "
         f"{op['trades_count']} 次 ({op['unique_stocks']} 檔), "
-        f"風格分布: {style_str}, 漲停命中 {op['limit_up_hit_ratio'] * 100:.0f}%, "
-        f"前 5 大個股集中 {op['concentration_top5_pct']:.0f}%。"
+        f"風格分布: {style_str}, {lu_part}, "
+        f"前 5 大集中 {op['concentration_top5_pct']:.0f}%{lt_part}。"
         f" 主軸: {label_str}。"
     )
 

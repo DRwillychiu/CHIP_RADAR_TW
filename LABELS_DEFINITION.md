@@ -1,9 +1,15 @@
 # Chip Radar TW · master_profile 策略標籤完整定義文件
 
 > **目的**:給每個策略標籤一個**透明、可驗證、可調整**的定義。任何標籤的觸發都能逐步回溯到 raw data。
-> **版本**:v3.30.8 Phase 1(11 標籤)
+> **版本**:v3.30.9 Phase 1(**13 標籤** — v3.30.9 加 🔒鎖漲停 + 📈長線持有)
 > **配套 code**:`master_profile.py` 的 `THRESH` dict + `generate_labels()` 函式
 > **最後修訂**:2026-05-30
+
+> **v3.30.9 變動摘要**:
+> - 新增 🔒 **鎖漲停**(獨立,可與漲停獵手共存):用 `buy_avg ≥ 漲停價 × 99%` 判定真實鎖漲停成交
+> - 新增 📈 **長線持有**:用「單檔被加碼 ≥ 5 天」近似真實長線部位
+> - 原「波段囤貨」改名為「**波段囤貨(中短期)**」:overnight > 0.5 **且** long_term_amt < 0.5
+> - 解 v3.30.8 §9 兩個已知限制:鎖漲停 vs 漲停獵手混淆、longterm 無對應標籤
 
 ---
 
@@ -167,9 +173,24 @@ max_streak_days = max(streaks)
 | **公式** | `limit_up_hit_ratio = 漲停 trades 數 / 總 trades 數` |
 | **觸發** | `limit_up_hit_ratio > 0.60`(`THRESH['limit_up_hit_high']`) |
 | **閾值依據** | 台股每日約 5-20 檔漲停,**被動撞到漲停的機率 < 5%**。60% = 明顯刻意追漲停。70% 以上幾乎肯定 sniper 風格 |
-| **互斥規則** | **獨立**(可與風格類共存) |
+| **互斥規則** | **獨立**(可與風格類及 🔒鎖漲停共存) |
 | **典型代表** | 蔣承翰、巨人傑、迷你哥(sniper 路線) |
 | **邊界 case** | 若 trades < 5 → 比例失準(本文件 §5 處理) |
+| **⚠️ 限制** | 只判定「買的當天有漲停」,**不證明在漲停價成交**。盤中買進後拉漲停的情境也算。**v3.30.9 新增 🔒鎖漲停 補強這層** |
+
+#### 🔒 鎖漲停 (v3.30.9 新增)
+
+| 項 | 內容 |
+|---|---|
+| **意圖** | 在漲停價附近成交建倉(真實 sniper 行為,vs 漲停獵手只看當天漲停) |
+| **公式** | per trade: `buy_avg = buy_amt(仟元) / buy_lot(張) = 元/股`。當 `buy_avg ≥ 漲停價 × 0.99` 視為鎖漲停。<br>master 級:`limit_up_locked_ratio_amt = Σ(鎖漲停 trades 金額) / 總買進金額` |
+| **觸發** | `limit_up_locked_ratio_amt > 0.40`(`THRESH['locked_at_lu_ratio_amt']`) |
+| **判定容忍** | 99%(`THRESH['locked_at_lu_tolerance']`)— 留 1% 容忍給高價股 tick 寬度 |
+| **閾值依據** | 業界對「鎖漲停」沒有 tick × 分點公開資料,**均價 vs 漲停價對比**是唯一公認近似(chengwaye 也是這樣展示給人眼比較)。40% 表示「該 master 的買進金額中 40% 以上落在漲停價附近」 |
+| **互斥規則** | **獨立**(可與漲停獵手 + 風格類共存) |
+| **共存組合範例** | **蔣承翰** = 漲停獵手 + 🔒鎖漲停 + 短打型(真 sniper 鎖漲停建倉);<br>**迷你哥** = 漲停獵手 + 當沖客 + **無**🔒鎖漲停(盤中買進漲停股當沖,沒鎖) |
+| **漲停價來源** | `stock.limit_up_price`(若有)→ `price_utils.calc_limit_up_price(prev_close)`(v3.28 tick 精確)→ fallback `prev_close × 1.10`(粗略) |
+| **⚠️ 限制** | 仍是「均價推論」非「tick 級成交價」。同檔多次買進均價會被混合;高價股 tick 寬可能誤判 |
 
 #### 🔥 當沖客 / 📊 短打型 / 🌙 波段囤貨(3 互斥)
 
@@ -177,24 +198,31 @@ max_streak_days = max(streaks)
 |---|---|---|---|
 | **當沖客** | daytrade_ratio | `> 0.50` | 過半 trades 是當沖(min/max lot ≥ 0.7) → 主軸 |
 | **短打型** | partial_ratio | `> 0.50`(且未觸發當沖客) | partial 含部分當沖+留倉,實務多對應隔日沖部位 |
-| **波段囤貨** | overnight_ratio | `> 0.50`(且未觸發前兩個) | 多數 trades 留倉(min/max < 0.3) → 真實建倉 |
+| **波段囤貨(中短期)** | overnight_ratio | `> 0.50` **且** long_term_amt_ratio < 0.50 | 留倉為主 **但** 無長線連續加碼 → 中短期波段(< 5 天加碼) |
+| **📈 長線持有** (v3.30.9) | overnight_ratio + long_term_amt_ratio | overnight > 0.50 **且** long_term_amt_ratio > 0.50 | 留倉為主 + 真實連續加碼,跟「波段囤貨」拆開 |
 
-**互斥邏輯**(`generate_labels` L155):
+**互斥邏輯**(`generate_labels`, v3.30.9 更新):
 ```python
 if daytrade_ratio > 0.5:
     labels.append('當沖客')
 elif partial_ratio > 0.5:
     labels.append('短打型')
 elif overnight_ratio > 0.5:
-    labels.append('波段囤貨')
+    # v3.30.9: 拆波段 vs 長線 (兩者互斥)
+    if long_term_amt_ratio > 0.5:
+        labels.append('📈 長線持有')
+    else:
+        labels.append('波段囤貨(中短期)')
 ```
 
 `elif` 結構 → **最多一個風格類**。三者 ratio 都未過 50% → 都不觸發(會被「多變策略」抓)。
+**v3.30.9 新增**:overnight 分支內再分波段 vs 長線(兩者互斥)。
 
 **典型代表**:
 - 當沖客:迷你哥/松山哥、Krenz
 - 短打型:Tradow、蔣承翰(嚴格隔日沖被歸這類)
-- 波段囤貨:民哥、林滄海、航海王
+- 波段囤貨(中短期):民哥、陳族元、強森(swing 但無長線連續加碼)
+- 📈長線持有(v3.30.9):**林滄海**(declared longterm)、**優式資本**、**東億資本**(declared longterm)— 終於有對應標籤了 |
 
 ---
 
@@ -412,18 +440,22 @@ if timing.get('settlement_week_trades_pct', 0) > THRESH['settlement_week_high']:
 ## 10. Quick Reference
 
 ```
-                觸發條件                                                 metric
-漲停獵手        limit_up_hit_ratio > 0.6                                 op.limit_up_hit_ratio
-當沖客          daytrade_ratio > 0.5                                     op.daytrade_ratio
-短打型          partial_ratio > 0.5 (且不是當沖客)                       op.partial_ratio
-波段囤貨        overnight_ratio > 0.5 (且不是當沖/短打)                  op.overnight_ratio
-集中投資        concentration_top5_pct > 50                              op.concentration_top5_pct
-分散布局        concentration_top5_pct < 20                              op.concentration_top5_pct
-風格純粹        consistency = max(三 ratio) > 0.8                       op.consistency
-多變策略        consistency < 0.5                                        op.consistency
-高頻交易        active_days / window_days > 0.85                         timing.active_days_ratio
-精選出手        active_days_ratio < 0.4                                  timing.active_days_ratio
-連續部署        max_streak_days > 8 (跨週末 ≤3 天視為連續)               timing.max_streak_days
+                    觸發條件                                                 metric
+漲停獵手            limit_up_hit_ratio > 0.6                                 op.limit_up_hit_ratio
+🔒 鎖漲停 (v3.30.9) limit_up_locked_ratio_amt > 0.40                         op.limit_up_locked_ratio_amt
+                    (buy_avg ≥ 漲停價 × 0.99 視為鎖漲停)
+當沖客              daytrade_ratio > 0.5                                     op.daytrade_ratio
+短打型              partial_ratio > 0.5 (且不是當沖客)                       op.partial_ratio
+波段囤貨(中短期)    overnight_ratio > 0.5 且 long_term_amt_ratio ≤ 0.5      op.overnight_ratio + op.long_term_amt_ratio
+📈 長線持有 (v3.30.9) overnight_ratio > 0.5 且 long_term_amt_ratio > 0.5    同上
+                    (單檔在窗口內加碼 ≥ 5 天 = 長線部位)
+集中投資            concentration_top5_pct > 50                              op.concentration_top5_pct
+分散布局            concentration_top5_pct < 20                              op.concentration_top5_pct
+風格純粹            consistency = max(三 ratio) > 0.8                       op.consistency
+多變策略            consistency < 0.5                                        op.consistency
+高頻交易            active_days / window_days > 0.85                         timing.active_days_ratio
+精選出手            active_days_ratio < 0.4                                  timing.active_days_ratio
+連續部署            max_streak_days > 8 (跨週末 ≤3 天視為連續)               timing.max_streak_days
 ```
 
 ---
