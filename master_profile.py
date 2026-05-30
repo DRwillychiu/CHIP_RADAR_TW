@@ -177,6 +177,7 @@ def load_history(data_dir: str, window_days: Optional[int], password: str) -> Li
 
     history = []
     skipped = 0
+    invalid_tag_count = 0
     for f in files:
         try:
             with open(f, 'r', encoding='utf-8') as fh:
@@ -189,10 +190,19 @@ def load_history(data_dir: str, window_days: Optional[int], password: str) -> Li
                 data = enc.get('data', enc)
             history.append({'date': f.stem, 'data': data})
         except Exception as e:
-            print(f"  ⚠️ 跳過 {f.name}: {e}", file=sys.stderr)
+            # v3.30.10: 印 exception type (避免「⚠️ 跳過 ...: 」空白訊息)
+            type_name = type(e).__name__
+            detail = f': {e}' if str(e) else ''
+            print(f"  ⚠️ 跳過 {f.name}: {type_name}{detail}", file=sys.stderr)
+            if type_name == 'InvalidTag':
+                invalid_tag_count += 1
             skipped += 1
     if skipped:
         print(f"  總計跳過 {skipped} 個檔案 (解密失敗或結構錯)", file=sys.stderr)
+        if invalid_tag_count >= max(3, len(files) // 2):
+            print(f"  🔑 提示: {invalid_tag_count} 個 InvalidTag = 密碼錯誤。"
+                  f"確認 CHIP_RADAR_PASSWORD 是 production 真密碼"
+                  f" (不是 <...> 占位符)", file=sys.stderr)
     return history
 
 
@@ -512,6 +522,13 @@ def main():
     if not args.no_encrypt_input and not password:
         print("❌ 需要 CHIP_RADAR_PASSWORD 環境變數 (解密歷史 daily JSON)")
         print("   或加 --no-encrypt-input 使用 unencrypted fixture")
+        sys.exit(1)
+    # v3.30.10: 偵測常見 placeholder 錯誤 (使用者複製貼上忘了替換)
+    if password and ('<' in password or '>' in password or password.upper() == 'YOUR_PASSWORD'):
+        print(f"❌ CHIP_RADAR_PASSWORD 看起來是占位符: {password!r}")
+        print("   請設定真實的 production 密碼 (GitHub Secret CHIP_RADAR_PASSWORD 的值)")
+        print('   PowerShell: $env:CHIP_RADAR_PASSWORD = "你的真實密碼字串"')
+        print("   注意: 不要保留 < > 角括號")
         sys.exit(1)
 
     print(f"[Master Profile] 載入歷史 {args.data_dir}/ (window={args.window or '全部'})...")
