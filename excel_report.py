@@ -39,7 +39,7 @@ from pathlib import Path
 
 try:
     from openpyxl import Workbook, load_workbook
-    from openpyxl.styles import Font, Alignment
+    from openpyxl.styles import Font, Alignment, PatternFill
     from openpyxl.worksheet.worksheet import Worksheet
     OPENPYXL_AVAILABLE = True
 except ImportError:
@@ -58,6 +58,69 @@ SNIPER_STYLES = {"next_day_flipper", "day_trader"}
 # 其餘 sniper-style master 全部改回一般買超 Top N (其餘不變)。
 # 未來要再加 sniper master,把名字加進這個 set 即可。
 SNIPER_MASTER_WHITELIST = {"蔣承翰"}
+
+
+# v3.31.1: 老闆版 Excel 色塊配色 (15 個個人大戶 + 法人類)
+# 設計: 風格類別分大色系 + master 之內 lightness 微差
+#   暖色 (紅/橘) = sniper (next_day_flipper / day_trader)
+#   藍綠系     = swing (波段)
+#   灰系       = longterm (長線)
+#   外資/官股  = 中性灰 (不重點分析)
+# header 較深 (master/branch label 列) + body 較淡 (data 列), 保留字型不刺眼
+MASTER_BLOCK_COLORS = {
+    # ── Sniper 暖色系 (5 個) ──
+    "蔣承翰":                {"header": "FFE57373", "body": "FFFFEBEE"},  # 紅 (主 sniper, 漲停獵手)
+    "巨人傑":                {"header": "FFEF9A9A", "body": "FFFFE5E5"},  # 淡紅 (雙風格)
+    "Tradow":                {"header": "FFFFAB91", "body": "FFFFEDE7"},  # 橘紅
+    "迷你哥/松山哥":         {"header": "FFFFB74D", "body": "FFFFF3E0"},  # 橘 (當沖)
+    "Krenz(再多一位數本人)": {"header": "FFFFCC80", "body": "FFFFF8E1"},  # 淡橘
+    # ── Swing 波段藍綠系 (8 個) ──
+    "民哥":                  {"header": "FF81C784", "body": "FFE8F5E9"},  # 綠
+    "林滄海":                {"header": "FFA5D6A7", "body": "FFEEF7EE"},  # 淡綠 (longterm tint)
+    "張濬安(航海王)":        {"header": "FF64B5F6", "body": "FFE3F2FD"},  # 海藍 (航運王)
+    "陳族元":                {"header": "FF90CAF9", "body": "FFE7F2FB"},  # 淡藍
+    "陳律師":                {"header": "FFB39DDB", "body": "FFEDE7F6"},  # 紫
+    "布哥/n_nchang":         {"header": "FF80DEEA", "body": "FFE0F7FA"},  # 青
+    "強森":                  {"header": "FF80CBC4", "body": "FFE0F2F1"},  # 青綠
+    "大牌分析師":            {"header": "FFAED581", "body": "FFF1F8E9"},  # 黃綠
+    # ── Longterm 長線灰系 (2 個) ──
+    "優式資本":              {"header": "FFBCAAA4", "body": "FFEFEBE9"},  # 灰棕
+    "東億資本":              {"header": "FFB0BEC5", "body": "FFECEFF1"},  # 灰藍
+}
+DEFAULT_MASTER_COLOR = {"header": "FFD7D7D7", "body": "FFF5F5F5"}   # 未在表內的 fallback
+
+
+def _apply_master_block_color(ws: "Worksheet",
+                               header_rows: List[int],
+                               data_rows: List[int],
+                               master_anchor_row: int,
+                               colors: Dict[str, str],
+                               cols: int = 12) -> None:
+    """v3.31.1: 對 master block 套色塊.
+    header_rows: 高手/master label / sub-header 列 → 深色 header_fill
+    data_rows:   stock data 列 → 淡色 body_fill
+    master_anchor_row: A 欄 master name 的 merge anchor → 深色 (跨整個 block 視覺主色)
+    cols: 套色欄數 (預設 A-L = 12)。"""
+    if not colors:
+        return
+    try:
+        body_fill = PatternFill("solid", fgColor=colors["body"])
+        header_fill = PatternFill("solid", fgColor=colors["header"])
+    except Exception:
+        return  # color spec 壞掉就不套
+
+    # 先全 block 套 body (淡)
+    for r in data_rows:
+        for c in range(1, cols + 1):
+            ws.cell(row=r, column=c).fill = body_fill
+
+    # 再套 header rows (深)
+    for r in header_rows:
+        for c in range(1, cols + 1):
+            ws.cell(row=r, column=c).fill = header_fill
+
+    # A 欄 master anchor 套 header (整個 block 主色, 覆寫 body)
+    ws.cell(row=master_anchor_row, column=1).fill = header_fill
 
 
 def _is_sniper_master(master_name: str) -> bool:
@@ -555,8 +618,13 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
             sniper_count += 1
             master_has_limit_up = False
 
+        # v3.31.1: 記錄 master block 的 header rows 跟 data rows, 結束後套色
+        block_header_rows: List[int] = []
+        block_data_rows: List[int] = []
+
         # Full master header row (A="高手" label)
         _write_header_row(ws, row, header_label, include_master_label=True)
+        block_header_rows.append(row)
         row += 1
 
         master_data_start = row  # first data row of this master block
@@ -565,6 +633,7 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
             if bi > 0:
                 # Sub-header before subsequent branches under same master
                 _write_header_row(ws, row, header_label, include_master_label=False)
+                block_header_rows.append(row)
                 row += 1
 
             # v3.29.5: 該分點是否有 override row 數 (e.g. 8563→20, 其他→10)
@@ -586,6 +655,7 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
             # Write branch_size rows (data + notice + blank padding)
             for ri in range(branch_size):
                 r = branch_first_row + ri
+                block_data_rows.append(r)   # v3.31.1: 累積 data rows 給套色用
                 if ri < n_stocks:
                     _write_stock_row(ws, r, stocks[ri], sniper_mode=sniper_mode)
                 elif ri == n_stocks and has_branch_data:
@@ -631,6 +701,16 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
 
         if sniper_mode and master_has_limit_up:
             sniper_with_data += 1
+
+        # v3.31.1: 套色 master block (依 master_name 取色, 不在表內用 default)
+        block_colors = MASTER_BLOCK_COLORS.get(master_name, DEFAULT_MASTER_COLOR)
+        _apply_master_block_color(
+            ws,
+            header_rows=block_header_rows,
+            data_rows=block_data_rows,
+            master_anchor_row=master_data_start,
+            colors=block_colors,
+        )
 
     # Apply uniform row height
     for r in range(1, row):
