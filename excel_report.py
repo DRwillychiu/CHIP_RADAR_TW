@@ -644,7 +644,43 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
 
 
 # ============================================================
-#  Multi-sheet latest.xlsx (D6=b spec: 30 trading days, one sheet per day)
+#  v3.31.0: 月檔 (一個月一份, chip_radar_YYYY-MM.xlsx)
+# ============================================================
+
+def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
+                              trade_date: str):
+    """v3.31.0: 開啟既有月檔 (若有) 或新建, add/update 該日 sheet, save back.
+    sheet 名 = trade_date (YYYYMMDD), 同日重跑會覆寫該 sheet, sheets 按日期 desc 排序."""
+    if monthly_path.exists():
+        try:
+            wb = load_workbook(str(monthly_path))
+        except Exception as e:
+            print(f"  [Excel] 月檔 unreadable, recreating: {e}")
+            wb = Workbook()
+            if 'Sheet' in wb.sheetnames:
+                wb.remove(wb['Sheet'])
+    else:
+        wb = Workbook()
+        if 'Sheet' in wb.sheetnames:
+            wb.remove(wb['Sheet'])
+
+    # 若該日 sheet 已存在 → 移除 (重跑同日 → 覆寫)
+    if trade_date in wb.sheetnames:
+        wb.remove(wb[trade_date])
+
+    # 新建該日 sheet (build_day_sheet 在 ws 內 render 老闆版)
+    ws = wb.create_sheet(title=trade_date)
+    build_day_sheet(ws, branches_data, trade_date)
+
+    # 按日期 desc 排序 (新日期在前)
+    sheet_names = sorted(wb.sheetnames, reverse=True)
+    wb._sheets = [wb[name] for name in sheet_names]
+
+    wb.save(str(monthly_path))
+
+
+# ============================================================
+#  Multi-sheet latest.xlsx (legacy v3.30.x, retained for backfill/reference)
 # ============================================================
 
 def _update_latest_multi_sheet(latest_path: Path, branches_data: List[Dict],
@@ -723,32 +759,35 @@ def generate_excel_report(branches_data: List[Dict], trade_date: str,
     else:
         readable_date = trade_date
 
-    daily_path = out_dir / f"chip_radar_{readable_date}.xlsx"
+    # v3.31.0: 月檔模式 ─ 一個月一份 chip_radar_YYYY-MM.xlsx (取代單日檔)
+    #   latest.xlsx 永遠 = 當月月檔的 copy
+    #   crawler 主流程每次 daily-full 跑完: 開啟月檔 → add/update 該日 sheet → save → copy latest
+    year_month = readable_date[:7]   # "2026-06"
+    monthly_path = out_dir / f"chip_radar_{year_month}.xlsx"
     latest_path = out_dir / "latest.xlsx"
 
     valid_count = sum(1 for b in branches_data if b.get("buys") or b.get("sells"))
-    print(f"  [Excel] generating v3.26 ({valid_count} branches with data, date {readable_date})")
+    print(f"  [Excel] generating v3.31 monthly ({valid_count} branches, date {readable_date}, "
+          f"month {year_month})")
 
     try:
-        # 1. Daily single-sheet file
-        wb = Workbook()
-        ws = wb.active
-        ws.title = trade_date
-        build_day_sheet(ws, branches_data, trade_date)
-        wb.save(str(daily_path))
+        # 1. 月檔: 開啟既有 (若有) 或新建, add/update 該日 sheet
+        _update_monthly_workbook(monthly_path, branches_data, trade_date)
 
-        # 2. Multi-sheet latest.xlsx (last 30 trading days)
-        _update_latest_multi_sheet(latest_path, branches_data, trade_date, max_sheets=30)
+        # 2. latest.xlsx = 當月月檔的 copy (前端下載按鈕指向不變)
+        import shutil
+        shutil.copy2(str(monthly_path), str(latest_path))
 
         # 3. Update README index
         _update_reports_readme(out_dir)
 
-        size_kb = daily_path.stat().st_size / 1024
+        size_kb = monthly_path.stat().st_size / 1024
         latest_size_kb = latest_path.stat().st_size / 1024
+        sheet_count = len(load_workbook(str(monthly_path), read_only=True).sheetnames)
         print(f"  [Excel] OK")
-        print(f"     {daily_path.name} ({size_kb:.1f} KB)")
-        print(f"     latest.xlsx ({latest_size_kb:.1f} KB, multi-sheet)")
-        return str(daily_path)
+        print(f"     {monthly_path.name} ({size_kb:.1f} KB, {sheet_count} daily sheets)")
+        print(f"     latest.xlsx ({latest_size_kb:.1f} KB, = 當月月檔)")
+        return str(monthly_path)
 
     except Exception as e:
         print(f"  [Excel] FAILED: {e}")
