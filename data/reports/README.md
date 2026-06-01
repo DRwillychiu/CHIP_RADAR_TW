@@ -28,28 +28,13 @@ Excel 抓取法依 master 切換:
 
 ## 每日歷史
 
-近 17 個交易日 (共 17 個檔案):
+近 2 個交易日 (共 2 個檔案):
 
 | 日期 | 檔案 | 大小 |
 |------|------|------|
-| 2026-05-29 | [chip_radar_2026-05-29.xlsx](./chip_radar_2026-05-29.xlsx) | 37.9 KB |
-| 2026-05-28 | [chip_radar_2026-05-28.xlsx](./chip_radar_2026-05-28.xlsx) | 37.6 KB |
-| 2026-05-27 | [chip_radar_2026-05-27.xlsx](./chip_radar_2026-05-27.xlsx) | 36.2 KB |
-| 2026-05-26 | [chip_radar_2026-05-26.xlsx](./chip_radar_2026-05-26.xlsx) | 37.4 KB |
-| 2026-05-25 | [chip_radar_2026-05-25.xlsx](./chip_radar_2026-05-25.xlsx) | 38.0 KB |
-| 2026-05-22 | [chip_radar_2026-05-22.xlsx](./chip_radar_2026-05-22.xlsx) | 37.7 KB |
-| 2026-05-21 | [chip_radar_2026-05-21.xlsx](./chip_radar_2026-05-21.xlsx) | 37.3 KB |
-| 2026-05-20 | [chip_radar_2026-05-20.xlsx](./chip_radar_2026-05-20.xlsx) | 35.7 KB |
-| 2026-05-19 | [chip_radar_2026-05-19.xlsx](./chip_radar_2026-05-19.xlsx) | 35.3 KB |
-| 2026-05-18 | [chip_radar_2026-05-18.xlsx](./chip_radar_2026-05-18.xlsx) | 36.0 KB |
-| 2026-05-15 | [chip_radar_2026-05-15.xlsx](./chip_radar_2026-05-15.xlsx) | 35.7 KB |
-| 2026-05-14 | [chip_radar_2026-05-14.xlsx](./chip_radar_2026-05-14.xlsx) | 36.6 KB |
-| 2026-05-13 | [chip_radar_2026-05-13.xlsx](./chip_radar_2026-05-13.xlsx) | 35.6 KB |
-| 2026-05-12 | [chip_radar_2026-05-12.xlsx](./chip_radar_2026-05-12.xlsx) | 37.4 KB |
-| 2026-05-11 | [chip_radar_2026-05-11.xlsx](./chip_radar_2026-05-11.xlsx) | 37.3 KB |
-| 2026-05-08 | [chip_radar_2026-05-08.xlsx](./chip_radar_2026-05-08.xlsx) | 35.0 KB |
-| 2026-05-07 | [chip_radar_2026-05-07.xlsx](./chip_radar_2026-05-07.xlsx) | 336.6 KB |
+| 2026-06 | [chip_radar_2026-06.xlsx](./chip_radar_2026-06.xlsx) | 42.9 KB |
+| 2026-05 | [chip_radar_2026-05.xlsx](./chip_radar_2026-05.xlsx) | 865.2 KB |
 
 ---
 
-*Updated: 2026-05-29 18:44*
+*Updated: 2026-06-01 13:29*
