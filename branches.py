@@ -479,7 +479,11 @@ MASTER_STYLES = {
     "大牌分析師": ["swing"],
     "優式資本": ["longterm"],
     "東億資本": ["longterm"],
+    "志誠資本": ["longterm"],                   # v3.31.8 補 (使用者 6/3 confirm)
     "Krenz(再多一位數本人)": ["day_trader"],
+    "林適中": ["swing"],                         # v3.31.8 補
+    "竹科主力分點": ["swing"],                   # v3.31.8 補
+    "謝明彧大哥(華南永昌)": ["swing"],          # v3.31.8 補
     # 🌏 外資
     "高盛": ["foreign_ib"],
     "美林": ["foreign_ib"],
