@@ -2730,6 +2730,32 @@ def main():
         print(f"  ⚠️ master_profile 生成錯誤（不影響主流程）: {_mpe}")
         import traceback; traceback.print_exc()
 
+    # ════════════════════════════════════════════════════════════════
+    # v3.31.6 Phase 1.1: DB Pipeline 整合 — 把 raw_output upsert 進 SQLite OLAP DB
+    # ════════════════════════════════════════════════════════════════
+    try:
+        import db_pipeline
+        db_conn = db_pipeline.init_db(str(data_dir / "chip_radar_v2.db"))
+        db_stats = db_pipeline.upsert_from_raw_dict(
+            db_conn, raw_output, trade_date=trade_date,
+            source='raw', source_file=f'{trade_date}.json'
+        )
+        db_conn.close()
+        print(f"\n[DB v3.31.6] ✓ upsert {db_stats['daily_chips_rows']} rows → chip_radar_v2.db")
+        print(f"             new: traders+{db_stats['traders']} branches+{db_stats['branches']} stocks+{db_stats['stocks']}")
+    except Exception as _dbe:
+        print(f"  ⚠️ DB pipeline 失敗 (不影響主流程): {type(_dbe).__name__}: {_dbe}")
+        import traceback; traceback.print_exc()
+
+    # ════════════════════════════════════════════════════════════════
+    # v3.31.6 Phase 1.1: Archive 分層 — hot < 7天 / warm 7-60 / cold ≥60
+    # ════════════════════════════════════════════════════════════════
+    try:
+        import archive_manager
+        archive_manager.rotate(str(data_dir), hot_days=7, warm_days=60)
+    except Exception as _ae:
+        print(f"  ⚠️ archive rotate 失敗 (不影響主流程): {type(_ae).__name__}: {_ae}")
+
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")
     print(f"  成功: {success_count} / 失敗: {fail_count} / 無資料: {empty_count}")
