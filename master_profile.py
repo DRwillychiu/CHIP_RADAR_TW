@@ -224,6 +224,8 @@ def _compute_long_term_metrics(trades: List[Dict[str, Any]],
 def load_history(data_dir: str, window_days: Optional[int], password: str) -> List[Dict[str, Any]]:
     """
     讀最近 window_days 天 daily JSON, 解密.
+    v3.31.9: 同時掃 data/*.json (hot) + data/archive/*.json (warm) + *.json.gz (cold)
+             解決 v3.31.6 archive 整合後 hot 區只剩 5 天的副作用.
 
     Args:
         data_dir: data/ 路徑
@@ -232,7 +234,16 @@ def load_history(data_dir: str, window_days: Optional[int], password: str) -> Li
     Returns:
         [{'date': 'YYYYMMDD', 'data': {<解密後資料>}}, ...] 依日期升序
     """
-    files = sorted(Path(data_dir).glob('[0-9]' * 8 + '.json'))
+    data_path = Path(data_dir)
+    archive_path = data_path / 'archive'
+    # hot + warm + cold 三層全掃
+    files = []
+    files.extend(data_path.glob('[0-9]' * 8 + '.json'))
+    if archive_path.exists():
+        files.extend(archive_path.glob('[0-9]' * 8 + '.json'))
+        files.extend(archive_path.glob('[0-9]' * 8 + '.json.gz'))
+    # 依檔名(YYYYMMDD)排序; .json.gz 也含同樣 8 字
+    files = sorted(files, key=lambda p: p.stem.replace('.json', ''))
     if window_days is not None:
         files = files[-window_days:]
 
@@ -241,15 +252,23 @@ def load_history(data_dir: str, window_days: Optional[int], password: str) -> Li
     invalid_tag_count = 0
     for f in files:
         try:
-            with open(f, 'r', encoding='utf-8') as fh:
-                enc = json.load(fh)
+            # v3.31.9: 支援 .json.gz cold 區
+            if f.suffix == '.gz':
+                import gzip
+                with gzip.open(f, 'rt', encoding='utf-8') as fh:
+                    enc = json.load(fh)
+            else:
+                with open(f, 'r', encoding='utf-8') as fh:
+                    enc = json.load(fh)
             if enc.get('encrypted'):
                 from crawler import decrypt_data
                 plaintext = decrypt_data(enc['data'], password)
                 data = json.loads(plaintext)
             else:
                 data = enc.get('data', enc)
-            history.append({'date': f.stem, 'data': data})
+            # v3.31.9: .json.gz → stem = YYYYMMDD.json, 要再 strip 一次
+            date_stem = f.stem.replace('.json', '') if f.suffix == '.gz' else f.stem
+            history.append({'date': date_stem, 'data': data})
         except Exception as e:
             # v3.30.10: 印 exception type (避免「⚠️ 跳過 ...: 」空白訊息)
             type_name = type(e).__name__

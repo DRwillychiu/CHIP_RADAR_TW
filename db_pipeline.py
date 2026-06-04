@@ -415,9 +415,16 @@ def upsert_from_raw_dict(conn: sqlite3.Connection,
 # ════════════════════════════════════════════════════════════════════
 
 def import_day_from_file(db_path: str, json_path: str, password: str) -> Dict[str, int]:
-    """從 data/YYYYMMDD.json (加密) 解密 → upsert."""
-    with open(json_path, 'r', encoding='utf-8') as f:
-        enc = json.load(f)
+    """從 data/YYYYMMDD.json (加密) 解密 → upsert.
+    v3.31.9: 支援 .json.gz (cold 區 archive)."""
+    p = Path(json_path)
+    if p.suffix == '.gz':
+        import gzip
+        with gzip.open(p, 'rt', encoding='utf-8') as f:
+            enc = json.load(f)
+    else:
+        with open(p, 'r', encoding='utf-8') as f:
+            enc = json.load(f)
     if enc.get('encrypted'):
         from crawler import decrypt_data
         plaintext = decrypt_data(enc['data'], password)
@@ -530,10 +537,19 @@ def main():
             print('   注意: 不要保留 < > 角括號. 密碼從你 GitHub Secret CHIP_RADAR_PASSWORD 取')
             sys.exit(1)
         data_dir = Path(args.data_dir)
-        files = sorted(data_dir.glob('[0-9]' * 8 + '.json'))
+        # v3.31.9: 掃 hot (data/) + warm (data/archive/) + cold (*.json.gz) 三層
+        files = list(data_dir.glob('[0-9]' * 8 + '.json'))
+        archive = data_dir / 'archive'
+        if archive.exists():
+            files.extend(archive.glob('[0-9]' * 8 + '.json'))
+            files.extend(archive.glob('[0-9]' * 8 + '.json.gz'))
+        files = sorted(files, key=lambda p: p.stem.replace('.json', ''))
         if not files:
-            print(f"❌ {data_dir}/ 沒有 YYYYMMDD.json 檔")
+            print(f"❌ {data_dir}/ 沒有 YYYYMMDD.json 檔 (含 archive/)")
             sys.exit(1)
+        print(f"  涵蓋: hot={sum(1 for f in files if f.parent == data_dir)} "
+              f"+ warm={sum(1 for f in files if f.parent.name == 'archive' and f.suffix == '.json')} "
+              f"+ cold={sum(1 for f in files if f.suffix == '.gz')}")
 
         # v3.31.3: fail-fast 密碼預檢 (解第一個檔驗密碼, 失敗就停, 不跑 N 次)
         first = files[0]
