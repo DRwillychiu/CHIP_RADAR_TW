@@ -97,7 +97,7 @@ THRESH = {
     'streak_long': 15,                # 8 → 15 (32 天下大多有 8+ 連續, 15+ 才算明顯節奏)
     # v3.30.9: 鎖漲停 + 長線持有
     'locked_at_lu_tolerance': 0.99,   # 不變
-    'locked_at_lu_ratio_amt': 0.30,   # 40% → 30% (寬一點看蔣承翰是否觸發)
+    'locked_at_lu_ratio_amt': 0.15,   # 30% → 15% (蔣承翰 19% 鎖漲停/total, 15% 閾值讓他觸發)
     'long_term_days_threshold': 15,   # 5 → 15 (5 天太短, 32 天/2 ≈ 15)
     'long_term_amt_ratio': 0.65,      # 50% → 65% (更嚴, 配合天數放寬)
     # v3.30.11: 族群專家
@@ -156,7 +156,7 @@ def _derive_limit_up_price(stock: Dict[str, Any],
             return float(prev) * 1.10
     # v3.31.11: 從 stock_close_map 找前一日 close
     if stock_close_map and trade_date:
-        code = stock.get('code')
+        code = stock.get('code') or stock.get('stock_code')  # v3.31.12 fix: trade dict 用 stock_code
         if code and code in stock_close_map:
             days = sorted(d for d in stock_close_map[code] if d < trade_date)
             if days:
