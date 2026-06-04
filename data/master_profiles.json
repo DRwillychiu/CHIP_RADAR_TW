@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-06-04T03:48:27.896531+08:00",
-  "window_days": 31,
+  "generated_at": "2026-06-04T21:30:41.482358+08:00",
+  "window_days": 32,
   "trade_date_range": [
     "20260421",
-    "20260603"
+    "20260604"
   ],
   "master_count": 15,
   "industry_classification_available": true,
@@ -15,31 +15,31 @@
         "swing"
       ],
       "operation_metrics": {
-        "trades_count": 4241,
-        "unique_stocks": 749,
+        "trades_count": 4381,
+        "unique_stocks": 761,
         "daytrade_ratio": 0.054,
-        "partial_ratio": 0.25,
-        "overnight_ratio": 0.696,
-        "limit_up_hit_ratio": 0.129,
-        "concentration_top5_pct": 25.6,
-        "consistency": 0.696,
-        "total_buy_amt_wan": 6986125,
+        "partial_ratio": 0.251,
+        "overnight_ratio": 0.695,
+        "limit_up_hit_ratio": 0.135,
+        "concentration_top5_pct": 25.4,
+        "consistency": 0.695,
+        "total_buy_amt_wan": 7116808,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 237,
-        "long_term_amt_ratio": 0.916,
+        "long_term_stocks_count": 244,
+        "long_term_amt_ratio": 0.918,
         "top_industry": "半導體業",
-        "top_industry_pct": 50.8,
+        "top_industry_pct": 50.4,
         "industry_count": 36,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 50.8
+            "pct": 50.4
           },
           {
             "name": "電子零組件業",
-            "pct": 14.8
+            "pct": 14.9
           },
           {
             "name": "光電業",
@@ -47,22 +47,22 @@
           }
         ],
         "disposal_stocks_count": 65,
-        "disposal_amt_ratio": 0.274
+        "disposal_amt_ratio": 0.272
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 136.8,
+        "avg_trades_per_active_day": 136.9,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -70,7 +70,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "民哥 近 31/31 交易日出手 4241 次 (749 檔), 風格分布: 隔日沖近似 25% / 留倉 70%, 漲停命中 13% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 92% (237 檔), 主攻 半導體業 (51%), ⚠️ 處置股部位 27% (65 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+      "narrative": "民哥 近 32/32 交易日出手 4381 次 (761 檔), 風格分布: 隔日沖近似 25% / 留倉 70%, 漲停命中 14% (其中 🔒鎖漲停 0%), 前 5 大集中 25%, 長線部位 92% (244 檔), 主攻 半導體業 (50%), ⚠️ 處置股部位 27% (65 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
       "per_branch_profiles": {
         "9B25": {
           "master": "民哥",
@@ -78,54 +78,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1387,
-            "unique_stocks": 404,
-            "daytrade_ratio": 0.041,
-            "partial_ratio": 0.243,
-            "overnight_ratio": 0.716,
-            "limit_up_hit_ratio": 0.081,
-            "concentration_top5_pct": 37.2,
-            "consistency": 0.716,
-            "total_buy_amt_wan": 2644057,
+            "trades_count": 1434,
+            "unique_stocks": 407,
+            "daytrade_ratio": 0.04,
+            "partial_ratio": 0.244,
+            "overnight_ratio": 0.715,
+            "limit_up_hit_ratio": 0.086,
+            "concentration_top5_pct": 36.9,
+            "consistency": 0.715,
+            "total_buy_amt_wan": 2678516,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 97,
-            "long_term_amt_ratio": 0.833,
+            "long_term_stocks_count": 102,
+            "long_term_amt_ratio": 0.844,
             "top_industry": "半導體業",
-            "top_industry_pct": 60.7,
+            "top_industry_pct": 60.3,
             "industry_count": 34,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 60.7
+                "pct": 60.3
               },
               {
                 "name": "電子零組件業",
-                "pct": 13.9
+                "pct": 14.1
               },
               {
                 "name": "其他電子業",
                 "pct": 6.7
               }
             ],
-            "disposal_stocks_count": 41,
-            "disposal_amt_ratio": 0.187
+            "disposal_stocks_count": 42,
+            "disposal_amt_ratio": 0.186
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 44.7,
+            "avg_trades_per_active_day": 44.8,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -134,7 +134,7 @@
             "連續部署",
             "🎯 族群專家"
           ],
-          "narrative": "民哥 近 31/31 交易日出手 1387 次 (404 檔), 風格分布: 隔日沖近似 24% / 留倉 72%, 漲停命中 8% (其中 🔒鎖漲停 0%), 前 5 大集中 37%, 長線部位 83% (97 檔), 主攻 半導體業 (61%), ⚠️ 處置股部位 19% (41 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/🎯 族群專家。",
+          "narrative": "民哥 近 32/32 交易日出手 1434 次 (407 檔), 風格分布: 隔日沖近似 24% / 留倉 72%, 漲停命中 9% (其中 🔒鎖漲停 0%), 前 5 大集中 37%, 長線部位 84% (102 檔), 主攻 半導體業 (60%), ⚠️ 處置股部位 19% (42 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/🎯 族群專家。",
           "branch_filter": "9B25",
           "branch_name": "台新-五權西"
         },
@@ -144,54 +144,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1408,
-            "unique_stocks": 425,
+            "trades_count": 1455,
+            "unique_stocks": 431,
             "daytrade_ratio": 0.082,
-            "partial_ratio": 0.3,
-            "overnight_ratio": 0.617,
-            "limit_up_hit_ratio": 0.168,
-            "concentration_top5_pct": 21.6,
-            "consistency": 0.617,
-            "total_buy_amt_wan": 3854532,
+            "partial_ratio": 0.304,
+            "overnight_ratio": 0.614,
+            "limit_up_hit_ratio": 0.174,
+            "concentration_top5_pct": 21.5,
+            "consistency": 0.614,
+            "total_buy_amt_wan": 3932054,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 87,
-            "long_term_amt_ratio": 0.713,
+            "long_term_stocks_count": 92,
+            "long_term_amt_ratio": 0.732,
             "top_industry": "半導體業",
-            "top_industry_pct": 45.1,
+            "top_industry_pct": 44.9,
             "industry_count": 30,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 45.1
+                "pct": 44.9
               },
               {
                 "name": "電子零組件業",
-                "pct": 15.0
+                "pct": 14.9
               },
               {
                 "name": "光電業",
-                "pct": 10.8
+                "pct": 10.7
               }
             ],
-            "disposal_stocks_count": 49,
-            "disposal_amt_ratio": 0.342
+            "disposal_stocks_count": 50,
+            "disposal_amt_ratio": 0.34
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 45.4,
+            "avg_trades_per_active_day": 45.5,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -200,7 +200,7 @@
             "連續部署",
             "⚠️ 處置股獵手"
           ],
-          "narrative": "民哥 近 31/31 交易日出手 1408 次 (425 檔), 風格分布: 隔日沖近似 30% / 留倉 62%, 漲停命中 17% (其中 🔒鎖漲停 0%), 前 5 大集中 22%, 長線部位 71% (87 檔), 主攻 半導體業 (45%), ⚠️ 處置股部位 34% (49 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
+          "narrative": "民哥 近 32/32 交易日出手 1455 次 (431 檔), 風格分布: 隔日沖近似 30% / 留倉 61%, 漲停命中 17% (其中 🔒鎖漲停 0%), 前 5 大集中 22%, 長線部位 73% (92 檔), 主攻 半導體業 (45%), ⚠️ 處置股部位 34% (50 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
           "branch_filter": "9666",
           "branch_name": "富邦-南屯"
         },
@@ -210,54 +210,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1446,
-            "unique_stocks": 521,
+            "trades_count": 1492,
+            "unique_stocks": 535,
             "daytrade_ratio": 0.038,
-            "partial_ratio": 0.209,
-            "overnight_ratio": 0.753,
-            "limit_up_hit_ratio": 0.137,
-            "concentration_top5_pct": 15.0,
-            "consistency": 0.753,
-            "total_buy_amt_wan": 487536,
+            "partial_ratio": 0.206,
+            "overnight_ratio": 0.755,
+            "limit_up_hit_ratio": 0.144,
+            "concentration_top5_pct": 15.8,
+            "consistency": 0.755,
+            "total_buy_amt_wan": 506239,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 90,
-            "long_term_amt_ratio": 0.604,
+            "long_term_stocks_count": 95,
+            "long_term_amt_ratio": 0.6,
             "top_industry": "半導體業",
-            "top_industry_pct": 42.2,
+            "top_industry_pct": 40.9,
             "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 42.2
+                "pct": 40.9
               },
               {
                 "name": "電子零組件業",
-                "pct": 18.6
+                "pct": 18.5
               },
               {
                 "name": "電腦及週邊設備業",
-                "pct": 7.6
+                "pct": 7.5
               }
             ],
-            "disposal_stocks_count": 52,
-            "disposal_amt_ratio": 0.203
+            "disposal_stocks_count": 53,
+            "disposal_amt_ratio": 0.198
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 46.6,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -266,7 +266,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "民哥 近 31/31 交易日出手 1446 次 (521 檔), 風格分布: 隔日沖近似 21% / 留倉 75%, 漲停命中 14% (其中 🔒鎖漲停 0%), 前 5 大集中 15%, 長線部位 60% (90 檔), 主攻 半導體業 (42%), ⚠️ 處置股部位 20% (52 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
+          "narrative": "民哥 近 32/32 交易日出手 1492 次 (535 檔), 風格分布: 隔日沖近似 21% / 留倉 76%, 漲停命中 14% (其中 🔒鎖漲停 0%), 前 5 大集中 16%, 長線部位 60% (95 檔), 主攻 半導體業 (41%), ⚠️ 處置股部位 20% (53 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
           "branch_filter": "779W",
           "branch_name": "國票-彰化"
         }
@@ -280,27 +280,27 @@
         "longterm"
       ],
       "operation_metrics": {
-        "trades_count": 5485,
-        "unique_stocks": 725,
+        "trades_count": 5672,
+        "unique_stocks": 734,
         "daytrade_ratio": 0.054,
         "partial_ratio": 0.25,
         "overnight_ratio": 0.696,
-        "limit_up_hit_ratio": 0.106,
-        "concentration_top5_pct": 27.3,
+        "limit_up_hit_ratio": 0.111,
+        "concentration_top5_pct": 27.2,
         "consistency": 0.696,
-        "total_buy_amt_wan": 22987659,
+        "total_buy_amt_wan": 23347114,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 287,
-        "long_term_amt_ratio": 0.951,
+        "long_term_stocks_count": 295,
+        "long_term_amt_ratio": 0.953,
         "top_industry": "半導體業",
-        "top_industry_pct": 57.5,
+        "top_industry_pct": 57.2,
         "industry_count": 35,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 57.5
+            "pct": 57.2
           },
           {
             "name": "電子零組件業",
@@ -308,26 +308,26 @@
           },
           {
             "name": "電腦及週邊設備業",
-            "pct": 6.3
+            "pct": 6.4
           }
         ],
         "disposal_stocks_count": 62,
-        "disposal_amt_ratio": 0.303
+        "disposal_amt_ratio": 0.301
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 176.9,
+        "avg_trades_per_active_day": 177.2,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -336,7 +336,7 @@
         "連續部署",
         "⚠️ 處置股獵手"
       ],
-      "narrative": "林滄海 近 31/31 交易日出手 5485 次 (725 檔), 風格分布: 隔日沖近似 25% / 留倉 70%, 漲停命中 11% (其中 🔒鎖漲停 0%), 前 5 大集中 27%, 長線部位 95% (287 檔), 主攻 半導體業 (58%), ⚠️ 處置股部位 30% (62 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
+      "narrative": "林滄海 近 32/32 交易日出手 5672 次 (734 檔), 風格分布: 隔日沖近似 25% / 留倉 70%, 漲停命中 11% (其中 🔒鎖漲停 0%), 前 5 大集中 27%, 長線部位 95% (295 檔), 主攻 半導體業 (57%), ⚠️ 處置股部位 30% (62 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
       "per_branch_profiles": {
         "9658": {
           "master": "林滄海",
@@ -345,54 +345,54 @@
             "longterm"
           ],
           "operation_metrics": {
-            "trades_count": 1472,
-            "unique_stocks": 396,
+            "trades_count": 1523,
+            "unique_stocks": 399,
             "daytrade_ratio": 0.07,
-            "partial_ratio": 0.409,
+            "partial_ratio": 0.408,
             "overnight_ratio": 0.521,
-            "limit_up_hit_ratio": 0.061,
+            "limit_up_hit_ratio": 0.068,
             "concentration_top5_pct": 26.1,
             "consistency": 0.521,
-            "total_buy_amt_wan": 4729513,
+            "total_buy_amt_wan": 4884065,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 102,
-            "long_term_amt_ratio": 0.819,
+            "long_term_stocks_count": 108,
+            "long_term_amt_ratio": 0.84,
             "top_industry": "半導體業",
-            "top_industry_pct": 51.3,
-            "industry_count": 31,
+            "top_industry_pct": 51.1,
+            "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 51.3
+                "pct": 51.1
               },
               {
                 "name": "電子零組件業",
-                "pct": 16.5
+                "pct": 16.2
               },
               {
                 "name": "未分類",
-                "pct": 7.3
+                "pct": 7.4
               }
             ],
             "disposal_stocks_count": 41,
-            "disposal_amt_ratio": 0.197
+            "disposal_amt_ratio": 0.194
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 47.5,
+            "avg_trades_per_active_day": 47.6,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -400,7 +400,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "林滄海 近 31/31 交易日出手 1472 次 (396 檔), 風格分布: 隔日沖近似 41% / 留倉 52%, 漲停命中 6% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 82% (102 檔), 主攻 半導體業 (51%), ⚠️ 處置股部位 20% (41 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "林滄海 近 32/32 交易日出手 1523 次 (399 檔), 風格分布: 隔日沖近似 41% / 留倉 52%, 漲停命中 7% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 84% (108 檔), 主攻 半導體業 (51%), ⚠️ 處置股部位 19% (41 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "9658",
           "branch_name": "富邦-建國"
         },
@@ -411,54 +411,54 @@
             "longterm"
           ],
           "operation_metrics": {
-            "trades_count": 1454,
-            "unique_stocks": 431,
-            "daytrade_ratio": 0.061,
-            "partial_ratio": 0.24,
-            "overnight_ratio": 0.699,
-            "limit_up_hit_ratio": 0.071,
-            "concentration_top5_pct": 33.5,
-            "consistency": 0.699,
-            "total_buy_amt_wan": 1604019,
+            "trades_count": 1501,
+            "unique_stocks": 435,
+            "daytrade_ratio": 0.059,
+            "partial_ratio": 0.244,
+            "overnight_ratio": 0.698,
+            "limit_up_hit_ratio": 0.077,
+            "concentration_top5_pct": 32.8,
+            "consistency": 0.698,
+            "total_buy_amt_wan": 1653071,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 103,
-            "long_term_amt_ratio": 0.829,
+            "long_term_stocks_count": 106,
+            "long_term_amt_ratio": 0.841,
             "top_industry": "半導體業",
-            "top_industry_pct": 61.2,
-            "industry_count": 29,
+            "top_industry_pct": 60.4,
+            "industry_count": 30,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 61.2
+                "pct": 60.4
               },
               {
                 "name": "電子零組件業",
-                "pct": 14.5
+                "pct": 14.3
               },
               {
-                "name": "其他電子業",
-                "pct": 4.8
+                "name": "電腦及週邊設備業",
+                "pct": 5.2
               }
             ],
             "disposal_stocks_count": 49,
-            "disposal_amt_ratio": 0.19
+            "disposal_amt_ratio": 0.188
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 46.9,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -467,7 +467,7 @@
             "連續部署",
             "🎯 族群專家"
           ],
-          "narrative": "林滄海 近 31/31 交易日出手 1454 次 (431 檔), 風格分布: 隔日沖近似 24% / 留倉 70%, 漲停命中 7% (其中 🔒鎖漲停 0%), 前 5 大集中 34%, 長線部位 83% (103 檔), 主攻 半導體業 (61%), ⚠️ 處置股部位 19% (49 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/🎯 族群專家。",
+          "narrative": "林滄海 近 32/32 交易日出手 1501 次 (435 檔), 風格分布: 隔日沖近似 24% / 留倉 70%, 漲停命中 8% (其中 🔒鎖漲停 0%), 前 5 大集中 33%, 長線部位 84% (106 檔), 主攻 半導體業 (60%), ⚠️ 處置股部位 19% (49 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/🎯 族群專家。",
           "branch_filter": "9309",
           "branch_name": "華南永昌-古亭"
         },
@@ -478,62 +478,63 @@
             "longterm"
           ],
           "operation_metrics": {
-            "trades_count": 1301,
-            "unique_stocks": 386,
-            "daytrade_ratio": 0.034,
+            "trades_count": 1346,
+            "unique_stocks": 392,
+            "daytrade_ratio": 0.033,
             "partial_ratio": 0.166,
-            "overnight_ratio": 0.8,
-            "limit_up_hit_ratio": 0.094,
-            "concentration_top5_pct": 36.0,
-            "consistency": 0.8,
-            "total_buy_amt_wan": 5703504,
+            "overnight_ratio": 0.801,
+            "limit_up_hit_ratio": 0.1,
+            "concentration_top5_pct": 35.7,
+            "consistency": 0.801,
+            "total_buy_amt_wan": 5782104,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
             "long_term_stocks_count": 95,
-            "long_term_amt_ratio": 0.813,
+            "long_term_amt_ratio": 0.812,
             "top_industry": "半導體業",
-            "top_industry_pct": 57.0,
-            "industry_count": 32,
+            "top_industry_pct": 56.8,
+            "industry_count": 33,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 57.0
+                "pct": 56.8
               },
               {
                 "name": "電子零組件業",
-                "pct": 13.3
+                "pct": 13.2
               },
               {
                 "name": "未分類",
-                "pct": 5.9
+                "pct": 5.8
               }
             ],
             "disposal_stocks_count": 38,
-            "disposal_amt_ratio": 0.186
+            "disposal_amt_ratio": 0.187
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 42.0,
+            "avg_trades_per_active_day": 42.1,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
             "📈 長線持有",
+            "風格純粹",
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "林滄海 近 31/31 交易日出手 1301 次 (386 檔), 風格分布: 隔日沖近似 17% / 留倉 80%, 漲停命中 9% (其中 🔒鎖漲停 0%), 前 5 大集中 36%, 長線部位 81% (95 檔), 主攻 半導體業 (57%), ⚠️ 處置股部位 19% (38 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "林滄海 近 32/32 交易日出手 1346 次 (392 檔), 風格分布: 隔日沖近似 17% / 留倉 80%, 漲停命中 10% (其中 🔒鎖漲停 0%), 前 5 大集中 36%, 長線部位 81% (95 檔), 主攻 半導體業 (57%), ⚠️ 處置股部位 19% (38 檔)。 主軸: 📈 長線持有/風格純粹/高頻交易/連續部署。",
           "branch_filter": "1260",
           "branch_name": "宏遠證券"
         },
@@ -544,31 +545,31 @@
             "longterm"
           ],
           "operation_metrics": {
-            "trades_count": 1258,
-            "unique_stocks": 369,
-            "daytrade_ratio": 0.05,
-            "partial_ratio": 0.161,
-            "overnight_ratio": 0.789,
-            "limit_up_hit_ratio": 0.211,
-            "concentration_top5_pct": 27.4,
-            "consistency": 0.789,
-            "total_buy_amt_wan": 10950622,
+            "trades_count": 1302,
+            "unique_stocks": 376,
+            "daytrade_ratio": 0.051,
+            "partial_ratio": 0.159,
+            "overnight_ratio": 0.79,
+            "limit_up_hit_ratio": 0.213,
+            "concentration_top5_pct": 27.2,
+            "consistency": 0.79,
+            "total_buy_amt_wan": 11027874,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 97,
-            "long_term_amt_ratio": 0.83,
+            "long_term_stocks_count": 100,
+            "long_term_amt_ratio": 0.837,
             "top_industry": "半導體業",
-            "top_industry_pct": 59.9,
+            "top_industry_pct": 59.7,
             "industry_count": 28,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 59.9
+                "pct": 59.7
               },
               {
                 "name": "電子零組件業",
-                "pct": 13.1
+                "pct": 13.2
               },
               {
                 "name": "電腦及週邊設備業",
@@ -576,22 +577,22 @@
               }
             ],
             "disposal_stocks_count": 54,
-            "disposal_amt_ratio": 0.427
+            "disposal_amt_ratio": 0.424
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 40.6,
+            "avg_trades_per_active_day": 40.7,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -600,7 +601,7 @@
             "連續部署",
             "⚠️ 處置股獵手"
           ],
-          "narrative": "林滄海 近 31/31 交易日出手 1258 次 (369 檔), 風格分布: 隔日沖近似 16% / 留倉 79%, 漲停命中 21% (其中 🔒鎖漲停 0%), 前 5 大集中 27%, 長線部位 83% (97 檔), 主攻 半導體業 (60%), ⚠️ 處置股部位 43% (54 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
+          "narrative": "林滄海 近 32/32 交易日出手 1302 次 (376 檔), 風格分布: 隔日沖近似 16% / 留倉 79%, 漲停命中 21% (其中 🔒鎖漲停 0%), 前 5 大集中 27%, 長線部位 84% (100 檔), 主攻 半導體業 (60%), ⚠️ 處置股部位 42% (54 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
           "branch_filter": "9216",
           "branch_name": "凱基-信義"
         }
@@ -613,31 +614,31 @@
         "swing"
       ],
       "operation_metrics": {
-        "trades_count": 8571,
-        "unique_stocks": 863,
+        "trades_count": 8845,
+        "unique_stocks": 874,
         "daytrade_ratio": 0.053,
-        "partial_ratio": 0.271,
-        "overnight_ratio": 0.676,
-        "limit_up_hit_ratio": 0.107,
-        "concentration_top5_pct": 23.2,
-        "consistency": 0.676,
-        "total_buy_amt_wan": 51748619,
+        "partial_ratio": 0.272,
+        "overnight_ratio": 0.675,
+        "limit_up_hit_ratio": 0.111,
+        "concentration_top5_pct": 22.8,
+        "consistency": 0.675,
+        "total_buy_amt_wan": 53033728,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 399,
-        "long_term_amt_ratio": 0.966,
+        "long_term_stocks_count": 408,
+        "long_term_amt_ratio": 0.965,
         "top_industry": "半導體業",
-        "top_industry_pct": 42.4,
+        "top_industry_pct": 41.8,
         "industry_count": 35,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 42.4
+            "pct": 41.8
           },
           {
             "name": "未分類",
-            "pct": 17.0
+            "pct": 16.8
           },
           {
             "name": "電子零組件業",
@@ -645,22 +646,22 @@
           }
         ],
         "disposal_stocks_count": 68,
-        "disposal_amt_ratio": 0.188
+        "disposal_amt_ratio": 0.185
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 276.5,
+        "avg_trades_per_active_day": 276.4,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -668,7 +669,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "張濬安(航海王) 近 31/31 交易日出手 8571 次 (863 檔), 風格分布: 隔日沖近似 27% / 留倉 68%, 漲停命中 11% (其中 🔒鎖漲停 0%), 前 5 大集中 23%, 長線部位 97% (399 檔), 主攻 半導體業 (42%), ⚠️ 處置股部位 19% (68 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+      "narrative": "張濬安(航海王) 近 32/32 交易日出手 8845 次 (874 檔), 風格分布: 隔日沖近似 27% / 留倉 68%, 漲停命中 11% (其中 🔒鎖漲停 0%), 前 5 大集中 23%, 長線部位 96% (408 檔), 主攻 半導體業 (42%), ⚠️ 處置股部位 18% (68 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
       "per_branch_profiles": {
         "779Z": {
           "master": "張濬安(航海王)",
@@ -676,54 +677,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1338,
-            "unique_stocks": 379,
-            "daytrade_ratio": 0.046,
-            "partial_ratio": 0.229,
-            "overnight_ratio": 0.726,
-            "limit_up_hit_ratio": 0.198,
-            "concentration_top5_pct": 24.0,
-            "consistency": 0.726,
-            "total_buy_amt_wan": 7376905,
+            "trades_count": 1380,
+            "unique_stocks": 388,
+            "daytrade_ratio": 0.045,
+            "partial_ratio": 0.233,
+            "overnight_ratio": 0.722,
+            "limit_up_hit_ratio": 0.205,
+            "concentration_top5_pct": 23.6,
+            "consistency": 0.722,
+            "total_buy_amt_wan": 7528194,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 92,
-            "long_term_amt_ratio": 0.777,
+            "long_term_stocks_count": 95,
+            "long_term_amt_ratio": 0.778,
             "top_industry": "半導體業",
-            "top_industry_pct": 58.0,
+            "top_industry_pct": 57.1,
             "industry_count": 29,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 58.0
+                "pct": 57.1
               },
               {
                 "name": "電子零組件業",
-                "pct": 16.5
+                "pct": 16.6
               },
               {
                 "name": "電腦及週邊設備業",
-                "pct": 7.1
+                "pct": 7.0
               }
             ],
-            "disposal_stocks_count": 49,
-            "disposal_amt_ratio": 0.351
+            "disposal_stocks_count": 50,
+            "disposal_amt_ratio": 0.346
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 43.2,
+            "avg_trades_per_active_day": 43.1,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -732,7 +733,7 @@
             "連續部署",
             "⚠️ 處置股獵手"
           ],
-          "narrative": "張濬安(航海王) 近 31/31 交易日出手 1338 次 (379 檔), 風格分布: 隔日沖近似 23% / 留倉 73%, 漲停命中 20% (其中 🔒鎖漲停 0%), 前 5 大集中 24%, 長線部位 78% (92 檔), 主攻 半導體業 (58%), ⚠️ 處置股部位 35% (49 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
+          "narrative": "張濬安(航海王) 近 32/32 交易日出手 1380 次 (388 檔), 風格分布: 隔日沖近似 23% / 留倉 72%, 漲停命中 20% (其中 🔒鎖漲停 0%), 前 5 大集中 24%, 長線部位 78% (95 檔), 主攻 半導體業 (57%), ⚠️ 處置股部位 35% (50 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
           "branch_filter": "779Z",
           "branch_name": "國票-安和"
         },
@@ -742,54 +743,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1472,
-            "unique_stocks": 436,
+            "trades_count": 1522,
+            "unique_stocks": 439,
             "daytrade_ratio": 0.05,
-            "partial_ratio": 0.283,
-            "overnight_ratio": 0.667,
-            "limit_up_hit_ratio": 0.069,
-            "concentration_top5_pct": 25.3,
-            "consistency": 0.667,
-            "total_buy_amt_wan": 1377316,
+            "partial_ratio": 0.284,
+            "overnight_ratio": 0.666,
+            "limit_up_hit_ratio": 0.074,
+            "concentration_top5_pct": 25.6,
+            "consistency": 0.666,
+            "total_buy_amt_wan": 1448640,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 102,
-            "long_term_amt_ratio": 0.769,
+            "long_term_stocks_count": 110,
+            "long_term_amt_ratio": 0.783,
             "top_industry": "半導體業",
-            "top_industry_pct": 50.2,
+            "top_industry_pct": 50.1,
             "industry_count": 31,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 50.2
+                "pct": 50.1
               },
               {
                 "name": "電子零組件業",
-                "pct": 14.8
+                "pct": 14.5
               },
               {
                 "name": "電腦及週邊設備業",
-                "pct": 8.5
+                "pct": 8.9
               }
             ],
             "disposal_stocks_count": 47,
-            "disposal_amt_ratio": 0.188
+            "disposal_amt_ratio": 0.181
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 47.5,
+            "avg_trades_per_active_day": 47.6,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -797,7 +798,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "張濬安(航海王) 近 31/31 交易日出手 1472 次 (436 檔), 風格分布: 隔日沖近似 28% / 留倉 67%, 漲停命中 7% (其中 🔒鎖漲停 0%), 前 5 大集中 25%, 長線部位 77% (102 檔), 主攻 半導體業 (50%), ⚠️ 處置股部位 19% (47 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "張濬安(航海王) 近 32/32 交易日出手 1522 次 (439 檔), 風格分布: 隔日沖近似 28% / 留倉 67%, 漲停命中 7% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 78% (110 檔), 主攻 半導體業 (50%), ⚠️ 處置股部位 18% (47 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "9B2E",
           "branch_name": "台新-城中"
         },
@@ -807,27 +808,27 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1401,
-            "unique_stocks": 446,
-            "daytrade_ratio": 0.08,
-            "partial_ratio": 0.325,
-            "overnight_ratio": 0.595,
-            "limit_up_hit_ratio": 0.163,
-            "concentration_top5_pct": 25.7,
-            "consistency": 0.595,
-            "total_buy_amt_wan": 10589232,
+            "trades_count": 1448,
+            "unique_stocks": 454,
+            "daytrade_ratio": 0.081,
+            "partial_ratio": 0.327,
+            "overnight_ratio": 0.592,
+            "limit_up_hit_ratio": 0.166,
+            "concentration_top5_pct": 25.5,
+            "consistency": 0.592,
+            "total_buy_amt_wan": 10700780,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 91,
-            "long_term_amt_ratio": 0.74,
+            "long_term_stocks_count": 94,
+            "long_term_amt_ratio": 0.746,
             "top_industry": "半導體業",
-            "top_industry_pct": 49.2,
-            "industry_count": 31,
+            "top_industry_pct": 49.1,
+            "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 49.2
+                "pct": 49.1
               },
               {
                 "name": "電子零組件業",
@@ -839,22 +840,22 @@
               }
             ],
             "disposal_stocks_count": 55,
-            "disposal_amt_ratio": 0.294
+            "disposal_amt_ratio": 0.293
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 45.2,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -862,7 +863,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "張濬安(航海王) 近 31/31 交易日出手 1401 次 (446 檔), 風格分布: 隔日沖近似 32% / 留倉 60%, 漲停命中 16% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 74% (91 檔), 主攻 半導體業 (49%), ⚠️ 處置股部位 29% (55 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "張濬安(航海王) 近 32/32 交易日出手 1448 次 (454 檔), 風格分布: 隔日沖近似 33% / 留倉 59%, 漲停命中 17% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 75% (94 檔), 主攻 半導體業 (49%), ⚠️ 處置股部位 29% (55 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "920F",
           "branch_name": "凱基-站前"
         },
@@ -872,54 +873,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1466,
-            "unique_stocks": 427,
-            "daytrade_ratio": 0.051,
-            "partial_ratio": 0.274,
-            "overnight_ratio": 0.675,
-            "limit_up_hit_ratio": 0.074,
-            "concentration_top5_pct": 27.0,
-            "consistency": 0.675,
-            "total_buy_amt_wan": 1690253,
+            "trades_count": 1511,
+            "unique_stocks": 433,
+            "daytrade_ratio": 0.052,
+            "partial_ratio": 0.273,
+            "overnight_ratio": 0.676,
+            "limit_up_hit_ratio": 0.079,
+            "concentration_top5_pct": 26.1,
+            "consistency": 0.676,
+            "total_buy_amt_wan": 1754017,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 95,
-            "long_term_amt_ratio": 0.862,
+            "long_term_stocks_count": 99,
+            "long_term_amt_ratio": 0.868,
             "top_industry": "半導體業",
-            "top_industry_pct": 43.1,
+            "top_industry_pct": 41.9,
             "industry_count": 33,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 43.1
+                "pct": 41.9
               },
               {
                 "name": "電子零組件業",
-                "pct": 20.2
+                "pct": 20.1
               },
               {
                 "name": "電腦及週邊設備業",
-                "pct": 11.2
+                "pct": 11.1
               }
             ],
             "disposal_stocks_count": 44,
-            "disposal_amt_ratio": 0.286
+            "disposal_amt_ratio": 0.278
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 47.3,
+            "avg_trades_per_active_day": 47.2,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -927,7 +928,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "張濬安(航海王) 近 31/31 交易日出手 1466 次 (427 檔), 風格分布: 隔日沖近似 27% / 留倉 68%, 漲停命中 7% (其中 🔒鎖漲停 0%), 前 5 大集中 27%, 長線部位 86% (95 檔), 主攻 半導體業 (43%), ⚠️ 處置股部位 29% (44 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "張濬安(航海王) 近 32/32 交易日出手 1511 次 (433 檔), 風格分布: 隔日沖近似 27% / 留倉 68%, 漲停命中 8% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 87% (99 檔), 主攻 半導體業 (42%), ⚠️ 處置股部位 28% (44 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "6167",
           "branch_name": "中國信託-松江"
         },
@@ -937,54 +938,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1485,
-            "unique_stocks": 436,
-            "daytrade_ratio": 0.077,
-            "partial_ratio": 0.322,
-            "overnight_ratio": 0.601,
-            "limit_up_hit_ratio": 0.068,
-            "concentration_top5_pct": 16.8,
-            "consistency": 0.601,
-            "total_buy_amt_wan": 1837527,
+            "trades_count": 1531,
+            "unique_stocks": 440,
+            "daytrade_ratio": 0.076,
+            "partial_ratio": 0.323,
+            "overnight_ratio": 0.602,
+            "limit_up_hit_ratio": 0.073,
+            "concentration_top5_pct": 16.9,
+            "consistency": 0.602,
+            "total_buy_amt_wan": 1896260,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 114,
-            "long_term_amt_ratio": 0.815,
+            "long_term_stocks_count": 118,
+            "long_term_amt_ratio": 0.819,
             "top_industry": "半導體業",
-            "top_industry_pct": 45.3,
+            "top_industry_pct": 45.0,
             "industry_count": 31,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 45.3
+                "pct": 45.0
               },
               {
                 "name": "電子零組件業",
-                "pct": 19.4
+                "pct": 19.0
               },
               {
                 "name": "電腦及週邊設備業",
-                "pct": 7.6
+                "pct": 8.1
               }
             ],
             "disposal_stocks_count": 36,
-            "disposal_amt_ratio": 0.233
+            "disposal_amt_ratio": 0.229
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 47.9,
+            "avg_trades_per_active_day": 47.8,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -993,7 +994,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "張濬安(航海王) 近 31/31 交易日出手 1485 次 (436 檔), 風格分布: 隔日沖近似 32% / 留倉 60%, 漲停命中 7% (其中 🔒鎖漲停 0%), 前 5 大集中 17%, 長線部位 82% (114 檔), 主攻 半導體業 (45%), ⚠️ 處置股部位 23% (36 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
+          "narrative": "張濬安(航海王) 近 32/32 交易日出手 1531 次 (440 檔), 風格分布: 隔日沖近似 32% / 留倉 60%, 漲停命中 7% (其中 🔒鎖漲停 0%), 前 5 大集中 17%, 長線部位 82% (118 檔), 主攻 半導體業 (45%), ⚠️ 處置股部位 23% (36 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
           "branch_filter": "961M",
           "branch_name": "富邦-木柵"
         },
@@ -1003,54 +1004,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1409,
-            "unique_stocks": 270,
+            "trades_count": 1453,
+            "unique_stocks": 281,
             "daytrade_ratio": 0.014,
-            "partial_ratio": 0.186,
-            "overnight_ratio": 0.8,
-            "limit_up_hit_ratio": 0.077,
-            "concentration_top5_pct": 29.7,
-            "consistency": 0.8,
-            "total_buy_amt_wan": 28877387,
+            "partial_ratio": 0.188,
+            "overnight_ratio": 0.798,
+            "limit_up_hit_ratio": 0.08,
+            "concentration_top5_pct": 29.0,
+            "consistency": 0.798,
+            "total_buy_amt_wan": 29705838,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 106,
-            "long_term_amt_ratio": 0.808,
+            "long_term_stocks_count": 108,
+            "long_term_amt_ratio": 0.804,
             "top_industry": "半導體業",
-            "top_industry_pct": 35.2,
-            "industry_count": 24,
+            "top_industry_pct": 34.6,
+            "industry_count": 25,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 35.2
+                "pct": 34.6
               },
               {
                 "name": "未分類",
-                "pct": 28.3
+                "pct": 27.9
               },
               {
                 "name": "電子零組件業",
                 "pct": 11.1
               }
             ],
-            "disposal_stocks_count": 28,
-            "disposal_amt_ratio": 0.099
+            "disposal_stocks_count": 29,
+            "disposal_amt_ratio": 0.097
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 45.5,
+            "avg_trades_per_active_day": 45.4,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -1058,7 +1059,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "張濬安(航海王) 近 31/31 交易日出手 1409 次 (270 檔), 風格分布: 隔日沖近似 19% / 留倉 80%, 漲停命中 8% (其中 🔒鎖漲停 0%), 前 5 大集中 30%, 長線部位 81% (106 檔), 主攻 半導體業 (35%), ⚠️ 處置股部位 10% (28 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "張濬安(航海王) 近 32/32 交易日出手 1453 次 (281 檔), 風格分布: 隔日沖近似 19% / 留倉 80%, 漲停命中 8% (其中 🔒鎖漲停 0%), 前 5 大集中 29%, 長線部位 80% (108 檔), 主攻 半導體業 (35%), ⚠️ 處置股部位 10% (29 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "9100",
           "branch_name": "群益金鼎證券"
         }
@@ -1071,54 +1072,54 @@
         "swing"
       ],
       "operation_metrics": {
-        "trades_count": 6811,
-        "unique_stocks": 748,
-        "daytrade_ratio": 0.057,
-        "partial_ratio": 0.251,
-        "overnight_ratio": 0.692,
-        "limit_up_hit_ratio": 0.126,
-        "concentration_top5_pct": 20.7,
-        "consistency": 0.692,
-        "total_buy_amt_wan": 55325946,
+        "trades_count": 7041,
+        "unique_stocks": 759,
+        "daytrade_ratio": 0.056,
+        "partial_ratio": 0.25,
+        "overnight_ratio": 0.694,
+        "limit_up_hit_ratio": 0.131,
+        "concentration_top5_pct": 20.5,
+        "consistency": 0.694,
+        "total_buy_amt_wan": 57030389,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 303,
-        "long_term_amt_ratio": 0.962,
+        "long_term_stocks_count": 309,
+        "long_term_amt_ratio": 0.963,
         "top_industry": "半導體業",
-        "top_industry_pct": 44.7,
-        "industry_count": 34,
+        "top_industry_pct": 44.0,
+        "industry_count": 35,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 44.7
+            "pct": 44.0
           },
           {
             "name": "電子零組件業",
-            "pct": 15.7
+            "pct": 15.4
           },
           {
             "name": "電腦及週邊設備業",
-            "pct": 11.5
+            "pct": 11.7
           }
         ],
         "disposal_stocks_count": 63,
-        "disposal_amt_ratio": 0.27
+        "disposal_amt_ratio": 0.265
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 219.7,
+        "avg_trades_per_active_day": 220.0,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -1126,7 +1127,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "陳族元 近 31/31 交易日出手 6811 次 (748 檔), 風格分布: 隔日沖近似 25% / 留倉 69%, 漲停命中 13% (其中 🔒鎖漲停 0%), 前 5 大集中 21%, 長線部位 96% (303 檔), 主攻 半導體業 (45%), ⚠️ 處置股部位 27% (63 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+      "narrative": "陳族元 近 32/32 交易日出手 7041 次 (759 檔), 風格分布: 隔日沖近似 25% / 留倉 69%, 漲停命中 13% (其中 🔒鎖漲停 0%), 前 5 大集中 20%, 長線部位 96% (309 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 26% (63 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
       "per_branch_profiles": {
         "9216": {
           "master": "陳族元",
@@ -1134,31 +1135,31 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1258,
-            "unique_stocks": 369,
-            "daytrade_ratio": 0.05,
-            "partial_ratio": 0.161,
-            "overnight_ratio": 0.789,
-            "limit_up_hit_ratio": 0.211,
-            "concentration_top5_pct": 27.4,
-            "consistency": 0.789,
-            "total_buy_amt_wan": 10950622,
+            "trades_count": 1302,
+            "unique_stocks": 376,
+            "daytrade_ratio": 0.051,
+            "partial_ratio": 0.159,
+            "overnight_ratio": 0.79,
+            "limit_up_hit_ratio": 0.213,
+            "concentration_top5_pct": 27.2,
+            "consistency": 0.79,
+            "total_buy_amt_wan": 11027874,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 97,
-            "long_term_amt_ratio": 0.83,
+            "long_term_stocks_count": 100,
+            "long_term_amt_ratio": 0.837,
             "top_industry": "半導體業",
-            "top_industry_pct": 59.9,
+            "top_industry_pct": 59.7,
             "industry_count": 28,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 59.9
+                "pct": 59.7
               },
               {
                 "name": "電子零組件業",
-                "pct": 13.1
+                "pct": 13.2
               },
               {
                 "name": "電腦及週邊設備業",
@@ -1166,22 +1167,22 @@
               }
             ],
             "disposal_stocks_count": 54,
-            "disposal_amt_ratio": 0.427
+            "disposal_amt_ratio": 0.424
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 40.6,
+            "avg_trades_per_active_day": 40.7,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -1190,7 +1191,7 @@
             "連續部署",
             "⚠️ 處置股獵手"
           ],
-          "narrative": "陳族元 近 31/31 交易日出手 1258 次 (369 檔), 風格分布: 隔日沖近似 16% / 留倉 79%, 漲停命中 21% (其中 🔒鎖漲停 0%), 前 5 大集中 27%, 長線部位 83% (97 檔), 主攻 半導體業 (60%), ⚠️ 處置股部位 43% (54 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
+          "narrative": "陳族元 近 32/32 交易日出手 1302 次 (376 檔), 風格分布: 隔日沖近似 16% / 留倉 79%, 漲停命中 21% (其中 🔒鎖漲停 0%), 前 5 大集中 27%, 長線部位 84% (100 檔), 主攻 半導體業 (60%), ⚠️ 處置股部位 42% (54 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
           "branch_filter": "9216",
           "branch_name": "凱基-信義"
         },
@@ -1200,31 +1201,31 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1348,
-            "unique_stocks": 323,
-            "daytrade_ratio": 0.013,
-            "partial_ratio": 0.161,
-            "overnight_ratio": 0.826,
-            "limit_up_hit_ratio": 0.131,
-            "concentration_top5_pct": 21.5,
-            "consistency": 0.826,
-            "total_buy_amt_wan": 23958855,
+            "trades_count": 1389,
+            "unique_stocks": 326,
+            "daytrade_ratio": 0.012,
+            "partial_ratio": 0.157,
+            "overnight_ratio": 0.831,
+            "limit_up_hit_ratio": 0.138,
+            "concentration_top5_pct": 21.0,
+            "consistency": 0.831,
+            "total_buy_amt_wan": 24899967,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 101,
-            "long_term_amt_ratio": 0.83,
+            "long_term_stocks_count": 105,
+            "long_term_amt_ratio": 0.84,
             "top_industry": "半導體業",
-            "top_industry_pct": 36.2,
+            "top_industry_pct": 35.3,
             "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 36.2
+                "pct": 35.3
               },
               {
                 "name": "電子零組件業",
-                "pct": 17.4
+                "pct": 16.8
               },
               {
                 "name": "電腦及週邊設備業",
@@ -1232,22 +1233,22 @@
               }
             ],
             "disposal_stocks_count": 45,
-            "disposal_amt_ratio": 0.188
+            "disposal_amt_ratio": 0.182
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 43.5,
+            "avg_trades_per_active_day": 43.4,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -1256,7 +1257,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "陳族元 近 31/31 交易日出手 1348 次 (323 檔), 風格分布: 隔日沖近似 16% / 留倉 83%, 漲停命中 13% (其中 🔒鎖漲停 0%), 前 5 大集中 22%, 長線部位 83% (101 檔), 主攻 半導體業 (36%), ⚠️ 處置股部位 19% (45 檔)。 主軸: 📈 長線持有/風格純粹/高頻交易/連續部署。",
+          "narrative": "陳族元 近 32/32 交易日出手 1389 次 (326 檔), 風格分布: 隔日沖近似 16% / 留倉 83%, 漲停命中 14% (其中 🔒鎖漲停 0%), 前 5 大集中 21%, 長線部位 84% (105 檔), 主攻 半導體業 (35%), ⚠️ 處置股部位 18% (45 檔)。 主軸: 📈 長線持有/風格純粹/高頻交易/連續部署。",
           "branch_filter": "8880",
           "branch_name": "國泰證券"
         },
@@ -1266,54 +1267,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1364,
-            "unique_stocks": 394,
-            "daytrade_ratio": 0.046,
-            "partial_ratio": 0.261,
-            "overnight_ratio": 0.693,
-            "limit_up_hit_ratio": 0.131,
-            "concentration_top5_pct": 21.5,
-            "consistency": 0.693,
-            "total_buy_amt_wan": 11520942,
+            "trades_count": 1412,
+            "unique_stocks": 400,
+            "daytrade_ratio": 0.045,
+            "partial_ratio": 0.259,
+            "overnight_ratio": 0.695,
+            "limit_up_hit_ratio": 0.136,
+            "concentration_top5_pct": 21.3,
+            "consistency": 0.695,
+            "total_buy_amt_wan": 11960229,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 85,
-            "long_term_amt_ratio": 0.716,
+            "long_term_stocks_count": 88,
+            "long_term_amt_ratio": 0.733,
             "top_industry": "半導體業",
-            "top_industry_pct": 41.4,
-            "industry_count": 32,
+            "top_industry_pct": 40.6,
+            "industry_count": 33,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 41.4
+                "pct": 40.6
               },
               {
                 "name": "電子零組件業",
-                "pct": 14.7
+                "pct": 14.8
               },
               {
                 "name": "電腦及週邊設備業",
-                "pct": 11.3
+                "pct": 12.3
               }
             ],
             "disposal_stocks_count": 48,
-            "disposal_amt_ratio": 0.24
+            "disposal_amt_ratio": 0.236
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 44.0,
+            "avg_trades_per_active_day": 44.1,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -1321,7 +1322,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "陳族元 近 31/31 交易日出手 1364 次 (394 檔), 風格分布: 隔日沖近似 26% / 留倉 69%, 漲停命中 13% (其中 🔒鎖漲停 0%), 前 5 大集中 22%, 長線部位 72% (85 檔), 主攻 半導體業 (41%), ⚠️ 處置股部位 24% (48 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "陳族元 近 32/32 交易日出手 1412 次 (400 檔), 風格分布: 隔日沖近似 26% / 留倉 70%, 漲停命中 14% (其中 🔒鎖漲停 0%), 前 5 大集中 21%, 長線部位 73% (88 檔), 主攻 半導體業 (41%), ⚠️ 處置股部位 24% (48 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "9300",
           "branch_name": "華南永昌證券"
         },
@@ -1331,31 +1332,31 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1435,
+            "trades_count": 1483,
             "unique_stocks": 417,
-            "daytrade_ratio": 0.082,
+            "daytrade_ratio": 0.08,
             "partial_ratio": 0.369,
-            "overnight_ratio": 0.549,
-            "limit_up_hit_ratio": 0.077,
-            "concentration_top5_pct": 34.6,
-            "consistency": 0.549,
-            "total_buy_amt_wan": 5655329,
+            "overnight_ratio": 0.552,
+            "limit_up_hit_ratio": 0.084,
+            "concentration_top5_pct": 34.4,
+            "consistency": 0.552,
+            "total_buy_amt_wan": 5823841,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 96,
-            "long_term_amt_ratio": 0.861,
+            "long_term_stocks_count": 100,
+            "long_term_amt_ratio": 0.87,
             "top_industry": "半導體業",
-            "top_industry_pct": 54.4,
+            "top_industry_pct": 54.2,
             "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 54.4
+                "pct": 54.2
               },
               {
                 "name": "電子零組件業",
-                "pct": 15.8
+                "pct": 15.7
               },
               {
                 "name": "未分類",
@@ -1363,22 +1364,22 @@
               }
             ],
             "disposal_stocks_count": 43,
-            "disposal_amt_ratio": 0.414
+            "disposal_amt_ratio": 0.413
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 46.3,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -1387,7 +1388,7 @@
             "連續部署",
             "⚠️ 處置股獵手"
           ],
-          "narrative": "陳族元 近 31/31 交易日出手 1435 次 (417 檔), 風格分布: 隔日沖近似 37% / 留倉 55%, 漲停命中 8% (其中 🔒鎖漲停 0%), 前 5 大集中 35%, 長線部位 86% (96 檔), 主攻 半導體業 (54%), ⚠️ 處置股部位 41% (43 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
+          "narrative": "陳族元 近 32/32 交易日出手 1483 次 (417 檔), 風格分布: 隔日沖近似 37% / 留倉 55%, 漲停命中 8% (其中 🔒鎖漲停 0%), 前 5 大集中 34%, 長線部位 87% (100 檔), 主攻 半導體業 (54%), ⚠️ 處置股部位 41% (43 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
           "branch_filter": "9661",
           "branch_name": "富邦-新店"
         },
@@ -1397,54 +1398,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1406,
-            "unique_stocks": 409,
-            "daytrade_ratio": 0.091,
-            "partial_ratio": 0.289,
-            "overnight_ratio": 0.619,
-            "limit_up_hit_ratio": 0.09,
-            "concentration_top5_pct": 32.9,
-            "consistency": 0.619,
-            "total_buy_amt_wan": 3240197,
+            "trades_count": 1455,
+            "unique_stocks": 417,
+            "daytrade_ratio": 0.089,
+            "partial_ratio": 0.29,
+            "overnight_ratio": 0.621,
+            "limit_up_hit_ratio": 0.094,
+            "concentration_top5_pct": 32.8,
+            "consistency": 0.621,
+            "total_buy_amt_wan": 3318478,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 98,
-            "long_term_amt_ratio": 0.851,
+            "long_term_stocks_count": 100,
+            "long_term_amt_ratio": 0.853,
             "top_industry": "半導體業",
-            "top_industry_pct": 51.4,
-            "industry_count": 28,
+            "top_industry_pct": 51.5,
+            "industry_count": 30,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 51.4
+                "pct": 51.5
               },
               {
                 "name": "電子零組件業",
-                "pct": 14.8
+                "pct": 14.6
               },
               {
                 "name": "電腦及週邊設備業",
-                "pct": 11.6
+                "pct": 11.4
               }
             ],
-            "disposal_stocks_count": 45,
-            "disposal_amt_ratio": 0.197
+            "disposal_stocks_count": 46,
+            "disposal_amt_ratio": 0.196
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 45.4,
+            "avg_trades_per_active_day": 45.5,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -1452,7 +1453,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "陳族元 近 31/31 交易日出手 1406 次 (409 檔), 風格分布: 隔日沖近似 29% / 留倉 62%, 漲停命中 9% (其中 🔒鎖漲停 0%), 前 5 大集中 33%, 長線部位 85% (98 檔), 主攻 半導體業 (51%), ⚠️ 處置股部位 20% (45 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "陳族元 近 32/32 交易日出手 1455 次 (417 檔), 風格分布: 隔日沖近似 29% / 留倉 62%, 漲停命中 9% (其中 🔒鎖漲停 0%), 前 5 大集中 33%, 長線部位 85% (100 檔), 主攻 半導體業 (52%), ⚠️ 處置股部位 20% (46 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "9A9g",
           "branch_name": "永豐金-內湖"
         }
@@ -1465,54 +1466,54 @@
         "swing"
       ],
       "operation_metrics": {
-        "trades_count": 5387,
-        "unique_stocks": 780,
+        "trades_count": 5565,
+        "unique_stocks": 789,
         "daytrade_ratio": 0.048,
-        "partial_ratio": 0.201,
+        "partial_ratio": 0.202,
         "overnight_ratio": 0.751,
-        "limit_up_hit_ratio": 0.103,
-        "concentration_top5_pct": 22.2,
+        "limit_up_hit_ratio": 0.109,
+        "concentration_top5_pct": 21.5,
         "consistency": 0.751,
-        "total_buy_amt_wan": 13327418,
+        "total_buy_amt_wan": 14075741,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 290,
-        "long_term_amt_ratio": 0.922,
+        "long_term_stocks_count": 300,
+        "long_term_amt_ratio": 0.931,
         "top_industry": "半導體業",
-        "top_industry_pct": 51.7,
+        "top_industry_pct": 50.3,
         "industry_count": 34,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 51.7
+            "pct": 50.3
           },
           {
             "name": "電子零組件業",
-            "pct": 14.5
+            "pct": 13.8
           },
           {
             "name": "電腦及週邊設備業",
-            "pct": 5.2
+            "pct": 6.0
           }
         ],
-        "disposal_stocks_count": 68,
-        "disposal_amt_ratio": 0.29
+        "disposal_stocks_count": 69,
+        "disposal_amt_ratio": 0.28
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 173.8,
+        "avg_trades_per_active_day": 173.9,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -1520,7 +1521,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "陳律師 近 31/31 交易日出手 5387 次 (780 檔), 風格分布: 隔日沖近似 20% / 留倉 75%, 漲停命中 10% (其中 🔒鎖漲停 0%), 前 5 大集中 22%, 長線部位 92% (290 檔), 主攻 半導體業 (52%), ⚠️ 處置股部位 29% (68 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+      "narrative": "陳律師 近 32/32 交易日出手 5565 次 (789 檔), 風格分布: 隔日沖近似 20% / 留倉 75%, 漲停命中 11% (其中 🔒鎖漲停 0%), 前 5 大集中 22%, 長線部位 93% (300 檔), 主攻 半導體業 (50%), ⚠️ 處置股部位 28% (69 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
       "per_branch_profiles": {
         "700c": {
           "master": "陳律師",
@@ -1528,31 +1529,31 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1401,
-            "unique_stocks": 446,
+            "trades_count": 1446,
+            "unique_stocks": 451,
             "daytrade_ratio": 0.071,
-            "partial_ratio": 0.225,
-            "overnight_ratio": 0.704,
-            "limit_up_hit_ratio": 0.089,
-            "concentration_top5_pct": 32.3,
-            "consistency": 0.704,
-            "total_buy_amt_wan": 1940258,
+            "partial_ratio": 0.227,
+            "overnight_ratio": 0.703,
+            "limit_up_hit_ratio": 0.095,
+            "concentration_top5_pct": 31.7,
+            "consistency": 0.703,
+            "total_buy_amt_wan": 1984552,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 97,
-            "long_term_amt_ratio": 0.845,
+            "long_term_stocks_count": 99,
+            "long_term_amt_ratio": 0.84,
             "top_industry": "半導體業",
-            "top_industry_pct": 60.2,
+            "top_industry_pct": 59.9,
             "industry_count": 31,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 60.2
+                "pct": 59.9
               },
               {
                 "name": "電子零組件業",
-                "pct": 14.7
+                "pct": 14.6
               },
               {
                 "name": "電腦及週邊設備業",
@@ -1560,31 +1561,30 @@
               }
             ],
             "disposal_stocks_count": 47,
-            "disposal_amt_ratio": 0.21
+            "disposal_amt_ratio": 0.212
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 45.2,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
             "📈 長線持有",
             "高頻交易",
-            "連續部署",
-            "🎯 族群專家"
+            "連續部署"
           ],
-          "narrative": "陳律師 近 31/31 交易日出手 1401 次 (446 檔), 風格分布: 隔日沖近似 22% / 留倉 70%, 漲停命中 9% (其中 🔒鎖漲停 0%), 前 5 大集中 32%, 長線部位 84% (97 檔), 主攻 半導體業 (60%), ⚠️ 處置股部位 21% (47 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/🎯 族群專家。",
+          "narrative": "陳律師 近 32/32 交易日出手 1446 次 (451 檔), 風格分布: 隔日沖近似 23% / 留倉 70%, 漲停命中 10% (其中 🔒鎖漲停 0%), 前 5 大集中 32%, 長線部位 84% (99 檔), 主攻 半導體業 (60%), ⚠️ 處置股部位 21% (47 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "700c",
           "branch_name": "兆豐-民生"
         },
@@ -1594,54 +1594,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1277,
-            "unique_stocks": 353,
+            "trades_count": 1318,
+            "unique_stocks": 356,
             "daytrade_ratio": 0.016,
-            "partial_ratio": 0.106,
-            "overnight_ratio": 0.878,
-            "limit_up_hit_ratio": 0.099,
-            "concentration_top5_pct": 26.5,
-            "consistency": 0.878,
-            "total_buy_amt_wan": 7797595,
+            "partial_ratio": 0.105,
+            "overnight_ratio": 0.879,
+            "limit_up_hit_ratio": 0.107,
+            "concentration_top5_pct": 25.2,
+            "consistency": 0.879,
+            "total_buy_amt_wan": 8396380,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 92,
-            "long_term_amt_ratio": 0.722,
+            "long_term_stocks_count": 96,
+            "long_term_amt_ratio": 0.735,
             "top_industry": "半導體業",
-            "top_industry_pct": 52.9,
+            "top_industry_pct": 50.5,
             "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 52.9
+                "pct": 50.5
               },
               {
                 "name": "電子零組件業",
-                "pct": 13.4
+                "pct": 12.6
               },
               {
                 "name": "未分類",
-                "pct": 7.0
+                "pct": 6.8
               }
             ],
             "disposal_stocks_count": 41,
-            "disposal_amt_ratio": 0.327
+            "disposal_amt_ratio": 0.308
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 41.2,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -1651,7 +1651,7 @@
             "連續部署",
             "⚠️ 處置股獵手"
           ],
-          "narrative": "陳律師 近 31/31 交易日出手 1277 次 (353 檔), 風格分布: 隔日沖近似 11% / 留倉 88%, 漲停命中 10% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 72% (92 檔), 主攻 半導體業 (53%), ⚠️ 處置股部位 33% (41 檔)。 主軸: 📈 長線持有/風格純粹/高頻交易/連續部署。",
+          "narrative": "陳律師 近 32/32 交易日出手 1318 次 (356 檔), 風格分布: 隔日沖近似 10% / 留倉 88%, 漲停命中 11% (其中 🔒鎖漲停 0%), 前 5 大集中 25%, 長線部位 74% (96 檔), 主攻 半導體業 (50%), ⚠️ 處置股部位 31% (41 檔)。 主軸: 📈 長線持有/風格純粹/高頻交易/連續部署。",
           "branch_filter": "8450",
           "branch_name": "康和總公司"
         },
@@ -1661,31 +1661,31 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1294,
-            "unique_stocks": 421,
-            "daytrade_ratio": 0.041,
-            "partial_ratio": 0.189,
-            "overnight_ratio": 0.77,
-            "limit_up_hit_ratio": 0.135,
-            "concentration_top5_pct": 16.5,
-            "consistency": 0.77,
-            "total_buy_amt_wan": 2295812,
+            "trades_count": 1340,
+            "unique_stocks": 429,
+            "daytrade_ratio": 0.04,
+            "partial_ratio": 0.193,
+            "overnight_ratio": 0.767,
+            "limit_up_hit_ratio": 0.138,
+            "concentration_top5_pct": 16.6,
+            "consistency": 0.767,
+            "total_buy_amt_wan": 2363666,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 93,
-            "long_term_amt_ratio": 0.699,
+            "long_term_stocks_count": 95,
+            "long_term_amt_ratio": 0.703,
             "top_industry": "半導體業",
-            "top_industry_pct": 43.1,
-            "industry_count": 31,
+            "top_industry_pct": 43.6,
+            "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 43.1
+                "pct": 43.6
               },
               {
                 "name": "電子零組件業",
-                "pct": 17.5
+                "pct": 17.0
               },
               {
                 "name": "光電業",
@@ -1693,22 +1693,22 @@
               }
             ],
             "disposal_stocks_count": 52,
-            "disposal_amt_ratio": 0.272
+            "disposal_amt_ratio": 0.275
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 41.7,
+            "avg_trades_per_active_day": 41.9,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -1717,7 +1717,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "陳律師 近 31/31 交易日出手 1294 次 (421 檔), 風格分布: 隔日沖近似 19% / 留倉 77%, 漲停命中 14% (其中 🔒鎖漲停 0%), 前 5 大集中 16%, 長線部位 70% (93 檔), 主攻 半導體業 (43%), ⚠️ 處置股部位 27% (52 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
+          "narrative": "陳律師 近 32/32 交易日出手 1340 次 (429 檔), 風格分布: 隔日沖近似 19% / 留倉 77%, 漲停命中 14% (其中 🔒鎖漲停 0%), 前 5 大集中 17%, 長線部位 70% (95 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 28% (52 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
           "branch_filter": "9A9R",
           "branch_name": "永豐金-信義"
         },
@@ -1727,54 +1727,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1415,
-            "unique_stocks": 456,
-            "daytrade_ratio": 0.06,
-            "partial_ratio": 0.273,
+            "trades_count": 1461,
+            "unique_stocks": 466,
+            "daytrade_ratio": 0.061,
+            "partial_ratio": 0.272,
             "overnight_ratio": 0.667,
-            "limit_up_hit_ratio": 0.091,
-            "concentration_top5_pct": 19.0,
+            "limit_up_hit_ratio": 0.098,
+            "concentration_top5_pct": 18.8,
             "consistency": 0.667,
-            "total_buy_amt_wan": 1293753,
+            "total_buy_amt_wan": 1331143,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 88,
-            "long_term_amt_ratio": 0.778,
+            "long_term_stocks_count": 93,
+            "long_term_amt_ratio": 0.79,
             "top_industry": "半導體業",
-            "top_industry_pct": 46.3,
-            "industry_count": 30,
+            "top_industry_pct": 46.8,
+            "industry_count": 31,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 46.3
+                "pct": 46.8
               },
               {
                 "name": "電子零組件業",
-                "pct": 15.4
+                "pct": 15.1
               },
               {
                 "name": "通信網路業",
-                "pct": 8.7
+                "pct": 8.4
               }
             ],
-            "disposal_stocks_count": 53,
-            "disposal_amt_ratio": 0.216
+            "disposal_stocks_count": 54,
+            "disposal_amt_ratio": 0.215
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 45.6,
+            "avg_trades_per_active_day": 45.7,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -1783,7 +1783,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "陳律師 近 31/31 交易日出手 1415 次 (456 檔), 風格分布: 隔日沖近似 27% / 留倉 67%, 漲停命中 9% (其中 🔒鎖漲停 0%), 前 5 大集中 19%, 長線部位 78% (88 檔), 主攻 半導體業 (46%), ⚠️ 處置股部位 22% (53 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
+          "narrative": "陳律師 近 32/32 交易日出手 1461 次 (466 檔), 風格分布: 隔日沖近似 27% / 留倉 67%, 漲停命中 10% (其中 🔒鎖漲停 0%), 前 5 大集中 19%, 長線部位 79% (93 檔), 主攻 半導體業 (47%), ⚠️ 處置股部位 22% (54 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
           "branch_filter": "585c",
           "branch_name": "統一-仁愛"
         }
@@ -1796,15 +1796,15 @@
         "day_trader"
       ],
       "operation_metrics": {
-        "trades_count": 4227,
-        "unique_stocks": 617,
-        "daytrade_ratio": 0.043,
-        "partial_ratio": 0.221,
-        "overnight_ratio": 0.736,
-        "limit_up_hit_ratio": 0.129,
+        "trades_count": 4274,
+        "unique_stocks": 618,
+        "daytrade_ratio": 0.044,
+        "partial_ratio": 0.223,
+        "overnight_ratio": 0.733,
+        "limit_up_hit_ratio": 0.13,
         "concentration_top5_pct": 27.7,
-        "consistency": 0.736,
-        "total_buy_amt_wan": 96709131,
+        "consistency": 0.733,
+        "total_buy_amt_wan": 96780242,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
@@ -1828,22 +1828,22 @@
           }
         ],
         "disposal_stocks_count": 54,
-        "disposal_amt_ratio": 0.237
+        "disposal_amt_ratio": 0.236
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 136.4,
+        "avg_trades_per_active_day": 133.6,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -1851,7 +1851,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "迷你哥/松山哥 近 31/31 交易日出手 4227 次 (617 檔), 風格分布: 隔日沖近似 22% / 留倉 74%, 漲停命中 13% (其中 🔒鎖漲停 0%), 前 5 大集中 28%, 長線部位 95% (247 檔), 主攻 半導體業 (51%), ⚠️ 處置股部位 24% (54 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+      "narrative": "迷你哥/松山哥 近 32/32 交易日出手 4274 次 (618 檔), 風格分布: 隔日沖近似 22% / 留倉 73%, 漲停命中 13% (其中 🔒鎖漲停 0%), 前 5 大集中 28%, 長線部位 95% (247 檔), 主攻 半導體業 (51%), ⚠️ 處置股部位 24% (54 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
       "per_branch_profiles": {
         "9217": {
           "master": "迷你哥/松山哥",
@@ -1859,27 +1859,27 @@
             "day_trader"
           ],
           "operation_metrics": {
-            "trades_count": 1461,
-            "unique_stocks": 429,
+            "trades_count": 1508,
+            "unique_stocks": 431,
             "daytrade_ratio": 0.06,
-            "partial_ratio": 0.282,
-            "overnight_ratio": 0.658,
-            "limit_up_hit_ratio": 0.055,
-            "concentration_top5_pct": 40.5,
-            "consistency": 0.658,
-            "total_buy_amt_wan": 1939442,
+            "partial_ratio": 0.286,
+            "overnight_ratio": 0.653,
+            "limit_up_hit_ratio": 0.059,
+            "concentration_top5_pct": 39.7,
+            "consistency": 0.653,
+            "total_buy_amt_wan": 2010552,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 109,
-            "long_term_amt_ratio": 0.8,
+            "long_term_stocks_count": 112,
+            "long_term_amt_ratio": 0.795,
             "top_industry": "半導體業",
-            "top_industry_pct": 70.4,
-            "industry_count": 32,
+            "top_industry_pct": 68.7,
+            "industry_count": 33,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 70.4
+                "pct": 68.7
               },
               {
                 "name": "電子零組件業",
@@ -1887,26 +1887,26 @@
               },
               {
                 "name": "未分類",
-                "pct": 5.3
+                "pct": 5.5
               }
             ],
             "disposal_stocks_count": 45,
-            "disposal_amt_ratio": 0.223
+            "disposal_amt_ratio": 0.221
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 47.1,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -1915,7 +1915,7 @@
             "連續部署",
             "🎯 族群專家"
           ],
-          "narrative": "迷你哥/松山哥 近 31/31 交易日出手 1461 次 (429 檔), 風格分布: 隔日沖近似 28% / 留倉 66%, 漲停命中 6% (其中 🔒鎖漲停 0%), 前 5 大集中 40%, 長線部位 80% (109 檔), 主攻 半導體業 (70%), ⚠️ 處置股部位 22% (45 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/🎯 族群專家。",
+          "narrative": "迷你哥/松山哥 近 32/32 交易日出手 1508 次 (431 檔), 風格分布: 隔日沖近似 29% / 留倉 65%, 漲停命中 6% (其中 🔒鎖漲停 0%), 前 5 大集中 40%, 長線部位 80% (112 檔), 主攻 半導體業 (69%), ⚠️ 處置股部位 22% (45 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/🎯 族群專家。",
           "branch_filter": "9217",
           "branch_name": "凱基-松山"
         },
@@ -1961,8 +1961,8 @@
           },
           "timing_metrics": {
             "active_days": 31,
-            "total_window_days": 31,
-            "active_days_ratio": 1.0,
+            "total_window_days": 32,
+            "active_days_ratio": 0.969,
             "avg_trades_per_active_day": 45.4,
             "weekday_distribution": {
               "週一": 6,
@@ -1981,7 +1981,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "迷你哥/松山哥 近 31/31 交易日出手 1407 次 (315 檔), 風格分布: 隔日沖近似 15% / 留倉 82%, 漲停命中 11% (其中 🔒鎖漲停 0%), 前 5 大集中 31%, 長線部位 85% (104 檔), 主攻 半導體業 (46%), ⚠️ 處置股部位 20% (36 檔)。 主軸: 📈 長線持有/風格純粹/高頻交易/連續部署。",
+          "narrative": "迷你哥/松山哥 近 31/32 交易日出手 1407 次 (315 檔), 風格分布: 隔日沖近似 15% / 留倉 82%, 漲停命中 11% (其中 🔒鎖漲停 0%), 前 5 大集中 31%, 長線部位 85% (104 檔), 主攻 半導體業 (46%), ⚠️ 處置股部位 20% (36 檔)。 主軸: 📈 長線持有/風格純粹/高頻交易/連續部署。",
           "branch_filter": "9200",
           "branch_name": "凱基證券"
         },
@@ -2027,8 +2027,8 @@
           },
           "timing_metrics": {
             "active_days": 31,
-            "total_window_days": 31,
-            "active_days_ratio": 1.0,
+            "total_window_days": 32,
+            "active_days_ratio": 0.969,
             "avg_trades_per_active_day": 43.8,
             "weekday_distribution": {
               "週一": 6,
@@ -2046,7 +2046,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "迷你哥/松山哥 近 31/31 交易日出手 1359 次 (352 檔), 風格分布: 隔日沖近似 23% / 留倉 73%, 漲停命中 23% (其中 🔒鎖漲停 0%), 前 5 大集中 27%, 長線部位 83% (104 檔), 主攻 半導體業 (53%), ⚠️ 處置股部位 25% (40 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "迷你哥/松山哥 近 31/32 交易日出手 1359 次 (352 檔), 風格分布: 隔日沖近似 23% / 留倉 73%, 漲停命中 23% (其中 🔒鎖漲停 0%), 前 5 大集中 27%, 長線部位 83% (104 檔), 主攻 半導體業 (53%), ⚠️ 處置股部位 25% (40 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "9600",
           "branch_name": "富邦證券"
         }
@@ -2059,23 +2059,23 @@
         "swing"
       ],
       "operation_metrics": {
-        "trades_count": 1464,
-        "unique_stocks": 391,
-        "daytrade_ratio": 0.083,
-        "partial_ratio": 0.346,
+        "trades_count": 1516,
+        "unique_stocks": 399,
+        "daytrade_ratio": 0.082,
+        "partial_ratio": 0.347,
         "overnight_ratio": 0.571,
-        "limit_up_hit_ratio": 0.096,
+        "limit_up_hit_ratio": 0.101,
         "concentration_top5_pct": 20.4,
         "consistency": 0.571,
-        "total_buy_amt_wan": 3705816,
+        "total_buy_amt_wan": 3810882,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 110,
-        "long_term_amt_ratio": 0.839,
+        "long_term_stocks_count": 112,
+        "long_term_amt_ratio": 0.843,
         "top_industry": "半導體業",
         "top_industry_pct": 51.0,
-        "industry_count": 30,
+        "industry_count": 31,
         "top3_industries": [
           {
             "name": "半導體業",
@@ -2083,30 +2083,30 @@
           },
           {
             "name": "電子零組件業",
-            "pct": 19.5
+            "pct": 19.3
           },
           {
             "name": "未分類",
-            "pct": 7.6
+            "pct": 7.7
           }
         ],
         "disposal_stocks_count": 52,
-        "disposal_amt_ratio": 0.221
+        "disposal_amt_ratio": 0.223
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 47.2,
+        "avg_trades_per_active_day": 47.4,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -2114,7 +2114,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "布哥/n_nchang 近 31/31 交易日出手 1464 次 (391 檔), 風格分布: 隔日沖近似 35% / 留倉 57%, 漲停命中 10% (其中 🔒鎖漲停 0%), 前 5 大集中 20%, 長線部位 84% (110 檔), 主攻 半導體業 (51%), ⚠️ 處置股部位 22% (52 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。"
+      "narrative": "布哥/n_nchang 近 32/32 交易日出手 1516 次 (399 檔), 風格分布: 隔日沖近似 35% / 留倉 57%, 漲停命中 10% (其中 🔒鎖漲停 0%), 前 5 大集中 20%, 長線部位 84% (112 檔), 主攻 半導體業 (51%), ⚠️ 處置股部位 22% (52 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。"
     },
     "強森": {
       "master": "強森",
@@ -2122,54 +2122,54 @@
         "swing"
       ],
       "operation_metrics": {
-        "trades_count": 7239,
-        "unique_stocks": 836,
+        "trades_count": 7471,
+        "unique_stocks": 842,
         "daytrade_ratio": 0.072,
-        "partial_ratio": 0.317,
+        "partial_ratio": 0.318,
         "overnight_ratio": 0.611,
-        "limit_up_hit_ratio": 0.073,
-        "concentration_top5_pct": 22.1,
+        "limit_up_hit_ratio": 0.079,
+        "concentration_top5_pct": 21.9,
         "consistency": 0.611,
-        "total_buy_amt_wan": 10943412,
+        "total_buy_amt_wan": 11299698,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 336,
-        "long_term_amt_ratio": 0.948,
+        "long_term_stocks_count": 340,
+        "long_term_amt_ratio": 0.949,
         "top_industry": "半導體業",
-        "top_industry_pct": 46.6,
+        "top_industry_pct": 46.0,
         "industry_count": 35,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 46.6
+            "pct": 46.0
           },
           {
             "name": "電子零組件業",
-            "pct": 17.2
+            "pct": 17.0
           },
           {
-            "name": "未分類",
-            "pct": 7.1
+            "name": "電腦及週邊設備業",
+            "pct": 7.2
           }
         ],
         "disposal_stocks_count": 66,
-        "disposal_amt_ratio": 0.244
+        "disposal_amt_ratio": 0.24
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
         "avg_trades_per_active_day": 233.5,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -2177,7 +2177,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "強森 近 31/31 交易日出手 7239 次 (836 檔), 風格分布: 隔日沖近似 32% / 留倉 61%, 漲停命中 7% (其中 🔒鎖漲停 0%), 前 5 大集中 22%, 長線部位 95% (336 檔), 主攻 半導體業 (47%), ⚠️ 處置股部位 24% (66 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+      "narrative": "強森 近 32/32 交易日出手 7471 次 (842 檔), 風格分布: 隔日沖近似 32% / 留倉 61%, 漲停命中 8% (其中 🔒鎖漲停 0%), 前 5 大集中 22%, 長線部位 95% (340 檔), 主攻 半導體業 (46%), ⚠️ 處置股部位 24% (66 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
       "per_branch_profiles": {
         "9B2r": {
           "master": "強森",
@@ -2185,54 +2185,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1456,
-            "unique_stocks": 417,
-            "daytrade_ratio": 0.062,
-            "partial_ratio": 0.31,
-            "overnight_ratio": 0.627,
-            "limit_up_hit_ratio": 0.082,
+            "trades_count": 1504,
+            "unique_stocks": 424,
+            "daytrade_ratio": 0.061,
+            "partial_ratio": 0.313,
+            "overnight_ratio": 0.626,
+            "limit_up_hit_ratio": 0.086,
             "concentration_top5_pct": 23.2,
-            "consistency": 0.627,
-            "total_buy_amt_wan": 2372744,
+            "consistency": 0.626,
+            "total_buy_amt_wan": 2435243,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 104,
-            "long_term_amt_ratio": 0.783,
+            "long_term_stocks_count": 107,
+            "long_term_amt_ratio": 0.793,
             "top_industry": "半導體業",
-            "top_industry_pct": 47.0,
+            "top_industry_pct": 46.7,
             "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 47.0
+                "pct": 46.7
               },
               {
                 "name": "電子零組件業",
-                "pct": 16.6
+                "pct": 16.4
               },
               {
                 "name": "電腦及週邊設備業",
-                "pct": 7.1
+                "pct": 7.4
               }
             ],
             "disposal_stocks_count": 45,
-            "disposal_amt_ratio": 0.22
+            "disposal_amt_ratio": 0.219
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 47.0,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -2240,7 +2240,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "強森 近 31/31 交易日出手 1456 次 (417 檔), 風格分布: 隔日沖近似 31% / 留倉 63%, 漲停命中 8% (其中 🔒鎖漲停 0%), 前 5 大集中 23%, 長線部位 78% (104 檔), 主攻 半導體業 (47%), ⚠️ 處置股部位 22% (45 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "強森 近 32/32 交易日出手 1504 次 (424 檔), 風格分布: 隔日沖近似 31% / 留倉 63%, 漲停命中 9% (其中 🔒鎖漲停 0%), 前 5 大集中 23%, 長線部位 79% (107 檔), 主攻 半導體業 (47%), ⚠️ 處置股部位 22% (45 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "9B2r",
           "branch_name": "台新-城東"
         },
@@ -2250,54 +2250,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1390,
-            "unique_stocks": 430,
-            "daytrade_ratio": 0.117,
+            "trades_count": 1437,
+            "unique_stocks": 438,
+            "daytrade_ratio": 0.116,
             "partial_ratio": 0.338,
-            "overnight_ratio": 0.545,
-            "limit_up_hit_ratio": 0.145,
-            "concentration_top5_pct": 24.5,
-            "consistency": 0.545,
-            "total_buy_amt_wan": 3269762,
+            "overnight_ratio": 0.546,
+            "limit_up_hit_ratio": 0.148,
+            "concentration_top5_pct": 24.2,
+            "consistency": 0.546,
+            "total_buy_amt_wan": 3362590,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 84,
-            "long_term_amt_ratio": 0.762,
+            "long_term_stocks_count": 88,
+            "long_term_amt_ratio": 0.772,
             "top_industry": "半導體業",
-            "top_industry_pct": 44.7,
-            "industry_count": 31,
+            "top_industry_pct": 44.0,
+            "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 44.7
+                "pct": 44.0
               },
               {
                 "name": "電子零組件業",
-                "pct": 17.6
+                "pct": 17.4
               },
               {
                 "name": "電腦及週邊設備業",
-                "pct": 7.7
+                "pct": 7.9
               }
             ],
             "disposal_stocks_count": 47,
-            "disposal_amt_ratio": 0.258
+            "disposal_amt_ratio": 0.252
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 44.8,
+            "avg_trades_per_active_day": 44.9,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -2305,7 +2305,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "強森 近 31/31 交易日出手 1390 次 (430 檔), 風格分布: 隔日沖近似 34% / 當沖 12% / 留倉 55%, 漲停命中 14% (其中 🔒鎖漲停 0%), 前 5 大集中 24%, 長線部位 76% (84 檔), 主攻 半導體業 (45%), ⚠️ 處置股部位 26% (47 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "強森 近 32/32 交易日出手 1437 次 (438 檔), 風格分布: 隔日沖近似 34% / 當沖 12% / 留倉 55%, 漲停命中 15% (其中 🔒鎖漲停 0%), 前 5 大集中 24%, 長線部位 77% (88 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 25% (47 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "984K",
           "branch_name": "元大-館前"
         },
@@ -2315,54 +2315,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1471,
-            "unique_stocks": 430,
-            "daytrade_ratio": 0.066,
-            "partial_ratio": 0.332,
+            "trades_count": 1519,
+            "unique_stocks": 437,
+            "daytrade_ratio": 0.067,
+            "partial_ratio": 0.331,
             "overnight_ratio": 0.602,
-            "limit_up_hit_ratio": 0.046,
+            "limit_up_hit_ratio": 0.051,
             "concentration_top5_pct": 19.5,
             "consistency": 0.602,
-            "total_buy_amt_wan": 2133543,
+            "total_buy_amt_wan": 2227562,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 98,
-            "long_term_amt_ratio": 0.779,
+            "long_term_stocks_count": 102,
+            "long_term_amt_ratio": 0.781,
             "top_industry": "半導體業",
-            "top_industry_pct": 44.4,
+            "top_industry_pct": 44.1,
             "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 44.4
+                "pct": 44.1
               },
               {
                 "name": "電子零組件業",
-                "pct": 19.7
+                "pct": 19.2
               },
               {
                 "name": "未分類",
-                "pct": 11.1
+                "pct": 10.9
               }
             ],
             "disposal_stocks_count": 43,
-            "disposal_amt_ratio": 0.264
+            "disposal_amt_ratio": 0.259
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 47.5,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -2371,7 +2371,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "強森 近 31/31 交易日出手 1471 次 (430 檔), 風格分布: 隔日沖近似 33% / 留倉 60%, 漲停命中 5% (其中 🔒鎖漲停 0%), 前 5 大集中 20%, 長線部位 78% (98 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 26% (43 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
+          "narrative": "強森 近 32/32 交易日出手 1519 次 (437 檔), 風格分布: 隔日沖近似 33% / 留倉 60%, 漲停命中 5% (其中 🔒鎖漲停 0%), 前 5 大集中 20%, 長線部位 78% (102 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 26% (43 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
           "branch_filter": "989N",
           "branch_name": "元大-內湖"
         },
@@ -2381,54 +2381,54 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1464,
-            "unique_stocks": 421,
+            "trades_count": 1510,
+            "unique_stocks": 422,
             "daytrade_ratio": 0.071,
-            "partial_ratio": 0.324,
-            "overnight_ratio": 0.605,
-            "limit_up_hit_ratio": 0.048,
-            "concentration_top5_pct": 31.6,
-            "consistency": 0.605,
-            "total_buy_amt_wan": 1870629,
+            "partial_ratio": 0.326,
+            "overnight_ratio": 0.603,
+            "limit_up_hit_ratio": 0.058,
+            "concentration_top5_pct": 31.0,
+            "consistency": 0.603,
+            "total_buy_amt_wan": 1921954,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 103,
-            "long_term_amt_ratio": 0.833,
+            "long_term_stocks_count": 105,
+            "long_term_amt_ratio": 0.829,
             "top_industry": "半導體業",
-            "top_industry_pct": 51.6,
+            "top_industry_pct": 50.5,
             "industry_count": 34,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 51.6
+                "pct": 50.5
               },
               {
                 "name": "電子零組件業",
                 "pct": 13.6
               },
               {
-                "name": "未分類",
-                "pct": 7.3
+                "name": "電腦及週邊設備業",
+                "pct": 7.7
               }
             ],
             "disposal_stocks_count": 44,
-            "disposal_amt_ratio": 0.258
+            "disposal_amt_ratio": 0.256
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 47.2,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -2436,7 +2436,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "強森 近 31/31 交易日出手 1464 次 (421 檔), 風格分布: 隔日沖近似 32% / 留倉 60%, 漲停命中 5% (其中 🔒鎖漲停 0%), 前 5 大集中 32%, 長線部位 83% (103 檔), 主攻 半導體業 (52%), ⚠️ 處置股部位 26% (44 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "強森 近 32/32 交易日出手 1510 次 (422 檔), 風格分布: 隔日沖近似 33% / 留倉 60%, 漲停命中 6% (其中 🔒鎖漲停 0%), 前 5 大集中 31%, 長線部位 83% (105 檔), 主攻 半導體業 (50%), ⚠️ 處置股部位 26% (44 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "9215",
           "branch_name": "凱基-高美館"
         },
@@ -2446,31 +2446,31 @@
             "swing"
           ],
           "operation_metrics": {
-            "trades_count": 1458,
-            "unique_stocks": 451,
-            "daytrade_ratio": 0.046,
-            "partial_ratio": 0.282,
-            "overnight_ratio": 0.672,
-            "limit_up_hit_ratio": 0.049,
-            "concentration_top5_pct": 18.4,
-            "consistency": 0.672,
-            "total_buy_amt_wan": 1296734,
+            "trades_count": 1501,
+            "unique_stocks": 455,
+            "daytrade_ratio": 0.045,
+            "partial_ratio": 0.28,
+            "overnight_ratio": 0.674,
+            "limit_up_hit_ratio": 0.055,
+            "concentration_top5_pct": 18.6,
+            "consistency": 0.674,
+            "total_buy_amt_wan": 1352348,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 98,
-            "long_term_amt_ratio": 0.72,
+            "long_term_stocks_count": 99,
+            "long_term_amt_ratio": 0.724,
             "top_industry": "半導體業",
-            "top_industry_pct": 46.6,
+            "top_industry_pct": 46.3,
             "industry_count": 34,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 46.6
+                "pct": 46.3
               },
               {
                 "name": "電子零組件業",
-                "pct": 18.6
+                "pct": 18.1
               },
               {
                 "name": "未分類",
@@ -2478,22 +2478,22 @@
               }
             ],
             "disposal_stocks_count": 44,
-            "disposal_amt_ratio": 0.196
+            "disposal_amt_ratio": 0.193
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 47.0,
+            "avg_trades_per_active_day": 46.9,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -2502,7 +2502,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "強森 近 31/31 交易日出手 1458 次 (451 檔), 風格分布: 隔日沖近似 28% / 留倉 67%, 漲停命中 5% (其中 🔒鎖漲停 0%), 前 5 大集中 18%, 長線部位 72% (98 檔), 主攻 半導體業 (47%), ⚠️ 處置股部位 20% (44 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
+          "narrative": "強森 近 32/32 交易日出手 1501 次 (455 檔), 風格分布: 隔日沖近似 28% / 留倉 67%, 漲停命中 6% (其中 🔒鎖漲停 0%), 前 5 大集中 19%, 長線部位 72% (99 檔), 主攻 半導體業 (46%), ⚠️ 處置股部位 19% (44 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
           "branch_filter": "9B2D",
           "branch_name": "台新-大昌"
         }
@@ -2515,54 +2515,54 @@
         "next_day_flipper"
       ],
       "operation_metrics": {
-        "trades_count": 1474,
-        "unique_stocks": 501,
-        "daytrade_ratio": 0.067,
+        "trades_count": 1522,
+        "unique_stocks": 512,
+        "daytrade_ratio": 0.066,
         "partial_ratio": 0.343,
-        "overnight_ratio": 0.59,
-        "limit_up_hit_ratio": 0.195,
-        "concentration_top5_pct": 13.2,
-        "consistency": 0.59,
-        "total_buy_amt_wan": 1888105,
+        "overnight_ratio": 0.591,
+        "limit_up_hit_ratio": 0.202,
+        "concentration_top5_pct": 13.3,
+        "consistency": 0.591,
+        "total_buy_amt_wan": 1949268,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 95,
-        "long_term_amt_ratio": 0.669,
+        "long_term_stocks_count": 97,
+        "long_term_amt_ratio": 0.671,
         "top_industry": "半導體業",
-        "top_industry_pct": 44.1,
+        "top_industry_pct": 44.4,
         "industry_count": 33,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 44.1
+            "pct": 44.4
           },
           {
             "name": "電子零組件業",
-            "pct": 19.4
+            "pct": 19.1
           },
           {
             "name": "其他電子業",
-            "pct": 6.7
+            "pct": 6.8
           }
         ],
-        "disposal_stocks_count": 58,
-        "disposal_amt_ratio": 0.211
+        "disposal_stocks_count": 59,
+        "disposal_amt_ratio": 0.21
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 47.5,
+        "avg_trades_per_active_day": 47.6,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -2571,7 +2571,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "Tradow 近 31/31 交易日出手 1474 次 (501 檔), 風格分布: 隔日沖近似 34% / 留倉 59%, 漲停命中 20% (其中 🔒鎖漲停 0%), 前 5 大集中 13%, 長線部位 67% (95 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 21% (58 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。"
+      "narrative": "Tradow 近 32/32 交易日出手 1522 次 (512 檔), 風格分布: 隔日沖近似 34% / 留倉 59%, 漲停命中 20% (其中 🔒鎖漲停 0%), 前 5 大集中 13%, 長線部位 67% (97 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 21% (59 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。"
     },
     "巨人傑": {
       "master": "巨人傑",
@@ -2580,54 +2580,54 @@
         "day_trader"
       ],
       "operation_metrics": {
-        "trades_count": 4199,
-        "unique_stocks": 690,
+        "trades_count": 4338,
+        "unique_stocks": 698,
         "daytrade_ratio": 0.084,
-        "partial_ratio": 0.285,
-        "overnight_ratio": 0.632,
-        "limit_up_hit_ratio": 0.102,
-        "concentration_top5_pct": 22.9,
-        "consistency": 0.632,
-        "total_buy_amt_wan": 8019832,
+        "partial_ratio": 0.284,
+        "overnight_ratio": 0.633,
+        "limit_up_hit_ratio": 0.108,
+        "concentration_top5_pct": 22.8,
+        "consistency": 0.633,
+        "total_buy_amt_wan": 8273469,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 241,
-        "long_term_amt_ratio": 0.933,
+        "long_term_stocks_count": 247,
+        "long_term_amt_ratio": 0.936,
         "top_industry": "半導體業",
-        "top_industry_pct": 50.2,
+        "top_industry_pct": 49.5,
         "industry_count": 35,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 50.2
+            "pct": 49.5
           },
           {
             "name": "電子零組件業",
-            "pct": 16.2
+            "pct": 16.0
           },
           {
             "name": "光電業",
-            "pct": 6.2
+            "pct": 6.3
           }
         ],
         "disposal_stocks_count": 64,
-        "disposal_amt_ratio": 0.282
+        "disposal_amt_ratio": 0.28
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 135.5,
+        "avg_trades_per_active_day": 135.6,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -2635,7 +2635,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "巨人傑 近 31/31 交易日出手 4199 次 (690 檔), 風格分布: 隔日沖近似 28% / 留倉 63%, 漲停命中 10% (其中 🔒鎖漲停 0%), 前 5 大集中 23%, 長線部位 93% (241 檔), 主攻 半導體業 (50%), ⚠️ 處置股部位 28% (64 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+      "narrative": "巨人傑 近 32/32 交易日出手 4338 次 (698 檔), 風格分布: 隔日沖近似 28% / 留倉 63%, 漲停命中 11% (其中 🔒鎖漲停 0%), 前 5 大集中 23%, 長線部位 94% (247 檔), 主攻 半導體業 (50%), ⚠️ 處置股部位 28% (64 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
       "per_branch_profiles": {
         "984K": {
           "master": "巨人傑",
@@ -2644,54 +2644,54 @@
             "day_trader"
           ],
           "operation_metrics": {
-            "trades_count": 1390,
-            "unique_stocks": 430,
-            "daytrade_ratio": 0.117,
+            "trades_count": 1437,
+            "unique_stocks": 438,
+            "daytrade_ratio": 0.116,
             "partial_ratio": 0.338,
-            "overnight_ratio": 0.545,
-            "limit_up_hit_ratio": 0.145,
-            "concentration_top5_pct": 24.5,
-            "consistency": 0.545,
-            "total_buy_amt_wan": 3269762,
+            "overnight_ratio": 0.546,
+            "limit_up_hit_ratio": 0.148,
+            "concentration_top5_pct": 24.2,
+            "consistency": 0.546,
+            "total_buy_amt_wan": 3362590,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 84,
-            "long_term_amt_ratio": 0.762,
+            "long_term_stocks_count": 88,
+            "long_term_amt_ratio": 0.772,
             "top_industry": "半導體業",
-            "top_industry_pct": 44.7,
-            "industry_count": 31,
+            "top_industry_pct": 44.0,
+            "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 44.7
+                "pct": 44.0
               },
               {
                 "name": "電子零組件業",
-                "pct": 17.6
+                "pct": 17.4
               },
               {
                 "name": "電腦及週邊設備業",
-                "pct": 7.7
+                "pct": 7.9
               }
             ],
             "disposal_stocks_count": 47,
-            "disposal_amt_ratio": 0.258
+            "disposal_amt_ratio": 0.252
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 44.8,
+            "avg_trades_per_active_day": 44.9,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -2699,7 +2699,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "巨人傑 近 31/31 交易日出手 1390 次 (430 檔), 風格分布: 隔日沖近似 34% / 當沖 12% / 留倉 55%, 漲停命中 14% (其中 🔒鎖漲停 0%), 前 5 大集中 24%, 長線部位 76% (84 檔), 主攻 半導體業 (45%), ⚠️ 處置股部位 26% (47 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "巨人傑 近 32/32 交易日出手 1437 次 (438 檔), 風格分布: 隔日沖近似 34% / 當沖 12% / 留倉 55%, 漲停命中 15% (其中 🔒鎖漲停 0%), 前 5 大集中 24%, 長線部位 77% (88 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 25% (47 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "984K",
           "branch_name": "元大-館前"
         },
@@ -2710,54 +2710,54 @@
             "day_trader"
           ],
           "operation_metrics": {
-            "trades_count": 1346,
-            "unique_stocks": 412,
-            "daytrade_ratio": 0.071,
-            "partial_ratio": 0.218,
+            "trades_count": 1392,
+            "unique_stocks": 417,
+            "daytrade_ratio": 0.072,
+            "partial_ratio": 0.217,
             "overnight_ratio": 0.711,
-            "limit_up_hit_ratio": 0.113,
-            "concentration_top5_pct": 27.5,
+            "limit_up_hit_ratio": 0.121,
+            "concentration_top5_pct": 27.2,
             "consistency": 0.711,
-            "total_buy_amt_wan": 3156403,
+            "total_buy_amt_wan": 3268422,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 90,
-            "long_term_amt_ratio": 0.81,
+            "long_term_stocks_count": 93,
+            "long_term_amt_ratio": 0.804,
             "top_industry": "半導體業",
-            "top_industry_pct": 55.2,
-            "industry_count": 29,
+            "top_industry_pct": 54.4,
+            "industry_count": 30,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 55.2
+                "pct": 54.4
               },
               {
                 "name": "電子零組件業",
-                "pct": 13.4
+                "pct": 13.3
               },
               {
                 "name": "通信網路業",
-                "pct": 9.5
+                "pct": 9.3
               }
             ],
             "disposal_stocks_count": 55,
-            "disposal_amt_ratio": 0.344
+            "disposal_amt_ratio": 0.343
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 43.4,
+            "avg_trades_per_active_day": 43.5,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -2766,7 +2766,7 @@
             "連續部署",
             "⚠️ 處置股獵手"
           ],
-          "narrative": "巨人傑 近 31/31 交易日出手 1346 次 (412 檔), 風格分布: 隔日沖近似 22% / 留倉 71%, 漲停命中 11% (其中 🔒鎖漲停 0%), 前 5 大集中 28%, 長線部位 81% (90 檔), 主攻 半導體業 (55%), ⚠️ 處置股部位 34% (55 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
+          "narrative": "巨人傑 近 32/32 交易日出手 1392 次 (417 檔), 風格分布: 隔日沖近似 22% / 留倉 71%, 漲停命中 12% (其中 🔒鎖漲停 0%), 前 5 大集中 27%, 長線部位 80% (93 檔), 主攻 半導體業 (54%), ⚠️ 處置股部位 34% (55 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
           "branch_filter": "9B2n",
           "branch_name": "台新-西松"
         },
@@ -2777,54 +2777,54 @@
             "day_trader"
           ],
           "operation_metrics": {
-            "trades_count": 1463,
-            "unique_stocks": 418,
+            "trades_count": 1509,
+            "unique_stocks": 422,
             "daytrade_ratio": 0.064,
-            "partial_ratio": 0.295,
-            "overnight_ratio": 0.641,
-            "limit_up_hit_ratio": 0.052,
-            "concentration_top5_pct": 25.3,
-            "consistency": 0.641,
-            "total_buy_amt_wan": 1593667,
+            "partial_ratio": 0.294,
+            "overnight_ratio": 0.643,
+            "limit_up_hit_ratio": 0.058,
+            "concentration_top5_pct": 25.1,
+            "consistency": 0.643,
+            "total_buy_amt_wan": 1642456,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 102,
-            "long_term_amt_ratio": 0.811,
+            "long_term_stocks_count": 104,
+            "long_term_amt_ratio": 0.819,
             "top_industry": "半導體業",
-            "top_industry_pct": 51.5,
+            "top_industry_pct": 50.8,
             "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 51.5
+                "pct": 50.8
               },
               {
                 "name": "電子零組件業",
-                "pct": 18.7
+                "pct": 18.4
               },
               {
                 "name": "其他電子業",
-                "pct": 6.5
+                "pct": 6.7
               }
             ],
             "disposal_stocks_count": 36,
-            "disposal_amt_ratio": 0.207
+            "disposal_amt_ratio": 0.211
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 47.2,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -2832,7 +2832,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "巨人傑 近 31/31 交易日出手 1463 次 (418 檔), 風格分布: 隔日沖近似 30% / 留倉 64%, 漲停命中 5% (其中 🔒鎖漲停 0%), 前 5 大集中 25%, 長線部位 81% (102 檔), 主攻 半導體業 (52%), ⚠️ 處置股部位 21% (36 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
+          "narrative": "巨人傑 近 32/32 交易日出手 1509 次 (422 檔), 風格分布: 隔日沖近似 29% / 留倉 64%, 漲停命中 6% (其中 🔒鎖漲停 0%), 前 5 大集中 25%, 長線部位 82% (104 檔), 主攻 半導體業 (51%), ⚠️ 處置股部位 21% (36 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。",
           "branch_filter": "9B2z",
           "branch_name": "台新-文心"
         }
@@ -2845,54 +2845,54 @@
         "next_day_flipper"
       ],
       "operation_metrics": {
-        "trades_count": 2781,
-        "unique_stocks": 632,
-        "daytrade_ratio": 0.063,
-        "partial_ratio": 0.279,
+        "trades_count": 2866,
+        "unique_stocks": 644,
+        "daytrade_ratio": 0.062,
+        "partial_ratio": 0.28,
         "overnight_ratio": 0.658,
-        "limit_up_hit_ratio": 0.209,
-        "concentration_top5_pct": 22.4,
+        "limit_up_hit_ratio": 0.214,
+        "concentration_top5_pct": 22.0,
         "consistency": 0.658,
-        "total_buy_amt_wan": 10533932,
+        "total_buy_amt_wan": 10872403,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 174,
-        "long_term_amt_ratio": 0.789,
+        "long_term_stocks_count": 178,
+        "long_term_amt_ratio": 0.782,
         "top_industry": "半導體業",
-        "top_industry_pct": 44.9,
+        "top_industry_pct": 44.0,
         "industry_count": 34,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 44.9
+            "pct": 44.0
           },
           {
             "name": "電子零組件業",
-            "pct": 16.4
+            "pct": 16.1
           },
           {
             "name": "光電業",
-            "pct": 9.3
+            "pct": 9.0
           }
         ],
         "disposal_stocks_count": 68,
-        "disposal_amt_ratio": 0.334
+        "disposal_amt_ratio": 0.327
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 89.7,
+        "avg_trades_per_active_day": 89.6,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -2901,7 +2901,7 @@
         "連續部署",
         "⚠️ 處置股獵手"
       ],
-      "narrative": "蔣承翰 近 31/31 交易日出手 2781 次 (632 檔), 風格分布: 隔日沖近似 28% / 留倉 66%, 漲停命中 21% (其中 🔒鎖漲停 0%), 前 5 大集中 22%, 長線部位 79% (174 檔), 主攻 半導體業 (45%), ⚠️ 處置股部位 33% (68 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
+      "narrative": "蔣承翰 近 32/32 交易日出手 2866 次 (644 檔), 風格分布: 隔日沖近似 28% / 留倉 66%, 漲停命中 21% (其中 🔒鎖漲停 0%), 前 5 大集中 22%, 長線部位 78% (178 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 33% (68 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
       "per_branch_profiles": {
         "9227": {
           "master": "蔣承翰",
@@ -2909,54 +2909,54 @@
             "next_day_flipper"
           ],
           "operation_metrics": {
-            "trades_count": 1329,
-            "unique_stocks": 490,
+            "trades_count": 1370,
+            "unique_stocks": 497,
             "daytrade_ratio": 0.045,
-            "partial_ratio": 0.222,
-            "overnight_ratio": 0.733,
-            "limit_up_hit_ratio": 0.272,
-            "concentration_top5_pct": 25.8,
-            "consistency": 0.733,
-            "total_buy_amt_wan": 7851918,
+            "partial_ratio": 0.224,
+            "overnight_ratio": 0.731,
+            "limit_up_hit_ratio": 0.275,
+            "concentration_top5_pct": 25.1,
+            "consistency": 0.731,
+            "total_buy_amt_wan": 8108770,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 73,
-            "long_term_amt_ratio": 0.637,
+            "long_term_stocks_count": 77,
+            "long_term_amt_ratio": 0.632,
             "top_industry": "半導體業",
-            "top_industry_pct": 46.2,
-            "industry_count": 32,
+            "top_industry_pct": 44.9,
+            "industry_count": 33,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 46.2
+                "pct": 44.9
               },
               {
                 "name": "電子零組件業",
-                "pct": 14.5
+                "pct": 14.2
               },
               {
                 "name": "光電業",
-                "pct": 10.8
+                "pct": 10.5
               }
             ],
             "disposal_stocks_count": 59,
-            "disposal_amt_ratio": 0.364
+            "disposal_amt_ratio": 0.354
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
-            "avg_trades_per_active_day": 42.9,
+            "avg_trades_per_active_day": 42.8,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -2965,7 +2965,7 @@
             "連續部署",
             "⚠️ 處置股獵手"
           ],
-          "narrative": "蔣承翰 近 31/31 交易日出手 1329 次 (490 檔), 風格分布: 隔日沖近似 22% / 留倉 73%, 漲停命中 27% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 64% (73 檔), 主攻 半導體業 (46%), ⚠️ 處置股部位 36% (59 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
+          "narrative": "蔣承翰 近 32/32 交易日出手 1370 次 (497 檔), 風格分布: 隔日沖近似 22% / 留倉 73%, 漲停命中 28% (其中 🔒鎖漲停 0%), 前 5 大集中 25%, 長線部位 63% (77 檔), 主攻 半導體業 (45%), ⚠️ 處置股部位 35% (59 檔)。 主軸: 📈 長線持有/高頻交易/連續部署/⚠️ 處置股獵手。",
           "branch_filter": "9227",
           "branch_name": "凱基-城中"
         },
@@ -2975,54 +2975,54 @@
             "next_day_flipper"
           ],
           "operation_metrics": {
-            "trades_count": 1452,
-            "unique_stocks": 429,
-            "daytrade_ratio": 0.079,
+            "trades_count": 1496,
+            "unique_stocks": 441,
+            "daytrade_ratio": 0.078,
             "partial_ratio": 0.331,
-            "overnight_ratio": 0.59,
-            "limit_up_hit_ratio": 0.152,
-            "concentration_top5_pct": 16.5,
-            "consistency": 0.59,
-            "total_buy_amt_wan": 2682014,
+            "overnight_ratio": 0.591,
+            "limit_up_hit_ratio": 0.157,
+            "concentration_top5_pct": 16.6,
+            "consistency": 0.591,
+            "total_buy_amt_wan": 2763633,
             "limit_up_locked_trades_count": 0,
             "limit_up_locked_ratio_amt": 0.0,
             "limit_up_locked_ratio_lot": 0.0,
-            "long_term_stocks_count": 104,
-            "long_term_amt_ratio": 0.755,
+            "long_term_stocks_count": 107,
+            "long_term_amt_ratio": 0.761,
             "top_industry": "半導體業",
-            "top_industry_pct": 41.1,
+            "top_industry_pct": 41.3,
             "industry_count": 32,
             "top3_industries": [
               {
                 "name": "半導體業",
-                "pct": 41.1
+                "pct": 41.3
               },
               {
                 "name": "電子零組件業",
-                "pct": 22.1
+                "pct": 21.9
               },
               {
                 "name": "未分類",
-                "pct": 6.0
+                "pct": 6.2
               }
             ],
             "disposal_stocks_count": 53,
-            "disposal_amt_ratio": 0.246
+            "disposal_amt_ratio": 0.248
           },
           "timing_metrics": {
-            "active_days": 31,
-            "total_window_days": 31,
+            "active_days": 32,
+            "total_window_days": 32,
             "active_days_ratio": 1.0,
             "avg_trades_per_active_day": 46.8,
             "weekday_distribution": {
               "週一": 6,
               "週二": 7,
               "週三": 7,
-              "週四": 6,
+              "週四": 7,
               "週五": 5
             },
-            "max_streak_days": 23,
-            "avg_streak_days": 15.5,
+            "max_streak_days": 24,
+            "avg_streak_days": 16,
             "streak_count": 2
           },
           "strategy_labels": [
@@ -3031,7 +3031,7 @@
             "高頻交易",
             "連續部署"
           ],
-          "narrative": "蔣承翰 近 31/31 交易日出手 1452 次 (429 檔), 風格分布: 隔日沖近似 33% / 留倉 59%, 漲停命中 15% (其中 🔒鎖漲停 0%), 前 5 大集中 16%, 長線部位 76% (104 檔), 主攻 半導體業 (41%), ⚠️ 處置股部位 25% (53 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
+          "narrative": "蔣承翰 近 32/32 交易日出手 1496 次 (441 檔), 風格分布: 隔日沖近似 33% / 留倉 59%, 漲停命中 16% (其中 🔒鎖漲停 0%), 前 5 大集中 17%, 長線部位 76% (107 檔), 主攻 半導體業 (41%), ⚠️ 處置股部位 25% (53 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。",
           "branch_filter": "9B18",
           "branch_name": "台新-建北"
         }
@@ -3044,61 +3044,62 @@
         "swing"
       ],
       "operation_metrics": {
-        "trades_count": 1503,
-        "unique_stocks": 420,
-        "daytrade_ratio": 0.112,
-        "partial_ratio": 0.388,
-        "overnight_ratio": 0.5,
-        "limit_up_hit_ratio": 0.065,
-        "concentration_top5_pct": 21.0,
-        "consistency": 0.5,
-        "total_buy_amt_wan": 3323358,
+        "trades_count": 1547,
+        "unique_stocks": 425,
+        "daytrade_ratio": 0.113,
+        "partial_ratio": 0.392,
+        "overnight_ratio": 0.495,
+        "limit_up_hit_ratio": 0.071,
+        "concentration_top5_pct": 20.7,
+        "consistency": 0.495,
+        "total_buy_amt_wan": 3428305,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 116,
-        "long_term_amt_ratio": 0.838,
+        "long_term_stocks_count": 118,
+        "long_term_amt_ratio": 0.836,
         "top_industry": "半導體業",
-        "top_industry_pct": 46.2,
+        "top_industry_pct": 45.9,
         "industry_count": 31,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 46.2
+            "pct": 45.9
           },
           {
             "name": "電子零組件業",
-            "pct": 18.5
+            "pct": 18.3
           },
           {
             "name": "未分類",
-            "pct": 10.8
+            "pct": 10.9
           }
         ],
         "disposal_stocks_count": 44,
-        "disposal_amt_ratio": 0.225
+        "disposal_amt_ratio": 0.224
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 48.5,
+        "avg_trades_per_active_day": 48.3,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
+        "多變策略",
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "大牌分析師 近 31/31 交易日出手 1503 次 (420 檔), 風格分布: 隔日沖近似 39% / 當沖 11% / 留倉 50%, 漲停命中 6% (其中 🔒鎖漲停 0%), 前 5 大集中 21%, 長線部位 84% (116 檔), 主攻 半導體業 (46%), ⚠️ 處置股部位 22% (44 檔)。 主軸: 高頻交易/連續部署。"
+      "narrative": "大牌分析師 近 32/32 交易日出手 1547 次 (425 檔), 風格分布: 隔日沖近似 39% / 當沖 11% / 留倉 50%, 漲停命中 7% (其中 🔒鎖漲停 0%), 前 5 大集中 21%, 長線部位 84% (118 檔), 主攻 半導體業 (46%), ⚠️ 處置股部位 22% (44 檔)。 主軸: 多變策略/高頻交易/連續部署。"
     },
     "優式資本": {
       "master": "優式資本",
@@ -3106,31 +3107,31 @@
         "longterm"
       ],
       "operation_metrics": {
-        "trades_count": 1214,
-        "unique_stocks": 382,
+        "trades_count": 1254,
+        "unique_stocks": 388,
         "daytrade_ratio": 0.022,
         "partial_ratio": 0.139,
-        "overnight_ratio": 0.839,
-        "limit_up_hit_ratio": 0.211,
+        "overnight_ratio": 0.84,
+        "limit_up_hit_ratio": 0.214,
         "concentration_top5_pct": 25.8,
-        "consistency": 0.839,
-        "total_buy_amt_wan": 11032306,
+        "consistency": 0.84,
+        "total_buy_amt_wan": 11288571,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 82,
-        "long_term_amt_ratio": 0.799,
+        "long_term_stocks_count": 84,
+        "long_term_amt_ratio": 0.81,
         "top_industry": "半導體業",
-        "top_industry_pct": 49.2,
+        "top_industry_pct": 49.0,
         "industry_count": 31,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 49.2
+            "pct": 49.0
           },
           {
             "name": "電子零組件業",
-            "pct": 17.0
+            "pct": 16.7
           },
           {
             "name": "電腦及週邊設備業",
@@ -3138,22 +3139,22 @@
           }
         ],
         "disposal_stocks_count": 45,
-        "disposal_amt_ratio": 0.339
+        "disposal_amt_ratio": 0.337
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
         "avg_trades_per_active_day": 39.2,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -3163,7 +3164,7 @@
         "連續部署",
         "⚠️ 處置股獵手"
       ],
-      "narrative": "優式資本 近 31/31 交易日出手 1214 次 (382 檔), 風格分布: 隔日沖近似 14% / 留倉 84%, 漲停命中 21% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 80% (82 檔), 主攻 半導體業 (49%), ⚠️ 處置股部位 34% (45 檔)。 主軸: 📈 長線持有/風格純粹/高頻交易/連續部署。"
+      "narrative": "優式資本 近 32/32 交易日出手 1254 次 (388 檔), 風格分布: 隔日沖近似 14% / 留倉 84%, 漲停命中 21% (其中 🔒鎖漲停 0%), 前 5 大集中 26%, 長線部位 81% (84 檔), 主攻 半導體業 (49%), ⚠️ 處置股部位 34% (45 檔)。 主軸: 📈 長線持有/風格純粹/高頻交易/連續部署。"
     },
     "東億資本": {
       "master": "東億資本",
@@ -3171,20 +3172,20 @@
         "longterm"
       ],
       "operation_metrics": {
-        "trades_count": 1492,
-        "unique_stocks": 421,
-        "daytrade_ratio": 0.076,
-        "partial_ratio": 0.367,
-        "overnight_ratio": 0.557,
-        "limit_up_hit_ratio": 0.047,
-        "concentration_top5_pct": 20.9,
-        "consistency": 0.557,
-        "total_buy_amt_wan": 1860709,
+        "trades_count": 1538,
+        "unique_stocks": 424,
+        "daytrade_ratio": 0.075,
+        "partial_ratio": 0.37,
+        "overnight_ratio": 0.555,
+        "limit_up_hit_ratio": 0.052,
+        "concentration_top5_pct": 21.2,
+        "consistency": 0.555,
+        "total_buy_amt_wan": 1947152,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 105,
-        "long_term_amt_ratio": 0.842,
+        "long_term_stocks_count": 107,
+        "long_term_amt_ratio": 0.848,
         "top_industry": "半導體業",
         "top_industry_pct": 43.5,
         "industry_count": 27,
@@ -3195,30 +3196,30 @@
           },
           {
             "name": "電子零組件業",
-            "pct": 19.0
+            "pct": 18.5
           },
           {
             "name": "未分類",
-            "pct": 11.8
+            "pct": 12.0
           }
         ],
         "disposal_stocks_count": 41,
         "disposal_amt_ratio": 0.233
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
         "avg_trades_per_active_day": 48.1,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -3226,7 +3227,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "東億資本 近 31/31 交易日出手 1492 次 (421 檔), 風格分布: 隔日沖近似 37% / 留倉 56%, 漲停命中 5% (其中 🔒鎖漲停 0%), 前 5 大集中 21%, 長線部位 84% (105 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 23% (41 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。"
+      "narrative": "東億資本 近 32/32 交易日出手 1538 次 (424 檔), 風格分布: 隔日沖近似 37% / 留倉 56%, 漲停命中 5% (其中 🔒鎖漲停 0%), 前 5 大集中 21%, 長線部位 85% (107 檔), 主攻 半導體業 (44%), ⚠️ 處置股部位 23% (41 檔)。 主軸: 📈 長線持有/高頻交易/連續部署。"
     },
     "Krenz(再多一位數本人)": {
       "master": "Krenz(再多一位數本人)",
@@ -3234,54 +3235,54 @@
         "day_trader"
       ],
       "operation_metrics": {
-        "trades_count": 1479,
-        "unique_stocks": 393,
-        "daytrade_ratio": 0.077,
-        "partial_ratio": 0.371,
-        "overnight_ratio": 0.552,
-        "limit_up_hit_ratio": 0.045,
-        "concentration_top5_pct": 18.5,
-        "consistency": 0.552,
-        "total_buy_amt_wan": 1995486,
+        "trades_count": 1524,
+        "unique_stocks": 400,
+        "daytrade_ratio": 0.076,
+        "partial_ratio": 0.369,
+        "overnight_ratio": 0.554,
+        "limit_up_hit_ratio": 0.052,
+        "concentration_top5_pct": 18.7,
+        "consistency": 0.554,
+        "total_buy_amt_wan": 2076642,
         "limit_up_locked_trades_count": 0,
         "limit_up_locked_ratio_amt": 0.0,
         "limit_up_locked_ratio_lot": 0.0,
-        "long_term_stocks_count": 100,
-        "long_term_amt_ratio": 0.818,
+        "long_term_stocks_count": 102,
+        "long_term_amt_ratio": 0.822,
         "top_industry": "半導體業",
-        "top_industry_pct": 40.6,
+        "top_industry_pct": 40.4,
         "industry_count": 30,
         "top3_industries": [
           {
             "name": "半導體業",
-            "pct": 40.6
+            "pct": 40.4
           },
           {
             "name": "電子零組件業",
-            "pct": 21.7
+            "pct": 21.1
           },
           {
             "name": "未分類",
-            "pct": 10.4
+            "pct": 10.5
           }
         ],
-        "disposal_stocks_count": 36,
+        "disposal_stocks_count": 37,
         "disposal_amt_ratio": 0.218
       },
       "timing_metrics": {
-        "active_days": 31,
-        "total_window_days": 31,
+        "active_days": 32,
+        "total_window_days": 32,
         "active_days_ratio": 1.0,
-        "avg_trades_per_active_day": 47.7,
+        "avg_trades_per_active_day": 47.6,
         "weekday_distribution": {
           "週一": 6,
           "週二": 7,
           "週三": 7,
-          "週四": 6,
+          "週四": 7,
           "週五": 5
         },
-        "max_streak_days": 23,
-        "avg_streak_days": 15.5,
+        "max_streak_days": 24,
+        "avg_streak_days": 16,
         "streak_count": 2
       },
       "strategy_labels": [
@@ -3290,7 +3291,7 @@
         "高頻交易",
         "連續部署"
       ],
-      "narrative": "Krenz(再多一位數本人) 近 31/31 交易日出手 1479 次 (393 檔), 風格分布: 隔日沖近似 37% / 留倉 55%, 漲停命中 4% (其中 🔒鎖漲停 0%), 前 5 大集中 18%, 長線部位 82% (100 檔), 主攻 半導體業 (41%), ⚠️ 處置股部位 22% (36 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。"
+      "narrative": "Krenz(再多一位數本人) 近 32/32 交易日出手 1524 次 (400 檔), 風格分布: 隔日沖近似 37% / 留倉 55%, 漲停命中 5% (其中 🔒鎖漲停 0%), 前 5 大集中 19%, 長線部位 82% (102 檔), 主攻 半導體業 (40%), ⚠️ 處置股部位 22% (37 檔)。 主軸: 📈 長線持有/分散布局/高頻交易/連續部署。"
     }
   }
 }
