@@ -124,17 +124,19 @@ WATCHED_BRANCHES = [
      "enabled": True, "region": "domestic"},
  
     # ─────────────────────────────────────────────────────────
-    # 迷你哥/松山哥（3 個分點）
+    # 迷你哥/松山哥（v3.31.7: 縮為 1 個分點, 移除 9200/9600 因那是「整家證券公司」非分行）
     # ─────────────────────────────────────────────────────────
     {"code": "9217", "name": "凱基-松山", "master": "迷你哥/松山哥",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
-    {"code": "9200", "name": "凱基證券", "master": "迷你哥/松山哥",
+    # v3.31.7 拆: 9200 凱基證券 / 9600 富邦證券 是整個證券公司加總 (含全分行散戶+大戶),
+    #              不該歸給「迷你哥」個人大戶 → 改 master = 公司本身, style=company_total (排除分析)
+    {"code": "9200", "name": "凱基證券", "master": "凱基證券",
      "tags_personal": [], "tags_market": [],
-     "enabled": True, "region": "domestic"},
-    {"code": "9600", "name": "富邦證券", "master": "迷你哥/松山哥",
+     "enabled": True, "region": "company_total"},
+    {"code": "9600", "name": "富邦證券", "master": "富邦證券",
      "tags_personal": [], "tags_market": [],
-     "enabled": True, "region": "domestic"},
+     "enabled": True, "region": "company_total"},
  
     # ─────────────────────────────────────────────────────────
     # 布哥/n_nchang（1 個分點）
@@ -490,6 +492,9 @@ MASTER_STYLES = {
     # 🏛️ 官股
     "臺銀證券": ["public"],
     "兆豐證券": ["public"],
+    # 🏢 整家證券公司 (v3.31.7 拆出: 9200/9600 是公司加總, 非個人大戶分行)
+    "凱基證券": ["company_total"],
+    "富邦證券": ["company_total"],
 }
  
  

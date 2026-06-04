@@ -64,8 +64,9 @@ TW_TZ = timezone(timedelta(hours=8))
 #  常數: 個人大戶名單 + 規則閾值
 # ════════════════════════════════════════════════════════════════════
 
-# 排除外資 (foreign_ib) + 官股 (public), 那些不適合操作習慣分類
-EXCLUDED_STYLES = {'foreign_ib', 'public'}
+# 排除外資 (foreign_ib) + 官股 (public) + 整家公司加總 (company_total, v3.31.7)
+# 那些不適合「個人大戶操作習慣」分類 — 都是法人 / 公司級加總, 非個人風格
+EXCLUDED_STYLES = {'foreign_ib', 'public', 'company_total'}
 
 
 def get_individual_masters() -> Dict[str, List[str]]:
