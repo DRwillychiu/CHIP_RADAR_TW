@@ -79,26 +79,31 @@ def get_individual_masters() -> Dict[str, List[str]]:
         return {}
 
 
-# 標籤閾值 (基於 metric 觸發, 透明可調)
+# 標籤閾值 — v3.31.10 一次性重校 (基於 32 天真實資料 + 業界印象反推)
+# 校準前: 19 master 全部「📈長線持有/高頻交易/連續部署」一面倒, 沒區別
+# 校準依據:
+#   蔣承翰 21% 漲停 (業界主漲停獵手) → 應觸發
+#   航海王/陳族元/民哥 11-14% 漲停 (不該觸發)
+#   32 天樣本下 long_term_days=5 太短, streak_long=8 太低
 THRESH = {
-    'limit_up_hit_high': 0.6,         # > 60% 買的當天漲停 → 漲停獵手
-    'style_dominant': 0.5,            # 某風格 > 50% → 該風格標籤
-    'concentration_high': 50.0,       # 前5大 > 50% → 集中投資
-    'concentration_low': 20.0,        # 前5大 < 20% → 分散布局
-    'consistency_high': 0.8,          # 主導風格 > 80% → 風格純粹
-    'consistency_low': 0.5,           # 主導風格 < 50% → 多變策略
-    'active_ratio_high': 0.85,        # 活躍天 > 85% → 高頻交易
-    'active_ratio_low': 0.4,          # 活躍天 < 40% → 精選出手
-    'streak_long': 8,                 # 連續部署 > 8 個交易日
-    # v3.30.9 新增 — 解 LABELS_DEFINITION §9 已知限制 (鎖漲停 + 長線持有盲點)
-    'locked_at_lu_tolerance': 0.99,   # buy_avg ≥ lu_price × 99% → 視為「鎖漲停」成交
-    'locked_at_lu_ratio_amt': 0.40,   # 鎖漲停金額占比 > 40% → 🔒鎖漲停標籤
-    'long_term_days_threshold': 5,    # 單檔在窗口內被加碼天數 ≥ 5 → 視為長線持倉
-    'long_term_amt_ratio': 0.50,      # 長線持倉金額占比 > 50% → 📈長線持有標籤
-    # v3.30.11 新增 — 族群專家 (盲點 #3)
-    'top_industry_pct_high': 60.0,    # 單一族群買進金額占比 > 60% → 🎯族群專家標籤
-    # v3.30.13 新增 — 處置股獵手 (盲點 #6, 風險偏好維度)
-    'disposal_amt_ratio_high': 0.30,  # 處置股買進金額占比 > 30% → ⚠️處置股獵手標籤
+    'limit_up_hit_high': 0.18,        # 60% → 18% (蔣 21% / Tradow 20% / 優式 21% 觸發, 民哥 14% 不觸發)
+    'style_dominant': 0.40,           # 50% → 40% (32 天合計 trade_style 自然分散, 放寬)
+    'concentration_high': 35.0,       # 50% → 35% (32 天累積集中度自然降, 35% 算明顯集中)
+    'concentration_low': 18.0,        # 20% → 18% (微調)
+    'consistency_high': 0.65,         # 80% → 65% (放寬讓真主導風格 master 觸發風格純粹)
+    'consistency_low': 0.40,          # 50% → 40%
+    'active_ratio_high': 0.85,        # 不變 (高頻=幾乎天天動)
+    'active_ratio_low': 0.4,          # 不變
+    'streak_long': 15,                # 8 → 15 (32 天下大多有 8+ 連續, 15+ 才算明顯節奏)
+    # v3.30.9: 鎖漲停 + 長線持有
+    'locked_at_lu_tolerance': 0.99,   # 不變
+    'locked_at_lu_ratio_amt': 0.30,   # 40% → 30% (寬一點看蔣承翰是否觸發)
+    'long_term_days_threshold': 15,   # 5 → 15 (5 天太短, 32 天/2 ≈ 15)
+    'long_term_amt_ratio': 0.65,      # 50% → 65% (更嚴, 配合天數放寬)
+    # v3.30.11: 族群專家
+    'top_industry_pct_high': 60.0,    # 不變
+    # v3.30.13: 處置股獵手
+    'disposal_amt_ratio_high': 0.30,  # 不變
 }
 
 

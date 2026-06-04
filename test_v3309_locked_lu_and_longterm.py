@@ -121,10 +121,14 @@ print(f"  {'OK' if ok6 else 'FAIL'} labels={labels_sw}")
 print(f"    long_term_ratio={op_sw['long_term_amt_ratio']} (應 0)")
 if not ok6: all_pass = False
 
-# ─── 7. 林滄海式: overnight 高 + 單檔連續加碼 ≥ 5 天 → 📈長線持有 ───
-print("\n7. 林滄海式: overnight 高 + 某檔 6 天加碼 → 📈長線持有 (非波段)")
+# ─── 7. v3.31.10: long_term_days 5→15, 16 天加碼才算長線持有 ───
+print("\n7. 林滄海式: overnight 高 + 某檔 16 天連續加碼 → 📈長線持有 (v3.31.10 閾值 15)")
 long_trades = []
-for d in ['20260520','20260521','20260522','20260525','20260526','20260527']:
+# 16 天連續加碼 (≥ THRESH['long_term_days_threshold'] = 15)
+LONG_DATES = ['20260501','20260502','20260503','20260504','20260505','20260506',
+              '20260507','20260508','20260509','20260510','20260511','20260512',
+              '20260513','20260514','20260515','20260516']
+for d in LONG_DATES:
     long_trades.append({'date': d, 'stock_code': '2317', 'stock_name': '鴻海',
                         'buy_lot': 200, 'sell_lot': 10, 'buy_amt': 200_000, 'sell_amt': 10_000,
                         'is_limit_up': False, 'trade_style': 'overnight'})

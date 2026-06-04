@@ -83,12 +83,15 @@ ok = ('當沖客' in wen_prof['strategy_labels']
 print(f"  {'OK' if ok else 'FAIL'} 9B2z labels={wen_prof['strategy_labels']}")
 if not ok: all_pass = False
 
-# ── 6. master 整體 labels 跟 per-branch 不同 (這就是價值所在!) ──
-print("\n6. 整體 labels vs 兩分點 labels 應不一致 (證明 per-branch 有資訊量)")
+# ── 6. v3.31.10: per-branch 價值 = 兩分點主風格不同 (短打 vs 當沖) ──
+# (consistency_high 0.65 較鬆, master 整體 67% partial 也觸發風格純粹,
+#  但 per-branch 仍有別: 9B2n 主風格短打型, 9B2z 主風格當沖客)
+print("\n6. per-branch 價值: 9B2n 短打型 vs 9B2z 當沖客 (主風格不同)")
 master_labels = set(prof['strategy_labels'])
 west_labels = set(west_prof['strategy_labels'])
 wen_labels = set(wen_prof['strategy_labels'])
-ok = master_labels != west_labels and master_labels != wen_labels
+ok = ('短打型' in west_labels and '當沖客' not in west_labels
+      and '當沖客' in wen_labels and '短打型' not in wen_labels)
 print(f"  {'OK' if ok else 'FAIL'} master={master_labels}")
 print(f"    9B2n  ={west_labels}")
 print(f"    9B2z  ={wen_labels}")
