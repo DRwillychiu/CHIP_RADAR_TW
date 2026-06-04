@@ -546,12 +546,16 @@ def main():
             print(f"✅ 密碼預檢通過 (解 {first.name} OK)")
         except Exception as e:
             if type(e).__name__ == 'InvalidTag':
+                pwd_len = len(pwd)
                 print(f"❌ 密碼錯誤 — CHIP_RADAR_PASSWORD 無法解密 {first.name}")
                 print(f"   InvalidTag = AES-GCM 解密失敗的密碼學名稱, 100% 是密碼不對")
+                print(f"   你目前環境變數密碼長度: {pwd_len} 字")
                 print(f"   提示:")
-                print(f"     - 確認你設的是 production 密碼 (GitHub Secret CHIP_RADAR_PASSWORD 的真實值)")
                 print(f"     - 不是 testpass123 (那是測試本機加密用, 不解 production daily.json)")
                 print(f"     - 不是「<production 密碼>」占位符 (要替換成真實字串)")
+                print(f"     - ⚠️ PowerShell $ 陷阱: 若你密碼含 $ 符號, 雙引號 \"abc$xyz\" 會把")
+                print(f"       $xyz 當變數展開導致截斷. 改用單引號: 'abc$xyz'")
+                print(f"       (單引號完全字面值, 不展開任何變數)")
                 print(f"     - 從你自己的密碼管理工具 / 設 secret 時記錄的地方取")
             else:
                 print(f"❌ 密碼預檢失敗 ({type(e).__name__}): {e}")
