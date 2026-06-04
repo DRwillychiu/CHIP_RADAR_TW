@@ -115,31 +115,72 @@ def now_tw() -> datetime:
 #  v3.30.9 helpers — 鎖漲停 + 長線持有
 # ════════════════════════════════════════════════════════════════════
 
-def _derive_limit_up_price(stock: Dict[str, Any]) -> Optional[float]:
+def _build_stock_close_map(data_dir: str) -> Optional[Dict[str, Dict[str, float]]]:
+    """v3.31.11: 從 stock_history.json 建 {code: {date: close}} map.
+    給 _derive_limit_up_price 查前一日 close → tick-size 算精確漲停價."""
+    p = Path(data_dir) / 'stock_history.json'
+    if not p.exists():
+        return None
+    try:
+        with open(p, 'r', encoding='utf-8') as f:
+            d = json.load(f)
+        out = {}
+        for code, info in d.get('stocks', {}).items():
+            if isinstance(info, dict):
+                daily = info.get('daily', {})
+                if isinstance(daily, dict):
+                    out[code] = {date: rec.get('close')
+                                 for date, rec in daily.items()
+                                 if isinstance(rec, dict) and rec.get('close')}
+        return out if out else None
+    except Exception:
+        return None
+
+
+def _derive_limit_up_price(stock: Dict[str, Any],
+                            stock_close_map: Optional[Dict[str, Dict[str, float]]] = None,
+                            trade_date: Optional[str] = None) -> Optional[float]:
     """從 stock dict 推算當日漲停價 (元/股).
-    優先順序: 直接欄位 limit_up_price → 用 price_utils 從 prev_close 算 → None."""
+    v3.31.11: 加 stock_close_map + trade_date, 用前一日 close 推算 (解 stock dict 缺欄位問題).
+    優先順序: 直接欄位 limit_up_price → stock 內 prev_close →
+              stock_close_map 找 prev_close → None."""
     lu = stock.get('limit_up_price')
     if lu and lu > 0:
         return float(lu)
     prev = stock.get('prev_close')
-    if not prev or prev <= 0:
-        return None
-    try:
-        from price_utils import calc_limit_up_price
-        return float(calc_limit_up_price(float(prev)))
-    except Exception:
-        # fallback: 粗略 10% (大多數股票, 不準確的 tick 邊界)
-        return float(prev) * 1.10
+    if prev and prev > 0:
+        try:
+            from price_utils import calc_limit_up_price
+            return float(calc_limit_up_price(float(prev)))
+        except Exception:
+            return float(prev) * 1.10
+    # v3.31.11: 從 stock_close_map 找前一日 close
+    if stock_close_map and trade_date:
+        code = stock.get('code')
+        if code and code in stock_close_map:
+            days = sorted(d for d in stock_close_map[code] if d < trade_date)
+            if days:
+                pc = stock_close_map[code][days[-1]]
+                if pc and pc > 0:
+                    try:
+                        from price_utils import calc_limit_up_price
+                        return float(calc_limit_up_price(float(pc)))
+                    except Exception:
+                        return float(pc) * 1.10
+    return None
 
 
-def _is_locked_at_lu(stock: Dict[str, Any], tolerance: float = 0.99) -> bool:
-    """判定該筆 trade 是否在漲停價附近成交 (買均 ≥ 漲停價 × tolerance)."""
+def _is_locked_at_lu(stock: Dict[str, Any], tolerance: float = 0.99,
+                      stock_close_map: Optional[Dict[str, Dict[str, float]]] = None,
+                      trade_date: Optional[str] = None) -> bool:
+    """判定該筆 trade 是否在漲停價附近成交 (買均 ≥ 漲停價 × tolerance).
+    v3.31.11: 加 stock_close_map + trade_date 傳遞給 _derive_limit_up_price."""
     buy_lot = stock.get('buy_lot', 0) or 0
     buy_amt = stock.get('buy_amt', 0) or 0
     if buy_lot <= 0 or buy_amt <= 0:
         return False
-    buy_avg = buy_amt / buy_lot   # 仟元/張 = 元/股 (單位相消)
-    lu_price = _derive_limit_up_price(stock)
+    buy_avg = buy_amt / buy_lot
+    lu_price = _derive_limit_up_price(stock, stock_close_map, trade_date)
     if not lu_price or lu_price <= 0:
         return False
     return buy_avg >= lu_price * tolerance
@@ -347,10 +388,11 @@ def extract_master_trades(history: List[Dict[str, Any]],
 
 def compute_operation_metrics(trades: List[Dict[str, Any]],
                                 stock_industry_map: Optional[Dict[str, str]] = None,
-                                disposal_codes: Optional[set] = None
+                                disposal_codes: Optional[set] = None,
+                                stock_close_map: Optional[Dict[str, Dict[str, float]]] = None
                                 ) -> Optional[Dict[str, Any]]:
     """風格分布 + 漲停命中 + 集中度 + 一致性 + (v3.30.11) 族群集中度
-       + (v3.30.13) 處置股風險偏好.
+       + (v3.30.13) 處置股風險偏好 + (v3.31.11) 鎖漲停用 stock_close_map.
     optional 參數 None 時跳過對應計算 (向後相容)."""
     if not trades:
         return None
@@ -377,8 +419,11 @@ def compute_operation_metrics(trades: List[Dict[str, Any]],
     # 一致性 (主導風格佔比)
     consistency = max(daytrade, partial, overnight) if total else 0.0
 
-    # v3.30.9: 🔒 鎖漲停 metric
-    locked_trades = [t for t in trades if _is_locked_at_lu(t, THRESH['locked_at_lu_tolerance'])]
+    # v3.30.9 / v3.31.11: 🔒 鎖漲停 metric (每 trade 傳 stock_close_map + 該 trade 的 date)
+    locked_trades = [t for t in trades
+                     if _is_locked_at_lu(t, THRESH['locked_at_lu_tolerance'],
+                                          stock_close_map=stock_close_map,
+                                          trade_date=t.get('date'))]
     locked_amt = sum(t['buy_amt'] for t in locked_trades)
     locked_lot = sum(t['buy_lot'] for t in locked_trades)
     total_lot = sum(t['buy_lot'] for t in trades)
@@ -566,10 +611,11 @@ def generate_narrative(master_name: str,
     lt_part = (f", 長線部位 {lt_ratio:.0f}% ({lt_n} 檔)" if lt_n > 0 else "")
 
     # v3.30.11: 族群主攻補充 (族群名在這顯示, 標籤本身固定為「🎯 族群專家」)
+    # v3.31.11: 顯示閾值 30% → 50% (32 天樣本下半導體業 40-57% 太普遍, 太低會誤導)
     top_ind = op.get('top_industry')
     top_ind_pct = op.get('top_industry_pct', 0)
     ind_part = (f", 主攻 {top_ind} ({top_ind_pct:.0f}%)"
-                if top_ind and top_ind_pct > 30 else "")  # > 30% 才提, 避免雜訊
+                if top_ind and top_ind_pct > 50 else "")
 
     # v3.30.13: 處置股部位補充 (高風險偏好揭露)
     disp_ratio = op.get('disposal_amt_ratio', 0) * 100
@@ -595,7 +641,8 @@ def build_master_profile(master_name: str,
                           master_styles: Dict[str, List[str]],
                           stock_industry_map: Optional[Dict[str, str]] = None,
                           branch_filter: Optional[str] = None,
-                          disposal_codes: Optional[set] = None
+                          disposal_codes: Optional[set] = None,
+                          stock_close_map: Optional[Dict[str, Dict[str, float]]] = None
                           ) -> Dict[str, Any]:
     """組一個 master 的完整 profile.
     stock_industry_map (v3.30.11): code → 產業名稱反查表, 算 🎯族群專家用。
@@ -616,7 +663,8 @@ def build_master_profile(master_name: str,
             result['branch_filter'] = branch_filter
         return result
 
-    op = compute_operation_metrics(trades, stock_industry_map, disposal_codes)
+    op = compute_operation_metrics(trades, stock_industry_map, disposal_codes,
+                                    stock_close_map=stock_close_map)
     timing = compute_timing_metrics(trades, len(history))
     labels = generate_labels(op, timing)
     narrative = generate_narrative(master_name, op, timing, labels)
@@ -644,6 +692,7 @@ def build_master_profile(master_name: str,
                     stock_industry_map=stock_industry_map,
                     branch_filter=code,
                     disposal_codes=disposal_codes,
+                    stock_close_map=stock_close_map,
                 )
                 bp['branch_name'] = name
                 per_branch[code] = bp
@@ -691,11 +740,39 @@ def build_all_profiles(history: List[Dict[str, Any]],
         print(f"  ⚠️ disposal_fetcher 載入失敗 (跳過處置股分析): {type(e).__name__}: {e}",
               file=sys.stderr)
 
+    # 載入個股 close 歷史 (v3.31.11) — 給 _is_locked_at_lu 推前一日 close
+    stock_close_map = _build_stock_close_map(data_dir)
+    if stock_close_map:
+        print(f"  [Stock Close] 載入 {len(stock_close_map)} 檔個股 close 歷史 (給 🔒鎖漲停用)")
+
+    # v3.31.11 修盲點: 動態用當下 branches.py 的 WATCHED_BRANCHES 覆寫歷史 raw_output 的 master 欄位
+    # (解 6/03 前 daily.json 仍對應「迷你哥」9200/9600 等舊 declared 的問題)
+    try:
+        from branches import WATCHED_BRANCHES
+        br_master_map = {b['code']: (b.get('master'), b.get('co_masters') or [])
+                         for b in WATCHED_BRANCHES if b.get('code')}
+        overridden = 0
+        for day in history:
+            for br in day['data'].get('branches', []):
+                code = br.get('code')
+                if code in br_master_map:
+                    new_master, new_co = br_master_map[code]
+                    if br.get('master') != new_master or (br.get('co_masters') or []) != new_co:
+                        br['master'] = new_master
+                        br['co_masters'] = new_co
+                        overridden += 1
+        if overridden:
+            print(f"  [Master Override] 用當下 branches.py 覆寫 {overridden} 筆歷史 branch master "
+                  f"(解 v3.31.7 拆 9200/9600 後歷史對應問題)")
+    except Exception as e:
+        print(f"  ⚠️ master override 失敗: {type(e).__name__}: {e}", file=sys.stderr)
+
     masters_out = {}
     for m in targets:
         masters_out[m] = build_master_profile(m, history, indiv,
                                                stock_industry_map=stock_industry_map,
-                                               disposal_codes=disposal_codes)
+                                               disposal_codes=disposal_codes,
+                                               stock_close_map=stock_close_map)
 
     dates = [d['date'] for d in history]
     return {
@@ -767,9 +844,11 @@ def main():
         tm = p['timing_metrics']
         labels = '/'.join(p['strategy_labels'][:5])
         # v3.30.11: 主攻族群欄 (族群名前 6 字 + %)
+        # v3.31.11: 顯示閾值 → 50% (低於不顯示, 避免「半導體業 40%」誤導)
         top_ind = op.get('top_industry') or ''
         top_ind_pct = op.get('top_industry_pct', 0)
-        ind_col = f"{top_ind[:6]}{top_ind_pct:>3.0f}%" if top_ind else '-'
+        ind_col = (f"{top_ind[:6]}{top_ind_pct:>3.0f}%"
+                   if top_ind and top_ind_pct > 50 else '-')
         print(f"{m:25s} {op['trades_count']:>5d} {tm['active_days']:>5d} "
               f"{op['limit_up_hit_ratio'] * 100:>5.0f}% {op['concentration_top5_pct']:>5.0f}% "
               f"{ind_col:>14s}  {labels}")
