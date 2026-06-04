@@ -497,20 +497,66 @@ def main():
         if not pwd:
             print("❌ 需要 --password 或 CHIP_RADAR_PASSWORD env")
             sys.exit(1)
+        # v3.31.3: placeholder 檢測
+        if '<' in pwd or '>' in pwd or pwd.upper() == 'YOUR_PASSWORD':
+            print(f"❌ CHIP_RADAR_PASSWORD 看起來是占位符: {pwd!r}")
+            print('   請設定真實密碼: $env:CHIP_RADAR_PASSWORD = "你的真實密碼"')
+            sys.exit(1)
         json_path = Path(args.data_dir) / f"{args.date}.json"
         if not json_path.exists():
             print(f"❌ {json_path} 不存在")
             sys.exit(1)
-        stats = import_day_from_file(db_path, str(json_path), pwd)
-        print(f"✅ {args.date} import 完成: {stats}")
+        try:
+            stats = import_day_from_file(db_path, str(json_path), pwd)
+            print(f"✅ {args.date} import 完成: {stats}")
+        except Exception as e:
+            if type(e).__name__ == 'InvalidTag':
+                print(f"❌ 密碼錯誤 (InvalidTag = AES-GCM 解密失敗)")
+                print(f"   確認 CHIP_RADAR_PASSWORD = production 真密碼 (不是 testpass123 / 不是占位符)")
+            else:
+                print(f"❌ import 失敗 ({type(e).__name__}): {e}")
+            sys.exit(1)
 
     elif args.cmd == 'import-all':
         pwd = args.password or os.environ.get('CHIP_RADAR_PASSWORD', '')
         if not pwd:
             print("❌ 需要 --password 或 CHIP_RADAR_PASSWORD env")
             sys.exit(1)
+        # v3.31.3: placeholder 檢測 (避免使用者貼到「<production 密碼>」占位符)
+        if '<' in pwd or '>' in pwd or pwd.upper() == 'YOUR_PASSWORD':
+            print(f"❌ CHIP_RADAR_PASSWORD 看起來是占位符: {pwd!r}")
+            print('   請設定真實 production 密碼:')
+            print('     $env:CHIP_RADAR_PASSWORD = "你的真實密碼"')
+            print('   注意: 不要保留 < > 角括號. 密碼從你 GitHub Secret CHIP_RADAR_PASSWORD 取')
+            sys.exit(1)
         data_dir = Path(args.data_dir)
         files = sorted(data_dir.glob('[0-9]' * 8 + '.json'))
+        if not files:
+            print(f"❌ {data_dir}/ 沒有 YYYYMMDD.json 檔")
+            sys.exit(1)
+
+        # v3.31.3: fail-fast 密碼預檢 (解第一個檔驗密碼, 失敗就停, 不跑 N 次)
+        first = files[0]
+        try:
+            with open(first, 'r', encoding='utf-8') as f:
+                enc = json.load(f)
+            if enc.get('encrypted'):
+                from crawler import decrypt_data
+                decrypt_data(enc['data'], pwd)   # 驗一次解密
+            print(f"✅ 密碼預檢通過 (解 {first.name} OK)")
+        except Exception as e:
+            if type(e).__name__ == 'InvalidTag':
+                print(f"❌ 密碼錯誤 — CHIP_RADAR_PASSWORD 無法解密 {first.name}")
+                print(f"   InvalidTag = AES-GCM 解密失敗的密碼學名稱, 100% 是密碼不對")
+                print(f"   提示:")
+                print(f"     - 確認你設的是 production 密碼 (GitHub Secret CHIP_RADAR_PASSWORD 的真實值)")
+                print(f"     - 不是 testpass123 (那是測試本機加密用, 不解 production daily.json)")
+                print(f"     - 不是「<production 密碼>」占位符 (要替換成真實字串)")
+                print(f"     - 從你自己的密碼管理工具 / 設 secret 時記錄的地方取")
+            else:
+                print(f"❌ 密碼預檢失敗 ({type(e).__name__}): {e}")
+            sys.exit(1)
+
         print(f"準備 import {len(files)} 個 daily.json...")
         success = 0
         for f in files:
@@ -519,7 +565,9 @@ def main():
                 print(f"  ✓ {f.stem}: {stats['daily_chips_rows']} rows")
                 success += 1
             except Exception as e:
-                print(f"  ❌ {f.stem}: {type(e).__name__}: {e}")
+                # 印 type + message (InvalidTag 罕見, 但若中途冒出我們仍要看到)
+                msg = str(e) if str(e) else '(no message)'
+                print(f"  ❌ {f.stem}: {type(e).__name__}: {msg}")
         print(f"完成 {success}/{len(files)}")
 
     elif args.cmd == 'status':
