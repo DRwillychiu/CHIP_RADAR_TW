@@ -21,7 +21,7 @@ Phase 2 (待後續, v3.31+):
   風格類: 漲停獵手 / 短打型 / 當沖客 / 波段囤貨
   集中度: 集中投資 / 分散布局
   一致性: 風格純粹 / 多變策略
-  進出場: 高頻交易 / 精選出手 / 連續部署
+  進出場: 高頻交易 / 精選出手 / 持續進場
 
 CLI:
   CHIP_RADAR_PASSWORD=<prod> python master_profile.py
@@ -80,7 +80,7 @@ def get_individual_masters() -> Dict[str, List[str]]:
 
 
 # 標籤閾值 — v3.31.10 一次性重校 (基於 32 天真實資料 + 業界印象反推)
-# 校準前: 19 master 全部「📈長線持有/高頻交易/連續部署」一面倒, 沒區別
+# 校準前: 19 master 全部「📈長線持有/高頻交易/持續進場」一面倒, 沒區別
 # 校準依據:
 #   蔣承翰 21% 漲停 (業界主漲停獵手) → 應觸發
 #   航海王/陳族元/民哥 11-14% 漲停 (不該觸發)
@@ -494,7 +494,7 @@ def compute_timing_metrics(trades: List[Dict[str, Any]],
     weekday_names = ['週一', '週二', '週三', '週四', '週五', '週六', '週日']
     weekday_dist = {weekday_names[i]: weekday_count.get(i, 0) for i in range(5)}
 
-    # streaks (連續部署): 兩筆交易日間隔 ≤ 3 天視為連續 (跨週末)
+    # streaks (持續進場): 兩筆交易日間隔 ≤ 3 天視為連續 (跨週末)
     parsed.sort()
     streaks = []
     cur = 1
@@ -523,9 +523,15 @@ def compute_timing_metrics(trades: List[Dict[str, Any]],
 #  策略標籤 (規則式, 透明可調)
 # ════════════════════════════════════════════════════════════════════
 
-def generate_labels(op: Dict[str, Any], timing: Dict[str, Any]) -> List[str]:
-    """基於 metric 閾值規則生成標籤."""
+def generate_labels(op: Dict[str, Any], timing: Dict[str, Any],
+                     declared_styles: Optional[List[str]] = None) -> List[str]:
+    """基於 metric 閾值規則生成標籤.
+    v3.31.13: declared_styles 參數 — TWSE 分點資料結構性限制 (例: 迷你哥在
+    A 分點買 B 管道賣, 系統看不到賣 → daytrade_ratio=0 → 誤判 overnight).
+    declared style 作為 override: 若 declared day_trader 但 metric 沒觸發當沖客
+    → 強制加「當沖客(declared)」標籤. 這是「業界知識 > 資料限制」的設計選擇."""
     labels = []
+    declared = set(declared_styles or [])
 
     # 風格主導 (互斥, 取最強)
     if op['limit_up_hit_ratio'] > THRESH['limit_up_hit_high']:
@@ -536,16 +542,29 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any]) -> List[str]:
     if op.get('limit_up_locked_ratio_amt', 0) > THRESH['locked_at_lu_ratio_amt']:
         labels.append('🔒 鎖漲停')
 
+    style_assigned = False
     if op['daytrade_ratio'] > THRESH['style_dominant']:
         labels.append('當沖客')
+        style_assigned = True
     elif op['partial_ratio'] > THRESH['style_dominant']:
         labels.append('短打型')          # 近似隔日沖
+        style_assigned = True
     elif op['overnight_ratio'] > THRESH['style_dominant']:
         # v3.30.9: 拆波段 vs 長線 — 兩者互斥 (overnight 高 + 持續加碼 = 真長線)
         if op.get('long_term_amt_ratio', 0) > THRESH['long_term_amt_ratio']:
             labels.append('📈 長線持有')
         else:
             labels.append('波段囤貨(中短期)')
+        style_assigned = True
+
+    # v3.31.13: declared style override — TWSE 分點資料結構性限制修補
+    # 迷你哥在 A 分點買 B 管道賣 → sell_lot=0 → daytrade_ratio=0 → 被判 overnight
+    # 業界知識: declared day_trader → 強制加「當沖客(declared)」
+    if not style_assigned or ('day_trader' in declared and '當沖客' not in labels):
+        if 'day_trader' in declared and '當沖客' not in labels:
+            labels.append('當沖客(declared)')
+    if 'next_day_flipper' in declared and '短打型' not in labels and '當沖客' not in labels and '當沖客(declared)' not in labels:
+        labels.append('短打型(declared)')
 
     # 集中度
     if op['concentration_top5_pct'] > THRESH['concentration_high']:
@@ -566,7 +585,7 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any]) -> List[str]:
         labels.append('精選出手')
 
     if timing['max_streak_days'] > THRESH['streak_long']:
-        labels.append('連續部署')
+        labels.append('持續進場')
 
     # v3.30.11: 🎯 族群專家 (獨立, 跟其他標籤都可共存; 族群名在 narrative)
     if op.get('top_industry_pct', 0) > THRESH['top_industry_pct_high']:
@@ -666,7 +685,7 @@ def build_master_profile(master_name: str,
     op = compute_operation_metrics(trades, stock_industry_map, disposal_codes,
                                     stock_close_map=stock_close_map)
     timing = compute_timing_metrics(trades, len(history))
-    labels = generate_labels(op, timing)
+    labels = generate_labels(op, timing, declared_styles=declared)
     narrative = generate_narrative(master_name, op, timing, labels)
 
     result = {
