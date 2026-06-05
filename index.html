@@ -4636,13 +4636,14 @@ function renderMP() {
           <th style="padding:8px 6px;text-align:right;">集中%</th>
           <th style="padding:8px 6px;">主攻族群</th>
           <th style="padding:8px 6px;text-align:right;">⚠️處置%</th>
+          <th style="padding:8px 6px;">策略子類</th>
           <th style="padding:8px 10px;">策略標籤</th>
         </tr>
       </thead><tbody>`;
 
   for (const [name, p] of masters) {
     if (p.no_data) {
-      html += `<tr style="opacity:0.5;border-top:1px solid var(--line);"><td style="padding:8px 10px;">${name}</td><td colspan="8" style="padding:8px;color:var(--text-3);">(窗口內無交易)</td></tr>`;
+      html += `<tr style="opacity:0.5;border-top:1px solid var(--line);"><td style="padding:8px 10px;">${name}</td><td colspan="9" style="padding:8px;color:var(--text-3);">(窗口內無交易)</td></tr>`;
       continue;
     }
     const op = p.operation_metrics, tm = p.timing_metrics;
@@ -4663,6 +4664,7 @@ function renderMP() {
         <td style="padding:8px 6px;text-align:right;">${op.concentration_top5_pct.toFixed(0)}%</td>
         <td style="padding:8px 6px;font-size:11px;">${topInd}</td>
         <td style="padding:8px 6px;text-align:right;font-size:11px;">${disp}</td>
+        <td style="padding:8px 6px;font-size:11px;color:var(--green);font-weight:600;">${(p.label_hierarchy||{}).level2_strategy||'-'}</td>
         <td style="padding:8px 10px;">${labels}</td>
       </tr>`;
   }
@@ -4678,10 +4680,15 @@ function showMPDetail(name) {
   const op = p.operation_metrics, tm = p.timing_metrics;
   const declared = (p.declared_styles || []).join(' / ') || '-';
 
+  const lh = p.label_hierarchy || {};
+  const l2 = lh.level2_strategy || '';
+  const l1g = lh.level1_groups || {};
+
   let html = `
     <div style="background:rgba(99,102,241,0.08);border:1px solid var(--brand);border-radius:10px;padding:16px;">
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;">
         <h3 style="margin:0;color:var(--gold-bright);">${name}</h3>
+        ${l2 ? `<span style="padding:4px 12px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.5);border-radius:14px;font-size:12px;font-weight:700;color:#86efac;">⚡ ${l2}</span>` : ''}
         <span style="font-size:11px;color:var(--text-2);background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:10px;">declared: ${declared}</span>
       </div>
       <div style="font-size:14px;line-height:1.7;color:var(--text-1);margin-bottom:14px;background:rgba(15,21,37,0.5);padding:12px;border-radius:8px;">
@@ -4697,6 +4704,22 @@ function showMPDetail(name) {
         ${op.disposal_amt_ratio ? `<div style="color:#fca5a5;">⚠️ 處置股部位: <strong>${(op.disposal_amt_ratio*100).toFixed(0)}% (${op.disposal_stocks_count} 檔)</strong></div>` : ''}
         <div>💰 總買進金額: <strong>${(op.total_buy_amt_wan || 0).toLocaleString()} 萬</strong></div>
       </div>`;
+
+  // v3.31.16: Level 1 標籤分層 (攻擊/防守/觀察)
+  if (l1g && Object.keys(l1g).length > 0) {
+    const catColors = {'攻擊型':'#f87171','防守型':'#60a5fa','觀察型':'#fbbf24'};
+    html += `<div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;">
+      <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px;">🏷️ 標籤分層</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">`;
+    for (const [cat, lbls] of Object.entries(l1g)) {
+      const color = catColors[cat] || '#8b949e';
+      html += `<div style="flex:1;min-width:180px;background:rgba(15,21,37,0.5);border:1px solid ${color}40;border-radius:8px;padding:10px;">
+        <div style="font-size:11px;font-weight:700;color:${color};margin-bottom:6px;">${cat}</div>
+        ${lbls.map(l => `<span style="display:inline-block;padding:2px 7px;margin:2px;background:${color}15;border:1px solid ${color}30;border-radius:8px;font-size:10px;color:${color};">${l}</span>`).join('')}
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
 
   // per-branch 細分 (v3.30.12)
   if (p.per_branch_profiles) {

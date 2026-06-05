@@ -169,6 +169,49 @@ def get_disposal_map(data_dir: str = 'data',
     return parsed
 
 
+def save_daily_snapshot(data_dir: str = 'data',
+                         force_refresh: bool = False) -> Optional[Path]:
+    """v3.31.16: 每天存一份處置+注意股快照到 disposal_history/YYYYMMDD.json.
+    累積歷史後可做「誰買注意股 → 持倉 → 變處置股」分析.
+    重複同天跑 = 覆寫(幂等)."""
+    disp = get_disposal_map(data_dir, force_refresh=force_refresh)
+    if not disp:
+        return None
+
+    today = datetime.now(TW_TZ).strftime('%Y%m%d')
+    history_dir = Path(data_dir) / 'disposal_history'
+    history_dir.mkdir(parents=True, exist_ok=True)
+    snapshot_path = history_dir / f'{today}.json'
+
+    snapshot = {
+        'date': today,
+        'applicable_date': disp.get('applicable_date'),
+        'fetched_at': disp.get('fetched_at') or datetime.now(TW_TZ).isoformat(),
+        'count': disp.get('count', 0),
+        'sets': {k: sorted(v) for k, v in disp.get('sets', {}).items()},
+        'all_risky': sorted(disp.get('all_risky', set())),
+    }
+    snapshot_path.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2), encoding='utf-8')
+    return snapshot_path
+
+
+def load_disposal_history(data_dir: str = 'data') -> Dict[str, set]:
+    """v3.31.16: 載入所有歷史處置快照.
+    回傳 {YYYYMMDD: set(codes)}.
+    用途: 追蹤某 code 何時從注意股→處置股 (比對歷史名單變化)."""
+    history_dir = Path(data_dir) / 'disposal_history'
+    if not history_dir.exists():
+        return {}
+    result = {}
+    for f in sorted(history_dir.glob('[0-9]' * 8 + '.json')):
+        try:
+            snap = json.loads(f.read_text(encoding='utf-8'))
+            result[f.stem] = set(snap.get('all_risky', []))
+        except Exception:
+            continue
+    return result
+
+
 if __name__ == '__main__':
     import sys
     m = get_disposal_map(force_refresh='--refresh' in sys.argv)
@@ -177,6 +220,11 @@ if __name__ == '__main__':
         for k, codes in m['sets'].items():
             sample = list(sorted(codes))[:10]
             print(f"  {k}: {len(codes)} 檔, 樣本 {sample}")
+
+        # v3.31.16: 存日快照
+        p = save_daily_snapshot(force_refresh=False)
+        if p:
+            print(f"  📸 快照已存: {p}")
     else:
         print("❌ 取得失敗")
         sys.exit(1)

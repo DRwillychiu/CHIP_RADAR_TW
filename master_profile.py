@@ -602,6 +602,87 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any],
 #  模板 narrative (v3.30.0 同風格, 規則式 50-100 字)
 # ════════════════════════════════════════════════════════════════════
 
+# ════════════════════════════════════════════════════════════════════
+#  v3.31.16: 標籤分層體系 (Level 1 / 2 / 3)
+# ════════════════════════════════════════════════════════════════════
+
+# Level 1: 操作大類 (3 分類, 按標籤歸屬)
+LABEL_L1_MAP = {
+    # 攻擊型: 主動追求超額報酬
+    '漲停獵手': '攻擊型', '🔒 鎖漲停': '攻擊型',
+    '當沖客': '攻擊型', '當沖客(declared)': '攻擊型',
+    '短打型': '攻擊型', '短打型(declared)': '攻擊型',
+    '⚠️ 處置股獵手': '攻擊型',
+    # 防守型: 穩定持倉 + 風格穩定
+    '波段囤貨(中短期)': '防守型', '📈 長線持有': '防守型',
+    '集中投資': '防守型', '風格純粹': '防守型',
+    # 觀察型: 進出場節奏 + 族群偏好
+    '高頻交易': '觀察型', '精選出手': '觀察型',
+    '持續進場': '觀察型', '分散布局': '觀察型',
+    '🎯 族群專家': '觀察型', '多變策略': '觀察型',
+}
+
+# Level 2: 策略子類 (根據標籤組合判定)
+def classify_strategy_l2(labels: List[str]) -> str:
+    """根據 Level 1 標籤組合 → Level 2 策略子類."""
+    s = set(labels)
+    # 攻擊型子分類
+    if ('漲停獵手' in s or '🔒 鎖漲停' in s) and ('當沖客' in s or '當沖客(declared)' in s):
+        return '漲停當沖策略'       # 迷你哥式: 追漲停 + 當沖進出
+    if ('漲停獵手' in s or '🔒 鎖漲停' in s) and ('短打型' in s or '短打型(declared)' in s):
+        return '漲停鎖定策略'       # 蔣承翰/Tradow式: 鎖漲停 + 隔日沖
+    if '漲停獵手' in s or '🔒 鎖漲停' in s:
+        return '漲停追擊策略'       # 有追漲停但不明確當沖/短打
+    if '⚠️ 處置股獵手' in s:
+        return '高風險偏好策略'     # 重度押注處置/注意股
+    # 防守型子分類
+    if '📈 長線持有' in s and '集中投資' in s:
+        return '長線集中持股'       # 林滄海式: 長期持有少數股
+    if '📈 長線持有' in s:
+        return '長線分散持股'       # 長期但分散
+    if '集中投資' in s:
+        return '波段集中操作'       # 中短期但集中少數股
+    if '波段囤貨(中短期)' in s:
+        return '波段輪動操作'       # 中短期分散
+    # 觀察型
+    if '🎯 族群專家' in s:
+        return '族群深耕策略'       # 專注單一族群
+    if '多變策略' in s:
+        return '彈性多變操作'       # 無固定主軸
+    return '一般操作'
+
+
+def build_label_hierarchy(labels: List[str], op: Dict[str, Any]) -> Dict[str, Any]:
+    """v3.31.16: 組 Level 1/2/3 標籤分層結構."""
+    # Level 1: 按大類分組
+    l1_groups = {'攻擊型': [], '防守型': [], '觀察型': []}
+    for label in labels:
+        cat = LABEL_L1_MAP.get(label, '觀察型')
+        l1_groups[cat].append(label)
+    # 移除空 group
+    l1_groups = {k: v for k, v in l1_groups.items() if v}
+
+    # Level 2: 策略子類
+    l2_strategy = classify_strategy_l2(labels)
+
+    # Level 3: 個人操作 DNA (關鍵 metrics 直接帶)
+    l3_dna = {
+        'locked_pct': op.get('limit_up_locked_ratio_amt', 0),
+        'limit_up_pct': op.get('limit_up_hit_ratio', 0),
+        'concentration_pct': op.get('concentration_top5_pct', 0),
+        'top_industry': op.get('top_industry'),
+        'top_industry_pct': op.get('top_industry_pct', 0),
+        'disposal_pct': op.get('disposal_amt_ratio', 0),
+        'consistency': op.get('consistency', 0),
+    }
+
+    return {
+        'level1_groups': l1_groups,
+        'level2_strategy': l2_strategy,
+        'level3_dna': l3_dna,
+    }
+
+
 def generate_narrative(master_name: str,
                        op: Dict[str, Any],
                        timing: Dict[str, Any],
@@ -687,6 +768,7 @@ def build_master_profile(master_name: str,
     timing = compute_timing_metrics(trades, len(history))
     labels = generate_labels(op, timing, declared_styles=declared)
     narrative = generate_narrative(master_name, op, timing, labels)
+    label_hierarchy = build_label_hierarchy(labels, op)
 
     result = {
         'master': master_name,
@@ -694,6 +776,7 @@ def build_master_profile(master_name: str,
         'operation_metrics': op,
         'timing_metrics': timing,
         'strategy_labels': labels,
+        'label_hierarchy': label_hierarchy,
         'narrative': narrative,
     }
     if branch_filter:
@@ -853,14 +936,16 @@ def main():
     # 印 summary 表
     print()
     print(f"{'Master':25s} {'交易次':>5s} {'活躍天':>5s} {'漲停%':>6s} {'集中%':>6s} "
-          f"{'主攻族群':>14s}  Labels")
-    print("─" * 120)
+          f"{'策略子類':>14s}  Labels")
+    print("─" * 130)
     for m, p in result['masters'].items():
         if p.get('no_data'):
             print(f"{m:25s} {'(無資料)':>30s}")
             continue
         op = p['operation_metrics']
         tm = p['timing_metrics']
+        lh = p.get('label_hierarchy', {})
+        l2 = lh.get('level2_strategy', '') if lh else ''
         labels = '/'.join(p['strategy_labels'][:5])
         # v3.30.11: 主攻族群欄 (族群名前 6 字 + %)
         # v3.31.11: 顯示閾值 → 50% (低於不顯示, 避免「半導體業 40%」誤導)
@@ -870,7 +955,7 @@ def main():
                    if top_ind and top_ind_pct > 50 else '-')
         print(f"{m:25s} {op['trades_count']:>5d} {tm['active_days']:>5d} "
               f"{op['limit_up_hit_ratio'] * 100:>5.0f}% {op['concentration_top5_pct']:>5.0f}% "
-              f"{ind_col:>14s}  {labels}")
+              f"{l2:>14s}  {labels}")
 
         # v3.30.12: per-branch 細分 — 顯示條件: 該 master 有 >1 分點且某分點 labels 跟整體不同
         pb = p.get('per_branch_profiles')

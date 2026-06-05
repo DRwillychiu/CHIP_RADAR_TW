@@ -2756,6 +2756,18 @@ def main():
     except Exception as _ae:
         print(f"  ⚠️ archive rotate 失敗 (不影響主流程): {type(_ae).__name__}: {_ae}")
 
+    # ════════════════════════════════════════════════════════════════
+    # v3.31.16: 處置股歷史快照 (每天存 disposal_history/YYYYMMDD.json)
+    # 累積後可做「誰買注意股 → 持倉 → 變處置」分析
+    # ════════════════════════════════════════════════════════════════
+    try:
+        from disposal_fetcher import save_daily_snapshot
+        snap_path = save_daily_snapshot(str(data_dir))
+        if snap_path:
+            print(f"[Disposal History v3.31.16] ✓ 快照 → {snap_path.name}")
+    except Exception as _dse:
+        print(f"  ⚠️ disposal snapshot 失敗 (不影響主流程): {type(_dse).__name__}: {_dse}")
+
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")
     print(f"  成功: {success_count} / 失敗: {fail_count} / 無資料: {empty_count}")
