@@ -4760,6 +4760,30 @@ function showMPDetail(name) {
         <div>💰 總買進金額: <strong>${(op.total_buy_amt_wan || 0).toLocaleString()} 萬</strong></div>
       </div>`;
 
+  // v3.31.22: T+1 跨日追蹤 (真隔日沖 vs 真留倉)
+  const cd = p.cross_day;
+  if (cd) {
+    const flipColor = cd.actual_flip_ratio > 0.5 ? '#fb923c' : '#60a5fa';
+    const holdColor = cd.actual_hold_ratio > 0.5 ? '#60a5fa' : '#fb923c';
+    html += `<div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;">
+      <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px;">🔄 T+1 跨日追蹤 (用真實 sells 驗證)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:20px;font-weight:700;color:${flipColor};">${(cd.actual_flip_ratio*100).toFixed(1)}%</div>
+          <div style="font-size:11px;color:var(--muted);">真隔日沖 (${cd.confirmed_flips} 筆)</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:20px;font-weight:700;color:${holdColor};">${(cd.actual_hold_ratio*100).toFixed(1)}%</div>
+          <div style="font-size:11px;color:var(--muted);">真留倉 (${cd.confirmed_holds} 筆)</div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:20px;font-weight:700;color:var(--text-2);">${cd.total_buy_events}</div>
+          <div style="font-size:11px;color:var(--muted);">總買入事件</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
   // v3.31.21: 績效面已移除 (精準度不足: 收盤→次日收盤 ≠ 真實報酬,
   // 當沖/隔日沖/波段各有不同買賣時點, 用單一假設嚴重失真).
   // 保留 master_performance.py 供未來 Level 3 升級.

@@ -888,9 +888,16 @@ def build_all_profiles(history: List[Dict[str, Any]],
     except Exception as e:
         print(f"  ⚠️ 聯動面計算失敗: {type(e).__name__}: {e}", file=sys.stderr)
 
-    # v3.31.21: 績效面移除 — 精準度太低 (收盤→次日收盤 ≠ 真實報酬,
-    # 當沖/隔日沖/波段 三種操作模式各有不同買賣時點, 用單一假設會嚴重失真).
-    # 保留 master_performance.py 模組供未來 Level 3 (買均價→次日最高) 升級用.
+    # v3.31.22: T+1 跨日追蹤 — 用真實 sells 驗證隔日沖/留倉
+    cross_day_data = None
+    try:
+        from cross_day_tracker import compute_all_cross_day, format_cross_day_table
+        cross_day_data = compute_all_cross_day(history, indiv)
+        if cross_day_data:
+            print(format_cross_day_table(cross_day_data))
+    except Exception as e:
+        print(f"  ⚠️ T+1 追蹤失敗: {type(e).__name__}: {e}", file=sys.stderr)
+
     perf_data = None
 
     dates = [d['date'] for d in history]
@@ -909,12 +916,11 @@ def build_all_profiles(history: List[Dict[str, Any]],
             'factions': alliance_data['factions'],
             'threshold': alliance_data['threshold'],
         }
-    if perf_data:
-        result['performance'] = perf_data
-        # 也塞進每個 master 的 profile
-        for m, p in perf_data.items():
+    if cross_day_data:
+        result['cross_day'] = cross_day_data
+        for m, cd in cross_day_data.items():
             if m in masters_out:
-                masters_out[m]['performance'] = p
+                masters_out[m]['cross_day'] = cd
     return result
 
 
@@ -925,8 +931,8 @@ def build_all_profiles(history: List[Dict[str, Any]],
 def main():
     parser = argparse.ArgumentParser(description='籌碼大戶深度操作分析 + 策略標籤')
     parser.add_argument('--data-dir', default='data')
-    parser.add_argument('--window', type=int, default=None,
-                        help='最近 N 天 (預設用所有可用)')
+    parser.add_argument('--window', type=int, default=60,
+                        help='最近 N 天滾動窗口 (預設 60 天, 0=全部)')
     parser.add_argument('--master', default=None, help='只算單一 master (debug)')
     parser.add_argument('--output', default='data/master_profiles.json')
     parser.add_argument('--no-encrypt-input', action='store_true',
@@ -947,7 +953,9 @@ def main():
         sys.exit(1)
 
     print(f"[Master Profile] 載入歷史 {args.data_dir}/ (window={args.window or '全部'})...")
-    history = load_history(args.data_dir, args.window, password)
+    # v3.31.22: window=0 → None (全部); 預設 60 天滾動
+    window = args.window if args.window and args.window > 0 else None
+    history = load_history(args.data_dir, window, password)
     if not history:
         print("❌ 無可用歷史")
         sys.exit(1)
