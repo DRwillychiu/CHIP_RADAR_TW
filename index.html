@@ -4637,15 +4637,13 @@ function renderMP() {
           <th style="padding:8px 6px;">主攻族群</th>
           <th style="padding:8px 6px;text-align:right;">⚠️處置%</th>
           <th style="padding:8px 6px;">策略子類</th>
-          <th style="padding:8px 6px;text-align:right;">勝率</th>
-          <th style="padding:8px 6px;text-align:right;">均報酬</th>
           <th style="padding:8px 10px;">策略標籤</th>
         </tr>
       </thead><tbody>`;
 
   for (const [name, p] of masters) {
     if (p.no_data) {
-      html += `<tr style="opacity:0.5;border-top:1px solid var(--line);"><td style="padding:8px 10px;">${name}</td><td colspan="11" style="padding:8px;color:var(--text-3);">(窗口內無交易)</td></tr>`;
+      html += `<tr style="opacity:0.5;border-top:1px solid var(--line);"><td style="padding:8px 10px;">${name}</td><td colspan="9" style="padding:8px;color:var(--text-3);">(窗口內無交易)</td></tr>`;
       continue;
     }
     const op = p.operation_metrics, tm = p.timing_metrics;
@@ -4667,8 +4665,6 @@ function renderMP() {
         <td style="padding:8px 6px;font-size:11px;">${topInd}</td>
         <td style="padding:8px 6px;text-align:right;font-size:11px;">${disp}</td>
         <td style="padding:8px 6px;font-size:11px;font-weight:600;${({'漲停鎖定策略':'color:#f87171;background:rgba(248,113,113,0.1);','漲停當沖策略':'color:#fb923c;background:rgba(251,146,60,0.1);','漲停追擊策略':'color:#fbbf24;background:rgba(251,191,36,0.1);','長線集中持股':'color:#60a5fa;background:rgba(96,165,250,0.1);','長線分散持股':'color:#93c5fd;background:rgba(147,197,253,0.1);','波段集中操作':'color:#34d399;background:rgba(52,211,153,0.1);','波段輪動操作':'color:#6ee7b7;background:rgba(110,231,183,0.1);','族群深耕策略':'color:#c084fc;background:rgba(192,132,252,0.1);','彈性多變操作':'color:#9ca3af;','高風險偏好策略':'color:#f87171;background:rgba(248,113,113,0.15);'}[(p.label_hierarchy||{}).level2_strategy]||'color:var(--green);')}border-radius:4px;">${(p.label_hierarchy||{}).level2_strategy||'-'}</td>
-        <td style="padding:8px 6px;text-align:right;font-size:12px;${(p.performance?.win_rate||0)>0.55?'color:#3fb950;':'color:var(--text-2);'}">${p.performance ? (p.performance.win_rate*100).toFixed(0)+'%' : '-'}</td>
-        <td style="padding:8px 6px;text-align:right;font-size:12px;${(p.performance?.avg_return_pct||0)>0?'color:#3fb950;':'color:#f85149;'}">${p.performance ? p.performance.avg_return_pct.toFixed(2)+'%' : '-'}</td>
         <td style="padding:8px 10px;">${labels}</td>
       </tr>`;
   }
@@ -4764,33 +4760,9 @@ function showMPDetail(name) {
         <div>💰 總買進金額: <strong>${(op.total_buy_amt_wan || 0).toLocaleString()} 萬</strong></div>
       </div>`;
 
-  // v3.31.20: 績效面 (跟單報酬)
-  const pf = p.performance;
-  if (pf) {
-    const wrColor = pf.win_rate > 0.55 ? '#3fb950' : pf.win_rate > 0.45 ? '#fbbf24' : '#f85149';
-    const arColor = pf.avg_return_pct > 0 ? '#3fb950' : '#f85149';
-    html += `<div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;">
-      <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px;">📈 跟單績效 (次日報酬)</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:22px;font-weight:700;color:${wrColor};">${(pf.win_rate*100).toFixed(1)}%</div>
-          <div style="font-size:11px;color:var(--muted);">勝率 (${pf.total_trades} 筆)</div>
-        </div>
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:22px;font-weight:700;color:${arColor};">${pf.avg_return_pct > 0 ? '+' : ''}${pf.avg_return_pct.toFixed(2)}%</div>
-          <div style="font-size:11px;color:var(--muted);">平均次日報酬</div>
-        </div>
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:22px;font-weight:700;color:${pf.weighted_avg_return_pct > 0 ? '#3fb950' : '#f85149'};">${pf.weighted_avg_return_pct > 0 ? '+' : ''}${pf.weighted_avg_return_pct.toFixed(2)}%</div>
-          <div style="font-size:11px;color:var(--muted);">加權報酬 (大單權重高)</div>
-        </div>
-        ${pf.limit_up_win_rate !== null ? `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;">
-          <div style="font-size:22px;font-weight:700;color:${pf.limit_up_win_rate > 0.55 ? '#3fb950' : '#fbbf24'};">${(pf.limit_up_win_rate*100).toFixed(1)}%</div>
-          <div style="font-size:11px;color:var(--muted);">漲停股勝率 (${pf.limit_up_trades} 筆)</div>
-        </div>` : ''}
-      </div>
-    </div>`;
-  }
+  // v3.31.21: 績效面已移除 (精準度不足: 收盤→次日收盤 ≠ 真實報酬,
+  // 當沖/隔日沖/波段各有不同買賣時點, 用單一假設嚴重失真).
+  // 保留 master_performance.py 供未來 Level 3 升級.
 
   // v3.31.16: Level 1 標籤分層 (攻擊/防守/觀察)
   if (l1g && Object.keys(l1g).length > 0) {

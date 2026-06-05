@@ -888,15 +888,10 @@ def build_all_profiles(history: List[Dict[str, Any]],
     except Exception as e:
         print(f"  ⚠️ 聯動面計算失敗: {type(e).__name__}: {e}", file=sys.stderr)
 
-    # v3.31.20: Phase 2 績效面 — master 跟單報酬
+    # v3.31.21: 績效面移除 — 精準度太低 (收盤→次日收盤 ≠ 真實報酬,
+    # 當沖/隔日沖/波段 三種操作模式各有不同買賣時點, 用單一假設會嚴重失真).
+    # 保留 master_performance.py 模組供未來 Level 3 (買均價→次日最高) 升級用.
     perf_data = None
-    try:
-        from master_performance import compute_all_performance, format_performance_table
-        perf_data = compute_all_performance(history, data_dir=data_dir)
-        if perf_data:
-            print(format_performance_table(perf_data))
-    except Exception as e:
-        print(f"  ⚠️ 績效面計算失敗: {type(e).__name__}: {e}", file=sys.stderr)
 
     dates = [d['date'] for d in history]
     result = {
