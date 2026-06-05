@@ -4664,11 +4664,66 @@ function renderMP() {
         <td style="padding:8px 6px;text-align:right;">${op.concentration_top5_pct.toFixed(0)}%</td>
         <td style="padding:8px 6px;font-size:11px;">${topInd}</td>
         <td style="padding:8px 6px;text-align:right;font-size:11px;">${disp}</td>
-        <td style="padding:8px 6px;font-size:11px;color:var(--green);font-weight:600;">${(p.label_hierarchy||{}).level2_strategy||'-'}</td>
+        <td style="padding:8px 6px;font-size:11px;font-weight:600;${({'漲停鎖定策略':'color:#f87171;background:rgba(248,113,113,0.1);','漲停當沖策略':'color:#fb923c;background:rgba(251,146,60,0.1);','漲停追擊策略':'color:#fbbf24;background:rgba(251,191,36,0.1);','長線集中持股':'color:#60a5fa;background:rgba(96,165,250,0.1);','長線分散持股':'color:#93c5fd;background:rgba(147,197,253,0.1);','波段集中操作':'color:#34d399;background:rgba(52,211,153,0.1);','波段輪動操作':'color:#6ee7b7;background:rgba(110,231,183,0.1);','族群深耕策略':'color:#c084fc;background:rgba(192,132,252,0.1);','彈性多變操作':'color:#9ca3af;','高風險偏好策略':'color:#f87171;background:rgba(248,113,113,0.15);'}[(p.label_hierarchy||{}).level2_strategy]||'color:var(--green);')}border-radius:4px;">${(p.label_hierarchy||{}).level2_strategy||'-'}</td>
         <td style="padding:8px 10px;">${labels}</td>
       </tr>`;
   }
-  html += `</tbody></table></div><div id="mp-detail" style="margin-top:18px;"></div>`;
+  html += `</tbody></table></div>`;
+
+  // v3.31.19: 聯動面 (Top 10 同向配對 + 派系)
+  const al = d.alliance;
+  if (al && al.top_alliances && al.top_alliances.length > 0) {
+    html += `
+    <div style="margin-top:24px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="padding:14px 18px;background:rgba(188,140,255,0.08);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">🤝</span>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--purple);">聯動面 — 同向率分析</div>
+          <div style="font-size:11px;color:var(--muted);">同天買同股 > ${(al.threshold*100).toFixed(0)}% = 同陣營 ｜ 點配對看共買細節</div>
+        </div>
+      </div>
+      <div style="padding:16px 18px;">`;
+
+    // 派系卡片
+    if (al.factions && al.factions.length > 0) {
+      html += `<div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;">`;
+      const fColors = ['#bc8cff','#58a6ff','#3fb950','#d29922','#f85149'];
+      al.factions.forEach((faction, fi) => {
+        const fc = fColors[fi % fColors.length];
+        html += `<div style="flex:1;min-width:200px;background:${fc}10;border:1px solid ${fc}40;border-radius:8px;padding:10px;">
+          <div style="font-size:11px;font-weight:700;color:${fc};margin-bottom:6px;">派系 ${fi+1} (${faction.length} 人)</div>
+          <div style="font-size:12px;color:var(--text-1);line-height:1.8;">${faction.join(' / ')}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+
+    // Top 10 同向配對表
+    html += `<table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <tr style="color:var(--purple);font-size:11px;">
+        <th style="padding:6px 8px;text-align:left;">#</th>
+        <th style="padding:6px 8px;">Master A</th>
+        <th style="padding:6px 8px;">Master B</th>
+        <th style="padding:6px 8px;text-align:right;">同向率</th>
+        <th style="padding:6px 8px;text-align:right;">共買天</th>
+        <th style="padding:6px 8px;text-align:right;">共買股</th>
+      </tr>`;
+    al.top_alliances.slice(0, 10).forEach((a, i) => {
+      const pct = (a.alignment * 100).toFixed(0);
+      const bar = `<div style="display:inline-block;width:${Math.min(pct, 100)}px;height:6px;background:var(--purple);border-radius:3px;opacity:0.6;"></div>`;
+      html += `<tr style="border-top:1px solid var(--border);">
+        <td style="padding:6px 8px;color:var(--muted);">${i+1}</td>
+        <td style="padding:6px 8px;font-weight:600;">${a.pair[0]}</td>
+        <td style="padding:6px 8px;font-weight:600;">${a.pair[1]}</td>
+        <td style="padding:6px 8px;text-align:right;">${bar} ${pct}%</td>
+        <td style="padding:6px 8px;text-align:right;">${a.co_days}</td>
+        <td style="padding:6px 8px;text-align:right;">${a.co_stocks}</td>
+      </tr>`;
+    });
+    html += `</table></div></div>`;
+  }
+
+  html += `<div id="mp-detail" style="margin-top:18px;"></div>`;
   cont.innerHTML = html;
 }
 

@@ -879,8 +879,17 @@ def build_all_profiles(history: List[Dict[str, Any]],
                                                disposal_codes=disposal_codes,
                                                stock_close_map=stock_close_map)
 
+    # v3.31.19: Phase 2 聯動面 — master × master 同向率 + 派系
+    alliance_data = None
+    try:
+        from master_alliance import compute_alliance_matrix, format_alliance_summary
+        alliance_data = compute_alliance_matrix(history, indiv)
+        print(format_alliance_summary(alliance_data))
+    except Exception as e:
+        print(f"  ⚠️ 聯動面計算失敗: {type(e).__name__}: {e}", file=sys.stderr)
+
     dates = [d['date'] for d in history]
-    return {
+    result = {
         'generated_at': now_tw().isoformat(),
         'window_days': len(history),
         'trade_date_range': [dates[0], dates[-1]] if dates else [],
@@ -889,6 +898,13 @@ def build_all_profiles(history: List[Dict[str, Any]],
         'disposal_classification_available': disposal_codes is not None,
         'masters': masters_out,
     }
+    if alliance_data:
+        result['alliance'] = {
+            'top_alliances': alliance_data['top_alliances'],
+            'factions': alliance_data['factions'],
+            'threshold': alliance_data['threshold'],
+        }
+    return result
 
 
 # ════════════════════════════════════════════════════════════════════
