@@ -43,6 +43,7 @@ WATCHED_BRANCHES = [
     # 民哥（3 個分點）
     # ─────────────────────────────────────────────────────────
     {"code": "9B25", "name": "台新-五權西", "master": "民哥",
+     "co_masters": ["強森"],   # v3.31.18 使用者確認共用
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "9666", "name": "富邦-南屯", "master": "民哥",
@@ -258,6 +259,90 @@ WATCHED_BRANCHES = [
      "enabled": True, "region": "domestic"},
  
  
+    # ═════════════════════════════════════════════════════════
+    # v3.31.18: 使用者 Excel「分點人之秘密」交叉比對新增 (25 個分點)
+    # ═════════════════════════════════════════════════════════
+
+    # ─── 有明確 master 的新分點 (15 個) ───
+    {"code": "779u", "name": "國票-長城", "master": "宋福祥",
+     "tags_personal": ["AES-KY董事長"], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "585Q", "name": "統一-三多", "master": "呂金發",
+     "tags_personal": ["太普高董事長"], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "962Q", "name": "富邦-北高雄", "master": "陳光裕",
+     "tags_personal": ["世德董事長"], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9676", "name": "富邦-仁愛", "master": "謝孟恭(股癌)",
+     "tags_personal": ["股癌"], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9A9J", "name": "永豐金-板新", "master": "丁凌全",
+     "tags_personal": ["時碩工業董事長"], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "700S", "name": "兆豐-大同", "master": "何莎",
+     "tags_personal": ["廣達董娘"], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "888A", "name": "國泰-館前", "master": "江士勳",
+     "tags_personal": ["金山電子董事長"], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "913Y", "name": "群益金鼎-館前", "master": "江士勳",
+     "tags_personal": ["金山電子董事長"], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "7003", "name": "兆豐-台中", "master": "劉子豪",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "700r", "name": "兆豐-寶成", "master": "陳泊澔",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9874", "name": "元大-雙和", "master": "東億資本",
+     "tags_personal": ["高東億本人"], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9692", "name": "富邦-嘉義", "master": "嘉義幫",
+     "tags_personal": ["隔日沖"], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    # 既有 master 擴分點
+    {"code": "585c", "name": "統一-仁愛", "master": "陳律師",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "700c", "name": "兆豐-民生", "master": "陳律師",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9A8F", "name": "永豐金-敦南", "master": "布哥/n_nchang",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+
+    # ─── 地緣/特色分點 (無個人 master, 用描述性名稱, style=area_hotspot 排除分析) ───
+    {"code": "585U", "name": "統一-南京", "master": "統一南京(強勢未知)",
+     "tags_personal": ["強勢分點人名未知"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "8888", "name": "國泰-敦南", "master": "國泰敦南(散戶混合)",
+     "tags_personal": ["散戶多但有大戶藏裡面"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "980K", "name": "元大-竹科", "master": "竹科強勢地緣",
+     "tags_personal": ["竹科強勢地緣分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "700I", "name": "兆豐-北高雄", "master": "兆豐北高雄(強勢地緣)",
+     "tags_personal": ["強勢地緣分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9268", "name": "凱基-台北", "master": "凱基台北(當沖高手聚集)",
+     "tags_personal": ["JACK等高手聚集", "強勢當沖分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9275", "name": "凱基-三多", "master": "凱基三多(波段千金股)",
+     "tags_personal": ["專買千金股", "波段強勢分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9359", "name": "華南永昌-中正", "master": "華南永昌中正(未知大哥)",
+     "tags_personal": ["強勢未知大哥分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "913R", "name": "群益-北高雄", "master": "群益北高雄(強勢地緣)",
+     "tags_personal": ["強勢地緣分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "918e", "name": "群益金鼎-大安", "master": "群益大安(強勢波段)",
+     "tags_personal": ["強勢波段分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9A9G", "name": "永豐金-天母", "master": "永豐天母(老錢)",
+     "tags_personal": ["天母老錢分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+
     # ═════════════════════════════════════════════════════════
     # 🌏 外資分點（v3.8 新增，來源：富邦 zco 頁面）
     # ═════════════════════════════════════════════════════════
@@ -496,6 +581,28 @@ MASTER_STYLES = {
     # 🏛️ 官股
     "臺銀證券": ["public"],
     "兆豐證券": ["public"],
+    # v3.31.18: 使用者 Excel「分點人之秘密」交叉比對新增 (12 個新 master)
+    "宋福祥": ["longterm"],                   # AES-KY 董事長, 國票長城
+    "呂金發": ["swing"],                      # 太普高董事長, 統一三多
+    "陳光裕": ["longterm"],                   # 世德董事長, 富邦北高雄
+    "謝孟恭(股癌)": ["longterm"],              # 股癌, 富邦仁愛
+    "丁凌全": ["longterm"],                   # 時碩工業董事長, 永豐板新
+    "何莎": ["swing"],                        # 廣達董娘, 兆豐大同
+    "江士勳": ["swing"],                      # 金山電子董事長, 國泰館前+群益館前
+    "劉子豪": ["swing"],                      # 兆豐台中
+    "陳泊澔": ["swing"],                      # 兆豐寶成
+    "嘉義幫": ["next_day_flipper"],            # 富邦嘉義, 隔日沖
+    # 🏢 地緣/特色分點 (area_hotspot, 排除 master_profile 分析)
+    "統一南京(強勢未知)": ["area_hotspot"],
+    "國泰敦南(散戶混合)": ["area_hotspot"],
+    "竹科強勢地緣": ["area_hotspot"],
+    "兆豐北高雄(強勢地緣)": ["area_hotspot"],
+    "凱基台北(當沖高手聚集)": ["area_hotspot"],
+    "凱基三多(波段千金股)": ["area_hotspot"],
+    "華南永昌中正(未知大哥)": ["area_hotspot"],
+    "群益北高雄(強勢地緣)": ["area_hotspot"],
+    "群益大安(強勢波段)": ["area_hotspot"],
+    "永豐天母(老錢)": ["area_hotspot"],
     # 🏢 整家證券公司 (v3.31.7 拆出: 9200/9600 是公司加總, 非個人大戶分行)
     "凱基證券": ["company_total"],
     "富邦證券": ["company_total"],
