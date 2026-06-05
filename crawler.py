@@ -2764,7 +2764,18 @@ def main():
         from disposal_fetcher import save_daily_snapshot
         snap_path = save_daily_snapshot(str(data_dir))
         if snap_path:
-            print(f"[Disposal History v3.31.16] ✓ 快照 → {snap_path.name}")
+            print(f"[Disposal History v3.31.17] ✓ 快照 → {snap_path.name}")
+            # v3.31.17: 快照也進 DB (保留原始 JSON 檔 + DB 雙份)
+            try:
+                import db_pipeline as _dbp
+                _db_conn = _dbp.init_db(str(data_dir / "chip_radar_v2.db"))
+                import json as _json
+                _snap = _json.loads(snap_path.read_text(encoding='utf-8'))
+                _n = _dbp.upsert_disposal_snapshot(_db_conn, _snap)
+                _db_conn.close()
+                print(f"                          + DB {_n} rows")
+            except Exception as _dbe2:
+                print(f"  ⚠️ disposal → DB 失敗: {type(_dbe2).__name__}")
     except Exception as _dse:
         print(f"  ⚠️ disposal snapshot 失敗 (不影響主流程): {type(_dse).__name__}: {_dse}")
 

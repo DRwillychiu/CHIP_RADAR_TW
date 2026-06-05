@@ -158,6 +158,17 @@ CREATE TABLE IF NOT EXISTS import_log (
     notes         TEXT
 );
 
+-- v3.31.17: 處置股歷史 (每天快照, 解「誰買注意股→持倉→變處置」)
+CREATE TABLE IF NOT EXISTS disposal_history (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    date            TEXT NOT NULL,
+    applicable_date TEXT,
+    stock_code      TEXT NOT NULL,
+    category        TEXT NOT NULL,    -- 'imminent_1' / 'imminent_2' / 'active'
+    fetched_at      TEXT,
+    UNIQUE(date, stock_code)
+);
+
 -- ═══════════════════════════════════════════
 -- Indexes (8)
 -- ═══════════════════════════════════════════
@@ -169,6 +180,8 @@ CREATE INDEX IF NOT EXISTS idx_dc_date_net      ON daily_chips(date, net_amt DES
 CREATE INDEX IF NOT EXISTS idx_dr_date          ON daily_records(date);
 CREATE INDEX IF NOT EXISTS idx_dr_trader_date   ON daily_records(trader, date);
 CREATE INDEX IF NOT EXISTS idx_dr_stock_date    ON daily_records(stock_code, date);
+CREATE INDEX IF NOT EXISTS idx_dh_date          ON disposal_history(date);
+CREATE INDEX IF NOT EXISTS idx_dh_stock         ON disposal_history(stock_code, date);
 
 -- ═══════════════════════════════════════════
 -- Views (4)
@@ -242,6 +255,30 @@ def init_db(db_path: str = DEFAULT_DB) -> sqlite3.Connection:
     conn.executescript(SCHEMA_SQL)
     conn.commit()
     return conn
+
+
+def upsert_disposal_snapshot(conn: sqlite3.Connection,
+                               snapshot: Dict[str, Any]) -> int:
+    """v3.31.17: 把 disposal_history/YYYYMMDD.json 快照寫進 DB.
+    snapshot 結構 = disposal_fetcher.save_daily_snapshot 存的 JSON."""
+    date = snapshot.get('date')
+    applicable = snapshot.get('applicable_date')
+    fetched = snapshot.get('fetched_at')
+    if not date:
+        return 0
+    cur = conn.cursor()
+    count = 0
+    for category in ('imminent_1', 'imminent_2', 'active'):
+        codes = snapshot.get('sets', {}).get(category, [])
+        for code in codes:
+            cur.execute("""
+                INSERT OR REPLACE INTO disposal_history
+                (date, applicable_date, stock_code, category, fetched_at)
+                VALUES (?, ?, ?, ?, ?)
+            """, (date, applicable, code, category, fetched))
+            count += 1
+    conn.commit()
+    return count
 
 
 def _now_tw_iso() -> str:
