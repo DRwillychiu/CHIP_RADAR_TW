@@ -888,6 +888,16 @@ def build_all_profiles(history: List[Dict[str, Any]],
     except Exception as e:
         print(f"  ⚠️ 聯動面計算失敗: {type(e).__name__}: {e}", file=sys.stderr)
 
+    # v3.31.20: Phase 2 績效面 — master 跟單報酬
+    perf_data = None
+    try:
+        from master_performance import compute_all_performance, format_performance_table
+        perf_data = compute_all_performance(history, data_dir=data_dir)
+        if perf_data:
+            print(format_performance_table(perf_data))
+    except Exception as e:
+        print(f"  ⚠️ 績效面計算失敗: {type(e).__name__}: {e}", file=sys.stderr)
+
     dates = [d['date'] for d in history]
     result = {
         'generated_at': now_tw().isoformat(),
@@ -904,6 +914,12 @@ def build_all_profiles(history: List[Dict[str, Any]],
             'factions': alliance_data['factions'],
             'threshold': alliance_data['threshold'],
         }
+    if perf_data:
+        result['performance'] = perf_data
+        # 也塞進每個 master 的 profile
+        for m, p in perf_data.items():
+            if m in masters_out:
+                masters_out[m]['performance'] = p
     return result
 
 
