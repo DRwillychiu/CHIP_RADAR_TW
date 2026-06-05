@@ -57,7 +57,19 @@ jobs:
       - name: Install dependencies
         run: |
           pip install requests cryptography openpyxl
-      
+
+      # v3.31.14: 下載前一天 DB (GitHub Artifact, 90 天保留)
+      # 若無前次 artifact → init 空 DB (第一次跑或 artifact 過期)
+      - name: Download previous DB
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: chip-radar-db
+          path: data/
+          if_no_artifact_found: warn
+          search_artifacts: true
+          workflow: daily-full.yml
+        continue-on-error: true
+
       - name: Run full crawler
         env:
           CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
@@ -67,6 +79,17 @@ jobs:
           python crawler.py
         continue-on-error: true
       
+      # v3.31.14: 上傳更新後的 DB (GitHub Artifact, 90 天保留)
+      # DB 不進 git (.gitignore) 但透過 artifact 在 workflow 間傳遞累積
+      - name: Upload DB artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chip-radar-db
+          path: data/chip_radar_v2.db
+          retention-days: 90
+          if-no-files-found: warn
+
       - name: Commit and push data
         run: |
           git config --local user.email "actions@github.com"
