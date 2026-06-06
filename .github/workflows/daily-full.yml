@@ -43,13 +43,13 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # v3.28.0: 顯式設定 timeout 給 git fetch (不然 default 沒有, 卡到死才 abort)
           fetch-depth: 1
       
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -61,7 +61,7 @@ jobs:
       # v3.31.14: 下載前一天 DB (GitHub Artifact, 90 天保留)
       # 若無前次 artifact → init 空 DB (第一次跑或 artifact 過期)
       - name: Download previous DB
-        uses: dawidd6/action-download-artifact@v6
+        uses: dawidd6/action-download-artifact@v21
         with:
           name: chip-radar-db
           path: data/
@@ -83,7 +83,7 @@ jobs:
       # DB 不進 git (.gitignore) 但透過 artifact 在 workflow 間傳遞累積
       - name: Upload DB artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: chip-radar-db
           path: data/chip_radar_v2.db
