@@ -44,7 +44,7 @@ from institutional import (
 import reports  # v3.9 週報/月報生成
 import margin   # v3.11 融資融券
 import industry_classifier  # v3.15.0 產業分類
-import history  # v3.15.2 歷史資料累積
+import history as hist_mod  # v3.32.1: 改名避免跟 local var 衝突 (Python 3.12+ scope issue)
 import futures  # v3.17 期貨選擇權籌碼
 
 TW_TZ = timezone(timedelta(hours=8))
@@ -2369,7 +2369,7 @@ def main():
     # v3.15.2 新增：歷史資料累積 (for 三線比較圖)
     # ════════════════════════════════════════════════════════════════
     try:
-        history.update_history(
+        hist_mod.update_history(
             data_dir=data_dir,
             trade_date=trade_date,
             daily_quotes_map=daily_quotes_map,
@@ -2416,7 +2416,7 @@ def main():
         
         # v3.17.1: 累積期貨歷史
         try:
-            history.update_futures_history(
+            hist_mod.update_futures_history(
                 data_dir=data_dir,
                 trade_date=trade_date,
                 futures_data=futures_data,
