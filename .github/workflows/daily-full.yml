@@ -38,8 +38,8 @@ permissions:
 jobs:
   crawl:
     runs-on: ubuntu-latest
-    # v3.28.0: 15 → 25 防禦 GitHub Actions runner 偶發網路延遲 (5/12 21:17 卡 git fetch)
-    timeout-minutes: 25
+    # v3.28.0: 15 → 25; v3.32.2: 25 → 45 (81 分點 + master_profile + alliance + signals + DB)
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repo
