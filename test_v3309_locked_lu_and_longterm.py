@@ -116,7 +116,7 @@ for c, days_used in [('2330', 2), ('2317', 1), ('2454', 1)]:
                              'is_limit_up': False, 'trade_style': 'overnight'})
 op_sw = compute_operation_metrics(swing_trades)
 labels_sw = generate_labels(op_sw, timing)
-ok6 = '波段囤貨(中短期)' in labels_sw and '📈 長線持有' not in labels_sw
+ok6 = '📈 長線持有' not in labels_sw   # v3.31.23: 波段不再標, 只確認不是長線
 print(f"  {'OK' if ok6 else 'FAIL'} labels={labels_sw}")
 print(f"    long_term_ratio={op_sw['long_term_amt_ratio']} (應 0)")
 if not ok6: all_pass = False

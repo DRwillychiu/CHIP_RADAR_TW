@@ -524,14 +524,16 @@ def compute_timing_metrics(trades: List[Dict[str, Any]],
 # ════════════════════════════════════════════════════════════════════
 
 def generate_labels(op: Dict[str, Any], timing: Dict[str, Any],
-                     declared_styles: Optional[List[str]] = None) -> List[str]:
+                     declared_styles: Optional[List[str]] = None,
+                     cross_day: Optional[Dict[str, Any]] = None) -> List[str]:
     """基於 metric 閾值規則生成標籤.
-    v3.31.13: declared_styles 參數 — TWSE 分點資料結構性限制 (例: 迷你哥在
-    A 分點買 B 管道賣, 系統看不到賣 → daytrade_ratio=0 → 誤判 overnight).
-    declared style 作為 override: 若 declared day_trader 但 metric 沒觸發當沖客
-    → 強制加「當沖客(declared)」標籤. 這是「業界知識 > 資料限制」的設計選擇."""
+    v3.31.13: declared_styles 參數
+    v3.31.23 C2: cross_day 參數 — T+1 真實 flip_ratio 自動判定風格
+      actual_flip_ratio > 0.45 → 「隔日沖(verified)」(取代 declared override)
+      actual_flip_ratio < 0.20 → 確認波段/長線 (不加隔日沖標籤)"""
     labels = []
     declared = set(declared_styles or [])
+    flip_ratio = cross_day.get('actual_flip_ratio', 0) if cross_day else 0
 
     # 風格主導 (互斥, 取最強)
     if op['limit_up_hit_ratio'] > THRESH['limit_up_hit_high']:
@@ -550,11 +552,12 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any],
         labels.append('短打型')          # 近似隔日沖
         style_assigned = True
     elif op['overnight_ratio'] > THRESH['style_dominant']:
-        # v3.30.9: 拆波段 vs 長線 — 兩者互斥 (overnight 高 + 持續加碼 = 真長線)
+        # v3.30.9: 拆波段 vs 長線
         if op.get('long_term_amt_ratio', 0) > THRESH['long_term_amt_ratio']:
             labels.append('📈 長線持有')
-        else:
-            labels.append('波段囤貨(中短期)')
+        # v3.31.23 C3: 「波段囤貨(中短期)」改預設不標 — 19/29 master 都有=沒區別力
+        # 波段是 default 行為, 只標「特殊」風格 (漲停/當沖/長線/族群)
+        # 但保留 style_assigned 讓 declared override 不誤觸發
         style_assigned = True
 
     # v3.31.13: declared style override — TWSE 分點資料結構性限制修補
@@ -565,6 +568,12 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any],
             labels.append('當沖客(declared)')
     if 'next_day_flipper' in declared and '短打型' not in labels and '當沖客' not in labels and '當沖客(declared)' not in labels:
         labels.append('短打型(declared)')
+
+    # v3.31.23 C2: T+1 verified 風格 (用真實 sells 驗證, 優先度最高)
+    if flip_ratio >= 0.45 and '隔日沖(verified)' not in labels:
+        labels.append('隔日沖(verified)')    # 航海王 55.8% / 陳族元 48.5% 觸發
+    elif flip_ratio >= 0.35:
+        labels.append('混合進出')            # 蔣承翰 42.9% / 迷你哥 41.3%
 
     # 集中度
     if op['concentration_top5_pct'] > THRESH['concentration_high']:
@@ -613,8 +622,8 @@ LABEL_L1_MAP = {
     '當沖客': '攻擊型', '當沖客(declared)': '攻擊型',
     '短打型': '攻擊型', '短打型(declared)': '攻擊型',
     '⚠️ 處置股獵手': '攻擊型',
-    # 防守型: 穩定持倉 + 風格穩定
-    '波段囤貨(中短期)': '防守型', '📈 長線持有': '防守型',
+    # 防守型: 穩定持倉 + 風格穩定 (v3.31.23: 波段囤貨移除, 波段是 default 不標)
+    '📈 長線持有': '防守型',
     '集中投資': '防守型', '風格純粹': '防守型',
     # 攻擊型 (續): 主動進出場
     '高頻交易': '攻擊型', '精選出手': '攻擊型',
@@ -640,13 +649,13 @@ def classify_strategy_l2(labels: List[str]) -> str:
         return '高風險偏好策略'     # 重度押注處置/注意股
     # 防守型子分類
     if '📈 長線持有' in s and '集中投資' in s:
-        return '長線集中持股'       # 林滄海式: 長期持有少數股
+        return '長線集中持股'
     if '📈 長線持有' in s:
-        return '長線分散持股'       # 長期但分散
+        return '長線分散持股'
     if '集中投資' in s:
-        return '波段集中操作'       # 中短期但集中少數股
-    if '波段囤貨(中短期)' in s:
-        return '波段輪動操作'       # 中短期分散
+        return '波段集中操作'
+    # v3.31.23: 波段不再標 label, 但策略子類仍需判
+    # 沒有任何特殊風格標籤 = default 波段輪動
     # 觀察型
     if '🎯 族群專家' in s:
         return '族群深耕策略'       # 專注單一族群
@@ -769,7 +778,14 @@ def build_master_profile(master_name: str,
     op = compute_operation_metrics(trades, stock_industry_map, disposal_codes,
                                     stock_close_map=stock_close_map)
     timing = compute_timing_metrics(trades, len(history))
-    labels = generate_labels(op, timing, declared_styles=declared)
+    # v3.31.23: 算 cross_day 給 generate_labels 用 (T+1 verified)
+    _cd = None
+    try:
+        from cross_day_tracker import compute_cross_day_metrics
+        _cd = compute_cross_day_metrics(history, master_name, master_styles)
+    except Exception:
+        pass
+    labels = generate_labels(op, timing, declared_styles=declared, cross_day=_cd)
     narrative = generate_narrative(master_name, op, timing, labels)
     label_hierarchy = build_label_hierarchy(labels, op)
 

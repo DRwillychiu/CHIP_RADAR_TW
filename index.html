@@ -4655,8 +4655,8 @@ function renderMP() {
     const disp = dispR ? `<span style="color:#fca5a5;">${(dispR*100).toFixed(0)}% (${op.disposal_stocks_count})</span>` : '-';
     const lockR = op.limit_up_locked_ratio_amt || 0;
     html += `
-      <tr style="border-top:1px solid var(--line);cursor:pointer;" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background=''" onclick="showMPDetail('${name.replace(/'/g, "\\'")}')">
-        <td style="padding:8px 10px;font-weight:600;color:var(--gold-bright);">${name}</td>
+      <tr style="border-top:1px solid var(--line);cursor:pointer;${tm.active_days < 5 ? 'opacity:0.6;' : ''}" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background=''" onclick="showMPDetail('${name.replace(/'/g, "\\'")}')">
+        <td style="padding:8px 10px;font-weight:600;color:var(--gold-bright);">${tm.active_days < 5 ? '⏳ ' : ''}${name}</td>
         <td style="padding:8px 6px;text-align:right;">${op.trades_count}</td>
         <td style="padding:8px 6px;text-align:right;">${tm.active_days}</td>
         <td style="padding:8px 6px;text-align:right;">${(op.limit_up_hit_ratio*100).toFixed(0)}%</td>

@@ -112,7 +112,7 @@ if not ok: all_pass = False
 print("\n6. 民哥 labels: 波段囤貨/集中投資/風格純粹")
 tm_m = compute_timing_metrics(m_trades, 5)
 labels_m = generate_labels(op_m, tm_m)
-expected_m = {'波段囤貨(中短期)', '集中投資', '風格純粹'}   # v3.30.9 拆波段/長線
+expected_m = {'集中投資', '風格純粹'}   # v3.31.23: 波段不再標 (default 不標)
 ok = expected_m.issubset(set(labels_m))
 print(f"  {'OK' if ok else 'FAIL'} labels={labels_m}")
 if not ok: all_pass = False

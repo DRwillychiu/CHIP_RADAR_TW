@@ -19,6 +19,7 @@ from collections import defaultdict
 from typing import Dict, Any, List, Optional, Set, Tuple
 
 ALLIANCE_THRESHOLD = 0.30   # 同向率 > 30% = 同陣營
+MIN_CO_DAYS = 5             # v3.31.23: 最少共買 5 天才算有效配對 (防 1 天新 master 污染派系)
 
 
 def compute_alliance_matrix(history: List[Dict[str, Any]],
@@ -112,7 +113,7 @@ def compute_alliance_matrix(history: List[Dict[str, Any]],
                 matrix[mb] = {}
             matrix[mb][ma] = pair_data
 
-            if alignment > 0:
+            if alignment > 0 and co_days >= MIN_CO_DAYS:
                 all_pairs.append({
                     'pair': [ma, mb],
                     'alignment': alignment,
@@ -154,7 +155,7 @@ def _discover_factions(names: List[str],
 
     for a in names:
         for b, data in matrix.get(a, {}).items():
-            if data['alignment'] >= threshold:
+            if data['alignment'] >= threshold and data.get('co_days', 0) >= MIN_CO_DAYS:
                 union(a, b)
 
     groups: Dict[str, List[str]] = defaultdict(list)
