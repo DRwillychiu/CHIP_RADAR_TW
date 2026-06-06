@@ -2757,6 +2757,57 @@ def main():
         print(f"  ⚠️ archive rotate 失敗 (不影響主流程): {type(_ae).__name__}: {_ae}")
 
     # ════════════════════════════════════════════════════════════════
+    # v3.32.3: 自動回補 stock_history 缺失天數 (防止類似 v3.32.1 bug 再發生)
+    # ════════════════════════════════════════════════════════════════
+    try:
+        _sh_path = data_dir / "stock_history.json"
+        if _sh_path.exists():
+            _sh = json.load(open(_sh_path, encoding='utf-8'))
+            _existing = set(_sh.get('dates', []))
+            _all_jsons = list(data_dir.glob('[0-9]'*8+'.json'))
+            _archive = data_dir / 'archive'
+            if _archive.exists():
+                _all_jsons.extend(_archive.glob('[0-9]'*8+'.json'))
+            _available = sorted(set(f.stem for f in _all_jsons))
+            _missing = [d for d in _available if d not in _existing]
+            if _missing:
+                print(f"\n[Auto-Backfill v3.32.3] stock_history 缺 {len(_missing)} 天, 自動回補...")
+                for _md in _missing[-10:]:   # 最多回補最近 10 天
+                    try:
+                        _jp = data_dir / f'{_md}.json'
+                        if not _jp.exists():
+                            _jp = _archive / f'{_md}.json'
+                        if not _jp.exists():
+                            continue
+                        with open(_jp, encoding='utf-8') as _f:
+                            _enc = json.load(_f)
+                        if _enc.get('encrypted'):
+                            _raw = json.loads(decrypt_data(_enc['data'], password))
+                        else:
+                            _raw = _enc
+                        _dq = {}
+                        for _br in _raw.get('branches', []):
+                            for _side in ('buys', 'sells'):
+                                for _s in _br.get(_side, []):
+                                    _c = _s.get('code')
+                                    _bl = _s.get('buy_lot', 0) or 0
+                                    _ba = _s.get('buy_amt', 0) or 0
+                                    if _c and _bl > 0 and _ba > 0 and _c not in _dq:
+                                        _dq[_c] = {'close': round(_ba/_bl, 2), 'change_pct': 0}
+                        if _dq:
+                            hist_mod.update_history(data_dir=data_dir, trade_date=_md,
+                                daily_quotes_map=_dq, industry_map=industry_map or {},
+                                branches_results=_raw.get('branches', []))
+                            _fd = _raw.get('futures_data')
+                            if _fd:
+                                hist_mod.update_futures_history(data_dir=data_dir, trade_date=_md, futures_data=_fd)
+                            print(f"  ✓ {_md} 回補 {len(_dq)} stocks" + (" + futures" if _fd else ""))
+                    except Exception as _be:
+                        print(f"  ⚠️ {_md} 回補失敗: {type(_be).__name__}")
+    except Exception as _abf:
+        print(f"  ⚠️ auto-backfill 失敗: {type(_abf).__name__}: {_abf}")
+
+    # ════════════════════════════════════════════════════════════════
     # v3.31.16: 處置股歷史快照 (每天存 disposal_history/YYYYMMDD.json)
     # 累積後可做「誰買注意股 → 持倉 → 變處置」分析
     # ════════════════════════════════════════════════════════════════
