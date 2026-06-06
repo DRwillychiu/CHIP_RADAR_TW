@@ -914,6 +914,22 @@ def build_all_profiles(history: List[Dict[str, Any]],
     except Exception as e:
         print(f"  ⚠️ T+1 追蹤失敗: {type(e).__name__}: {e}", file=sys.stderr)
 
+    # v3.32.0: 實戰信號 (異常+共識+連續加碼)
+    trading_signals = None
+    try:
+        from daily_signals import compute_daily_signals, format_daily_signals
+        faction_list = alliance_data.get('factions', []) if alliance_data else []
+        trading_signals = compute_daily_signals(history, indiv, factions=faction_list)
+        if trading_signals:
+            print(format_daily_signals(trading_signals))
+            # 存 daily_trading_signals.json
+            sig_path = Path(data_dir) / 'daily_trading_signals.json'
+            sig_path.write_text(json.dumps(trading_signals, ensure_ascii=False, indent=2),
+                                 encoding='utf-8')
+            print(f"  → {sig_path.name}")
+    except Exception as e:
+        print(f"  ⚠️ 實戰信號失敗: {type(e).__name__}: {e}", file=sys.stderr)
+
     perf_data = None
 
     dates = [d['date'] for d in history]
@@ -937,6 +953,14 @@ def build_all_profiles(history: List[Dict[str, Any]],
         for m, cd in cross_day_data.items():
             if m in masters_out:
                 masters_out[m]['cross_day'] = cd
+    if trading_signals:
+        result['daily_signals'] = {
+            'date': trading_signals.get('date'),
+            'summary': trading_signals.get('summary'),
+            'anomalies': trading_signals.get('anomalies', [])[:10],
+            'consensus': trading_signals.get('consensus', [])[:10],
+            'accumulations': trading_signals.get('accumulations', [])[:10],
+        }
     return result
 
 

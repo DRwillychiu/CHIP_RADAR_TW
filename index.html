@@ -4723,6 +4723,50 @@ function renderMP() {
     html += `</table></div></div>`;
   }
 
+  // v3.32.0: 實戰信號面板 (異常+共識+連續加碼)
+  const ds = d.daily_signals;
+  if (ds) {
+    html += `
+    <div style="margin-top:24px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="padding:14px 18px;background:rgba(248,113,113,0.08);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">📡</span>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#f87171;">實戰信號 — ${ds.date || ''}</div>
+          <div style="font-size:11px;color:var(--muted);">${ds.summary || ''}</div>
+        </div>
+      </div>
+      <div style="padding:16px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;">`;
+
+    // 異常行為
+    if (ds.anomalies && ds.anomalies.length > 0) {
+      html += `<div><div style="font-size:12px;font-weight:700;color:#f87171;margin-bottom:8px;">🚨 異常行為 (${ds.anomalies.length})</div>`;
+      ds.anomalies.slice(0,5).forEach(a => {
+        html += `<div style="padding:6px 10px;margin-bottom:4px;background:rgba(248,113,113,0.06);border-radius:6px;font-size:11px;color:var(--text-1);">${a.description}</div>`;
+      });
+      html += `</div>`;
+    }
+
+    // 派系共識
+    if (ds.consensus && ds.consensus.length > 0) {
+      html += `<div><div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:8px;">🤝 派系共識 (${ds.consensus.length})</div>`;
+      ds.consensus.slice(0,5).forEach(c => {
+        html += `<div style="padding:6px 10px;margin-bottom:4px;background:rgba(188,140,255,0.06);border-radius:6px;font-size:11px;color:var(--text-1);">${c.description}</div>`;
+      });
+      html += `</div>`;
+    }
+
+    // 連續加碼
+    if (ds.accumulations && ds.accumulations.length > 0) {
+      html += `<div><div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:8px;">📈 連續加碼 (${ds.accumulations.length})</div>`;
+      ds.accumulations.slice(0,5).forEach(a => {
+        html += `<div style="padding:6px 10px;margin-bottom:4px;background:rgba(63,185,80,0.06);border-radius:6px;font-size:11px;color:var(--text-1);">${a.description}</div>`;
+      });
+      html += `</div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
   html += `<div id="mp-detail" style="margin-top:18px;"></div>`;
   cont.innerHTML = html;
 }
