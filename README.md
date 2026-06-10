@@ -1,62 +1,11 @@
-# 📊 Chip Radar TW · 分點籌碼觀察站
+# Chip Radar TW · 分點籌碼觀察站
 
-> 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向的專業級個人看板  
-> **當前版本**:v3.30.1 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
-
-> **v3.30.1 (2026-05-24)** — **專業審視 A.1 + A.2 + A.3:gzip 瘦身 + pip-audit + size limit**。
-> - **A.1 latest.json gzip 瘦身**: `encrypt_data(use_gzip=True)` 預設壓縮,`decrypt_data` 用 magic bytes (1F 8B) auto-detect。前端 JS `decryptToken` 同樣 auto-detect + `DecompressionStream` API decompress。**100% backward compat**(舊未壓縮 ciphertext 仍能正常解)。預期 latest.json 10.49 MB → ~3-4 MB(60-70% 縮減,real production 數字看 5/26 跑完)。
-> - **A.2 pip-audit CI**: 新 workflow `security-audit.yml` 每週一 03:00 TW 跑 `pip-audit` + `safety`,發現 vulnerability 自動 ::warning::。
-> - **A.3 response size limit**: 新 module `safe_fetch.py` 用 stream + chunk 累積監控,超過 50 MB 直接 raise `ResponseTooLargeError`,防止 compromised/misconfigured 端點導致 OOM。
-> - 15/15 case PASS + 14 套既有測試全 PASS。
-
-> **v3.30.0 (2026-05-24)** — **AI 解讀層 MVP(規則式分類 + 模板 narrative + popup)**。從 raw data 升級到解讀層,讓每筆 (master × branch × stock) 都有「囤貨 / 隔日沖 / 當沖 / 波段持股 / 部分當沖」模式判斷 + 50-100 字中性專業說明。
-> - **後端 `trade_pattern.py`**: `classify_trade_pattern()` 規則式判斷 + `generate_narrative()` 模板生成,crawler 整合自動注入每個 stock 的 `trade_pattern` + `insight_narrative` 兩個 field。
-> - **前端 popup**: 點 涨停狙击 sniper chip / 分點動態 row / 高手合併視圖 top_stocks row 的 **📋 AI** button → 彈出小視窗顯示模式 tag + narrative,輕量設計不擋背景。
-> - **AI provider**: AI-c 模板式(沒 API 成本,Phase 2 押 Anthropic Claude API)。
-> - 13/13 case 全 PASS(含模式分類 + narrative 字數驗證 + crawler 注入整合)。
-
-> **v3.29.7 (2026-05-24)** — **ETF 過濾完整版**(修 v3.29.6 兩個漏網)。用戶反映「還是會出現原油(00715L 期街口布蘭特正2)和白銀(00738U 期元大道瓊白銀)」。v3.29.6 兩個 bug:(1) `EXCLUDED_MARKET_TYPES = {"ETF"}` 大寫不 match `market_classifier` 回傳的 lowercase `"etf"` / `"etf_active"`;(2) heuristic 只擋 `len in (4, 5)`,漏 6-char 期信 ETN(00715L/00738U)。v3.29.7 修:`EXCLUDED_MARKET_TYPES = {"etf", "etf_active"}` lowercase,heuristic 改成 `code.startswith('00')` 不限長度(根據 `market_classifier.py` L72-76「所有 00 開頭 code 都是 ETF」)。14/14 case PASS,5/22 漏網 3 檔(00646 / 00715L / 00738U)全部攔截,2330 / 2454 個股保留。
-
-> **v3.29.6 (2026-05-24)** — **ETF 過濾(Excel 只顯示個股)**。用戶 5/24 反映「Top 10/20 都會出現 ETF」(0050/0056/00878 等),老闆 Excel 只關心個股,不需 ETF。`EXCLUDED_MARKET_TYPES = {"ETF"}` 一行設定,`_is_excluded_by_market_type()` 判斷:(1) `stock.market_type in EXCLUDED_MARKET_TYPES` 排除(crawler 主流程已注入),(2) heuristic fallback `code 00 開頭 + len 4-5` 排除(防 market_type 沒注入時的防線)。`_top_stocks_for_branch` filter 順序:**ETF 排除 → net_buyer → sniper limit_up → Top N**,確保 ETF 不占 Top N 名額。未來要排除權證/特別股,加進 set 即可。10/10 新 case + 11 套回歸全 PASS。
-
-> **v3.29.5 (2026-05-23)** — **Per-branch row 數 override**。用戶 5/23 要求 大牌分析師 新光-新竹 (8563) 改 Top 20(其他維持 10)。`BRANCH_STOCK_OVERRIDES = {"8563": 20}` 一行設定,未來其他分點要客製化同樣加。`_top_stocks_for_branch` 加 `n_top` 參數,`build_day_sheet` 每分點 lookup override 後動態決定 row 數 + 自動調整 A/B/C 列 merge 範圍。**TWSE 分點頁面已有 Top 15 買榜 + Top 15 賣榜 = 最多 30 unique 個股,Top 20 不需要重抓**。5/5 新 case + 10 套回歸全 PASS。
-
-> **v3.29.4 (2026-05-22)** — **Partial 空白提示 + 移除 ▲% 標籤**。用戶 5/22 review 5/20 Excel 凱基-松山 9217 (迷你哥 sniper) 顯示 4 stocks 後 6 row 空白看起來像 bug。v3.29.2 只處理「完全空白(0 stocks)」case,**partial (1-9 stocks) 沒提示**。修法:`_write_partial_branch_notice_row` 在 partial 第 N+1 列寫「⚪ 今日漲停僅 N 檔」(sniper) 或「⚪ 今日淨買僅 N 檔」(swing)。同時 reverse v3.27.4 L4 — **移除標的欄的 `▲X.XX%` 漲幅標籤**(user 不希望直接顯示)。10/10 測試 PASS(6 新 + 9 既有回歸)。
-
-> **v3.29.3 (2026-05-21)** — **W1 + W2:融資 cross-check + 自動化 audit + Windows toast 通知**。
-> - **W2 auto_audit.py**:V1 全分點掃描邏輯 module 化,crawler 跑完 Excel 後立刻 audit,verdict PASS/WARN/FAIL 寫入 `data/daily_audit.json`,GitHub Actions log 印 ::error::/::warning::/::notice::。
-> - **W2 trigger_chip_radar.ps1 升級**:Task Scheduler 跑完 poll workflow 直到完成,讀 `daily_audit.json` → **Windows 桌面 toast 通知**(BurntToast 或 BalloonTip fallback)。verdict FAIL 時 ❌ 紅標警示,PASS 時 ✅ 綠標。
-> - **W1 margin_cross_check.py**:拉 TWSE MI_MARGN 官方融資融券合計資料(信用交易統計 + 融資融券彙總),user 開 chip_radar 融資 tab 視覺對齊驗證。5/18-5/20 三天合計數據已驗。
-> - 信賴度:**92-95% → 96%+**(融資資料源對齊驗證 + 自動 daily audit 取代手動 review)。
-
-> **v3.29.2 (2026-05-19)** — **空白分點 by-design 提示行**。用戶 5/19 review 發現 3 個分點(迷你哥 9200、巨人傑 9B2n/9B2z)Excel 全空白。重新驗證 log 確認**這 3 分點都有 91/89/91 檔交易資料**,只是 sniper master 沒搶到任何「漲停+淨買」符合條件。屬 v3.26 sniper 設計的 by-design 結果。修法:`build_day_sheet` 偵測「有 TWSE 資料但 filter 後全空」,在 D 欄第 1 列寫提示「⚪ 此分點今日未搶漲停」(sniper) 或「⚪ 此分點今日無淨買超個股」(swing v3.29.1 全濾淨賣 case)。**TWSE 完全沒資料的分點維持全空白**(避免誤導)。4/4 case + 8 套回歸全 PASS。
-
-> **v3.29.1 (2026-05-19)** — **Net-buyer filter 擴大到所有 master**(swing + sniper)。用戶 review 5/19 Excel 發現 大牌分析師-新光新竹 (8563) 顯示 矽格(6257) 但實際淨賣 -1412 萬。系統性掃描全 Excel:**359 row 有資料,48 row (13%) 是淨賣股污染**。最嚴重 航海王 國票安和 國巨\*(2327) 淨賣 -21,019 萬 (2.1 億) 仍被顯示。根因:v3.28.1 只對 sniper_mode 加 net filter,swing master 仍按 buy_amt desc 排序漏掉 net 檢查。修法:`_top_stocks_for_branch` 對所有 master 都加 `net_amt > 0 or net_lot > 0` filter,sniper_mode 再額外限定 `is_limit_up`。15/15 新測試 PASS,既有 7 套回歸 PASS。
-
-> **v3.29.0 (2026-05-14)** — **破壞式思考 → Signal Engine MVP**。從「展示 raw data 讓 user 自己解讀」轉「給 user actionable 答案 + 信心區間」。
-> - **`backtester.py` 1 年 backtest 247 配對** 揭示:信號 2 外資期貨 hit 40-41% < 隨機(全年外資長期淨空,反指標假設失效)→ **廢除**。信號 3 PCR hit 58.7%、信號 7 結算週 D±3 hit 63.6% → **保留為 alpha**。
-> - **`signal_engine.py` 用 backtest hit rate 當權重**, 組合多信號 → 每日生成 `data/daily_signal.json`:市場方向(偏多/中性/偏空 + 信心%)+ 個股 Top 3(sniper consensus 排名)+ 廢除信號透明告知。6/6 本地測試 PASS。
-> - 整合進 crawler.py 主流程,每次 daily-full 自動生成 daily_signal.json。前端整合押 v3.29.1。
-
-> **v3.28.1 (2026-05-13)** — **Sniper 過濾遺漏 net-seller 修補**。用戶 review 5/13 Excel 發現蔣承翰兩個分點都顯示微星(2377),但實際當日微星是淨賣超。根因:`_top_stocks_for_branch(sniper_mode=True)` 只 filter `is_limit_up`,沒檢查 `net_amt > 0` — TWSE 分點頁面 publish 雙榜(買榜+賣榜),一檔股票可能 gross 大量交易兩邊都上榜,淨賣的也會被選入 sniper 區段。修法:sniper_mode 加 `(net_amt > 0 or net_lot > 0)` 雙條件 — 用戶語意「分點 *買超* 哪幾檔漲停」才是真 sniper。8/8 邊界測試 PASS (微星 / 聯電 net=0 / 鴻海淨賣 全部排除)。
-
-> **v3.28.0 (2026-05-12)** — **Bug C 根因修復**。兩條對策同時上:**(任務 1) institutional.py 改源頭** — `fetch_twse_daily_quotes` + `fetch_tpex_daily_quotes` + `fetch_all_public_data` 加 `prev_close_map` 參數,從 stock_history 載入前日 close,取代有捨入誤差的 `close - change` 反推,每筆 quote 多 `change_pct_source` + `prev_close` 欄位。**(任務 2) L5 精確漲停價** — 新 `price_utils.py` 用 tick-size 規則(< 10/0.01, < 50/0.05, < 100/0.1, < 500/0.5, < 1000/1, ≥1000/5)算精確漲停價,取代 9.5% threshold 近似。**5/12 實戰驗證:抓出睿生光電(6861) 9.51% 的 False Positive**(真實漲停 9.90%,9.5% threshold 誤判)。30/30 v3.28 測試 + 4 套既有測試全 PASS。
-
-> **v3.27.4 (2026-05-12)** — **漲停判定深度優化 + 零股保底**。三層強化：(L1) change_pct 交叉驗證 — 用 stock_history 前日 close 獨立計算 change_pct，與 TWSE/MIS 的 API 值比對，差異 >1% 自動修正並印警告，消除 Change 欄位錯誤的連鎖風險。(L3) Limit-Up Audit — 每次 run 印出所有漲停判定明細（Top10 + Bottom3 + 可疑邊界），可疑股即時告警。(L4) Excel sniper 區段標的欄附漲幅 `▲X.XX%`，使用者一眼驗證是否真的漲停。另修 v3.27.2 零股 `round()→max(1,round())`。
-
-> **v3.27.3 (2026-05-11)** — **TWSE OpenAPI Stale 偵測**。5/11 觀察到 TWSE OpenAPI `STOCK_DAY_ALL` + `MI_INDEX` 兩個端點在 21:30 還在 publish 5/8 舊資料,chip_radar 沒檢查 `Date` 欄位直接全盤接收 → Excel 個股 close/change_pct/is_limit_up 全被汙染。3 層防護:(1) 各 fetch 函式比對回傳 `Date` ≠ 預期 → 回傳空觸發 fallback,(2) `fetch_all_public_data` 偵測 stale 後**強制全量 MIS fallback**(覆蓋所有 priority_codes,而非只補缺檔),(3) 每筆 quote 標 `quote_date` + `quote_stale`,crawler 列印 audit summary。MIS API 是即時報價,不受 OpenAPI 延遲影響。11/11 本地測試 PASS。
-
-> **v3.27.2 (2026-05-10)** — **高價股盲點修補**。TWSE 分點頁面每分點只 publish Top 15 金額榜 + Top 15 張數榜,創意(5210元)/緯穎(5200元)/台積電(2290元) 等高價股因「張數少」擠不進張數榜 → buy_lot=0 但 buy_amt 幾億,Excel 顯示「0 張+幾億金額」嚴重誤導。現在用 close 反推 `lot = amt / close`,加 `lot_source: estimated_from_close` 旗標保留誠實。6/6 真實案例驗證 PASS (創意 104 張 / 緯穎 17 張 / 台積電 54 張,與截圖反推完全對應)。同時修反向 case (低價股 amt 漏 → 反推金額)。
-
-> **v3.27.1 (2026-05-10)** — v3.28 閾值校準前置工程。`temp_history.json` 加 3 個欄位:每信號的 `value` (raw 數值)、`taiex_change_pct` (大盤當日)、`next_day_change_pct` (次日大盤,由隔天 crawl 自動回填)。max_days 30 → 60。新增 `signal_audit.py` — 累積 ≥ 30 天後可印「各信號 × level hit rate」+ 校準建議。隨附 `test_signal_audit.py` (35 天 fixture 模擬 PASS)。
-
-> **v3.27 (2026-05-10)** — 籌碼溫度計從 5 信號擴到 **7 信號**:新增「法人共識」(外資+投信同向 + 雙條件量達標) + 「結算日壓力」(距結算日 × 外資期貨等效 OI,結算週反指標)。閾值是 v3.27 初版,標記 `⚠️ pending backtest calibration`,待 30-60 個交易日資料校準。21/21 本地測試 PASS。
-> 
-> **v3.26.1 (2026-05-10 hotfix)** — 解決自動排程實際延遲 1-2 小時的問題:cron 從 `0 12` (UTC 整點塞車) 改成 `17 13` (TW 21:17),加 `37 14` (TW 22:37) 兜底排程,沒變動的執行改 `::notice::` 級別好分辨。預期延遲從 90+ 分鐘降到 < 5 分鐘。
+> 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
+> **當前版本**:v3.32.4 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 
 ---
 
-## 🎯 專案定位
+## 專案定位
 
 ```
 Chip Radar 是「台股籌碼分析專家」
@@ -67,489 +16,276 @@ Chip Radar 是「台股籌碼分析專家」
 
 ---
 
-## ✅ 數據準確性承諾 (v3.17.5 起)
+## 數據準確性承諾
 
-> **所有期貨/選擇權數值,經過逐欄位驗證,100% 對齊 TAIFEX 官方公告。**
-
-### 🔍 已驗證欄位 (83 個 / 100% 通過)
+> **所有期貨/選擇權數值,經逐欄位審計,100% 對齊 TAIFEX 官方公告。**
 
 | 類別 | 欄位數 | 來源 | 狀態 |
 |------|------|------|------|
-| 期貨三大法人 (TXF/MXF/TMF × 3 法人 × 4 欄位) | 36 | `futContractsDateDown` | ✅ |
-| 選擇權三大法人 (TXO Call/Put × 3 法人 × 3 欄位) | 18 | `callsAndPutsDateDown` | ✅ |
-| P/C Ratio + 全市場 Call/Put OI | 4 | `/cht/3/pcRatio` | ✅ |
-| 大額交易人 (前 5/10 大買賣 + 全市場 OI) | 3 | `largeTraderFutDown` | ✅ |
-| 衍生指標 (外資等效大台等) | 5 | 計算自上述 | ✅ |
-| **v3.18 新增**: 期貨各月份 OHLC | 13 | `dlFutDataDown` | ✅ |
-| **v3.18 新增**: 夜盤三大法人 | 4 | `futContractsDateAhDown` | ✅ |
-| **總計** | **83** | TAIFEX 官方 | **✅ 100%** |
+| 期貨三大法人 (TXF/MXF/TMF) | 36 | TAIFEX | ✅ |
+| 選擇權三大法人 (TXO Call/Put) | 18 | TAIFEX | ✅ |
+| P/C Ratio + 全市場 OI | 4 | TAIFEX | ✅ |
+| 大額交易人 | 3 | TAIFEX | ✅ |
+| 衍生指標 | 5 | 計算 | ✅ |
+| 期貨 OHLC | 13 | TAIFEX | ✅ |
+| 夜盤三大法人 | 4 | TAIFEX | ✅ |
+| **總計** | **83** | **TAIFEX** | **✅ 100%** |
 
-### 🟢 可驗證的標記
-- 期貨 tab banner: **「✓ TAIFEX 對齊」** 綠色徽章
-- PCR card: **「✓ TAIFEX 官方」** 資料來源標示
-- 十大交易人下方:紫色資料來源說明條
-
-### 📋 公開審計報告
-詳細逐欄位對比請見:`AUDIT_REPORT.md` (v3.17.5)
+**Cross-check 涵蓋面**:V1 全分點 + V2 個股行情 + W1 融資 + U1 內部人 + histock 個股×分點反向驗證 + 5 invariant 壓力測試
 
 ---
 
-## ✨ 核心功能 (13 個 Tab)
+## 核心功能（14 個 Tab）
 
-### 📊 即時籌碼分析
+### 即時籌碼分析
 | Tab | 功能 | 資料來源 |
 |-----|------|---------|
-| 01 | 🌅 今日三視角 | 49 分點當沖/隔日沖/波段 |
-| 02 | 🔥 共買榜 | 多分點同步買進的標的 |
-| 03 | 📊 分點動態 | 49 個券商分點即時動向 |
-| 04 | 🏆 累積排行 | N 天累積買超排行 |
-| 05 | 👤 高手合併視圖 | 25 位 master 模式比對 |
-| 06 | 🏛️ 三大法人 | 外資/投信/自營商買賣超 |
+| 01 | 今日三視角 | 81 分點當沖/隔日沖/波段 |
+| 02 | 共買榜 | 多分點同步買進標的 |
+| 03 | 分點動態 | 81 個券商分點即時動向 |
+| 04 | 累積排行 | N 天累積買超排行 |
+| 05 | 高手合併視圖 | 29 位 master 模式比對 |
+| 06 | 三大法人 | 外資/投信/自營商 |
 
-### 🎯 期貨選擇權 (v3.17 新增)
-| Tab | 功能 | 資料來源 |
-|-----|------|---------|
-| 07 | 🎯 期貨情報 | TAIFEX 完整籌碼 |
+### 期貨選擇權
+| Tab | 功能 |
+|-----|------|
+| 07 | 期貨情報（TXF/MXF/TMF + TXO + P/C Ratio + 十大交易人） |
 
-包含：
-- 💎 外資等效大台 (TXF + MXF/4 + TMF/20)
-- 👥 散戶小台反指標
-- 📊 P/C Ratio (選擇權情緒)
-- 🎲 外資選擇權傾向
-- 🏛️ 三大法人 TXF/MXF/**TMF** 完整明細
-- 🎯 十大交易人集中度
+### 進階分析
+| Tab | 功能 |
+|-----|------|
+| 08 | 融資融券 |
+| 09 | 漲停狙擊（分點分析） |
+| 10 | 個股追蹤（個股+產業+大盤 三線圖） |
+| 11 | 高手 master |
+| 12 | 操作日報 |
+| 13 | 自選股 |
 
-### 📈 進階分析
-| Tab | 功能 | 資料來源 |
-|-----|------|---------|
-| 08 | 💰 融資融券 | TWSE + HiStock 雙源驗證 |
-| 09 | 🔥 漲停狙擊 | 漲停板分點分析 |
-| 10 | 📉 個股追蹤 | 個股 + 產業 + 大盤 三線圖 |
-| 11 | 🎓 高手 master | 25 位精選分點配對 |
-| 12 | 📋 操作日報 | 每日總結報告 |
-| 13 | ⭐ 自選股 | 個人關注清單 |
+### 大戶深度分析（v3.30.8+）
+| Tab | 功能 |
+|-----|------|
+| **14** | **大戶畫像** — 29 master × 15 標籤 + Level 1/2/3 分層 + 策略色碼 + 派系面板 + T+1 跨日追蹤 + 實戰信號 |
 
 ---
 
-## 🏗️ 技術架構
-
-### 後端 (13 個 Python 模組)
-```
-crawler.py            主爬蟲 (~102KB) 整合所有資料
-├ branches.py         56 分點 + 29 master
-├ institutional.py    三大法人爬蟲 (TWSE + TPEx)
-├ margin.py           融資融券 (TWSE + HiStock 雙源)
-├ futures.py          TAIFEX 期貨/選擇權 (~970 行 v3.18)
-├ insiders.py         MOPS 內部人 + 重大訊息 (v3.20)
-├ alerts.py           推播警報系統 (v3.20, 5 訊號)
-├ excel_report.py     老闆版 Excel 日報 (v3.22+v3.23 template-aligned)
-├ audit_institutional.py  三大法人審計 (v3.21)
-├ audit_margin.py     融資融券審計 (v3.21)
-├ audit_branches.py   分點 3 層審計 (v3.21)
-├ history.py          30 天歷史累積 (含期貨)
-├ industry_classifier.py  產業分類 (1965 檔)
-├ market_classifier.py  市場分類 (上市/上櫃/ETF)
-├ histock_verifier.py 融資融券交叉驗證
-└ reports.py          週報/月報生成
-```
-
-### 前端
-```
-index.html (~340KB)
-├ HTML/CSS/JS 單檔
-├ Chart.js 4.4.1
-├ AES-256-GCM + PBKDF2-SHA256 加密解鎖
-└ 13 個 tab + 多個 Modal
-```
-
-### 自動化排程 (GitHub Actions)
-```
-1. Daily Full Crawl (20:00)        每天主爬蟲, 抓全部
-2. Margin Refresh (7 重防禦)       融資融券補抓
-   • 22:30 / 23:30 (週一-五)
-   • 00:30 / 02:00 (週二-六)
-   • 08:00 / 09:00 / 12:00 (週二-六)
-3. Keepalive (週日 04:00, v3.23)   防 60 天無活動 disable
-```
-
----
-
-## 📈 版本歷程
-
-### v3.2x 一週優化系列
-- **v3.26** (2026/05/10) 🆕 ⭐ **Excel 風格分流 (隔日沖/當沖 → 漲停股 Top 10)**
-  - 🔧 `excel_report.py` 加 `_is_sniper_master()` + `SNIPER_STYLES = {next_day_flipper, day_trader}`
-  - 🔧 `_top_stocks_for_branch()` 新增 `sniper_mode` 參數,sniper master 自動過濾 `is_limit_up=True`
-  - 🆕 從 `branches.py` 讀 `MASTER_STYLES` 作為單一真實來源 (try/except 容錯)
-  - 🎯 解決:蔣承翰(隔日沖)、迷你哥(當沖)、Tradow、巨人傑 4 位 sniper 的 Top 10 不再被「全部買超」淹沒,改顯示「今天搶了哪幾檔漲停」
-  - 🛡️ 沒搶任何漲停 → 整 10 列空白 (不 fallback 回 Top 10,維持風格純度)
-  - 🛡️ 視覺格式 100% 跟手動版一致 (字型/欄寬/合併儲存格全部不變)
-  - 📋 本地測試:民哥(swing)3 檔全留 / 蔣承翰(sniper)濾掉台積電留 2 漲停 / 迷你哥(sniper)0 漲停全空白 → 全數通過
-  - 🟢 戰力 99.7 → 99.8/100 (資料對齊度)
-
-- **v3.25** (2026/05/09) ⭐⭐ **溫度計 v2 + 主散對照 + 30 天趨勢**
-  - 🔧 **T-a 透明化權重**:每信號顯示 `score/20` badge + 加權公式列
-  - 🆕 **M-a 主散對照面板**:主力 (外資現貨 + 投信現貨) vs 散戶 (融資熱度 + 散戶小台) 4 視角並列
-  - 🆕 **M-b 主散背離指數**:`主力分 − 散戶分` ∈ [-8, +8],+8 = 主力進+散戶退最強多
-  - 🆕 **T-b 30 天溫度趨勢**:Chart.js line chart, 點顏色按溫度分區
-  - 🆕 backend `crawler.py` 加 `compute_chip_temperature()` + `update_temp_history()` 累積 `data/temp_history.json`
-  - 🟢 戰力 99.5 → 99.7/100
-
-- **v3.24** (2026/05/09) 🆕 ⭐ **Excel 嚴格模仿手動版「分點觀察」**
-  - 🔧 `excel_report.py` 完整重寫 (~21KB,取代 v3.23 的 24KB)
-  - 🔧 字型 `新細明體` 12pt + 全 cell center/center 對齊 (對齊手動版)
-  - 🔧 移除 v3.23 的藍色 header bg / 邊框 / 粉紅虧損 bg (手動版沒有)
-  - 🆕 內建 `MASTER_MAPPING`:13 高手 / 42 分點 (從手動 5/8 版抽出)
-  - 🔧 每分點固定 10 列 (不足以空白填補,維持視覺一致)
-  - 🔧 排序:top 10 by 買進金額 desc (G 欄)
-  - 🆕 `latest.xlsx` 改 multi-sheet,最近 30 個交易日,每日一 sheet (sheet 名 = `YYYYMMDD`)
-  - 🐛 修正 v3.23 的 header 英文佔位 bug (寫成 Chinese 後又被二次替換)
-  - 📊 與手動版結構驗證:462 列、12 欄、97 merges 完全對齊
-  - 🟢 戰力 99.3 → 99.5/100
-
-- **v3.23** (2026/05/08) 🆕 ⭐ **Excel 日報 template-aligned 重構**
-  - 🔧 `excel_report.py` 重構為 vertical layout, 12 欄結構
-  - 🔧 對齊手動版「分點觀察」格式 (master/分點/代號/標的)
-  - 🔧 P/L 公式條件式格式 (`=F*(K-J)`, 紅字虧損)
-  - 🐛 fix: workflow 補 `openpyxl` 依賴
-  - 🆕 `.github/workflows/keepalive.yml`:週日 04:00 自動空 commit, 防 60 天 disable
-
-- **v3.22** (2026/05/08) 🆕 ⭐ **老闆版 Excel 日報自動生成**
-  - 🆕 新增 `excel_report.py` (~24KB)
-  - 🆕 主流程整合:每次 daily-full 後自動產出 `data/reports/chip_radar_<日期>.xlsx`
-  - 🆕 同步生成 `data/reports/latest.xlsx` 給網站「下載老闆版日報」綠色按鈕
-  - 🆕 `index.html` 加綠色下載按鈕 → `data/reports/latest.xlsx`
-  - 🟢 戰力 99 → 99.3/100 (老闆視角閉環)
-
-### v3.21.x 全資料源審計系列
-- **v3.21** (2026/05/05) 🆕 ⭐⭐ **全資料源 100% 對齊 + 資料準確度徽章**
-  - 🆕 **5 個資料源完整審計**:215+ 個欄位 100% 對齊官方
-    - TAIFEX 期貨/選擇權 (66 欄, v3.17.5)
-    - TAIFEX 行情面 (17 欄, v3.18)
-    - **TWSE 三大法人 (60,276 資料點 ✓ 新)**
-    - **TWSE 融資融券 (15,192 資料點 ✓ 新)**
-    - **分點籌碼設定 (3 層審計 ✓ 新)**
-  - 🐛 **重大 bug 修正**:institutional.py dealer_net_lot 整數除法 floor 誤差
-    - 從 99.83% 升到 100.00%
-    - 影響 ~100 檔個股「自營商買賣超」誤差 ±1 張
-  - ✨ **主頁加「資料準確度徽章」**(綠色 banner + Modal)
-    - 點擊看 5 個資料源完整對齊狀態
-    - 公開承諾「每一個數字都對齊官方」
-  - 🔧 新增 3 個 audit script:
-    - audit_institutional.py (~250 行)
-    - audit_margin.py (~180 行)
-    - audit_branches.py (~220 行, 3 層審計)
-  - 🟢 戰力 98 → 99/100
-
-- **v3.20** (2026/05/03) 🆕 ⭐ **主動推播 + MOPS 內部人籌碼信號**
-  - 🆕 **新增 alerts.py**: Discord 推播警報系統
-    - 5 種訊號:外資極端 / PCR 極端 / 漲停過熱 / 結算日 / 內部人異動
-    - Test mode (無 webhook) + Production mode 雙模式
-  - 🆕 **新增 insiders.py**: MOPS 內部人籌碼信號
-    - 董監持股 + 設質股數 + 設質比例
-    - 重大訊息分類 (財報/購併/庫藏股/股利/法說會)
-    - 高設質警報 (>30%) + 申讓警報 (>1,000 張)
-  - ✨ **today3 主頁加「🚨 v3.20 即時警報」儀表板**
-    - 內部人籌碼警報區
-    - 高影響度重大訊息區
-    - 中影響度摺疊區
-  - 🔧 crawler.py 整合新模組
-    - 抓 50 檔 watched 個股的董監持股
-    - 抓 sii + otc 當日重大訊息
-    - 加密前自動跑 alerts.run_alerts
-  - 🟢 戰力 94 → 98/100 (主動警報質的飛躍)
-
-- **v3.19** (2026/05/02) 🆕 ⭐ **個股行情整合**
-  - ✨ **個股股價 chip 全面整合**:籌碼 + 行情 = 完整故事
-    - 個股追蹤 tab (#10) 標題加股價 chip
-    - 共買榜 (#02) 每筆加 inline 股價 (沒漲停也顯示)
-    - 高手共識個股 + Top 20 名單加股價
-  - ✨ 智慧避免重複:≥7% 漲停由 limit-up-chip 處理,inline-quote 自動跳過
-  - 📊 利用 stock_history.json (8,885 檔每日 close + change_pct, 不需動爬蟲)
-  - 🎨 紅綠配色:漲=紅 / 跌=綠 (對齊台股慣例)
-  - 🚀 init() prefetch 加速 (背景預載)
-
-- **v3.18** (2026/05/01) 🆕 ⭐ **期貨行情面 + 夜盤三大法人**
-  - ✨ **新增「期貨行情面」區塊**:TX 6 個月份開高低收 + 結算價 + 未沖銷
-    - TX 近月 hero card (收盤/漲跌/成交量)
-    - 跨月價差 hero (反映看多/看空預期)
-    - 夜盤近月 hero (反映美股後反應)
-  - ✨ **新增「夜盤三大法人」區塊**:TXF/MXF/TMF 三表
-    - 夜盤外資等效大台淨交易
-  - 📊 **新增 17 個欄位 100% 對齊 TAIFEX 官方**
-  - 📊 累計 83 個欄位通過審計 (66 + 17)
-  - 端點:`dlFutDataDown` + `futContractsDateAhDown`
-  - SKILL: 同步加新審計項目
-
-- **v3.17.5** (2026/04/29) 🆕 ⭐ **數據準確性審計**
-  - 🚨 修正 P/C Ratio 計算 BUG (從三法人改用 TAIFEX 官方全市場 OI)
-    - 修正前: 1.579 (差 0.13)
-    - 修正後: **1.7112 對齊官方**
-  - 🚨 修正十大交易人 BUG (從當月改用全部月份)
-    - 對齊 TAIFEX 官網標準顯示
-  - ✅ 新增 `fetch_official_pcr()` 直接抓 TAIFEX `/cht/3/pcRatio`
-  - ✅ 新增 PCR-成交量指標 (0.9592)
-  - ✅ 期貨 banner 加「✓ TAIFEX 對齊」綠色徽章
-  - ✅ PCR card 加「✓ TAIFEX 官方」資料來源標示
-  - 📊 **66 個欄位 100% 對齊 TAIFEX 官方**
-
-- **v3.17.4** (2026/04/29)
-  - 修正籌碼溫度計顯示 (5 個信號完整顯示, 之前只顯示 2 個)
-  - 改用 production 真實欄位 (`institutional_rankings` / `limit_up_summary` / `margin_rankings`)
-  - 視覺優化: 溫度計加粗 22px / 白色雙箭頭指針 / 5 段刻度
-
-- **v3.17.3** (2026/04/29)
-  - 籌碼溫度計視覺化 (線性漸層條 + 0-100 綜合分數)
-  - 5 段判讀: 偏多 / 中偏多 / 中性 / 中偏空 / 偏空
-  - 動態指針 + 平滑動畫
-
-- **v3.17.2** (2026/04/29)
-  - 🌡️ **新增「台股籌碼溫度計」** (5 信號儀表板)
-    - 外資現貨 / 外資期貨 / P/C Ratio / 漲停家數 / 散戶情緒
-  - 個股追蹤預設「熱門個股 Top 10 + 自選股」
-  - 期貨 banner 排版優化 (3 欄 grid)
-  - 融資融券「未驗證」文案改為「TWSE 原始」中性語調
-
-- **v3.17.1-patch1** (2026/04/29)
-  - 結算日時區 bug 修正 (toISOString → 本地時間)
-  - 十大交易人加資料來源透明說明
-  - banner 加 TAIFEX 公告時程說明
-
-- **v3.17.1** (2026/04/29)
-  - 期貨歷史累積 (history.py 擴充)
-  - 4 個 hero card 點擊跳出 30 天走勢 Modal
-  - TMF 微型台指完整明細表
-  - 期貨 tab 時間 banner + 結算日倒數
-- **v3.17.0** (2026/04/28)
-  - 全新「期貨情報 tab」
-  - 整合 TXF/MXF/TMF 三大法人 + TXO 選擇權 + 十大交易人
-  - 今日三視角加「外資期現貨對照」面板
-
-### v3.16.x 視覺與走勢
-- **v3.16.1** (2026/04/24)
-  - 個股追蹤三線比較圖 (個股 vs 產業 vs 大盤)
-  - 5/10/20/30 天切換
-- **v3.16.0** (2026/04/23)
-  - 配色系統統一 (買=紅 / 賣=綠 / 賺=紅 / 虧=綠)
-  - 17 處配色違和修正
-
-### v3.15.x 產業分類
-- **v3.15.1** (2026/04/22)
-  - 產業 chip 顯示在個股卡
-  - 強弱族群篩選
-  - Modal 加入產業濾鏡
-- **v3.15.0** (2026/04/21)
-  - 產業分類資料層 (TWSE 1082 + TPEx 883 = 1965 檔)
-
-### v3.14.x 工作流穩定化
-- **v3.14.8** (2026/04/28)
-  - Margin Refresh 7 重排程防禦
-  - 解決 GitHub Schedule 不可靠問題
-- **v3.14.7** (2026/04/24)
-  - workflow 拆分 (Daily Full + Margin Refresh)
-  - git pull --rebase 順序修復
-- **v3.14.5** (2026/04/22)
-  - 情緒信號 Modal (聰明錢進/出/散戶追漲/軋空潛力)
-- **v3.14.4** (2026/04/22)
-  - 融資融券日期驗證 (T-0 / T-1 自動標示)
-
----
-
-## 🚀 快速部署 (新手 15 分鐘)
-
-### Step 1：Fork 或 Clone Repository
-```bash
-# 方法 A: Fork (推薦,可獲得後續更新)
-前往 https://github.com/DRwillychiu/CHIP_RADAR_TW
-點右上角「Fork」
-
-# 方法 B: 全新 Clone
-git clone https://github.com/DRwillychiu/CHIP_RADAR_TW.git
-```
-
-### Step 2：設定 Repository Secret
-GitHub Repo → Settings → Secrets and variables → Actions
-新增 secret：
-```
-Name:  CHIP_RADAR_PASSWORD
-Value: 自設密碼 (例如 testpass123)
-```
-
-### Step 3：開啟 GitHub Pages
-GitHub Repo → Settings → Pages
-- Source: Deploy from a branch
-- Branch: `main` / `(root)`
-- Save
-
-等 1-2 分鐘,網址會變成: `https://YOUR_USERNAME.github.io/CHIP_RADAR_TW/`
-
-### Step 4：授權 Actions 寫入
-GitHub Repo → Settings → Actions → General
-- Workflow permissions → ✅ **Read and write permissions**
-- ✅ Allow GitHub Actions to create and approve pull requests
-
-### Step 5：手動執行第一次爬蟲
-GitHub Repo → Actions → `1. Daily Full Crawl (20:00)` → **Run workflow**
-等 5-8 分鐘,看到綠色 ✅ 即可。
-
-### Step 6：開啟網站
-打開 `https://YOUR_USERNAME.github.io/CHIP_RADAR_TW/`
-輸入 Step 2 的密碼解鎖。
-
----
-
-## 📅 自動執行時程
-
-| Workflow | 時段 | 抓什麼 |
-|----------|------|-------|
-| Daily Full Crawl | 每日 20:00 (週一-五) | 全部資料 (含期貨) + 自動生成老闆版 Excel |
-| Margin Refresh | 22:30 / 23:30 / 00:30 / 02:00 / 08:00 / 09:00 / 12:00 | 融資融券補抓 (7 重防禦) |
-| Keepalive | 週日 04:00 | 空 commit 維持活動 (防 60 天 disable, v3.23) |
-
-**TAIFEX 公告時程**：
-- 15:00 - 三大法人期貨/選擇權公告
-- 15:30 - 大額交易人 (前 5/10 大) 公告
-- 17:00 - 結算價、結算公告
-- Chip Radar 在 20:00 抓穩定版
-
----
-
-## 🎨 自訂分點 / Master / 自選股
-
-### 在網站直接改 (容易,只影響自己瀏覽器)
-打開網站 → 分點動態 / 個股追蹤 → 點⭐ 加入收藏
-
-### 修改原始碼 (改變實際爬取)
-```python
-# crawler.py 的 BRANCHES 陣列
-BRANCHES = [
-    {"id": "1234", "name": "你的分點"},
-    # ...
-]
-```
-
----
-
-## 🛠️ 常見問題
-
-### Q: 為什麼網站打開是空的？
-A: 確認 GitHub Pages 已 Deploy + 至少跑過一次爬蟲 (Step 5)。
-
-### Q: 資料什麼時候更新？
-A: 
-- **分點/法人**: 每天 20:00 (週一-五)
-- **融資融券**: 22:30 後 (TWSE 公告完成)
-- **期貨/選擇權**: 跟主爬蟲同步 (20:00)
-- **隔日早上 8:00 前完整更新**
-
-### Q: 可以查歷史資料嗎？
-A: 可以！上方「查看日期」下拉選單可看過去 30 天 (新版),或直接從 GitHub `data/` 資料夾下載 JSON。
-
-### Q: 期貨資料怎麼算的？可信度？
-A: 100% TAIFEX 官方資料,我們只做除法。
-詳見「07 期貨情報 tab」的資料來源說明條。
-
-### Q: 我想自架,但不想被 Google 找到？
-A: GitHub Pages 預設不會被搜尋,但若要更私密:
-1. 把 repo 設為 Private (但 GitHub Pages 需要 GitHub Pro)
-2. 或改用密碼解鎖 (本專案已內建)
-
----
-
-## 📁 檔案結構
-
-```
-CHIP_RADAR_TW/
-├── README.md                  本檔案
-├── index.html                 前端 (340KB, 含加密邏輯)
-├── crawler.py                 主爬蟲 (~102KB)
-├── branches.py                56 分點 + 29 master
-├── institutional.py           三大法人
-├── margin.py                  融資融券
-├── futures.py                 TAIFEX 期貨/選擇權
-├── insiders.py                MOPS 內部人 (v3.20)
-├── alerts.py                  推播警報 (v3.20)
-├── excel_report.py            老闆版 Excel 日報 (v3.22+v3.23)
-├── audit_institutional.py     三大法人審計 (v3.21)
-├── audit_margin.py            融資融券審計 (v3.21)
-├── audit_branches.py          分點 3 層審計 (v3.21)
-├── history.py                 歷史累積
-├── industry_classifier.py     產業分類
-├── market_classifier.py       市場分類
-├── histock_verifier.py        HiStock 驗證
-├── reports.py                 週/月報告
-├── .github/workflows/
-│   ├── daily-full.yml         每日主爬蟲 + Excel 生成
-│   ├── margin-refresh.yml     7 重融資融券補抓
-│   └── keepalive.yml          週日 04:00 防 60 天 disable (v3.23)
-└── data/                      自動產生的資料
-    ├── latest.json            最新一日 (加密)
-    ├── 20260508.json          歷史日期檔
-    ├── stock_history.json     30 天累積 (含期貨歷史)
-    └── reports/               (v3.22+) 老闆版 Excel 日報
-        ├── latest.xlsx        最新一日下載連結 (網站綠色按鈕)
-        ├── chip_radar_<日期>.xlsx
-        ├── weekly_<週>.json/md
-        └── monthly_<月>.json/md
-```
-
----
-
-## 🔄 後續開發路線圖
-
-### 短期 (本月內)
-- ⏳ v3.18 Discord/Line 推播通知
-- ⏳ 台股市場溫度計 (5 個訊號儀表板)
-
-### 中期 (5/4-5/20)
-- ⏳ v3.19 台股族群深度頁
-- ⏳ v3.20 主力 vs 散戶雙視角分析
-
-### 長期
-- ⏳ Max Pain (需研究第三方資料源)
-- ⏳ 立委持股追蹤
-- ⏳ 多股比較圖
-
----
-
-## 📊 數據規模
+## 數據規模
 
 | 維度 | 規模 |
 |------|------|
-| 監控分點 | 56 個 |
-| Master 高手 | 29 位 (網站) / 12 位 (Excel 老闆版) |
-| 抓取個股 | 上市 1082 + 上櫃 883 = **1965 檔** |
-| 期貨商品 | TXF (大台) + MXF (小台) + TMF (微台) |
-| 選擇權 | TXO Call + Put 三大法人 |
-| 累積歷史 | 30 天循環 (含期貨) |
-| Tab 數量 | 13 個 |
+| 監控分點 | **81 個**（含 10 地緣特色分點） |
+| Master 高手 | **29 位個人大戶** + 8 外資 + 2 官股 + 2 公司 + 10 地緣 = 51 |
+| 個人大戶標籤 | 15 規則標籤 + 2 T+1 verified = 17 |
+| Level 2 策略 | 10 種子類 |
+| 派系 | 2 個已知派系（Jaccard ≥ 30%） |
+| 產業分類 | 上市 1082 + 上櫃 883 = **1965 檔** |
+| 期貨商品 | TXF + MXF + TMF |
+| 歷史窗口 | 60 天滾動（hot/warm/cold 三層） |
+| DB | SQLite OLAP（7 tables + 4 views + 8 indexes） |
+| Tab 數量 | **14 個** |
+| 測試套件 | 26 套 / 200+ case |
 
 ---
 
-## ⚠️ 免責聲明
+## 技術架構
 
-本工具僅供學習研究之用,所有資料皆來自公開來源 (TWSE/TPEx/TAIFEX/HiStock):
+### 後端（~40 個 Python 模組）
+
+```
+核心 (crawler 主流程)
+├── crawler.py           主編排器 (~3100 行), 9 階段 + DB + archive + master_profile + signals
+├── branches.py          81 watched branches + 51 MASTER_STYLES + co_masters
+├── institutional.py     三大法人 (TWSE + TPEx)
+├── margin.py            融資融券
+├── futures.py           TAIFEX 期貨選擇權 (~970 行)
+├── insiders.py          MOPS 董監持股 + 重大訊息
+├── history.py           30 天歷史累積
+
+分析層
+├── master_profile.py    29 master × 15 標籤 + per-branch + Level 1/2/3
+├── master_alliance.py   Jaccard 同向率 + 派系 union-find
+├── cross_day_tracker.py T+1 跨日追蹤
+├── daily_signals.py     實戰信號 (異常+共識+加碼)
+├── trade_pattern.py     規則式模式分類 + narrative
+├── signal_engine.py     backtest 信號加權引擎
+├── price_utils.py       tick-size 精確漲停價
+
+DB + 資料管理
+├── db_pipeline.py       SQLite OLAP (7 tables + 4 views + 8 indexes)
+├── db_excel_import.py   Excel backup source + cross-validate
+├── archive_manager.py   hot/warm/cold 三層 (7天/60天)
+├── disposal_fetcher.py  chengwaye 處置股 + 歷史快照
+├── query_db.py          SQL wrapper
+
+驗證工具 (12 個)
+├── stress_test_data_integrity.py  5 invariant 壓力測試
+├── histock_branch_audit.py        個股×分點 histock 反向 cross-check
+├── heartbeat_check.py             資料新鮮度心跳
+├── auto_audit.py / excel_full_audit.py / excel_content_audit.py
+├── stock_cross_check.py / margin_cross_check.py / insider_cross_check.py
+└── safe_fetch.py                  HTTP size limit defense
+
+輸出
+├── excel_report.py      月檔 Excel + master 色塊 (29 master 暖/冷/灰色系)
+└── reports.py           週報/月報
+```
+
+### 前端
+
+```
+index.html (~470KB)
+├── HTML/CSS/JS 單檔
+├── Chart.js 4.4.1
+├── AES-256-GCM + PBKDF2-SHA256 + gzip 加密解鎖
+└── 14 個 tab (含 Tab 14 大戶畫像)
+```
+
+### 自動化排程（GitHub Actions 6 個 workflow）
+
+| # | Workflow | 排程 | 功能 |
+|---|----------|------|------|
+| 1 | Daily Full Crawl | 21:17 + 22:37 + 23:47 TW（三層兜底） | 主爬蟲 + Excel + DB + master_profile + signals |
+| 2 | Margin Refresh | 7 重排程 | 融資融券補抓 |
+| 3 | Keepalive | 週日 04:00 TW | 防 60 天 disable |
+| 4 | Security Audit | 週一 03:00 TW | pip-audit + safety |
+| 5 | Heartbeat | 00:30 + 09:00 TW | 資料新鮮度,stale 自動開 issue |
+| 6 | Pages Build | 自動 | GitHub Pages 部署 |
+
+**本地觸發**:Windows Task Scheduler + `trigger_chip_radar.ps1`（21:17 + 22:37,BurntToast 桌面通知）
+
+---
+
+## Data 目錄結構
+
+```
+data/
+├── latest.json                加密+gzip (當日, 網站讀)
+├── YYYYMMDD.json              加密 (hot, 最近 7 天)
+├── archive/                   加密 (warm, 7-60 天)
+├── stock_history.json         30 天個股 close + 期貨 + 大盤 (未加密)
+├── temp_history.json          60 天信號歷史
+├── master_profiles.json       29 master × 15 標籤 + 聯動 + 信號 (未加密)
+├── daily_trading_signals.json 實戰信號 (異常+共識+加碼)
+├── daily_audit.json           auto_audit verdict
+├── daily_signal.json          signal_engine 輸出
+├── disposal_map.json          處置股 cache (TTL 1 天)
+├── disposal_history/          每日處置快照 YYYYMMDD.json
+├── industry_map.json          產業分類 (7 天 cache)
+├── chip_radar_v2.db           SQLite OLAP (本機, .gitignore)
+├── reports/
+│   ├── chip_radar_2026-MM.xlsx  月檔 (每日 add sheet)
+│   ├── latest.xlsx              = 當月 copy
+│   └── weekly_*.json/md         週報
+└── heartbeat.json
+```
+
+---
+
+## 加密協議
+
+- **演算法**:AES-256-GCM + PBKDF2-SHA256
+- **壓縮**:gzip（v3.30.1+,magic bytes `1F 8B` auto-detect）
+- **Backward compat**:100%（舊未壓縮 ciphertext 仍能正常解密）
+- **密碼**:GitHub Secret `CHIP_RADAR_PASSWORD`
+- **前端解密**:JS `SubtleCrypto` + `DecompressionStream`
+
+---
+
+## 快速部署（新手 15 分鐘）
+
+### Step 1:Fork 或 Clone
+```bash
+git clone https://github.com/DRwillychiu/CHIP_RADAR_TW.git
+```
+
+### Step 2:設定 Secret
+GitHub Repo → Settings → Secrets → Actions → 新增:
+```
+Name:  CHIP_RADAR_PASSWORD
+Value: 自設密碼
+```
+
+### Step 3:開啟 GitHub Pages
+Settings → Pages → Source: `main` / `(root)` → Save
+
+### Step 4:授權 Actions
+Settings → Actions → General → Workflow permissions → Read and write
+
+### Step 5:手動跑第一次
+Actions → `1. Daily Full Crawl (21:17)` → Run workflow
+
+### Step 6:開啟網站
+`https://YOUR_USERNAME.github.io/CHIP_RADAR_TW/` → 輸入密碼解鎖
+
+---
+
+## 版本歷程（重要里程碑）
+
+| 版本 | 日期 | 重點 |
+|------|------|------|
+| v3.32.4 | 6/6 | GitHub Actions Node.js 20→24 升級（6/16 deadline） |
+| v3.32.3 | 6/6 | 自動回補機制 + 期貨歷史補齊 |
+| v3.32.1 | 6/6 | 修 Python 3.12 `import history` scope bug |
+| v3.32.0 | 6/5 | 實戰信號系統（異常偵測+派系共識+連續加碼） |
+| v3.31.23 | 6/5 | 第一波優化（波段不標+T+1 verified+派系門檻+資料不足提示） |
+| v3.31.22 | 6/5 | T+1 跨日追蹤 + 60 天滾動窗口 |
+| v3.31.19 | 6/4 | 聯動面 Phase 2（Jaccard 派系自動發現） |
+| v3.31.18 | 6/4 | 個人大戶 19→29（Excel 交叉比對加 10 master + 25 分點） |
+| v3.31.16 | 6/4 | Level 1/2/3 標籤分層 + 10 策略子類 |
+| v3.31.14 | 6/3 | DB 雲端 Artifact 累積（GitHub Actions 間傳遞 SQLite） |
+| v3.31.2 | 6/1 | DB Pipeline Phase 1.0（SQLite OLAP 7 tables） |
+| v3.31.0 | 6/1 | Excel 月檔模式 + master 色塊 |
+| v3.30.14 | 5/30 | Tab 14 大戶畫像上線 |
+| v3.30.8 | 5/29 | master_profile Phase 1（15 標籤 + per-branch） |
+| v3.30.3 | 5/28 | Data Heartbeat 主動告警 + 三層兜底 |
+| v3.30.1 | 5/24 | gzip 瘦身 + pip-audit + size limit |
+| v3.29.0 | 5/14 | Signal Engine MVP |
+| v3.28.0 | 5/12 | tick-size 精確漲停價 |
+| v3.27 | 5/10 | 籌碼溫度計 7 信號 |
+| v3.26 | 5/10 | Excel 風格分流（sniper vs swing） |
+| v3.24 | 5/9 | Excel 嚴格模仿手動版 |
+| v3.21 | 5/5 | 全資料源 100% 對齊審計 |
+| v3.20 | 5/3 | MOPS 內部人 + Discord 推播 |
+| v3.17 | 4/28 | 期貨情報 tab + TAIFEX 83 欄位 |
+
+完整變更日誌見各版本 commit message。
+
+---
+
+## 配套文件
+
+| 文件 | 內容 |
+|------|------|
+| `ARCHITECTURE.md` | 系統架構（4 層資料流 + 27 module 清單 + 9 階段 + 8 ADR） |
+| `ONBOARDING.md` | 7 天新手指南 + 紀律 5 條 + 3 練習任務 |
+| `LABELS_DEFINITION.md` | 17 標籤完整定義 + Level 1/2/3 + 閾值 + 共存矩陣 |
+| `AUDIT_REPORT.md` | TAIFEX 83 欄位逐項對比報告 |
+
+---
+
+## 免責聲明
+
+本工具僅供學習研究之用,所有資料皆來自公開來源（TWSE/TPEx/TAIFEX/HiStock/chengwaye）:
 - 不構成任何投資建議
 - 不對資料準確性負完全責任
 - 投資有風險,盈虧自負
 
 ---
 
-## 📜 授權
+## 授權
 
-MIT License - 自由使用、修改、分享。
-
----
-
-## 🙏 致謝
-
-- **TWSE** 證券交易所 - 分點 + 法人資料
-- **TPEx** 櫃買中心 - 上櫃資料
-- **TAIFEX** 期貨交易所 - 期貨選擇權資料
-- **HiStock 嗨投資** - 融資融券交叉驗證
+MIT License
 
 ---
 
-**Chip Radar TW · 99.8% 戰力 · 持續演進中** 📊🎯
+## 致謝
 
-*Last Updated: 2026/05/10 · v3.26*
+- **TWSE** 證券交易所 — 分點 + 法人資料
+- **TPEx** 櫃買中心 — 上櫃資料
+- **TAIFEX** 期交所 — 期貨選擇權資料
+- **HiStock** — 融資融券交叉驗證
+- **chengwaye** — 處置股預測資料
+
+---
+
+*Last Updated: 2026/06/10 · v3.32.4*
