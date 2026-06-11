@@ -104,11 +104,50 @@ THRESH = {
     'top_industry_pct_high': 60.0,    # 不變
     # v3.30.13: 處置股獵手
     'disposal_amt_ratio_high': 0.30,  # 不變
+    # v3.33.0: 滾動窗口時間衰減 (B3) — 近期行為權重高於遠期
+    # weight = 0.5 ** (age_days / half_life): 今天=1.0, 20天前=0.5, 40天前=0.25
+    # 60 天窗口下最舊資料權重 0.125, 標籤反映「最近在做什麼」而非「歷史平均」
+    # 設 0 或 None 停用衰減 (全部權重 1.0, 回到 v3.32 行為)
+    'decay_half_life': 20,
 }
 
 
 def now_tw() -> datetime:
     return datetime.now(TW_TZ)
+
+
+# ════════════════════════════════════════════════════════════════════
+#  v3.33.0 (B3): 滾動窗口時間衰減
+# ════════════════════════════════════════════════════════════════════
+
+def _compute_trade_weights(trades: List[Dict[str, Any]],
+                            decay_ref_date: Optional[str],
+                            half_life: Optional[float] = None) -> List[float]:
+    """v3.33.0: 對每筆 trade 算指數時間衰減權重.
+
+    weight = 0.5 ** (age_days / half_life)
+      age_days = (decay_ref_date - trade.date).days (日曆天)
+      今天 = 1.0 / 20 天前 = 0.5 / 40 天前 = 0.25 / 60 天前 = 0.125
+
+    decay_ref_date=None 或 half_life 無效 → 全部 1.0 (= 不衰減, 向後相容).
+    日期 parse 失敗的 trade → 1.0 (寧可多算不漏算)."""
+    if half_life is None:
+        half_life = THRESH.get('decay_half_life')
+    if not decay_ref_date or not half_life or half_life <= 0:
+        return [1.0] * len(trades)
+    try:
+        ref = datetime.strptime(decay_ref_date, '%Y%m%d')
+    except (ValueError, TypeError):
+        return [1.0] * len(trades)
+    weights = []
+    for t in trades:
+        try:
+            d = datetime.strptime(t.get('date', ''), '%Y%m%d')
+            age = max(0, (ref - d).days)
+            weights.append(0.5 ** (age / half_life))
+        except (ValueError, TypeError):
+            weights.append(1.0)
+    return weights
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -187,18 +226,21 @@ def _is_locked_at_lu(stock: Dict[str, Any], tolerance: float = 0.99,
 
 
 def _compute_industry_metrics(trades: List[Dict[str, Any]],
-                                stock_industry_map: Optional[Dict[str, str]]
+                                stock_industry_map: Optional[Dict[str, str]],
+                                weights: Optional[List[float]] = None
                                 ) -> Optional[Dict[str, Any]]:
     """v3.30.11: 族群集中度. 用 industry_classifier 的 stock_industry 反查表.
+    v3.33.0: weights 非 None 時金額乘時間衰減權重 (近期買進影響大).
     回傳: {top_industry, top_industry_pct, industry_count, top3_industries}
     或 None (無資料 / 無分類表)."""
     if not trades or not stock_industry_map:
         return None
-    industry_amt = defaultdict(int)
-    total_amt = 0
-    for t in trades:
+    industry_amt = defaultdict(float)
+    total_amt = 0.0
+    for i, t in enumerate(trades):
         code = t.get('stock_code')
-        amt = t.get('buy_amt', 0) or 0
+        w = weights[i] if weights else 1.0
+        amt = (t.get('buy_amt', 0) or 0) * w
         industry = stock_industry_map.get(code, '未分類')
         industry_amt[industry] += amt
         total_amt += amt
@@ -218,17 +260,21 @@ def _compute_industry_metrics(trades: List[Dict[str, Any]],
 
 
 def _compute_disposal_metrics(trades: List[Dict[str, Any]],
-                                disposal_codes: Optional[set]) -> Optional[Dict[str, Any]]:
+                                disposal_codes: Optional[set],
+                                weights: Optional[List[float]] = None
+                                ) -> Optional[Dict[str, Any]]:
     """v3.30.13: 處置股買進占比 (風險偏好維度).
+    v3.33.0: weights 非 None 時金額乘時間衰減權重.
     disposal_codes: 當前窗口內被處置/即將處置的個股 set (from chengwaye).
     回傳: {disposal_stocks_count, disposal_amt_ratio} 或 None (無資料/無 set)."""
     if not trades or not disposal_codes:
         return None
-    disposal_amt = 0
+    disposal_amt = 0.0
     disposal_codes_seen = set()
-    total_amt = 0
-    for t in trades:
-        amt = t.get('buy_amt', 0) or 0
+    total_amt = 0.0
+    for i, t in enumerate(trades):
+        w = weights[i] if weights else 1.0
+        amt = (t.get('buy_amt', 0) or 0) * w
         total_amt += amt
         code = t.get('stock_code')
         if code and code in disposal_codes:
@@ -243,19 +289,23 @@ def _compute_disposal_metrics(trades: List[Dict[str, Any]],
 
 
 def _compute_long_term_metrics(trades: List[Dict[str, Any]],
-                                 days_threshold: int) -> Tuple[int, float]:
+                                 days_threshold: int,
+                                 weights: Optional[List[float]] = None
+                                 ) -> Tuple[int, float]:
     """單檔在窗口內被加碼 ≥ N 天 → 長線持倉。
+    v3.33.0: 天數判定維持 raw (≥N 天是事實), 金額占比乘時間衰減權重.
     回傳: (長線股數, 長線金額占比)."""
     if not trades:
         return 0, 0.0
     # 對每檔 stock 算被加碼的不重複日數
     stock_days = defaultdict(set)
-    stock_amt = defaultdict(int)
-    for t in trades:
+    stock_amt = defaultdict(float)
+    for i, t in enumerate(trades):
         c = t.get('stock_code')
         if c:
+            w = weights[i] if weights else 1.0
             stock_days[c].add(t['date'])
-            stock_amt[c] += t['buy_amt']
+            stock_amt[c] += t['buy_amt'] * w
     long_term_stocks = {c for c, days in stock_days.items() if len(days) >= days_threshold}
     long_term_amt = sum(stock_amt[c] for c in long_term_stocks)
     total_amt = sum(stock_amt.values())
@@ -389,29 +439,44 @@ def extract_master_trades(history: List[Dict[str, Any]],
 def compute_operation_metrics(trades: List[Dict[str, Any]],
                                 stock_industry_map: Optional[Dict[str, str]] = None,
                                 disposal_codes: Optional[set] = None,
-                                stock_close_map: Optional[Dict[str, Dict[str, float]]] = None
+                                stock_close_map: Optional[Dict[str, Dict[str, float]]] = None,
+                                decay_ref_date: Optional[str] = None
                                 ) -> Optional[Dict[str, Any]]:
     """風格分布 + 漲停命中 + 集中度 + 一致性 + (v3.30.11) 族群集中度
        + (v3.30.13) 處置股風險偏好 + (v3.31.11) 鎖漲停用 stock_close_map.
-    optional 參數 None 時跳過對應計算 (向後相容)."""
+    v3.33.0 (B3): decay_ref_date 非 None 時所有 ratio metrics 乘指數時間衰減權重
+       (half_life=THRESH['decay_half_life'] 天, 近期行為主導標籤).
+       絕對值欄位 (trades_count / total_buy_amt_wan / unique_stocks) 維持 raw 不加權.
+    optional 參數 None 時跳過對應計算 (向後相容, decay_ref_date=None 即 v3.32 行為)."""
     if not trades:
         return None
     total = len(trades)
 
+    # v3.33.0: 時間衰減權重 (decay_ref_date=None → 全 1.0 = 不衰減)
+    weights = _compute_trade_weights(trades, decay_ref_date)
+    w_total = sum(weights)
+    decay_applied = decay_ref_date is not None and any(w < 1.0 for w in weights)
+
     # trade_style 分布 (來自 crawler merge_rows 計算的 daytrade_ratio 判定)
-    style_count = Counter(t.get('trade_style', 'unknown') for t in trades)
-    daytrade = style_count.get('daytrade', 0) / total       # 當沖
-    partial = style_count.get('partial', 0) / total          # 部分當沖 (近似隔日沖)
-    overnight = style_count.get('overnight', 0) / total      # 留倉 (波段)
+    # v3.33.0: 加權筆數 — 近 20 天的 trade 對 ratio 的影響是 40 天前的 2 倍
+    style_w = defaultdict(float)
+    for i, t in enumerate(trades):
+        style_w[t.get('trade_style', 'unknown')] += weights[i]
+    daytrade = style_w.get('daytrade', 0.0) / w_total if w_total else 0.0
+    partial = style_w.get('partial', 0.0) / w_total if w_total else 0.0
+    overnight = style_w.get('overnight', 0.0) / w_total if w_total else 0.0
 
-    # 漲停命中
-    limit_up_hit = sum(1 for t in trades if t['is_limit_up']) / total
+    # 漲停命中 (加權)
+    limit_up_hit = (sum(weights[i] for i, t in enumerate(trades) if t['is_limit_up'])
+                    / w_total) if w_total else 0.0
 
-    # 集中度: 前 5 大個股佔該 master 總買進金額 %
-    stock_amt = defaultdict(int)
-    for t in trades:
+    # 集中度: 前 5 大個股佔該 master 總買進金額 % (加權金額)
+    stock_amt = defaultdict(float)
+    raw_total_amt = 0
+    for i, t in enumerate(trades):
+        raw_total_amt += t['buy_amt']
         if t['stock_code']:
-            stock_amt[t['stock_code']] += t['buy_amt']
+            stock_amt[t['stock_code']] += t['buy_amt'] * weights[i]
     total_amt = sum(stock_amt.values())
     top5_sum = sum(sorted(stock_amt.values(), reverse=True)[:5])
     concentration = (top5_sum / total_amt * 100) if total_amt else 0.0
@@ -420,26 +485,30 @@ def compute_operation_metrics(trades: List[Dict[str, Any]],
     consistency = max(daytrade, partial, overnight) if total else 0.0
 
     # v3.30.9 / v3.31.11: 🔒 鎖漲停 metric (每 trade 傳 stock_close_map + 該 trade 的 date)
-    locked_trades = [t for t in trades
-                     if _is_locked_at_lu(t, THRESH['locked_at_lu_tolerance'],
-                                          stock_close_map=stock_close_map,
-                                          trade_date=t.get('date'))]
-    locked_amt = sum(t['buy_amt'] for t in locked_trades)
-    locked_lot = sum(t['buy_lot'] for t in locked_trades)
-    total_lot = sum(t['buy_lot'] for t in trades)
-    locked_ratio_amt = (locked_amt / total_amt) if total_amt else 0.0
-    locked_ratio_lot = (locked_lot / total_lot) if total_lot else 0.0
+    # v3.33.0: 金額/張數比都加權
+    locked_idx = [i for i, t in enumerate(trades)
+                  if _is_locked_at_lu(t, THRESH['locked_at_lu_tolerance'],
+                                       stock_close_map=stock_close_map,
+                                       trade_date=t.get('date'))]
+    locked_amt = sum(trades[i]['buy_amt'] * weights[i] for i in locked_idx)
+    locked_lot = sum(trades[i]['buy_lot'] * weights[i] for i in locked_idx)
+    total_w_amt = sum(t['buy_amt'] * weights[i] for i, t in enumerate(trades))
+    total_w_lot = sum(t['buy_lot'] * weights[i] for i, t in enumerate(trades))
+    locked_ratio_amt = (locked_amt / total_w_amt) if total_w_amt else 0.0
+    locked_ratio_lot = (locked_lot / total_w_lot) if total_w_lot else 0.0
 
-    # v3.30.9: 📈 長線持有 metric (單檔被加碼 ≥ N 天)
+    # v3.30.9: 📈 長線持有 metric (單檔被加碼 ≥ N 天; 天數 raw, 金額占比加權)
     long_term_stocks_count, long_term_amt_ratio = _compute_long_term_metrics(
-        trades, THRESH['long_term_days_threshold']
+        trades, THRESH['long_term_days_threshold'], weights=weights
     )
 
-    # v3.30.11: 🎯 族群專家 metric (用 industry_classifier)
-    industry_metrics = _compute_industry_metrics(trades, stock_industry_map)
+    # v3.30.11: 🎯 族群專家 metric (用 industry_classifier, 加權金額)
+    industry_metrics = _compute_industry_metrics(trades, stock_industry_map,
+                                                  weights=weights)
 
-    # v3.30.13: ⚠️ 處置股獵手 metric (用 chengwaye disposal-forecast)
-    disposal_metrics = _compute_disposal_metrics(trades, disposal_codes)
+    # v3.30.13: ⚠️ 處置股獵手 metric (用 chengwaye disposal-forecast, 加權金額)
+    disposal_metrics = _compute_disposal_metrics(trades, disposal_codes,
+                                                  weights=weights)
 
     result = {
         'trades_count': total,
@@ -450,14 +519,17 @@ def compute_operation_metrics(trades: List[Dict[str, Any]],
         'limit_up_hit_ratio': round(limit_up_hit, 3),
         'concentration_top5_pct': round(concentration, 1),
         'consistency': round(consistency, 3),
-        'total_buy_amt_wan': round(total_amt / 10),   # 仟元轉萬元
+        'total_buy_amt_wan': round(raw_total_amt / 10),   # 仟元轉萬元 (raw, 真實金額不加權)
         # v3.30.9: 鎖漲停精度
-        'limit_up_locked_trades_count': len(locked_trades),
+        'limit_up_locked_trades_count': len(locked_idx),
         'limit_up_locked_ratio_amt': round(locked_ratio_amt, 3),
         'limit_up_locked_ratio_lot': round(locked_ratio_lot, 3),
         # v3.30.9: 長線 vs 中短期波段拆分
         'long_term_stocks_count': long_term_stocks_count,
         'long_term_amt_ratio': long_term_amt_ratio,
+        # v3.33.0: 衰減透明度
+        'decay_applied': decay_applied,
+        'decay_half_life': THRESH.get('decay_half_life') if decay_applied else None,
     }
     if industry_metrics:
         result.update(industry_metrics)   # top_industry / top_industry_pct / industry_count / top3_industries
@@ -775,8 +847,12 @@ def build_master_profile(master_name: str,
             result['branch_filter'] = branch_filter
         return result
 
+    # v3.33.0 (B3): 時間衰減錨點 = 窗口最新一天 (所有 master 共用同一參考點,
+    # 避免「很久沒交易的 master 自己最後一筆當 1.0」的偏差)
+    decay_ref = max((day['date'] for day in history), default=None)
     op = compute_operation_metrics(trades, stock_industry_map, disposal_codes,
-                                    stock_close_map=stock_close_map)
+                                    stock_close_map=stock_close_map,
+                                    decay_ref_date=decay_ref)
     timing = compute_timing_metrics(trades, len(history))
     # v3.31.23: 算 cross_day 給 generate_labels 用 (T+1 verified)
     _cd = None

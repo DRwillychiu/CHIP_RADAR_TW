@@ -1,9 +1,9 @@
 # Chip Radar TW · master_profile 策略標籤完整定義文件
 
 > **目的**:給每個策略標籤一個**透明、可驗證、可調整**的定義。任何標籤的觸發都能逐步回溯到 raw data。
-> **版本**:v3.32.4（**15 標籤 + 2 T+1 verified + Level 1/2/3 分層 + 派系 + 實戰信號**）
+> **版本**:v3.33.0（**15 標籤 + 2 T+1 verified + Level 1/2/3 分層 + 派系 + 實戰信號 + 時間衰減**）
 > **配套 code**:`master_profile.py` 的 `THRESH` dict + `generate_labels()` + `build_label_hierarchy()` + `classify_strategy_l2()`
-> **最後修訂**:2026-06-10
+> **最後修訂**:2026-06-11
 
 ---
 
@@ -20,6 +20,7 @@
 | v3.31.22 | T+1 跨日追蹤 + 60 天滾動窗口 |
 | v3.31.23 | 波段囤貨不再標（default 行為）+ T+1 verified 標籤 + 派系 MIN_CO_DAYS=5 |
 | v3.32.0 | 實戰信號系統（異常偵測 + 派系共識 + 連續加碼） |
+| v3.33.0 | **時間衰減**（B3）：所有 ratio metrics 乘指數衰減權重 half_life=20，標籤反映近期行為 |
 
 ---
 
@@ -210,6 +211,42 @@ cross_day_tracker.py:
   跨分點賣出也計入 flip
   週末容忍 ≤ 4 天
 ```
+
+### 3.6 時間衰減（v3.33.0, B3）
+
+**問題**:60 天滾動窗口下，40 天前的操作跟昨天的操作對標籤影響力一樣 → 標籤反映「歷史平均」而非「他最近在幹嘛」。master 換策略要 30 天才看得出來。
+
+**解法**:每筆 trade 乘指數衰減權重：
+
+```
+weight = 0.5 ** (age_days / half_life)
+  age_days = (窗口最新日 - trade 日期).days   ← 錨點全 master 共用, 避免偏差
+  half_life = THRESH['decay_half_life'] = 20
+
+  今天     → 1.0
+  20 天前  → 0.5
+  40 天前  → 0.25
+  60 天前  → 0.125
+```
+
+**加權範圍**:
+
+| Metric | 加權? | 理由 |
+|---|---|---|
+| daytrade/partial/overnight ratio | ✅ 加權筆數 | 近期風格主導標籤 |
+| limit_up_hit_ratio | ✅ 加權筆數 | 同上 |
+| limit_up_locked_ratio_amt/lot | ✅ 加權金額/張數 | 同上 |
+| concentration_top5_pct | ✅ 加權金額 | 集中度反映近期持股 |
+| top_industry_pct | ✅ 加權金額 | 族群輪動更快被看到 |
+| disposal_amt_ratio | ✅ 加權金額 | 風險偏好反映近期 |
+| long_term_amt_ratio | ✅ 金額加權 | — |
+| long_term_stocks_count（天數判定）| ❌ raw | 「加碼 ≥15 天」是事實判定 |
+| trades_count / unique_stocks / total_buy_amt_wan | ❌ raw | 真實數字，加權會說謊 |
+| timing metrics（active_days/streaks）| ❌ raw | 節奏 pattern 不適用衰減 |
+
+**透明度**:`operation_metrics` 多兩個欄位 `decay_applied: true` + `decay_half_life: 20`。
+
+**停用方式**:`THRESH['decay_half_life'] = 0`（或 None）→ 全部權重 1.0，回到 v3.32 行為。`compute_operation_metrics` 不傳 `decay_ref_date` 也等同停用（向後相容，舊測試不變）。
 
 ---
 
@@ -424,6 +461,8 @@ THRESH = {
     'top_industry_pct_high': 60.0,    # 🎯族群專家 (不變)
     # 風險偏好
     'disposal_amt_ratio_high': 0.30,  # ⚠️處置股獵手 (不變)
+    # v3.33.0: 時間衰減 (B3)
+    'decay_half_life': 20,            # 指數衰減半衰期 (日曆天), 0/None 停用
 }
 ```
 
