@@ -31,7 +31,7 @@
 └─────────────────┬────────────────────────────────────────────────────┘
                   ↓  (requests + retry,v3.31+ 將 migrate 至 safe_fetch)
 ┌─────────────────────────────────────────────────────────────────────┐
-│  Layer 2: crawler.py 主流程(2905 行,9 階段)                          │
+│  Layer 2: crawler.py 主流程(9 階段, v3.35.0 拆三層 fetch/pipeline/output)│
 │  ① 分點抓取  ② 行情合併  ③ FIFO 部位累積  ④ 期貨/選擇權               │
 │  ⑤ 融資融券  ⑥ 內部人/重大訊息  ⑦ 信號層(溫度計+引擎)               │
 │  ⑧ AI 解讀層注入(v3.30.0)  ⑨ Excel + 加密 JSON 寫出                 │
@@ -106,13 +106,22 @@
 | `backtester.py` | 490 | **v3.29** 1 年回測(247 配對,信號 hit rate) | manual 一次性 |
 | `alerts.py` | 348 | Discord 警報(v3.20,目前 PARKED) | crawler 結尾(可關) |
 
-### 2.5 主程式(Entry Point · 1 個)
+### 2.5 主程式(Entry Point · 1 個 + 三層 · v3.35.0 B1 拆分)
 
 | Module | 行數 | 職責 |
 |---|---|---|
-| `crawler.py` | **2905** | 整合所有 module 的編排器(orchestrator) |
+| `crawler.py` | **~1314** | 薄編排層: main() 9 階段 + main_margin_only() + **re-export hub** |
+| `crawler_fetch.py` | ~240 | 抓取層: TWSE 分點雙模式爬取 + merge_rows (trade_style 判定源頭) |
+| `crawler_pipeline.py` | ~1479 | 計算層: 溫度計 7 信號 + FIFO 部位 + 期間/漲停/隔日沖/master 彙總 |
+| `crawler_output.py` | ~73 | 輸出層: AES-256-GCM + gzip 加密 (magic bytes auto-detect) |
 
-`crawler.py` 是巨型 module(技術債,v3.31+ 中期會拆),但**目前所有 daily-cron 都走 `python crawler.py` 一個進入點**,壞處是動到中間任何東西都要小心,好處是新接手者只要看這一個檔就懂 99% 流程。
+**v3.35.0 (B1, 2026-06-11) 拆分原則**:
+- daily-cron 進入點不變: `python crawler.py`
+- **向後相容 re-export**: 33 個公開名稱 (encrypt_data/decrypt_data/fetch_branch_combined/
+  compute_chip_temperature 等) 全部在 crawler.py re-export — 7 個 module + tests 的
+  `from crawler import X` 一行不用改
+- 依賴方向: crawler.py → pipeline → output (加密), crawler.py → fetch (無循環)
+- main() 1000 行編排邏輯留在 crawler.py (sequential orchestration, 拆 stage 是 Phase 2)
 
 ### 2.6 測試(Test · 15 套件 / 159 case)
 
@@ -382,7 +391,7 @@ crawler 結尾讀 env var 決定 `main()` vs `main_margin_only()`。
 | 🔴 可維護性 | 寫 `ARCHITECTURE.md` + `ONBOARDING.md`(本檔 ✅) | docs only |
 | 🟠 觀測 | `data/audit_history.json` 趨勢化 | auto_audit.py |
 | 🟠 觀測 | `test_integration_crawler_smoke.py` + `test_api_contracts.py` | 新 test |
-| 🟡 架構 | `crawler.py` 2905 行拆 module(分 fetch / pipeline / output 三層) | crawler.py |
+| ~~🟡 架構~~ | ~~`crawler.py` 2905 行拆 module(分 fetch / pipeline / output 三層)~~ ✅ v3.35.0 (B1) 完成 | crawler.py |
 | 🟡 業務 | 規則外配化 `config/trade_pattern_rules.yaml` + `config/signal_weights.yaml` | trade_pattern.py + signal_engine.py |
 | 🟡 一致性 | Excel 加「模式」欄(對齊網站 popup) | excel_report.py |
 | 🟡 安全 | safe_fetch 整合進 crawler 主流程,migrate 既有 requests | crawler.py + 6 fetch module |
