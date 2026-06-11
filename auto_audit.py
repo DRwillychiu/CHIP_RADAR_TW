@@ -212,13 +212,113 @@ def run_audit(data_dir: Path, xlsx_path: Path = None) -> dict:
 
 
 def save_audit_report(data_dir: Path, report: dict) -> Path:
-    """Write data/daily_audit.json (前端 / trigger script 讀取點)."""
+    """Write data/daily_audit.json (前端 / trigger script 讀取點).
+    v3.33.3 (M5): 同步 append 到 audit_history.json 趨勢化."""
     out_path = data_dir / 'daily_audit.json'
     out_path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2),
         encoding='utf-8',
     )
+    try:
+        append_audit_history(data_dir, report)
+    except Exception as e:
+        # 趨勢化失敗不影響主 audit 流程
+        print(f"[auto_audit] ⚠️ audit_history append 失敗 (不影響主流程): {e}",
+              file=sys.stderr)
     return out_path
+
+
+# ════════════════════════════════════════════════════════════════════
+#  v3.33.3 (M5): audit_history.json 趨勢化
+# ════════════════════════════════════════════════════════════════════
+
+HISTORY_MAX_ENTRIES = 180   # 保留約 9 個月交易日
+
+
+def append_audit_history(data_dir: Path, report: dict) -> Path:
+    """每日 verdict 累積到 data/audit_history.json.
+    - key = sheet 日期 (YYYYMMDD); 同日重跑 → 覆蓋為最新 (兜底排程多跑不會重複)
+    - 只存趨勢需要的欄位 (verdict + 核心 stats), 不存 examples 避免膨脹
+    - 保留最近 HISTORY_MAX_ENTRIES 筆"""
+    hist_path = data_dir / 'audit_history.json'
+    history = []
+    if hist_path.exists():
+        try:
+            history = json.loads(hist_path.read_text(encoding='utf-8'))
+            if not isinstance(history, list):
+                history = []
+        except (json.JSONDecodeError, OSError):
+            history = []   # 壞檔重建, 不炸主流程
+
+    stats = report.get('stats', {}) or {}
+    entry = {
+        'date': report.get('sheet') or report.get('audit_run_at', '')[:10],
+        'run_at': report.get('audit_run_at', ''),
+        'verdict': report.get('overall_verdict', 'SKIP'),
+        'summary': report.get('summary', ''),
+        'total_real': stats.get('total_real', 0),
+        'net_sell': stats.get('net_sell', 0),
+        'net_zero': stats.get('net_zero', 0),
+        'reverse_est': stats.get('reverse_est', 0),
+        'branches_audited': report.get('branches_audited', 0),
+    }
+
+    # 同日 dedup: 移除既有同 date 的 entry (兜底排程 22:37/23:47 重跑取最新)
+    history = [h for h in history if h.get('date') != entry['date']]
+    history.append(entry)
+    history.sort(key=lambda h: h.get('date', ''))
+    history = history[-HISTORY_MAX_ENTRIES:]
+
+    hist_path.write_text(
+        json.dumps(history, ensure_ascii=False, indent=1),
+        encoding='utf-8',
+    )
+    return hist_path
+
+
+def print_audit_trend(data_dir: Path, last_n: int = 20):
+    """CLI: python auto_audit.py --history [N] — 印最近 N 天 verdict 趨勢."""
+    hist_path = data_dir / 'audit_history.json'
+    if not hist_path.exists():
+        print("(audit_history.json 不存在 — 至少跑過一次 audit 後才有趨勢)")
+        return
+    try:
+        history = json.loads(hist_path.read_text(encoding='utf-8'))
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"❌ audit_history.json 讀取失敗: {e}")
+        return
+    if not history:
+        print("(audit_history.json 是空的)")
+        return
+
+    recent = history[-last_n:]
+    counts = {'PASS': 0, 'WARN': 0, 'FAIL': 0, 'ERROR': 0, 'SKIP': 0}
+    icon = {'PASS': '✅', 'WARN': '⚠️', 'FAIL': '❌', 'ERROR': '💥', 'SKIP': '⏭️'}
+    print(f"📈 Audit 趨勢 (最近 {len(recent)} 筆 / 累積 {len(history)} 筆)")
+    print("─" * 72)
+    for h in recent:
+        v = h.get('verdict', '?')
+        counts[v] = counts.get(v, 0) + 1
+        print(f"  {h.get('date', '?'):>8}  {icon.get(v, '?')} {v:<5} "
+              f"rows={h.get('total_real', 0):>4}  "
+              f"net_sell={h.get('net_sell', 0)}  net_zero={h.get('net_zero', 0)}  "
+              f"反推={h.get('reverse_est', 0)}")
+    print("─" * 72)
+    total = len(recent)
+    pass_rate = counts.get('PASS', 0) / total * 100 if total else 0
+    print(f"  PASS {counts.get('PASS', 0)} / WARN {counts.get('WARN', 0)} / "
+          f"FAIL {counts.get('FAIL', 0)} / 其他 "
+          f"{total - counts.get('PASS', 0) - counts.get('WARN', 0) - counts.get('FAIL', 0)}"
+          f"  → PASS 率 {pass_rate:.0f}%")
+    # 連續 WARN/FAIL 提示 (趨勢惡化告警)
+    streak = 0
+    for h in reversed(recent):
+        if h.get('verdict') in ('WARN', 'FAIL', 'ERROR'):
+            streak += 1
+        else:
+            break
+    if streak >= 2:
+        print(f"  🚨 注意: 最近連續 {streak} 天非 PASS — 檢查是否系統性劣化")
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -240,6 +340,11 @@ def _emit_github_actions_marker(report):
 
 if __name__ == '__main__':
     data_dir = Path('data')
+    # v3.33.3 (M5): --history [N] 看趨勢, 不跑 audit
+    if len(sys.argv) > 1 and sys.argv[1] == '--history':
+        n = int(sys.argv[2]) if len(sys.argv) > 2 else 20
+        print_audit_trend(data_dir, n)
+        sys.exit(0)
     xlsx = Path(sys.argv[1]) if len(sys.argv) > 1 else None
     rpt = run_audit(data_dir, xlsx)
     out = save_audit_report(data_dir, rpt)
