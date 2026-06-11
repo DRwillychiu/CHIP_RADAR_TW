@@ -253,12 +253,23 @@ Action:      Program: powershell.exe
 
 **鐵則**:
 1. 字串內變數後接冒號要用 `"${var}:"` 不是 `"$var:"`
-2. 改完 .ps1 **一定**跑語法檢查(不執行就能抓 parse error):
+2. 改完 .ps1 **一定**跑語法檢查(不執行就能抓 parse error)。
+   **v3.33.2 起用 repo 內建工具一鍵檢查**:
+   ```powershell
+   # 預設直接檢查桌面 trigger_chip_radar.ps1
+   .\scripts\check_ps1_syntax.ps1
+   # 或指定任意腳本 (可多檔)
+   .\scripts\check_ps1_syntax.ps1 -Path C:\path\to\x.ps1
+   # PASS = exit 0 / FAIL = exit 1 + 印出 行:列 + 錯誤訊息
+   ```
+   (手動版,等同工具內部邏輯):
    ```powershell
    $errors = $null
    [System.Management.Automation.PSParser]::Tokenize((Get-Content 腳本.ps1 -Raw), [ref]$errors)
    $errors   # 應該空
    ```
+   > 註: `trigger_chip_radar.ps1` 本體**刻意不入庫**(含個人路徑避免外洩),
+   > 桌面孤本是運作版。本工具是它唯一的版控保護,改完必跑。
 3. 診斷「Task 有沒有真的跑」看兩個地方:
    ```powershell
    Get-ScheduledTask -TaskName "ChipRadar_DailyFull" | Get-ScheduledTaskInfo
