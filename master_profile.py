@@ -288,6 +288,100 @@ def _compute_disposal_metrics(trades: List[Dict[str, Any]],
     }
 
 
+# ════════════════════════════════════════════════════════════════════
+#  v3.34.0 (B6): 族群輪動追蹤
+# ════════════════════════════════════════════════════════════════════
+
+def compute_industry_rotation(trades: List[Dict[str, Any]],
+                                stock_industry_map: Optional[Dict[str, str]],
+                                top_n: int = 3) -> Optional[List[Dict[str, Any]]]:
+    """v3.34.0 (B6): 月度族群輪動 — trades 按日曆月 bucket, 每月算族群金額分布.
+
+    用 raw 金額不衰減 (bucket 本身已是時間切片, 再衰減會雙重計時).
+    回傳 (按月升冪):
+      [{month: '2026-05', total_amt_wan, trades_count,
+        top: [{name, pct} × top_n],
+        rotated: bool, rotated_from: str|None}, ...]
+    rotated = 該月最大族群跟上一個月不同 (= 輪動發生).
+    None: 無 trades / 無分類表."""
+    if not trades or not stock_industry_map:
+        return None
+    # bucket: month → {industry → amt}
+    month_ind_amt: Dict[str, Dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    month_trades: Dict[str, int] = defaultdict(int)
+    for t in trades:
+        d = t.get('date') or ''
+        if len(d) < 6:
+            continue
+        month = f"{d[:4]}-{d[4:6]}"
+        industry = stock_industry_map.get(t.get('stock_code'), '未分類')
+        month_ind_amt[month][industry] += (t.get('buy_amt', 0) or 0)
+        month_trades[month] += 1
+    if not month_ind_amt:
+        return None
+
+    rotation = []
+    prev_top = None
+    for month in sorted(month_ind_amt.keys()):
+        ind_amt = month_ind_amt[month]
+        total = sum(ind_amt.values())
+        if total <= 0:
+            continue
+        sorted_ind = sorted(ind_amt.items(), key=lambda x: -x[1])
+        top_list = [{'name': name, 'pct': round(amt / total * 100, 1)}
+                    for name, amt in sorted_ind[:top_n]]
+        cur_top = sorted_ind[0][0]
+        rotation.append({
+            'month': month,
+            'total_amt_wan': round(total / 10),   # 仟元 → 萬元
+            'trades_count': month_trades[month],
+            'top': top_list,
+            'rotated': prev_top is not None and cur_top != prev_top,
+            'rotated_from': prev_top if (prev_top is not None and cur_top != prev_top) else None,
+        })
+        prev_top = cur_top
+    return rotation if rotation else None
+
+
+def compute_global_rotation(history: List[Dict[str, Any]],
+                              targets: Dict[str, List[str]],
+                              stock_industry_map: Optional[Dict[str, str]],
+                              top_n: int = 8) -> Optional[Dict[str, Any]]:
+    """v3.34.0 (B6): 全體個人大戶資金的族群遷徙 (月度彙總 + 最近兩月流向).
+
+    回傳:
+      {months: [同 compute_industry_rotation 格式 (top_n=8)],
+       flows: [{industry, prev_pct, curr_pct, delta_pp} × 按 |delta| 排序],
+       flow_months: ['2026-05', '2026-06']}
+    flows = 最近兩個月每族群佔比變化 (delta_pp = 百分點差, 正=流入 負=流出).
+    None: 資料不足."""
+    if not stock_industry_map or not targets:
+        return None
+    all_trades = []
+    for m in targets:
+        all_trades.extend(extract_master_trades(history, m))
+    months = compute_industry_rotation(all_trades, stock_industry_map, top_n=top_n)
+    if not months:
+        return None
+
+    result = {'months': months}
+    if len(months) >= 2:
+        prev_m, curr_m = months[-2], months[-1]
+        prev_pct = {i['name']: i['pct'] for i in prev_m['top']}
+        curr_pct = {i['name']: i['pct'] for i in curr_m['top']}
+        flows = []
+        for ind in set(prev_pct) | set(curr_pct):
+            p, c = prev_pct.get(ind, 0.0), curr_pct.get(ind, 0.0)
+            delta = round(c - p, 1)
+            if abs(delta) >= 1.0:   # 1 個百分點以下視為噪音
+                flows.append({'industry': ind, 'prev_pct': p, 'curr_pct': c,
+                              'delta_pp': delta})
+        flows.sort(key=lambda f: -abs(f['delta_pp']))
+        result['flows'] = flows[:10]
+        result['flow_months'] = [prev_m['month'], curr_m['month']]
+    return result
+
+
 def _compute_long_term_metrics(trades: List[Dict[str, Any]],
                                  days_threshold: int,
                                  weights: Optional[List[float]] = None
@@ -877,6 +971,12 @@ def build_master_profile(master_name: str,
     if branch_filter:
         result['branch_filter'] = branch_filter
 
+    # v3.34.0 (B6): 月度族群輪動 (僅 master 整體層級, per-branch 不算避免膨脹)
+    if branch_filter is None and stock_industry_map:
+        rotation = compute_industry_rotation(trades, stock_industry_map)
+        if rotation:
+            result['industry_rotation'] = rotation
+
     # v3.30.12: per-branch 細分 (僅 master 整體層級, 且該 master 有 >1 分點時)
     # 解盲點 #5 — 巨人傑等雙風格 master 在不同分點各自可能是純風格
     if branch_filter is None:
@@ -1008,6 +1108,18 @@ def build_all_profiles(history: List[Dict[str, Any]],
 
     perf_data = None
 
+    # v3.34.0 (B6): 全體大戶資金族群遷徙 (月度彙總 + 最近兩月流向)
+    global_rotation = None
+    try:
+        global_rotation = compute_global_rotation(history, targets, stock_industry_map)
+        if global_rotation and global_rotation.get('flows'):
+            fm = global_rotation.get('flow_months', ['?', '?'])
+            tops = ', '.join(f"{f['industry']}{f['delta_pp']:+.1f}pp"
+                             for f in global_rotation['flows'][:3])
+            print(f"  [Rotation] 族群遷徙 {fm[0]} → {fm[1]}: {tops}")
+    except Exception as e:
+        print(f"  ⚠️ 族群遷徙計算失敗: {type(e).__name__}: {e}", file=sys.stderr)
+
     dates = [d['date'] for d in history]
     result = {
         'generated_at': now_tw().isoformat(),
@@ -1018,6 +1130,8 @@ def build_all_profiles(history: List[Dict[str, Any]],
         'disposal_classification_available': disposal_codes is not None,
         'masters': masters_out,
     }
+    if global_rotation:
+        result['industry_rotation_global'] = global_rotation
     if alliance_data:
         result['alliance'] = {
             'top_alliances': alliance_data['top_alliances'],

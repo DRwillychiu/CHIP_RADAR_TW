@@ -4814,6 +4814,56 @@ function renderMP() {
     html += `</table></div></div>`;
   }
 
+  // v3.34.0 (B6): 大戶資金族群遷徙面板
+  const gr = d.industry_rotation_global;
+  if (gr && gr.months && gr.months.length > 0) {
+    html += `
+    <div style="margin-top:24px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="padding:14px 18px;background:rgba(251,146,60,0.08);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">🔄</span>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#fb923c;">大戶資金族群遷徙 — 月度彙總</div>
+          <div style="font-size:11px;color:var(--muted);">全部個人大戶買進金額的族群分布變化 ｜ 錢往哪個族群移動</div>
+        </div>
+      </div>
+      <div style="padding:16px 18px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">`;
+    gr.months.forEach(m => {
+      html += `<div style="background:rgba(15,21,37,0.5);border:1px solid var(--border);border-radius:8px;padding:12px;">
+        <div style="font-size:12px;font-weight:700;color:var(--gold-bright);margin-bottom:8px;">${m.month} <span style="font-weight:400;color:var(--text-3);font-size:10px;">(${(m.total_amt_wan || 0).toLocaleString()} 萬)</span></div>`;
+      (m.top || []).slice(0, 6).forEach(t => {
+        html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+          <div style="flex:0 0 90px;font-size:11px;color:var(--text-1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.name}</div>
+          <div style="flex:1;height:8px;background:rgba(99,102,241,0.1);border-radius:4px;overflow:hidden;"><div style="width:${Math.min(t.pct, 100)}%;height:100%;background:#fb923c;opacity:0.7;"></div></div>
+          <div style="flex:0 0 38px;text-align:right;font-size:11px;color:var(--text-2);">${t.pct.toFixed(0)}%</div>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div>`;
+    // 最近兩月流向
+    if (gr.flows && gr.flows.length > 0) {
+      const fm = gr.flow_months || ['上月', '本月'];
+      html += `<div style="margin-top:14px;">
+        <div style="font-size:12px;font-weight:700;color:#fb923c;margin-bottom:8px;">💸 資金流向 (${fm[0]} → ${fm[1]})</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;">`;
+      gr.flows.forEach(f => {
+        const inflow = f.delta_pp > 0;
+        const c = inflow ? '#f87171' : '#3fb950';   // 台股慣例: 紅=流入(買) 綠=流出
+        html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:${c}0d;border:1px solid ${c}30;border-radius:6px;font-size:12px;">
+          <span style="font-size:14px;">${inflow ? '🔺' : '🔻'}</span>
+          <span style="flex:1;color:var(--text-1);">${f.industry}</span>
+          <span style="color:var(--text-3);font-size:11px;">${f.prev_pct.toFixed(0)}% → ${f.curr_pct.toFixed(0)}%</span>
+          <span style="font-weight:700;color:${c};">${f.delta_pp > 0 ? '+' : ''}${f.delta_pp.toFixed(1)}pp</span>
+        </div>`;
+      });
+      html += `</div>
+        <div style="margin-top:6px;font-size:10px;color:var(--text-3);">pp = 百分點 (該族群佔全體大戶買進金額的比重變化) ｜ 月初樣本少時流向波動大, 月中後較可信</div>
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+
   // v3.32.0: 實戰信號面板 (異常+共識+連續加碼)
   const ds = d.daily_signals;
   if (ds) {
@@ -4917,6 +4967,31 @@ function showMPDetail(name) {
         </div>
       </div>
     </div>`;
+  }
+
+  // v3.34.0 (B6): 月度族群輪動時間軸
+  const ir = p.industry_rotation;
+  if (ir && ir.length > 0) {
+    html += `<div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;">
+      <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px;">🔄 族群輪動 (月度主攻變遷)</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;">`;
+    ir.forEach((m, i) => {
+      const top = m.top && m.top[0] ? m.top[0] : null;
+      const borderC = m.rotated ? '#fb923c' : 'var(--border)';
+      html += `${i > 0 ? `<div style="align-self:center;color:${m.rotated ? '#fb923c' : 'var(--text-3)'};font-size:16px;">→</div>` : ''}
+        <div style="flex:1;min-width:150px;background:rgba(15,21,37,0.5);border:1px solid ${borderC};border-radius:8px;padding:10px;">
+          <div style="font-size:11px;color:var(--muted);">${m.month}${m.rotated ? ` <span style="color:#fb923c;font-weight:700;">⟲ 輪動!</span>` : ''}</div>
+          <div style="font-size:14px;font-weight:700;color:var(--gold-bright);margin:4px 0;">${top ? `${top.name} ${top.pct.toFixed(0)}%` : '-'}</div>
+          <div style="font-size:10px;color:var(--text-2);">${(m.top || []).slice(1).map(t => `${t.name} ${t.pct.toFixed(0)}%`).join(' · ') || ''}</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:4px;">${(m.total_amt_wan || 0).toLocaleString()} 萬 / ${m.trades_count} 筆</div>
+        </div>`;
+    });
+    html += `</div>`;
+    const lastRot = ir[ir.length - 1];
+    if (lastRot.rotated) {
+      html += `<div style="margin-top:8px;padding:6px 10px;background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.3);border-radius:6px;font-size:11px;color:#fb923c;">⚠️ 最新月份主攻族群從「${lastRot.rotated_from}」切換到「${lastRot.top[0].name}」— 操作族群正在轉移</div>`;
+    }
+    html += `</div>`;
   }
 
   // v3.31.21: 績效面已移除 (精準度不足: 收盤→次日收盤 ≠ 真實報酬,
