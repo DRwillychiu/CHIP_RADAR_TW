@@ -691,12 +691,15 @@ def compute_timing_metrics(trades: List[Dict[str, Any]],
 
 def generate_labels(op: Dict[str, Any], timing: Dict[str, Any],
                      declared_styles: Optional[List[str]] = None,
-                     cross_day: Optional[Dict[str, Any]] = None) -> List[str]:
+                     cross_day: Optional[Dict[str, Any]] = None,
+                     disposal_holdings: Optional[Dict[str, Any]] = None) -> List[str]:
     """基於 metric 閾值規則生成標籤.
     v3.31.13: declared_styles 參數
     v3.31.23 C2: cross_day 參數 — T+1 真實 flip_ratio 自動判定風格
       actual_flip_ratio > 0.45 → 「隔日沖(verified)」(取代 declared override)
-      actual_flip_ratio < 0.20 → 確認波段/長線 (不加隔日沖標籤)"""
+      actual_flip_ratio < 0.20 → 確認波段/長線 (不加隔日沖標籤)
+    v3.36.0 B5: disposal_holdings 參數 — 處置股持倉狀態標籤
+      trapped (處置中持倉) 或 high (差1次重倉) > 0 → 「⛓️ 處置持倉」"""
     labels = []
     declared = set(declared_styles or [])
     flip_ratio = cross_day.get('actual_flip_ratio', 0) if cross_day else 0
@@ -770,6 +773,12 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any],
     if op.get('disposal_amt_ratio', 0) > THRESH['disposal_amt_ratio_high']:
         labels.append('⚠️ 處置股獵手')
 
+    # v3.36.0 (B5): ⛓️ 處置持倉 (狀態標籤 — 現在抱著處置中/差1次的股票)
+    # 與獵手不同: 獵手=行為偏好(流量), 持倉=當前風險狀態(存量)
+    if disposal_holdings and (disposal_holdings.get('trapped_count', 0) > 0
+                               or disposal_holdings.get('high_count', 0) > 0):
+        labels.append('⛓️ 處置持倉')
+
     return labels
 
 
@@ -796,6 +805,8 @@ LABEL_L1_MAP = {
     # 觀察型: 風格/族群/節奏特徵
     '持續進場': '觀察型', '分散布局': '觀察型',
     '🎯 族群專家': '觀察型', '多變策略': '觀察型',
+    # v3.36.0 (B5): 處置持倉 = 當前風險狀態 (非行為偏好) → 觀察型
+    '⛓️ 處置持倉': '觀察型',
 }
 
 # Level 2: 策略子類 (根據標籤組合判定)
@@ -920,13 +931,16 @@ def build_master_profile(master_name: str,
                           stock_industry_map: Optional[Dict[str, str]] = None,
                           branch_filter: Optional[str] = None,
                           disposal_codes: Optional[set] = None,
-                          stock_close_map: Optional[Dict[str, Dict[str, float]]] = None
+                          stock_close_map: Optional[Dict[str, Dict[str, float]]] = None,
+                          disposal_holdings: Optional[Dict[str, Any]] = None
                           ) -> Dict[str, Any]:
     """組一個 master 的完整 profile.
     stock_industry_map (v3.30.11): code → 產業名稱反查表, 算 🎯族群專家用。
     branch_filter (v3.30.12): 非 None 時只算該分點 (per-branch 細分用,
                               且不再遞迴算 per_branch_profiles 截斷遞迴)。
-    disposal_codes (v3.30.13): 處置股 code set (from chengwaye), 算 ⚠️處置股獵手用。"""
+    disposal_codes (v3.30.13): 處置股 code set (from chengwaye), 算 ⚠️處置股獵手用。
+    disposal_holdings (v3.36.0 B5): 該 master 的處置持倉 (from disposal_holdings.py),
+                                     掛 profile['disposal_holdings'] + ⛓️標籤。"""
     trades = extract_master_trades(history, master_name, branch_code=branch_filter)
     declared = master_styles.get(master_name, [])
 
@@ -955,7 +969,8 @@ def build_master_profile(master_name: str,
         _cd = compute_cross_day_metrics(history, master_name, master_styles)
     except Exception:
         pass
-    labels = generate_labels(op, timing, declared_styles=declared, cross_day=_cd)
+    labels = generate_labels(op, timing, declared_styles=declared, cross_day=_cd,
+                              disposal_holdings=disposal_holdings)
     narrative = generate_narrative(master_name, op, timing, labels)
     label_hierarchy = build_label_hierarchy(labels, op)
 
@@ -976,6 +991,10 @@ def build_master_profile(master_name: str,
         rotation = compute_industry_rotation(trades, stock_industry_map)
         if rotation:
             result['industry_rotation'] = rotation
+
+    # v3.36.0 (B5): 處置持倉明細 (僅 master 整體層級)
+    if branch_filter is None and disposal_holdings:
+        result['disposal_holdings'] = disposal_holdings
 
     # v3.30.12: per-branch 細分 (僅 master 整體層級, 且該 master 有 >1 分點時)
     # 解盲點 #5 — 巨人傑等雙風格 master 在不同分點各自可能是純風格
@@ -1026,10 +1045,12 @@ def build_all_profiles(history: List[Dict[str, Any]],
 
     # 載入處置股清單 (v3.30.13)
     disposal_codes = None
+    disposal_map_full = None   # v3.36.0 (B5): 持倉追蹤需要分級 sets
     try:
         from disposal_fetcher import get_disposal_map
         disposal_data = get_disposal_map(data_dir)
         disposal_codes = disposal_data.get('all_risky') if disposal_data else None
+        disposal_map_full = disposal_data
         if disposal_codes:
             print(f"  [Disposal] 載入 {len(disposal_codes)} 檔處置/即將處置股 "
                   f"(來源 chengwaye disposal-forecast)")
@@ -1064,12 +1085,24 @@ def build_all_profiles(history: List[Dict[str, Any]],
     except Exception as e:
         print(f"  ⚠️ master override 失敗: {type(e).__name__}: {e}", file=sys.stderr)
 
+    # v3.36.0 (B5): 處置股持倉追蹤 (淨累積 × 處置名單交叉 + 快照判定處置中買進)
+    all_holdings = None
+    try:
+        from disposal_holdings import compute_all_disposal_holdings, format_holdings_summary
+        all_holdings = compute_all_disposal_holdings(history, targets,
+                                                      disposal_map_full, data_dir=data_dir)
+        print(format_holdings_summary(all_holdings))
+    except Exception as e:
+        print(f"  ⚠️ 處置持倉追蹤失敗: {type(e).__name__}: {e}", file=sys.stderr)
+
     masters_out = {}
     for m in targets:
+        mh = (all_holdings or {}).get('per_master', {}).get(m)
         masters_out[m] = build_master_profile(m, history, indiv,
                                                stock_industry_map=stock_industry_map,
                                                disposal_codes=disposal_codes,
-                                               stock_close_map=stock_close_map)
+                                               stock_close_map=stock_close_map,
+                                               disposal_holdings=mh)
 
     # v3.31.19: Phase 2 聯動面 — master × master 同向率 + 派系
     alliance_data = None
@@ -1132,6 +1165,11 @@ def build_all_profiles(history: List[Dict[str, Any]],
     }
     if global_rotation:
         result['industry_rotation_global'] = global_rotation
+    # v3.36.0 (B5): 全體處置曝險 (per_master 已掛各 profile, global 只留排行)
+    if all_holdings:
+        result['disposal_holdings_global'] = {
+            k: v for k, v in all_holdings.items() if k != 'per_master'
+        }
     if alliance_data:
         result['alliance'] = {
             'top_alliances': alliance_data['top_alliances'],

@@ -4864,6 +4864,52 @@ function renderMP() {
     html += `</div></div>`;
   }
 
+  // v3.36.0 (B5): 處置股持倉風險面板
+  const dhg = d.disposal_holdings_global;
+  if (dhg && dhg.exposures && dhg.exposures.length > 0) {
+    const riskMeta = {
+      trapped: {icon: '⛓️', label: '處置中持倉', color: '#f87171'},
+      high: {icon: '🚨', label: '差1次', color: '#fb923c'},
+      watch: {icon: '👀', label: '差2次', color: '#fbbf24'},
+    };
+    html += `
+    <div style="margin-top:24px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="padding:14px 18px;background:rgba(248,113,113,0.08);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">⛓️</span>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#f87171;">處置股持倉風險 — ${dhg.masters_with_exposure} 位 master 有曝險</div>
+          <div style="font-size:11px;color:var(--muted);">大戶抱著即將進處置/處置中的股票 ｜ ⛓️被鎖 → 🚨差1次再觸就關 → 👀差2次觀察</div>
+        </div>
+      </div>
+      <div style="padding:16px 18px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <tr style="color:#f87171;font-size:11px;">
+            <th style="padding:6px 8px;text-align:left;">風險</th>
+            <th style="padding:6px 8px;text-align:left;">Master</th>
+            <th style="padding:6px 8px;text-align:left;">標的</th>
+            <th style="padding:6px 8px;text-align:right;">可見淨累積</th>
+            <th style="padding:6px 8px;text-align:right;">買進天數</th>
+            <th style="padding:6px 8px;text-align:right;">最後買進</th>
+            <th style="padding:6px 8px;"></th>
+          </tr>`;
+    dhg.exposures.slice(0, 15).forEach(e => {
+      const rm = riskMeta[e.risk] || riskMeta.watch;
+      html += `<tr style="border-top:1px solid var(--border);cursor:pointer;" onclick="showMPDetail('${e.master.replace(/'/g, "\\'")}')">
+        <td style="padding:6px 8px;color:${rm.color};font-weight:700;">${rm.icon} ${rm.label}</td>
+        <td style="padding:6px 8px;font-weight:600;color:var(--gold-bright);">${e.master}</td>
+        <td style="padding:6px 8px;">${e.stock_name} <span style="color:var(--text-3);">${e.stock_code}</span></td>
+        <td style="padding:6px 8px;text-align:right;font-weight:700;">${e.net_lots.toLocaleString()} 張 / ${e.net_amt_wan.toLocaleString()} 萬</td>
+        <td style="padding:6px 8px;text-align:right;">${e.buy_days}</td>
+        <td style="padding:6px 8px;text-align:right;color:var(--text-2);">${(e.last_buy_date || '').slice(4)}</td>
+        <td style="padding:6px 8px;">${e.bought_during_disposal ? '<span style="color:#f87171;font-weight:700;">🎯 處置中還在買</span>' : ''}</td>
+      </tr>`;
+    });
+    html += `</table>
+        <div style="margin-top:8px;font-size:10px;color:var(--text-3);">⚠️ ${dhg.note || '持倉 = 窗口內可見淨累積, 非真實庫存'} ｜ 點列開該 master 完整明細</div>
+      </div>
+    </div>`;
+  }
+
   // v3.32.0: 實戰信號面板 (異常+共識+連續加碼)
   const ds = d.daily_signals;
   if (ds) {
@@ -4992,6 +5038,43 @@ function showMPDetail(name) {
       html += `<div style="margin-top:8px;padding:6px 10px;background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.3);border-radius:6px;font-size:11px;color:#fb923c;">⚠️ 最新月份主攻族群從「${lastRot.rotated_from}」切換到「${lastRot.top[0].name}」— 操作族群正在轉移</div>`;
     }
     html += `</div>`;
+  }
+
+  // v3.36.0 (B5): 處置股持倉明細
+  const dh = p.disposal_holdings;
+  if (dh && dh.positions && dh.positions.length > 0) {
+    const riskMeta = {
+      trapped: {icon: '⛓️', label: '處置中持倉', color: '#f87171'},
+      high: {icon: '🚨', label: '差1次', color: '#fb923c'},
+      watch: {icon: '👀', label: '差2次', color: '#fbbf24'},
+    };
+    html += `<div style="margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;">
+      <div style="font-size:12px;color:var(--gold-bright);margin-bottom:8px;">⛓️ 處置股持倉 (窗口內可見淨累積, 非真實庫存)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <tr style="color:var(--text-3);">
+          <th style="padding:4px 6px;text-align:left;">風險</th>
+          <th style="padding:4px 6px;text-align:left;">標的</th>
+          <th style="padding:4px 6px;text-align:right;">淨累積</th>
+          <th style="padding:4px 6px;text-align:right;">買/賣張</th>
+          <th style="padding:4px 6px;text-align:right;">買進天</th>
+          <th style="padding:4px 6px;text-align:right;">最後買</th>
+          <th style="padding:4px 6px;"></th>
+        </tr>`;
+    dh.positions.forEach(pos => {
+      const rm = riskMeta[pos.risk] || riskMeta.watch;
+      html += `<tr style="border-top:1px solid var(--border);">
+        <td style="padding:4px 6px;color:${rm.color};font-weight:700;">${rm.icon} ${rm.label}</td>
+        <td style="padding:4px 6px;">${pos.stock_name} <span style="color:var(--text-3);">${pos.stock_code}</span></td>
+        <td style="padding:4px 6px;text-align:right;font-weight:700;">${pos.net_lots.toLocaleString()} 張 / ${pos.net_amt_wan.toLocaleString()} 萬</td>
+        <td style="padding:4px 6px;text-align:right;color:var(--text-2);">${pos.buy_lot.toLocaleString()}/${pos.sell_lot.toLocaleString()}</td>
+        <td style="padding:4px 6px;text-align:right;">${pos.buy_days}</td>
+        <td style="padding:4px 6px;text-align:right;color:var(--text-2);">${(pos.last_buy_date || '').slice(4)}</td>
+        <td style="padding:4px 6px;">${pos.bought_during_disposal ? '<span style="color:#f87171;font-weight:700;">處置中還在買!</span>' : ''}</td>
+      </tr>`;
+    });
+    html += `</table>
+      <div style="margin-top:6px;font-size:10px;color:var(--text-3);">⚠️ 持倉為估計值: TWSE 每分點僅公布 Top30 榜 + 跨券商賣出不可見 — 買/賣組成供人眼複核</div>
+    </div>`;
   }
 
   // v3.31.21: 績效面已移除 (精準度不足: 收盤→次日收盤 ≠ 真實報酬,

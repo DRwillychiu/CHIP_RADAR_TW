@@ -1,8 +1,8 @@
 # Chip Radar TW · master_profile 策略標籤完整定義文件
 
 > **目的**:給每個策略標籤一個**透明、可驗證、可調整**的定義。任何標籤的觸發都能逐步回溯到 raw data。
-> **版本**:v3.33.0（**15 標籤 + 2 T+1 verified + Level 1/2/3 分層 + 派系 + 實戰信號 + 時間衰減**）
-> **配套 code**:`master_profile.py` 的 `THRESH` dict + `generate_labels()` + `build_label_hierarchy()` + `classify_strategy_l2()`
+> **版本**:v3.36.0（**16 標籤 + 2 T+1 verified + Level 1/2/3 分層 + 派系 + 實戰信號 + 時間衰減 + 處置持倉**）
+> **配套 code**:`master_profile.py` 的 `THRESH` dict + `generate_labels()` + `build_label_hierarchy()` + `classify_strategy_l2()` + `disposal_holdings.py`
 > **最後修訂**:2026-06-11
 
 ---
@@ -21,6 +21,7 @@
 | v3.31.23 | 波段囤貨不再標（default 行為）+ T+1 verified 標籤 + 派系 MIN_CO_DAYS=5 |
 | v3.32.0 | 實戰信號系統（異常偵測 + 派系共識 + 連續加碼） |
 | v3.33.0 | **時間衰減**（B3）：所有 ratio metrics 乘指數衰減權重 half_life=20，標籤反映近期行為 |
+| v3.36.0 | **⛓️ 處置持倉**（B5）：淨累積 × 處置名單交叉,風險三級 + 處置玩家偵測,標籤 15→16 |
 
 ---
 
@@ -344,6 +345,22 @@ weight = 0.5 ** (age_days / half_life)
 | **資料源** | chengwaye.com/disposal-forecast.html（TWSE 無公開 JSON API） |
 | **風險揭露** | chengwaye 改 HTML/關站 → break,fallback 跳過此 metric |
 
+### 4.9 持倉狀態類（1 個,獨立,v3.36.0 B5）
+
+#### ⛓️ 處置持倉
+
+| 項 | 內容 |
+|---|---|
+| **意圖** | 該 master **現在抱著**處置中/差1次的股票（風險狀態,非行為偏好） |
+| **與獵手的差別** | 獵手 = 「常買」處置股（流量/偏好）；持倉 = 「現在抱著」（存量/風險）。處置 = 流動性斷崖（分盤撮合 + 全額交割,成交量 -70~90%）,重倉者只能搶跑或被鎖 |
+| **計算** | `disposal_holdings.py`:每 master × 每股窗口內淨累積 = Σ(buy_lot − sell_lot)（**buys + sells 雙榜都算**,出貨日常只在賣超榜）→ 與處置名單交叉 |
+| **觸發** | 有 `trapped`（處置中持倉）或 `high`（差1次重倉）級命中。只有 `watch`（差2次）不標 |
+| **大額門檻** | 淨累積 ≥100 張 **或** ≥1000 萬（OR,`MIN_NET_LOTS` / `MIN_NET_WAN` 可調） |
+| **風險三級** | `active`→⛓️trapped（被鎖）/ `imminent_1`→🚨high / `imminent_2`→👀watch |
+| **處置玩家偵測** | 用 `disposal_history/` 每日快照:買進日 ≥ 該股首次進 active 名單日 → `bought_during_disposal`（處置中還在買 = 出關行情玩家） |
+| **L1 歸類** | 觀察型（狀態觀察,非攻擊行為） |
+| **⚠️ 可信度揭露** | **持倉 = 窗口內可見淨累積,非真實庫存（~70-75%）**:(1) TWSE 每分點每日只公布 Top 30 榜 (2) 跨券商賣出不可見 (3) 窗口外舊部位不可見。對策:大額才標 + 輸出買/賣/天數組成供人眼複核。當沖/隔日沖買賣自然互抵 → 被標出的幾乎都是真持倉者（指標自我修正） |
+
 ---
 
 ## 5. Level 1/2/3 標籤分層體系（v3.31.16）
@@ -596,6 +613,8 @@ if 'next_day_flipper' in declared and '短打型' not in labels:
 持續進場                   max_streak_days > 15                          timing
 🎯 族群專家                top_industry_pct > 60                         op
 ⚠️ 處置股獵手              disposal_amt_ratio > 0.30                     op
+⛓️ 處置持倉 (v3.36.0)      trapped_count>0 或 high_count>0               disposal_holdings
+                           (淨累積≥100張或≥1000萬 × 處置中/差1次)
 ```
 
 ---
