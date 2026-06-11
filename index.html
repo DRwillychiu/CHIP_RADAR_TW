@@ -4586,6 +4586,45 @@ async function downloadBossExcel(ev, btnEl) {
 // 不加密 fetch + render 15 個個人大戶 × 15 標籤 + per-branch 細分
 // ============================================================
 let MP_CACHE = null;
+// v3.33.1 (B2): tab14 排序 + 篩選狀態
+let MP_SORT = { key: 'total_amt', dir: -1 };               // 預設按買進金額降冪
+let MP_FILTER = { l2: 'all', label: 'all' };
+
+function mpSort(key) {
+  if (MP_SORT.key === key) { MP_SORT.dir = -MP_SORT.dir; }  // 同欄再點 → 反向
+  else { MP_SORT = { key, dir: -1 }; }                      // 新欄 → 降冪
+  renderMP();
+}
+
+function mpFilterChange() {
+  const l2 = document.getElementById('mp-filter-l2');
+  const lb = document.getElementById('mp-filter-label');
+  MP_FILTER = { l2: l2 ? l2.value : 'all', label: lb ? lb.value : 'all' };
+  renderMP();
+}
+
+function mpFilterReset() {
+  MP_FILTER = { l2: 'all', label: 'all' };
+  MP_SORT = { key: 'total_amt', dir: -1 };
+  renderMP();
+}
+
+// 取 master 在某排序欄位的數值 (no_data master 永遠排最後)
+function mpSortVal(p, key) {
+  if (p.no_data) return null;
+  const op = p.operation_metrics || {}, tm = p.timing_metrics || {};
+  switch (key) {
+    case 'name': return null;  // 名字排序在外層用 localeCompare
+    case 'trades': return op.trades_count || 0;
+    case 'days': return tm.active_days || 0;
+    case 'limitup': return op.limit_up_hit_ratio || 0;
+    case 'locked': return op.limit_up_locked_ratio_amt || 0;
+    case 'conc': return op.concentration_top5_pct || 0;
+    case 'disposal': return op.disposal_amt_ratio || 0;
+    case 'total_amt': return op.total_buy_amt_wan || 0;
+    default: return 0;
+  }
+}
 
 async function loadMasterProfileTab(forceRefresh) {
   const cont = document.getElementById('mp-container');
@@ -4609,37 +4648,89 @@ function renderMP() {
   const cont = document.getElementById('mp-container');
   if (!cont || !MP_CACHE) return;
   const d = MP_CACHE;
-  const masters = Object.entries(d.masters || {});
+  let masters = Object.entries(d.masters || {});
+  const totalCount = masters.length;
   const ind_ok = d.industry_classification_available ? '✅' : '⚠️';
   const disp_ok = d.disposal_classification_available ? '✅' : '⚠️';
 
+  // v3.33.1 (B2): 篩選選項 (從資料動態建, 不寫死)
+  const l2Set = new Set(), labelSet = new Set();
+  for (const [, p] of masters) {
+    if (p.no_data) continue;
+    const l2 = (p.label_hierarchy || {}).level2_strategy;
+    if (l2) l2Set.add(l2);
+    (p.strategy_labels || []).forEach(l => labelSet.add(l));
+  }
+
+  // v3.33.1 (B2): 套篩選
+  if (MP_FILTER.l2 !== 'all') {
+    masters = masters.filter(([, p]) => !p.no_data &&
+      (p.label_hierarchy || {}).level2_strategy === MP_FILTER.l2);
+  }
+  if (MP_FILTER.label !== 'all') {
+    masters = masters.filter(([, p]) => !p.no_data &&
+      (p.strategy_labels || []).includes(MP_FILTER.label));
+  }
+
+  // v3.33.1 (B2): 套排序 (no_data 永遠最後; name 用 localeCompare, 其餘數值)
+  masters.sort(([na, pa], [nb, pb]) => {
+    if (pa.no_data && pb.no_data) return 0;
+    if (pa.no_data) return 1;
+    if (pb.no_data) return -1;
+    if (MP_SORT.key === 'name') return na.localeCompare(nb, 'zh-Hant') * MP_SORT.dir;
+    const va = mpSortVal(pa, MP_SORT.key), vb = mpSortVal(pb, MP_SORT.key);
+    return (va === vb) ? 0 : (va < vb ? 1 : -1) * -MP_SORT.dir;
+  });
+
+  const arrow = k => MP_SORT.key === k ? (MP_SORT.dir === -1 ? ' ▼' : ' ▲') : '';
+  const thStyle = 'cursor:pointer;user-select:none;';
+  const filterActive = MP_FILTER.l2 !== 'all' || MP_FILTER.label !== 'all';
+  const optEsc = s => String(s).replace(/"/g, '&quot;');
+
   let html = `
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
-      <h2 style="margin:0;color:var(--gold-bright);">📊 大戶操作畫像 <span style="font-size:13px;color:var(--text-2);font-weight:400;">(${masters.length} 個個人大戶 × 15 標籤)</span></h2>
+      <h2 style="margin:0;color:var(--gold-bright);">📊 大戶操作畫像 <span style="font-size:13px;color:var(--text-2);font-weight:400;">(${filterActive ? masters.length + '/' : ''}${totalCount} 個個人大戶 × 15 標籤)</span></h2>
       <button onclick="loadMasterProfileTab(true)" style="padding:6px 12px;background:rgba(99,102,241,0.15);border:1px solid var(--brand);border-radius:6px;color:var(--brand);cursor:pointer;">🔄 重抓</button>
     </div>
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:14px;">
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">
       📅 窗口 <strong>${d.trade_date_range?.[0] || '?'} ~ ${d.trade_date_range?.[1] || '?'}</strong> (${d.window_days} 天)
       ｜ 更新 ${(d.generated_at || '').slice(0,16)}
       ｜ ${ind_ok} 族群分類 ｜ ${disp_ok} 處置股清單
-      ｜ <span style="color:var(--text-3)">點 master 列查看完整 narrative + per-branch 細分</span>
+      ｜ <span style="color:var(--text-3)">點欄位標題排序 ｜ 點 master 列查看細節</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-size:12px;">
+      <span style="color:var(--text-2);">🔎 篩選:</span>
+      <select id="mp-filter-l2" onchange="mpFilterChange()" style="padding:5px 8px;background:#0f1525;border:1px solid var(--line);border-radius:6px;color:var(--text-1);font-size:12px;">
+        <option value="all"${MP_FILTER.l2 === 'all' ? ' selected' : ''}>全部策略子類</option>
+        ${[...l2Set].sort().map(s => `<option value="${optEsc(s)}"${MP_FILTER.l2 === s ? ' selected' : ''}>${s}</option>`).join('')}
+      </select>
+      <select id="mp-filter-label" onchange="mpFilterChange()" style="padding:5px 8px;background:#0f1525;border:1px solid var(--line);border-radius:6px;color:var(--text-1);font-size:12px;">
+        <option value="all"${MP_FILTER.label === 'all' ? ' selected' : ''}>全部標籤</option>
+        ${[...labelSet].sort().map(s => `<option value="${optEsc(s)}"${MP_FILTER.label === s ? ' selected' : ''}>${s}</option>`).join('')}
+      </select>
+      ${filterActive || MP_SORT.key !== 'total_amt' ? `<button onclick="mpFilterReset()" style="padding:5px 10px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.4);border-radius:6px;color:#fca5a5;cursor:pointer;font-size:12px;">✕ 重設</button>` : ''}
+      ${filterActive ? `<span style="color:var(--text-3);">符合 ${masters.length} 位</span>` : ''}
     </div>
     <div style="overflow-x:auto;border:1px solid var(--line);border-radius:8px;">
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
       <thead>
         <tr style="background:rgba(99,102,241,0.1);color:var(--gold-bright);text-align:left;">
-          <th style="padding:8px 10px;">Master</th>
-          <th style="padding:8px 6px;text-align:right;">交易次</th>
-          <th style="padding:8px 6px;text-align:right;">活躍天</th>
-          <th style="padding:8px 6px;text-align:right;">漲停%</th>
-          <th style="padding:8px 6px;text-align:right;">🔒鎖漲停%</th>
-          <th style="padding:8px 6px;text-align:right;">集中%</th>
+          <th style="padding:8px 10px;${thStyle}" onclick="mpSort('name')" title="點擊排序">Master${arrow('name')}</th>
+          <th style="padding:8px 6px;text-align:right;${thStyle}" onclick="mpSort('trades')" title="點擊排序">交易次${arrow('trades')}</th>
+          <th style="padding:8px 6px;text-align:right;${thStyle}" onclick="mpSort('days')" title="點擊排序">活躍天${arrow('days')}</th>
+          <th style="padding:8px 6px;text-align:right;${thStyle}" onclick="mpSort('limitup')" title="點擊排序">漲停%${arrow('limitup')}</th>
+          <th style="padding:8px 6px;text-align:right;${thStyle}" onclick="mpSort('locked')" title="點擊排序">🔒鎖漲停%${arrow('locked')}</th>
+          <th style="padding:8px 6px;text-align:right;${thStyle}" onclick="mpSort('conc')" title="點擊排序">集中%${arrow('conc')}</th>
           <th style="padding:8px 6px;">主攻族群</th>
-          <th style="padding:8px 6px;text-align:right;">⚠️處置%</th>
+          <th style="padding:8px 6px;text-align:right;${thStyle}" onclick="mpSort('disposal')" title="點擊排序">⚠️處置%${arrow('disposal')}</th>
           <th style="padding:8px 6px;">策略子類</th>
           <th style="padding:8px 10px;">策略標籤</th>
         </tr>
       </thead><tbody>`;
+
+  if (masters.length === 0) {
+    html += `<tr><td colspan="10" style="padding:20px;text-align:center;color:var(--text-3);">沒有符合篩選條件的 master — 點「✕ 重設」清除篩選</td></tr>`;
+  }
 
   for (const [name, p] of masters) {
     if (p.no_data) {
