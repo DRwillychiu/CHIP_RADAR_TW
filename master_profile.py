@@ -698,8 +698,9 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any],
     v3.31.23 C2: cross_day 參數 — T+1 真實 flip_ratio 自動判定風格
       actual_flip_ratio > 0.45 → 「隔日沖(verified)」(取代 declared override)
       actual_flip_ratio < 0.20 → 確認波段/長線 (不加隔日沖標籤)
-    v3.36.0 B5: disposal_holdings 參數 — 處置股持倉狀態標籤
-      trapped (處置中持倉) 或 high (差1次重倉) > 0 → 「⛓️ 處置持倉」"""
+    v3.36.0 B5: disposal_holdings 參數 — 處置股持倉狀態 → 標籤
+    v3.36.2 D: 標籤暫不開啟 (見函式內註解); disposal_holdings 仍在 profile 可用,
+              tab14 面板 + detail popup 完整顯示曝險明細"""
     labels = []
     declared = set(declared_styles or [])
     flip_ratio = cross_day.get('actual_flip_ratio', 0) if cross_day else 0
@@ -773,11 +774,14 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any],
     if op.get('disposal_amt_ratio', 0) > THRESH['disposal_amt_ratio_high']:
         labels.append('⚠️ 處置股獵手')
 
-    # v3.36.0 (B5): ⛓️ 處置持倉 (狀態標籤 — 現在抱著處置中/差1次的股票)
-    # 與獵手不同: 獵手=行為偏好(流量), 持倉=當前風險狀態(存量)
-    if disposal_holdings and (disposal_holdings.get('trapped_count', 0) > 0
-                               or disposal_holdings.get('high_count', 0) > 0):
-        labels.append('⛓️ 處置持倉')
+    # v3.36.2 (B5-D): 處置持倉「不上標籤」, 純資料層提供 + 前端面板顯示
+    # 歷程: v3.36.0「⛓️ 處置持倉」(trapped/high 即標) → 實跑 28/29 全中=噪音
+    #       v3.36.1「⛓️ 處置玩家」(bought_during_disposal>0) → 仍 28/29 全中
+    # 根因: disposal_history 快照 6/4 起累積只 8 天 << 60 天窗口, 6/4 前已處置股
+    #       的 first_active_date 被記為 6/4 → 6/4 後任何買進都判「處置中買進」
+    # 對策 (D 方案): 標籤是「結論」, 沒結論就不下; 曝險排序仍在 tab14 面板+detail
+    #       popup 完整顯示。預計 ~2026-07-04 快照滿 30 天後重評是否開啟標籤。
+    # disposal_holdings 參數保留 (向後相容 + 未來重啟用)。
 
     return labels
 
@@ -805,8 +809,8 @@ LABEL_L1_MAP = {
     # 觀察型: 風格/族群/節奏特徵
     '持續進場': '觀察型', '分散布局': '觀察型',
     '🎯 族群專家': '觀察型', '多變策略': '觀察型',
-    # v3.36.0 (B5): 處置持倉 = 當前風險狀態 (非行為偏好) → 觀察型
-    '⛓️ 處置持倉': '觀察型',
+    # v3.36.2 (B5-D): 處置持倉不上標籤 (見 generate_labels D 方案註解),
+    # 純面板顯示。disposal_holdings 在 profile 內仍可用, 標籤暫時關閉。
 }
 
 # Level 2: 策略子類 (根據標籤組合判定)

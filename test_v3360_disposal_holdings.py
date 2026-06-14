@@ -144,22 +144,23 @@ with tempfile.TemporaryDirectory() as td:
     check("甲 bought_during_disposal_count=1", pm['甲']['bought_during_disposal_count'] == 1)
 
 # ────────────────────────────────────────────────────────────────────
-print("\n[Case 7] ⛓️ 處置持倉標籤: trapped/high 標, 只有 watch 不標")
+print("\n[Case 7] 處置持倉「不上標籤」(v3.36.2 D 方案): 純資料層 + 面板顯示")
 op_stub = {'limit_up_hit_ratio': 0, 'daytrade_ratio': 0, 'partial_ratio': 0,
            'overnight_ratio': 0, 'concentration_top5_pct': 25, 'consistency': 0.5}
 tm_stub = {'active_days_ratio': 0.5, 'max_streak_days': 3}
-lbl_trapped = generate_labels(op_stub, tm_stub,
-                               disposal_holdings={'trapped_count': 1, 'high_count': 0})
-check("trapped → 有標籤", '⛓️ 處置持倉' in lbl_trapped)
-lbl_high = generate_labels(op_stub, tm_stub,
-                            disposal_holdings={'trapped_count': 0, 'high_count': 2})
-check("high → 有標籤", '⛓️ 處置持倉' in lbl_high)
-lbl_watch = generate_labels(op_stub, tm_stub,
-                             disposal_holdings={'trapped_count': 0, 'high_count': 0, 'watch_count': 3})
-check("只有 watch → 不標", '⛓️ 處置持倉' not in lbl_watch)
+# 不論 holdings 多嚴重, generate_labels 都不加處置相關標籤
+lbl_heavy = generate_labels(op_stub, tm_stub,
+                             disposal_holdings={'trapped_count': 10, 'high_count': 5,
+                                                 'bought_during_disposal_count': 8,
+                                                 'total_exposure_wan': 500000})
+check("重曝險 → 不上標籤 (D 方案誠實: 結論未定不下)",
+      '⛓️ 處置持倉' not in lbl_heavy and '⛓️ 處置玩家' not in lbl_heavy)
 lbl_none = generate_labels(op_stub, tm_stub, disposal_holdings=None)
-check("None → 不標", '⛓️ 處置持倉' not in lbl_none)
-check("LABEL_L1_MAP 歸觀察型", LABEL_L1_MAP.get('⛓️ 處置持倉') == '觀察型')
+check("None → 不上標籤", '⛓️ 處置持倉' not in lbl_none and '⛓️ 處置玩家' not in lbl_none)
+check("LABEL_L1_MAP 不含舊處置標籤", '⛓️ 處置持倉' not in LABEL_L1_MAP
+      and '⛓️ 處置玩家' not in LABEL_L1_MAP)
+# 確保 disposal_holdings 參數仍接受 (向後相容 + 未來重啟)
+check("函式仍接受 disposal_holdings 參數 (不爆 TypeError)", isinstance(lbl_heavy, list))
 
 # ────────────────────────────────────────────────────────────────────
 print("\n[Case 8] 全體曝險排序: trapped > high, 同級按金額")
