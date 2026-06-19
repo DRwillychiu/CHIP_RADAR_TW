@@ -196,10 +196,12 @@ def compute_phase_b_results(temp_history_path: str = 'data/temp_history.json'
     all_next_chgs = [h.get('next_day_change_pct') for h in history
                       if h.get('next_day_change_pct') is not None]
     if all_next_chgs:
-        n_up = sum(1 for c in all_next_chgs if c > 0)
-        n_down = sum(1 for c in all_next_chgs if c < 0)
-        mean_chg = sum(all_next_chgs) / len(all_next_chgs)
-        bias_pct = n_up / len(all_next_chgs) * 100
+        # 0% (重複日, 兜底排程無新資料) 不算入 regime 判定
+        directional = [c for c in all_next_chgs if c != 0]
+        n_up = sum(1 for c in directional if c > 0)
+        n_down = sum(1 for c in directional if c < 0)
+        mean_chg = sum(directional) / len(directional) if directional else 0.0
+        bias_pct = n_up / len(directional) * 100 if directional else 50.0
         if bias_pct >= 70:
             market_regime = 'strong_bull'
         elif bias_pct >= 55:
@@ -251,8 +253,73 @@ def compute_phase_b_results(temp_history_path: str = 'data/temp_history.json'
             '⚠️ 樣本期間若市場偏單邊 (見 market_regime_caveat), '
             'hit_rate 可能 spurious, 需累積 180+ 天涵蓋 bull+bear 才能信賴.'
         ),
+        # C8 (v3.43.0): 明示已知 methodology bias (機構級 disclosure)
+        'methodology_caveats': {
+            'survivorship_bias': (
+                '本 backtest 為市場大盤層級 (TAIEX), survivorship bias 影響小. '
+                '若未來擴充至個股 alpha backtest, 須加 universe filter 排除 '
+                '(a) 回測期間後上市 (b) 回測期間下市 (c) 變更交易方法 (d) 處置/警示股.'
+            ),
+            'look_ahead_bias': (
+                '已避免 — 每筆 (T 日 signal, T+1 日 chg) 配對嚴格時序, '
+                'temp_history 寫入時 T+1 chg 才回填.'
+            ),
+            'data_snooping': (
+                '⚠️ 二分法閾值 55/45/10 是設計選擇, 未經 walk-forward 驗證. '
+                '應用過程不可微調這些閾值來「優化」hit_rate, 否則陷入過擬合.'
+            ),
+            'small_sample': (
+                f'30 天樣本對 directional hit_rate 標準差約 ±10% '
+                f'(95% CI 寬度), 任何「hit_rate 變動 <10%」都不應視為信號變化. '
+                f'累積 100+ 天後 CI 才收斂至 ±5%.'
+            ),
+            'regime_dependence': (
+                '本 backtest 不分 bull/bear regime, hit_rate 是 lifetime average. '
+                '建議用戶觀察 market_regime_caveat 一同判讀.'
+            ),
+        },
         'results': results,
     }
+
+
+def universe_filter(stocks_universe: List[str],
+                     reference_date: str,
+                     listing_data: Optional[Dict[str, Dict[str, str]]] = None
+                     ) -> List[str]:
+    """C8 (v3.43.0) hook — 未來個股 backtest 用的 universe filter.
+
+    目前 backtester_phase_b 是市場層級 backtest, 暫不需要.
+    若未來擴充至個股 alpha (e.g. 漲停大戶 master 跟單回測), 必須先呼叫此函式
+    排除 survivorship bias.
+
+    Args:
+      stocks_universe: 候選個股 list
+      reference_date: backtest 起算日 YYYYMMDD
+      listing_data: {code: {first_listed: YYYYMMDD, delisted: YYYYMMDD or None}}
+                     (來源 TWSE/TPEx 個股清單, 待整合)
+
+    Returns: 通過 filter 的 universe
+    """
+    if not listing_data:
+        # 無 listing data → 返原 universe + 警告
+        print("[universe_filter] ⚠️ 無 listing_data, 跳過 survivorship 過濾 (有 bias 風險)")
+        return list(stocks_universe)
+    filtered = []
+    for code in stocks_universe:
+        info = listing_data.get(code) or {}
+        first_listed = info.get('first_listed', '00000000')
+        delisted = info.get('delisted')
+        # 排除 1: reference 之前還沒上市
+        if first_listed > reference_date:
+            continue
+        # 排除 2: reference 時已下市
+        if delisted and delisted <= reference_date:
+            continue
+        filtered.append(code)
+    excluded = len(stocks_universe) - len(filtered)
+    if excluded:
+        print(f"[universe_filter] 排除 {excluded} 檔 (未上市/已下市)")
+    return filtered
 
 
 def save_results(results: Dict[str, Any],

@@ -12,6 +12,63 @@
 
 ---
 
+## algo-v3.43.0 (2026-06-19) — next_day backfill bug 修 + C8 survivorship disclosure
+
+**作者**:DRwillychiu
+**狀態**:🟢 active
+**git tag**:`algo-v3.43.0`
+
+**背景**:
+v3.42.0 C2 Phase B 首跑揭穿真實 data bug —
+30 天 stock_history.market.change_pct 100% 全正,直接打到 strong_bull regime
+觸發 trust_weights=False 保護機制。經查 history.py `_fetch_taiex_index` 邏輯:
+TWSE 「漲跌百分比」是絕對值,由「漲跌」('+' / '-') 決定符號,
+但 sign 欄位偶爾空白 → 負日子的 sign 不存在 → 全部存成正。
+
+**修法**:
+
+1. **history.py `update_history` 改信 index diff 不信 API sign**:
+   - 拿前日 index 自己算 `(today - prev) / prev × 100` (絕對事實)
+   - 跟 API 值差 >0.05% → 印警告 + 採用 verified 值
+   - source 欄位標 `index_diff_verified` / `api_confirmed` / `api_only_no_prev`
+
+2. **backfill_market_history.py 一次性修舊資料**:
+   - 重算 30 天 stock_history.market.change_pct (絕對事實)
+   - 同步重設 temp_history.next_day_change_pct (從新 market diff 拉)
+   - 結果: 30 天從「30 漲/0 跌」修正為「**13 漲 / 9 跌 / 8 平**」(8 平是兜底排程重複日)
+   - 真相揭露: 「分點漲停 extreme-bull」原 spurious 100% hit,修正後真實 **41.4% < 50% 隨機** → 自動 disable
+
+3. **backtester_phase_b regime 邏輯修**:
+   - 0% next_day_chg (重複日) 不算入 bias 判定
+   - 修正前: 12/29 = 41% → mild_bear (錯)
+   - 修正後: 12/21 = **57.1% → mild_bull** (正確)
+   - regime trust_weights = True, warning = None
+
+4. **C8 methodology_caveats 5 大 disclosure**:
+   - survivorship_bias (大盤 backtest 影響小, 未來個股 backtest 需 universe filter)
+   - look_ahead_bias (已避免, T 日 signal vs T+1 chg 嚴格時序)
+   - data_snooping (二分法閾值 55/45/10 設計選擇, 不可微調避免過擬合)
+   - small_sample (30 天樣本 CI 約 ±10%, hit_rate 變動 <10% 不應視為信號變化)
+   - regime_dependence (不分 bull/bear 分子, 是 lifetime average)
+
+5. **universe_filter hook** (給未來個股 backtest 用):
+   - 排除回測期間後上市 / 已下市股票
+   - 預留接口, 目前大盤 backtest 不啟用
+
+**影響**:
+- ✅ Phase B backtest 信號從「全部 spurious enable」修正為**「分點漲停 extreme-bull disable」**
+- ✅ market_regime 從 strong_bull (錯) → mild_bull (對)
+- ✅ trust_weights 從 False → True, Phase B weights 開始可用
+- ⚠️ 但目前只有「分點漲停 extreme-bull」一條進入 disable 名單, 其餘 3 信號仍 insufficient (n=0)
+- 之後 daily-full crawler 跑時新增的 market data 都會自動帶 source 欄位
+
+**驗證**:
+- 全套 39 套件 0 regression
+- test_v3430_market_fix 20 case PASS (含 backfill, regime fix, universe filter)
+- 真實資料實證: 30 天 market 從 30 漲 0 跌 → 13 漲 9 跌 8 平 (合理)
+
+---
+
 ## algo-v3.42.0 (2026-06-19) — C2 Phase B backtest 上線
 
 **作者**:DRwillychiu (Sprint 5)

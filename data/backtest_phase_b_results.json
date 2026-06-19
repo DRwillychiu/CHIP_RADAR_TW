@@ -1,7 +1,7 @@
 {
-  "backtest_run_at": "2026-06-19T15:14:30.102597+08:00",
+  "backtest_run_at": "2026-06-19T21:44:30.606898+08:00",
   "window_days": 30,
-  "samples_with_next_day_chg": 25,
+  "samples_with_next_day_chg": 29,
   "data_source": "data\\temp_history.json",
   "min_sample_size": 10,
   "enable_threshold_pct": 55.0,
@@ -20,21 +20,28 @@
     "法人共識"
   ],
   "market_regime_caveat": {
-    "regime": "strong_bull",
-    "next_day_up_pct": 100.0,
-    "mean_next_day_chg_pct": 1.425,
-    "n_up": 25,
-    "n_down": 0,
-    "warning": "🚨 next_day_change_pct 100% 正值 — 高度懷疑 data quality bug (真實大盤不可能 30 天全漲), 不是真實 alpha. crawler temp_history backfill 邏輯需查 (TODO).",
-    "trust_weights": false
+    "regime": "mild_bull",
+    "next_day_up_pct": 57.1,
+    "mean_next_day_chg_pct": 0.551,
+    "n_up": 12,
+    "n_down": 9,
+    "warning": null,
+    "trust_weights": true
   },
   "caveat": "樣本 n<10 不評估 (verdict=insufficient); ≥55.0% enable / <45.0% disable / 中間 maintain. 從內建 temp_history 跑, 樣本數 = 累積天數, 隨時間自然增加. ⚠️ 樣本期間若市場偏單邊 (見 market_regime_caveat), hit_rate 可能 spurious, 需累積 180+ 天涵蓋 bull+bear 才能信賴.",
+  "methodology_caveats": {
+    "survivorship_bias": "本 backtest 為市場大盤層級 (TAIEX), survivorship bias 影響小. 若未來擴充至個股 alpha backtest, 須加 universe filter 排除 (a) 回測期間後上市 (b) 回測期間下市 (c) 變更交易方法 (d) 處置/警示股.",
+    "look_ahead_bias": "已避免 — 每筆 (T 日 signal, T+1 日 chg) 配對嚴格時序, temp_history 寫入時 T+1 chg 才回填.",
+    "data_snooping": "⚠️ 二分法閾值 55/45/10 是設計選擇, 未經 walk-forward 驗證. 應用過程不可微調這些閾值來「優化」hit_rate, 否則陷入過擬合.",
+    "small_sample": "30 天樣本對 directional hit_rate 標準差約 ±10% (95% CI 寬度), 任何「hit_rate 變動 <10%」都不應視為信號變化. 累積 100+ 天後 CI 才收斂至 ±5%.",
+    "regime_dependence": "本 backtest 不分 bull/bear regime, hit_rate 是 lifetime average. 建議用戶觀察 market_regime_caveat 一同判讀."
+  },
   "results": {
     "外資現貨": {
       "levels": {
         "neutral": {
           "n": 0,
-          "mean_next_chg_pct": 1.425,
+          "mean_next_chg_pct": 0.399,
           "hits": 0,
           "misses": 0,
           "hit_rate_pct": null,
@@ -49,24 +56,24 @@
     "分點漲停": {
       "levels": {
         "extreme-bull": {
-          "n": 25,
-          "mean_next_chg_pct": 1.425,
-          "hits": 25,
-          "misses": 0,
-          "hit_rate_pct": 100.0,
+          "n": 29,
+          "mean_next_chg_pct": 0.399,
+          "hits": 12,
+          "misses": 17,
+          "hit_rate_pct": 41.4,
           "expected_dir": "up",
-          "verdict": "enable",
-          "weight": 0.5
+          "verdict": "disable",
+          "weight": 0.0
         }
       },
-      "overall_hit_rate_directional": 100.0,
-      "overall_n_directional": 25
+      "overall_hit_rate_directional": 41.4,
+      "overall_n_directional": 29
     },
     "融資熱度": {
       "levels": {
         "neutral": {
           "n": 0,
-          "mean_next_chg_pct": 1.425,
+          "mean_next_chg_pct": 0.399,
           "hits": 0,
           "misses": 0,
           "hit_rate_pct": null,
@@ -82,7 +89,7 @@
       "levels": {
         "neutral": {
           "n": 0,
-          "mean_next_chg_pct": 1.452,
+          "mean_next_chg_pct": 0.397,
           "hits": 0,
           "misses": 0,
           "hit_rate_pct": null,

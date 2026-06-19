@@ -99,6 +99,13 @@ def _fetch_taiex_index(expected_trade_date: str = None,
 
             # MI_INDEX 回傳格式:
             # [{"Date": "1150511", "指數": "發行量加權股價指數", "收盤指數": "...", ...}, ...]
+            #
+            # v3.43.0 fix: TWSE OpenAPI「漲跌百分比」一律是絕對值, 由「漲跌」
+            # ('+' / '-') 決定符號。但歷史觀察到 sign 欄位偶爾空白或非預期值
+            # → 30 天 stock_history.market 全部為正 (5/14 index 下跌 524 點卻
+            #   stored chg_pct=+1.25%) → C2 backtest 撞 strong_bull false regime
+            # 改: 不信 sign 欄位, 回傳 raw_pct + raw_sign, 由 update_history
+            #     拿前日 index 自己算 signed pct (index diff 是事實)
             for row in data:
                 name = row.get('指數', '').strip()
                 if name == '發行量加權股價指數' or '加權' in name:
@@ -107,12 +114,15 @@ def _fetch_taiex_index(expected_trade_date: str = None,
                     sign = row.get('漲跌', '').strip()
                     try:
                         close = float(close_str) if close_str else 0
-                        pct = float(pct_str) if pct_str else 0
-                        if sign == '-':
-                            pct = -pct
+                        raw_pct = float(pct_str) if pct_str else 0
+                        # raw 不應用 sign (保留供 fallback)
+                        # 真正的 signed pct 留給 update_history 從 index diff 算
+                        signed_pct_from_api = raw_pct if sign != '-' else -raw_pct
                         return {
                             "index": close,
-                            "change_pct": round(pct, 2),
+                            "change_pct": round(signed_pct_from_api, 2),  # API fallback
+                            "raw_pct_abs": round(raw_pct, 2),              # 絕對值 (供查證)
+                            "raw_sign": sign,                              # 原始 sign
                             "quote_date": response_date,  # v3.27.3
                         }
                     except ValueError:
@@ -278,9 +288,34 @@ def update_history(
     print(f"  [大盤] 抓取 TWSE 加權指數...")
     taiex = _fetch_taiex_index(expected_trade_date=trade_date)
     if taiex:
+        # v3.43.0 fix: 用前日 index 自己算 signed change_pct (絕對事實)
+        # 避免 API sign 偶爾空白導致負日子也存成正值 (5/14 index 41898→41374
+        # 跌 1.25% 卻 stored +1.25%)
+        prev_dates = sorted(d for d in history.get("market", {}) if d < trade_date)
+        api_pct = taiex.get('change_pct', 0)
+        verified_pct = None
+        if prev_dates:
+            prev_date = prev_dates[-1]
+            prev_index = (history["market"].get(prev_date) or {}).get('index')
+            cur_index = taiex.get('index')
+            if prev_index and cur_index and prev_index > 0:
+                # 真實 signed change_pct = (today - yesterday) / yesterday × 100
+                verified_pct = round((cur_index - prev_index) / prev_index * 100, 2)
+                # 若 API sign 跟事實不符, 用 verified 取代
+                if abs(verified_pct - api_pct) > 0.05:   # 0.05% 容差
+                    print(f"  ⚠️ [v3.43.0 fix] TAIEX API change_pct={api_pct:+.2f}% "
+                          f"vs index-diff verified={verified_pct:+.2f}% "
+                          f"(prev_idx={prev_index} cur_idx={cur_index}) → 採用 verified")
+                    taiex['change_pct'] = verified_pct
+                    taiex['change_pct_source'] = 'index_diff_verified'
+                    taiex['change_pct_api_original'] = api_pct
+                else:
+                    taiex['change_pct_source'] = 'api_confirmed'
+        if 'change_pct_source' not in taiex:
+            taiex['change_pct_source'] = 'api_only'   # 無前日可比 (首日)
         history["market"][trade_date] = taiex
         print(f"  ✓ 大盤 {taiex['index']} ({taiex['change_pct']:+.2f}%) "
-              f"[quote_date={taiex.get('quote_date', 'N/A')}]")
+              f"[source={taiex['change_pct_source']}]")
     else:
         print(f"  ⚠️ 大盤指數抓取失敗或 stale,跳過本次 (保留前次資料)")
     
