@@ -93,6 +93,19 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 8 完成 (v3.46.0) — Tier 2 競品 gap 4 個 fetcher
+
+| # | 項目 | 交付 |
+|---|---|---|
+| 後7 | attention_fetcher | TWSE announcement/notice 注意股 (跟處置股對齊風格, stale fallback) |
+| 後6 | short_lending_fetcher | TWSE TWTASU 借券+融券, 含 borrow_vs_short_ratio + Top 30 borrow 排行 (實證: 台新新光金借券 11,122 張 vs 融券 3 張 ratio 3707, 機構押空) |
+| 後8 | dividend_fetcher | TWSE TWT48U 除權息預告 289 檔 + ROC 日期自動轉 + upcoming_30d 過濾 (8/10 月高峰前必看) |
+| 後9 | main_force_cost | 從 60 天 history 算 5d/20d 主力成本線 + premium% (vs today close), 個股可看「主力浮盈/套牢」 |
+
+**驗證**: 41 套件 0 regression + 新增 test_v3460_tier2 20 case PASS
+
+---
+
 ### ✅ Sprint 7 完成 (v3.45.0) — Tier 1 後端基礎+質量
 
 | # | 項目 | 交付 |
