@@ -73,9 +73,28 @@ def _temp_signal_score(value, thresholds):
     return (0, 'extreme-bear')
 
 
-def _days_to_settlement(trade_date_str):
+from datetime import date as _date
+
+
+def third_wed(yy: int, mm: int) -> _date:
+    """每月第三個週三 (台股期權結算日, 一律以 Asia/Taipei 計算).
+
+    P0-1 (v3.38.0): 提升為 module-level 函式 + 型別簽名,
+    避免 UTC runner 跨日時的隱性錯日風險 (signal 7 結算日壓力訊號依賴)."""
+    first = _date(yy, mm, 1)
+    # weekday: Mon=0 ... Wed=2 ... Sun=6
+    offset_to_first_wed = (2 - first.weekday()) % 7
+    first_wed_day = 1 + offset_to_first_wed
+    return _date(yy, mm, first_wed_day + 14)
+
+
+def _days_to_settlement(trade_date_str: str):
     """v3.27: 計算距離下一個結算日(每月第三個週三)的天數。
     d=0 = 當日就是結算日; d>0 = 還有 d 天; d<0 = 結算日已過 d 天。
+
+    ⚠️ TZ 約定 (P0-1): trade_date_str **必須是台北時間 YYYYMMDD**.
+    呼叫端必須用 now_tw().strftime('%Y%m%d') 生成, 不可直接用 UTC date.
+    GitHub Actions runner 預設 UTC, 若直接 datetime.now() 會錯日.
 
     規則:
       1. 候選: 上月/本月/下月 三個結算日
@@ -83,18 +102,10 @@ def _days_to_settlement(trade_date_str):
       3. 在相關候選中取絕對值最小 (最近的結算日)
     """
     try:
-        from datetime import date as _date
         y = int(trade_date_str[:4])
         m = int(trade_date_str[4:6])
         d = int(trade_date_str[6:8])
         td = _date(y, m, d)
-
-        def third_wed(yy, mm):
-            first = _date(yy, mm, 1)
-            # weekday: Mon=0 ... Wed=2 ... Sun=6
-            offset_to_first_wed = (2 - first.weekday()) % 7
-            first_wed_day = 1 + offset_to_first_wed
-            return _date(yy, mm, first_wed_day + 14)
 
         py, pm = (y - 1, 12) if m == 1 else (y, m - 1)
         ny, nm = (y + 1, 1) if m == 12 else (y, m + 1)

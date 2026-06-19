@@ -5285,6 +5285,42 @@ let ALL_HISTORY = {};
 let POSITIONS = null;  // 累積部位
 let WATCHLIST = new Set();
 let SESSION_PASSWORD = null;
+// P0-4 (v3.38.0): 加密明文 cache 防 stale
+//   每次解密後記錄 latest.json 的 crawled_at, 偵測到後端推新檔時
+//   自動清空 CURRENT_DATA + ALL_HISTORY + 重抓 (避免用舊資料做決策)
+let CURRENT_CRAWLED_AT = null;
+const REVALIDATE_INTERVAL_MS = 5 * 60 * 1000;   // 5 分鐘檢查一次後端 crawled_at
+
+async function revalidateCache() {
+  if (!SESSION_PASSWORD) return;   // 未解鎖時不檢查
+  try {
+    const r = await fetch(`${DATA_BASE}/latest.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (!r.ok) return;
+    const enc = await r.json();
+    const serverCrawled = enc.crawled_at;
+    if (serverCrawled && CURRENT_CRAWLED_AT && serverCrawled !== CURRENT_CRAWLED_AT) {
+      console.log(`[Cache] 後端推新資料 (${CURRENT_CRAWLED_AT} → ${serverCrawled}), 清快取重載`);
+      // 清明文 cache, 用既有密碼重新解密
+      CURRENT_DATA = null;
+      ALL_HISTORY = {};
+      const plain = await decryptToken(enc.data, SESSION_PASSWORD);
+      const data = JSON.parse(plain);
+      CURRENT_CRAWLED_AT = data.crawled_at || serverCrawled;
+      ALL_HISTORY[enc.trade_date || data.trade_date] = data;
+      // 重渲染當前 tab
+      if (typeof renderAll === 'function') renderAll(data);
+      else if (typeof init === 'function') await init();
+    }
+  } catch (e) {
+    console.warn('[Cache] revalidate failed:', e);
+  }
+}
+
+// 5 分鐘自動 + 視窗回到前景時 + 解鎖後立即觸發
+setInterval(revalidateCache, REVALIDATE_INTERVAL_MS);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') revalidateCache();
+});
 
 let overviewMode = 'all';
 let overviewSide = 'buy';  // v3.13: buy / sell
@@ -5434,6 +5470,7 @@ async function attemptUnlock() {
     const plain = await decryptToken(enc.data, password);
     const data = JSON.parse(plain);
     SESSION_PASSWORD = password;
+    CURRENT_CRAWLED_AT = data.crawled_at || enc.crawled_at || null;   // P0-4
     ALL_HISTORY[enc.trade_date || data.trade_date] = data;
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('appContent').classList.add('unlocked');
@@ -5453,6 +5490,7 @@ async function attemptUnlock() {
 function lockApp() {
   if (!confirm('確定要鎖定？')) return;
   SESSION_PASSWORD = null;
+  CURRENT_CRAWLED_AT = null;   // P0-4
   CURRENT_DATA = null; ALL_HISTORY = {}; AVAILABLE_DATES = []; POSITIONS = null; WATCHLIST = new Set();
   document.getElementById('appContent').classList.remove('unlocked');
   document.getElementById('loginOverlay').style.display = 'flex';

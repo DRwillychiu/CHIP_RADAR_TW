@@ -235,6 +235,34 @@ def main():
             priority_codes=priority_codes,
             prev_close_map=_prev_close_map_for_fetch,
         )
+        # P0-2 (v3.38.0): non-empty + shape assertion
+        # 防 silent corruption: 空 dict 通過下游 (master_profile / 三大法人排行)
+        # 會把「無資料」當「無交易」寫入, 污染 42 天視窗計算
+        # 此處只有「STAGE=full 主排程」要 raise; 兜底排程 / margin_only 跳過
+        STAGE_CHECK = os.environ.get('CHIP_RADAR_STAGE', 'full').strip().lower()
+        if STAGE_CHECK == 'full':
+            if not institutional_map and not daily_quotes_map:
+                # 兩個都空 → 必定上游錯, raise 讓 workflow 標 fail
+                raise RuntimeError(
+                    "P0-2 silent corruption guard: institutional_map + "
+                    "daily_quotes_map 雙空, 上游 fetch_all_public_data 異常 "
+                    "(可能 TWSE OpenAPI stale 或 token rate limit)"
+                )
+            if institutional_map and not isinstance(next(iter(institutional_map.values())), dict):
+                raise RuntimeError(
+                    f"P0-2 shape guard: institutional_map value 非 dict "
+                    f"({type(next(iter(institutional_map.values())))})"
+                )
+            if daily_quotes_map and not isinstance(next(iter(daily_quotes_map.values())), dict):
+                raise RuntimeError(
+                    f"P0-2 shape guard: daily_quotes_map value 非 dict "
+                    f"({type(next(iter(daily_quotes_map.values())))})"
+                )
+            # 部分空也警告 (但不 raise, 因 TWSE 偶爾有單邊端點失敗)
+            if not institutional_map:
+                print("  🚨 [P0-2 warn] institutional_map 空但 quotes 有資料 → 法人面缺漏, 下游降級")
+            if not daily_quotes_map:
+                print("  🚨 [P0-2 warn] daily_quotes_map 空但 institutional 有資料 → 行情缺漏, L1/L2 cross-check 失效")
     except Exception as e:
         print(f"  ⚠️ 公開資訊抓取整體失敗: {e}（繼續執行，不影響主流程）")
         institutional_map, daily_quotes_map = {}, {}

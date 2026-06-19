@@ -32,23 +32,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install pip-audit safety
 
-      - name: Audit requirements.txt
+      # P0-7 (v3.38.0): 嚴格化 — 移除 || true 和 continue-on-error
+      # CVE / vulnerability 必 fail workflow, 防無感放行進 main
+      - name: Audit requirements.txt (strict)
         run: |
-          echo "::group::pip-audit (requirements.txt)"
-          pip-audit --requirement requirements.txt --format markdown || true
+          echo "::group::pip-audit (requirements.txt strict)"
+          pip-audit --requirement requirements.txt --format markdown
           echo "::endgroup::"
 
-      - name: Audit transitive (full env)
+      - name: Audit transitive (full env, strict)
         run: |
-          # 安裝 crawler 主要 deps, 然後審計整個環境的 transitive deps
-          pip install requests cryptography openpyxl
-          echo "::group::pip-audit (full transitive)"
-          pip-audit --format markdown || echo "::warning::pip-audit 發現 vulnerability, 詳見上方"
+          # 安裝釘版 main deps (requirements.txt 已釘上下界)
+          pip install -r requirements.txt
+          echo "::group::pip-audit (full transitive strict)"
+          pip-audit --format markdown
           echo "::endgroup::"
 
-      - name: Safety scan
+      - name: Safety scan (strict)
         run: |
           echo "::group::safety scan"
-          safety check --json || echo "::warning::safety 發現 vulnerability, 詳見上方"
+          safety check --json
           echo "::endgroup::"
-        continue-on-error: true

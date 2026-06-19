@@ -500,8 +500,12 @@ def extract_master_trades(history: List[Dict[str, Any]],
                           master_name: str,
                           branch_code: Optional[str] = None) -> List[Dict[str, Any]]:
     """從歷史抽出該 master 所有買進紀錄 (含 co_masters 共用分點的情境).
-    v3.30.12: branch_code 非 None 時只抽該分點 (per-branch 細分用)."""
+    v3.30.12: branch_code 非 None 時只抽該分點 (per-branch 細分用).
+    v3.38.0 P0-3: 加 (date, branch_code, stock_code) dedup guard,
+    防 archive_manager 輪轉前後同日同檔被重複載入 (e.g. data/20260615.json
+    + data/archive/20260615.json 同時存在的暫態 / TDCC 週頻覆寫競態)."""
     trades = []
+    seen = set()   # (date, branch_code, stock_code) 三元組去重
     for day in history:
         for br in day['data'].get('branches', []):
             if branch_code is not None and br.get('code') != branch_code:
@@ -511,6 +515,10 @@ def extract_master_trades(history: List[Dict[str, Any]],
             if br_master != master_name and master_name not in co:
                 continue
             for stock in (br.get('buys') or []):
+                key = (day['date'], br.get('code'), str(stock.get('code') or ''))
+                if key in seen:
+                    continue   # 同 (date, branch, stock) 第二筆 = 重複載入
+                seen.add(key)
                 trades.append({
                     'date': day['date'],
                     'branch_code': br.get('code'),

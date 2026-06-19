@@ -110,7 +110,11 @@ def compute_stock_maintenance(today_close: float,
     # 融資金額 ≈ 平均成本 × 餘額張數 × 1000 × MARGIN_RATE
     # 擔保品市值 = 今日收盤 × 餘額張數 × 1000
     # 維持率 = 擔保品市值 / 融資金額 = today / (avg_cost × MARGIN_RATE)
-    maintenance = (today_close / (estimated_cost * MARGIN_RATE)) * 100
+    # P0-5: ZeroDivisionError 防守 (估算成本 = 0 / MARGIN_RATE 配置錯, 都會炸)
+    denom = estimated_cost * MARGIN_RATE
+    if denom <= 0:
+        return None
+    maintenance = (today_close / denom) * 100
 
     # 分級
     if maintenance >= THRESHOLDS['healthy']:

@@ -320,11 +320,23 @@ def main_fetch(data_dir: str = 'data',
                           encoding='utf-8')
     print(f"  ✓ → {main_file}")
 
-    # history snapshot (純 holdings, 不重複 meta)
+    # P0-6 (v3.38.0): history snapshot 精簡版
+    # 原本 605KB 跟主檔 100% 重複; 改成只存 vs_prev_week 計算必要的 4 個百分比
+    # 主檔保持完整 (前端讀檔路徑不變), 歷史 snapshot ~200KB (節省 60%+)
+    slim_holdings = {c: {
+        'big400_pct': h.get('big400_pct'),
+        'mega1000_pct': h.get('mega1000_pct'),
+        'retail_pct': h.get('retail_pct'),
+        'mid_pct': h.get('mid_pct'),
+        'effective_date': h.get('effective_date'),
+    } for c, h in filtered.items()}
     snap_file.write_text(json.dumps(
-        {'effective_date': effective_date, 'holdings': filtered},
-        ensure_ascii=False, indent=1), encoding='utf-8')
-    print(f"  ✓ → {snap_file}")
+        {'effective_date': effective_date,
+         'schema_version': 'slim_v1',   # 區分新舊格式
+         'holdings': slim_holdings}, ensure_ascii=False, indent=1),
+        encoding='utf-8')
+    snap_kb = snap_file.stat().st_size / 1024
+    print(f"  ✓ → {snap_file} ({snap_kb:.0f} KB, 精簡版 vs 主檔)")
 
     # 7. 簡易摘要
     big_movers = sorted(filtered.items(),
