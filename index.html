@@ -3687,6 +3687,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <button class="tab" data-tab="reports"><span class="tab-num">12</span>📊 報告中心</button>
     <button class="tab" data-tab="watchlist"><span class="tab-num">13</span>⚙️ 關注設定</button>
     <button class="tab" data-tab="masterprofile"><span class="tab-num">14</span>📊 大戶畫像</button>
+    <button class="tab" data-tab="holdings"><span class="tab-num">15</span>🏦 持股結構</button>
   </div>
 
   <!-- 01 今日三視角 (新主頁) -->
@@ -4182,6 +4183,15 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <div id="mp-container" style="padding:18px;">
       <div style="text-align:center;color:var(--text-2);padding:60px 20px;">
         🔄 載入大戶畫像中... (若一直停留在此, 表示 data/master_profiles.json 尚未生成, 等待下次 daily-full crawler 跑完)
+      </div>
+    </div>
+  </div>
+
+  <!-- v3.37.0: 15 持股結構 — 集保 400 張大戶 + 融資維持率市場估算 -->
+  <div class="panel" id="panel-holdings">
+    <div id="holdings-container" style="padding:18px;">
+      <div style="text-align:center;color:var(--text-2);padding:60px 20px;">
+        🔄 載入持股結構中...
       </div>
     </div>
   </div>
@@ -5123,11 +5133,148 @@ function showMPDetail(name) {
   pane.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
+// ════════════════════════════════════════════════════════════════════
+// v3.37.0: tab 15 持股結構 — 集保 400 張大戶 + 融資維持率市場估算
+// ════════════════════════════════════════════════════════════════════
+function renderHoldingsTab() {
+  const cont = document.getElementById('holdings-container');
+  if (!cont) return;
+  const d = CURRENT_DATA;
+  if (!d) { cont.innerHTML = '<div style="padding:30px;color:var(--text-2);">等待資料解鎖...</div>'; return; }
+
+  const tdccMeta = d.tdcc_metadata;
+  const tdccMovers = d.tdcc_movers;
+  const mmSummary = d.margin_maintenance_summary;
+
+  let html = `
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+      <h2 style="margin:0;color:var(--gold-bright);">🏦 持股結構 — 大戶 / 散戶 / 維持率風險</h2>
+    </div>
+    <div style="font-size:11px;color:var(--text-3);margin-bottom:14px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.3);padding:10px 12px;border-radius:6px;">
+      ⚠️ <strong>誠實揭露</strong>:本頁所有「融資維持率」是<strong>市場平均估算</strong> (用近 30 日均價 × 0.6 反推融資成本)
+      ,非真實個人帳戶維持率。個人實際維持率需查券商系統 (整戶計算 + 真實成本)。本估算定位:大盤系統性風險指標。
+    </div>`;
+
+  // ────── 1. 融資維持率全市場分布 ──────
+  if (mmSummary && mmSummary.counts) {
+    const c = mmSummary.counts;
+    const total = (c.healthy||0)+(c.watch||0)+(c.high_risk||0)+(c.margin_call||0);
+    const pct = n => total ? (n/total*100).toFixed(1) : 0;
+    html += `
+    <div style="border:1px solid var(--border);border-radius:10px;margin-bottom:18px;overflow:hidden;">
+      <div style="padding:12px 16px;background:rgba(248,113,113,0.08);border-bottom:1px solid var(--border);">
+        <div style="font-size:14px;font-weight:700;color:#f87171;">📊 融資維持率分布 (市場估算)</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${total} 檔已估算 (餘額 ≥100張) · 健康≥150% / 警戒130-150% / 高風險120-130% / 斷頭區&lt;120%</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0;">
+        <div style="padding:14px;text-align:center;border-right:1px solid var(--border);">
+          <div style="font-size:22px;font-weight:700;color:#3fb950;">${c.healthy||0}</div>
+          <div style="font-size:11px;color:var(--text-2);">✅ 健康</div>
+          <div style="font-size:10px;color:var(--text-3);">${pct(c.healthy||0)}%</div>
+        </div>
+        <div style="padding:14px;text-align:center;border-right:1px solid var(--border);">
+          <div style="font-size:22px;font-weight:700;color:#fbbf24;">${c.watch||0}</div>
+          <div style="font-size:11px;color:var(--text-2);">⚠️ 警戒</div>
+          <div style="font-size:10px;color:var(--text-3);">${pct(c.watch||0)}%</div>
+        </div>
+        <div style="padding:14px;text-align:center;border-right:1px solid var(--border);">
+          <div style="font-size:22px;font-weight:700;color:#fb923c;">${c.high_risk||0}</div>
+          <div style="font-size:11px;color:var(--text-2);">🚨 高風險</div>
+          <div style="font-size:10px;color:var(--text-3);">${pct(c.high_risk||0)}%</div>
+        </div>
+        <div style="padding:14px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:#f87171;">${c.margin_call||0}</div>
+          <div style="font-size:11px;color:var(--text-2);">❌ 斷頭區</div>
+          <div style="font-size:10px;color:var(--text-3);">${pct(c.margin_call||0)}%</div>
+        </div>
+      </div>`;
+    // Top 30 高風險清單
+    const risk = mmSummary.high_risk_stocks || [];
+    if (risk.length > 0) {
+      html += `<div style="border-top:1px solid var(--border);padding:12px 16px;">
+        <div style="font-size:12px;font-weight:700;color:#f87171;margin-bottom:8px;">⚠️ Top ${Math.min(risk.length,15)} 維持率最低個股</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <tr style="color:var(--text-3);">
+            <th style="padding:4px 6px;text-align:left;">標的</th>
+            <th style="padding:4px 6px;text-align:right;">維持率</th>
+            <th style="padding:4px 6px;text-align:right;">今收</th>
+            <th style="padding:4px 6px;text-align:right;">估算成本</th>
+            <th style="padding:4px 6px;text-align:right;">融資餘額</th>
+            <th style="padding:4px 6px;"></th>
+          </tr>`;
+      risk.slice(0, 15).forEach(s => {
+        const color = s.risk_level === 'margin_call' ? '#f87171' : '#fb923c';
+        const icon = s.risk_level === 'margin_call' ? '❌' : '🚨';
+        html += `<tr style="border-top:1px solid var(--border);">
+          <td style="padding:4px 6px;">${s.name || ''} <span style="color:var(--text-3);">${s.code}</span></td>
+          <td style="padding:4px 6px;text-align:right;color:${color};font-weight:700;">${s.ratio}%</td>
+          <td style="padding:4px 6px;text-align:right;">${s.today_close}</td>
+          <td style="padding:4px 6px;text-align:right;color:var(--text-3);">${s.estimated_cost}</td>
+          <td style="padding:4px 6px;text-align:right;color:var(--text-3);">${(s.margin_balance||0).toLocaleString()} 張</td>
+          <td style="padding:4px 6px;">${icon}</td>
+        </tr>`;
+      });
+      html += `</table></div>`;
+    }
+    html += `</div>`;
+  } else {
+    html += `<div style="padding:14px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.3);border-radius:8px;margin-bottom:14px;color:var(--text-2);font-size:12px;">⏳ 融資維持率資料尚未生成 (等待下一次 daily-full crawler 跑完, 包含 v3.37.0)</div>`;
+  }
+
+  // ────── 2. TDCC 集保大戶 movers ──────
+  if (tdccMovers && (tdccMovers.big400_risers || tdccMovers.big400_fallers)) {
+    const m = tdccMeta || {};
+    html += `
+    <div style="border:1px solid var(--border);border-radius:10px;margin-bottom:18px;overflow:hidden;">
+      <div style="padding:12px 16px;background:rgba(96,165,250,0.08);border-bottom:1px solid var(--border);">
+        <div style="font-size:14px;font-weight:700;color:#60a5fa;">📊 集保 400 張大戶持股 — 本週 vs 上週變化</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px;">資料期 ${m.effective_date||'?'} (${m.effective_week||'?'}) · 來源 TDCC 集保結算所 · 共 ${m.count||0} 檔</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:0;">
+        <div style="padding:12px 16px;border-right:1px solid var(--border);">
+          <div style="font-size:12px;font-weight:700;color:#f87171;margin-bottom:8px;">🔺 大戶比例上升 Top 10 (籌碼集中, 散戶賣出)</div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <tr style="color:var(--text-3);"><th style="padding:4px;text-align:left;">代號</th><th style="padding:4px;text-align:right;">本週%</th><th style="padding:4px;text-align:right;">+pp</th><th style="padding:4px;text-align:right;">散戶pp</th></tr>`;
+    (tdccMovers.big400_risers || []).slice(0, 10).forEach(r => {
+      html += `<tr style="border-top:1px solid var(--border);">
+        <td style="padding:4px;">${r.code}</td>
+        <td style="padding:4px;text-align:right;">${r.big400_pct?.toFixed(1)}%</td>
+        <td style="padding:4px;text-align:right;color:#f87171;font-weight:700;">+${r.big400_delta_pp?.toFixed(2)}</td>
+        <td style="padding:4px;text-align:right;color:${r.retail_delta_pp<0?'#3fb950':'#f87171'};">${r.retail_delta_pp>=0?'+':''}${r.retail_delta_pp?.toFixed(2)}</td>
+      </tr>`;
+    });
+    html += `</table></div>
+        <div style="padding:12px 16px;">
+          <div style="font-size:12px;font-weight:700;color:#3fb950;margin-bottom:8px;">🔻 大戶比例下降 Top 10 (大戶出貨, 散戶接手)</div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;">
+            <tr style="color:var(--text-3);"><th style="padding:4px;text-align:left;">代號</th><th style="padding:4px;text-align:right;">本週%</th><th style="padding:4px;text-align:right;">−pp</th><th style="padding:4px;text-align:right;">散戶pp</th></tr>`;
+    (tdccMovers.big400_fallers || []).slice(0, 10).forEach(r => {
+      html += `<tr style="border-top:1px solid var(--border);">
+        <td style="padding:4px;">${r.code}</td>
+        <td style="padding:4px;text-align:right;">${r.big400_pct?.toFixed(1)}%</td>
+        <td style="padding:4px;text-align:right;color:#3fb950;font-weight:700;">${r.big400_delta_pp?.toFixed(2)}</td>
+        <td style="padding:4px;text-align:right;color:${r.retail_delta_pp>0?'#f87171':'#3fb950'};">${r.retail_delta_pp>=0?'+':''}${r.retail_delta_pp?.toFixed(2)}</td>
+      </tr>`;
+    });
+    html += `</table></div></div></div>`;
+  } else {
+    html += `<div style="padding:14px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.3);border-radius:8px;color:var(--text-2);font-size:12px;">⏳ TDCC 集保資料尚未生成 (週六 11:00 TW workflow 跑完後出現, 第二週開始才有 vs_prev_week)</div>`;
+  }
+
+  cont.innerHTML = html;
+}
+
 // hook: 點 tab 14 自動載入 (一次性 cache)
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-tab="masterprofile"]').forEach(btn => {
     btn.addEventListener('click', () => {
       setTimeout(() => loadMasterProfileTab(false), 50);   // 等 switchTab class 切完
+    });
+  });
+  // v3.37.0: tab 15 持股結構 hook
+  document.querySelectorAll('[data-tab="holdings"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setTimeout(() => renderHoldingsTab(), 50);
     });
   });
 });

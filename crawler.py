@@ -634,6 +634,36 @@ def main():
         import traceback; traceback.print_exc()
     
     # ════════════════════════════════════════════════════════════════
+    # v3.37.0 stage 5.5: 融資維持率估算 + 注入 (B5+B6 後新增)
+    # ════════════════════════════════════════════════════════════════
+    margin_maint_summary = None
+    margin_maint_inject = None
+    try:
+        import margin_maintenance
+        # 讀 stock_history (給 30 日均價估算用)
+        sh_path = Path(data_dir) / 'stock_history.json'
+        stock_history = None
+        if sh_path.exists():
+            try:
+                with open(sh_path, 'r', encoding='utf-8') as f:
+                    stock_history = json.load(f)
+            except Exception:
+                pass
+        print(f"\n[融資維持率] 計算個股市場估算維持率 (30日均價反推)...")
+        margin_maint_inject = margin_maintenance.inject_maintenance_into_stocks(
+            results, margin_all, daily_quotes_map, stock_history)
+        margin_maint_summary = margin_maint_inject.get('summary')
+        counts = (margin_maint_summary or {}).get('counts', {})
+        print(f"  ✓ 注入 {margin_maint_inject['computed']} 筆分點個股維持率")
+        print(f"  ✓ 全市場: 健康 {counts.get('healthy',0)} / 警戒 {counts.get('watch',0)} / "
+              f"高風險 {counts.get('high_risk',0)} / 斷頭區 {counts.get('margin_call',0)}")
+        if margin_maint_inject.get('margin_call_codes'):
+            print(f"  🚨 斷頭區 ({len(margin_maint_inject['margin_call_codes'])} 檔, 分點命中): "
+                  f"{margin_maint_inject['margin_call_codes'][:10]}")
+    except Exception as e:
+        print(f"  ⚠️ 維持率計算失敗: {e} (不影響主流程)")
+
+    # ════════════════════════════════════════════════════════════════
     # v3.15.0 新增：產業分類注入
     # ════════════════════════════════════════════════════════════════
     industry_map = {}
@@ -652,6 +682,23 @@ def main():
     except Exception as e:
         print(f"  ⚠️ 產業分類失敗: {e}（不影響主流程）")
         import traceback; traceback.print_exc()
+
+    # ════════════════════════════════════════════════════════════════
+    # v3.37.0 stage 6.5: TDCC 集保大戶持股注入 (週頻 cache, 不打網路)
+    # ════════════════════════════════════════════════════════════════
+    tdcc_inject = None
+    try:
+        import tdcc_holdings
+        tdcc_cache = tdcc_holdings.load_holdings_cache(data_dir)
+        if tdcc_cache:
+            tdcc_inject = tdcc_holdings.inject_holdings_into_stocks(results, tdcc_cache)
+            meta = tdcc_inject.get('metadata') or {}
+            print(f"\n[TDCC 集保] 注入 {tdcc_inject['injected']} 筆分點個股持股結構 "
+                  f"(資料期 {meta.get('effective_date','?')} / {meta.get('effective_week','?')})")
+        else:
+            print(f"\n[TDCC 集保] ⏭️ tdcc_holdings.json 不存在 (週六 workflow 還沒跑)")
+    except Exception as e:
+        print(f"  ⚠️ TDCC 注入失敗: {e} (不影響主流程)")
     
     # ════════════════════════════════════════════════════════════════
     # v3.15.2 新增：歷史資料累積 (for 三線比較圖)
@@ -805,6 +852,10 @@ def main():
         # v3.11 新增
         "margin_data": margin_filtered,           # 智慧混合後的個股融資融券
         "margin_rankings": margin_rankings,       # 7 類排行榜
+        # v3.37.0: 融資維持率市場估算 + TDCC 集保大戶
+        "margin_maintenance_summary": margin_maint_summary,   # 全市場分布 + Top 30 危險
+        "tdcc_metadata": (tdcc_inject or {}).get('metadata'),
+        "tdcc_movers": (tdcc_inject or {}).get('movers'),
         "margin_total_count": len(margin_all),    # 全市場總檔數（統計用）
         # v3.14.4 新增：融資融券資料日期驗證結果
         "margin_verification": margin_verification,  # HiStock 驗證結果

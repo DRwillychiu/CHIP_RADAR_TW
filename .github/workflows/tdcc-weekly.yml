@@ -1,0 +1,77 @@
+name: 6. TDCC Weekly Holdings (集保大戶週頻)
+
+# v3.37.0: 每週六上午抓集保戶股權分散表
+# - TDCC 每週六上午公布上週五資料 (前一週的快照)
+# - 每週只跑一次即可 (資料量小 ~2.3MB CSV → ~600KB JSON)
+# - 失敗自動重試 (workflow_dispatch 可手動補)
+# - 寫 data/tdcc_holdings.json + data/tdcc_history/YYYYMMDD.json (歷史快照供 vs_prev_week)
+
+on:
+  schedule:
+    # 週六 UTC 03:00 = TW 11:00 (TDCC 通常上午 9-10 點更新, 留 1 小時 buffer)
+    - cron: '0 3 * * 6'
+    # 兜底: 週六 UTC 06:00 = TW 14:00 (主排程被吃掉時補)
+    - cron: '0 6 * * 6'
+
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '強制覆寫當週快照'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-tdcc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch TDCC holdings
+        run: |
+          FORCE_ARG=""
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            FORCE_ARG="--force"
+          fi
+          python tdcc_holdings.py $FORCE_ARG
+        continue-on-error: true
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add data/tdcc_holdings.json data/tdcc_history/
+
+          if git diff --staged --quiet; then
+            echo "::notice title=No TDCC changes::當週快照已存在或無新資料"
+            exit 0
+          fi
+
+          git commit -m "🏦 [TDCC] Weekly holdings $(TZ=Asia/Taipei date +%Y-%m-%d)"
+
+          for i in 1 2 3; do
+            if git push; then
+              echo "✅ Push success on attempt $i"
+              break
+            else
+              echo "⚠️ Push attempt $i failed, retry..."
+              git pull --rebase --strategy-option=theirs || git rebase --abort
+              sleep $((i * 5))
+            fi
+          done
