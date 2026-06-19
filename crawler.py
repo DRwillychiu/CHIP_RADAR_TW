@@ -73,6 +73,149 @@ from crawler_pipeline import (
     compute_next_day_flip_verification, compute_master_summaries,
 )
 
+
+# ════════════════════════════════════════════════════════════════════
+# v3.47.0 後2: post-processing helpers (從 main() 抽出, 易測 + 易換序)
+# 每個 helper 都 try/except 包圍, 不影響主流程
+# ════════════════════════════════════════════════════════════════════
+def _post_generate_reports(data_dir, password):
+    """v3.9: 週報/月報自動生成 (僅在週一/月初觸發)."""
+    try:
+        generated = reports.maybe_generate_reports(
+            data_dir, password, decrypt_data, encrypt_data
+        )
+        if generated:
+            print(f"\n[報告] ✓ 產生 {len(generated)} 份報告")
+            reports_list = reports.list_available_reports(data_dir)
+            with open(data_dir / "reports_index.json", "w", encoding="utf-8") as f:
+                json.dump({
+                    "updated_at": now_tw().isoformat(),
+                    "weekly": reports_list["weekly"],
+                    "monthly": reports_list["monthly"],
+                }, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"  ⚠️ 報告生成錯誤(不影響主流程): {e}")
+        import traceback; traceback.print_exc()
+
+
+def _post_build_master_profile(data_dir, password):
+    """v3.30.14: master_profile 自動生成 (15 標籤 + per-branch + 族群 + 處置股)."""
+    try:
+        import master_profile as mp
+        history = mp.load_history(str(data_dir), window_days=None, password=password)
+        if history:
+            mp_result = mp.build_all_profiles(history, data_dir=str(data_dir))
+            mp_path = data_dir / "master_profiles.json"
+            with open(mp_path, "w", encoding="utf-8") as f:
+                json.dump(mp_result, f, ensure_ascii=False, indent=2)
+            print(f"\n[Master Profile v3.30.14] ✓ {mp_result['master_count']} 大戶畫像 → {mp_path.name}")
+            print(f"                          窗口 {mp_result['window_days']} 天 | "
+                  f"族群={'✅' if mp_result.get('industry_classification_available') else '⚠️'} | "
+                  f"處置股={'✅' if mp_result.get('disposal_classification_available') else '⚠️'}")
+    except Exception as _mpe:
+        print(f"  ⚠️ master_profile 生成錯誤(不影響主流程): {_mpe}")
+        import traceback; traceback.print_exc()
+
+
+def _post_upsert_db(raw_output, trade_date, data_dir):
+    """v3.31.6 Phase 1.1: 把 raw_output upsert 進 SQLite OLAP DB."""
+    try:
+        import db_pipeline
+        db_conn = db_pipeline.init_db(str(data_dir / "chip_radar_v2.db"))
+        db_stats = db_pipeline.upsert_from_raw_dict(
+            db_conn, raw_output, trade_date=trade_date,
+            source='raw', source_file=f'{trade_date}.json'
+        )
+        db_conn.close()
+        print(f"\n[DB v3.31.6] ✓ upsert {db_stats['daily_chips_rows']} rows → chip_radar_v2.db")
+        print(f"             new: traders+{db_stats['traders']} branches+{db_stats['branches']} stocks+{db_stats['stocks']}")
+    except Exception as _dbe:
+        print(f"  ⚠️ DB pipeline 失敗 (不影響主流程): {type(_dbe).__name__}: {_dbe}")
+        import traceback; traceback.print_exc()
+
+
+def _post_archive_rotate(data_dir):
+    """v3.31.6 Phase 1.1: Archive 分層 — hot < 7天 / warm 7-60 / cold ≥60."""
+    try:
+        import archive_manager
+        archive_manager.rotate(str(data_dir), hot_days=7, warm_days=60)
+    except Exception as _ae:
+        print(f"  ⚠️ archive rotate 失敗 (不影響主流程): {type(_ae).__name__}: {_ae}")
+
+
+def _post_auto_backfill_history(data_dir, password, industry_map):
+    """v3.32.3: 自動回補 stock_history 缺失天數 (防止類似 v3.32.1 bug 再發生)."""
+    try:
+        _sh_path = data_dir / "stock_history.json"
+        if not _sh_path.exists():
+            return
+        _sh = json.load(open(_sh_path, encoding='utf-8'))
+        _existing = set(_sh.get('dates', []))
+        _all_jsons = list(data_dir.glob('[0-9]'*8+'.json'))
+        _archive = data_dir / 'archive'
+        if _archive.exists():
+            _all_jsons.extend(_archive.glob('[0-9]'*8+'.json'))
+        _available = sorted(set(f.stem for f in _all_jsons))
+        _missing = [d for d in _available if d not in _existing]
+        if not _missing:
+            return
+        print(f"\n[Auto-Backfill v3.32.3] stock_history 缺 {len(_missing)} 天, 自動回補...")
+        for _md in _missing[-10:]:   # 最多回補最近 10 天
+            try:
+                _jp = data_dir / f'{_md}.json'
+                if not _jp.exists():
+                    _jp = _archive / f'{_md}.json'
+                if not _jp.exists():
+                    continue
+                with open(_jp, encoding='utf-8') as _f:
+                    _enc = json.load(_f)
+                if _enc.get('encrypted'):
+                    _raw = json.loads(decrypt_data(_enc['data'], password))
+                else:
+                    _raw = _enc
+                _dq = {}
+                for _br in _raw.get('branches', []):
+                    for _side in ('buys', 'sells'):
+                        for _s in _br.get(_side, []):
+                            _c = _s.get('code')
+                            _bl = _s.get('buy_lot', 0) or 0
+                            _ba = _s.get('buy_amt', 0) or 0
+                            if _c and _bl > 0 and _ba > 0 and _c not in _dq:
+                                _dq[_c] = {'close': round(_ba/_bl, 2), 'change_pct': 0}
+                if _dq:
+                    hist_mod.update_history(data_dir=data_dir, trade_date=_md,
+                        daily_quotes_map=_dq, industry_map=industry_map or {},
+                        branches_results=_raw.get('branches', []))
+                    _fd = _raw.get('futures_data')
+                    if _fd:
+                        hist_mod.update_futures_history(data_dir=data_dir, trade_date=_md, futures_data=_fd)
+                    print(f"  ✓ {_md} 回補 {len(_dq)} stocks" + (" + futures" if _fd else ""))
+            except Exception as _be:
+                print(f"  ⚠️ {_md} 回補失敗: {type(_be).__name__}")
+    except Exception as _abf:
+        print(f"  ⚠️ auto-backfill 失敗: {type(_abf).__name__}: {_abf}")
+
+
+def _post_disposal_snapshot(data_dir):
+    """v3.31.16+17: 處置股每日 JSON 快照 + DB 雙份."""
+    try:
+        from disposal_fetcher import save_daily_snapshot
+        snap_path = save_daily_snapshot(str(data_dir))
+        if snap_path:
+            print(f"[Disposal History v3.31.17] ✓ 快照 → {snap_path.name}")
+            try:
+                import db_pipeline as _dbp
+                _db_conn = _dbp.init_db(str(data_dir / "chip_radar_v2.db"))
+                _snap = json.loads(snap_path.read_text(encoding='utf-8'))
+                _n = _dbp.upsert_disposal_snapshot(_db_conn, _snap)
+                _db_conn.close()
+                print(f"                          + DB {_n} rows")
+            except Exception as _dbe2:
+                print(f"  ⚠️ disposal → DB 失敗: {type(_dbe2).__name__}")
+    except Exception as _dse:
+        print(f"  ⚠️ disposal snapshot 失敗 (不影響主流程): {type(_dse).__name__}: {_dse}")
+
+
 def main():
     password = os.environ.get("CHIP_RADAR_PASSWORD", "").strip()
     if not password:
@@ -1149,144 +1292,14 @@ def main():
             "version": "3.30.1",
         }, f, ensure_ascii=False, indent=2)
     
-    # v3.9 週報/月報自動生成（僅在週一/月初觸發）
-    try:
-        generated = reports.maybe_generate_reports(
-            data_dir, password, decrypt_data, encrypt_data
-        )
-        if generated:
-            print(f"\n[報告] ✓ 產生 {len(generated)} 份報告")
-            # 更新 reports_index.json 以供前端讀取
-            reports_list = reports.list_available_reports(data_dir)
-            with open(data_dir / "reports_index.json", "w", encoding="utf-8") as f:
-                json.dump({
-                    "updated_at": now_tw().isoformat(),
-                    "weekly": reports_list["weekly"],
-                    "monthly": reports_list["monthly"],
-                }, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        print(f"  ⚠️ 報告生成錯誤（不影響主流程）: {e}")
-        import traceback; traceback.print_exc()
-
-    # ════════════════════════════════════════════════════════════════
-    # v3.30.14: master_profile 自動生成 (15 標籤 + per-branch + 族群 + 處置股)
-    # 寫 data/master_profiles.json (不加密, 給網站 tab14 直接 fetch)
-    # ════════════════════════════════════════════════════════════════
-    try:
-        import master_profile as mp
-        history = mp.load_history(str(data_dir), window_days=None, password=password)
-        if history:
-            mp_result = mp.build_all_profiles(history, data_dir=str(data_dir))
-            mp_path = data_dir / "master_profiles.json"
-            with open(mp_path, "w", encoding="utf-8") as f:
-                json.dump(mp_result, f, ensure_ascii=False, indent=2)
-            print(f"\n[Master Profile v3.30.14] ✓ {mp_result['master_count']} 大戶畫像 → {mp_path.name}")
-            print(f"                          窗口 {mp_result['window_days']} 天 | "
-                  f"族群={'✅' if mp_result.get('industry_classification_available') else '⚠️'} | "
-                  f"處置股={'✅' if mp_result.get('disposal_classification_available') else '⚠️'}")
-    except Exception as _mpe:
-        print(f"  ⚠️ master_profile 生成錯誤（不影響主流程）: {_mpe}")
-        import traceback; traceback.print_exc()
-
-    # ════════════════════════════════════════════════════════════════
-    # v3.31.6 Phase 1.1: DB Pipeline 整合 — 把 raw_output upsert 進 SQLite OLAP DB
-    # ════════════════════════════════════════════════════════════════
-    try:
-        import db_pipeline
-        db_conn = db_pipeline.init_db(str(data_dir / "chip_radar_v2.db"))
-        db_stats = db_pipeline.upsert_from_raw_dict(
-            db_conn, raw_output, trade_date=trade_date,
-            source='raw', source_file=f'{trade_date}.json'
-        )
-        db_conn.close()
-        print(f"\n[DB v3.31.6] ✓ upsert {db_stats['daily_chips_rows']} rows → chip_radar_v2.db")
-        print(f"             new: traders+{db_stats['traders']} branches+{db_stats['branches']} stocks+{db_stats['stocks']}")
-    except Exception as _dbe:
-        print(f"  ⚠️ DB pipeline 失敗 (不影響主流程): {type(_dbe).__name__}: {_dbe}")
-        import traceback; traceback.print_exc()
-
-    # ════════════════════════════════════════════════════════════════
-    # v3.31.6 Phase 1.1: Archive 分層 — hot < 7天 / warm 7-60 / cold ≥60
-    # ════════════════════════════════════════════════════════════════
-    try:
-        import archive_manager
-        archive_manager.rotate(str(data_dir), hot_days=7, warm_days=60)
-    except Exception as _ae:
-        print(f"  ⚠️ archive rotate 失敗 (不影響主流程): {type(_ae).__name__}: {_ae}")
-
-    # ════════════════════════════════════════════════════════════════
-    # v3.32.3: 自動回補 stock_history 缺失天數 (防止類似 v3.32.1 bug 再發生)
-    # ════════════════════════════════════════════════════════════════
-    try:
-        _sh_path = data_dir / "stock_history.json"
-        if _sh_path.exists():
-            _sh = json.load(open(_sh_path, encoding='utf-8'))
-            _existing = set(_sh.get('dates', []))
-            _all_jsons = list(data_dir.glob('[0-9]'*8+'.json'))
-            _archive = data_dir / 'archive'
-            if _archive.exists():
-                _all_jsons.extend(_archive.glob('[0-9]'*8+'.json'))
-            _available = sorted(set(f.stem for f in _all_jsons))
-            _missing = [d for d in _available if d not in _existing]
-            if _missing:
-                print(f"\n[Auto-Backfill v3.32.3] stock_history 缺 {len(_missing)} 天, 自動回補...")
-                for _md in _missing[-10:]:   # 最多回補最近 10 天
-                    try:
-                        _jp = data_dir / f'{_md}.json'
-                        if not _jp.exists():
-                            _jp = _archive / f'{_md}.json'
-                        if not _jp.exists():
-                            continue
-                        with open(_jp, encoding='utf-8') as _f:
-                            _enc = json.load(_f)
-                        if _enc.get('encrypted'):
-                            _raw = json.loads(decrypt_data(_enc['data'], password))
-                        else:
-                            _raw = _enc
-                        _dq = {}
-                        for _br in _raw.get('branches', []):
-                            for _side in ('buys', 'sells'):
-                                for _s in _br.get(_side, []):
-                                    _c = _s.get('code')
-                                    _bl = _s.get('buy_lot', 0) or 0
-                                    _ba = _s.get('buy_amt', 0) or 0
-                                    if _c and _bl > 0 and _ba > 0 and _c not in _dq:
-                                        _dq[_c] = {'close': round(_ba/_bl, 2), 'change_pct': 0}
-                        if _dq:
-                            hist_mod.update_history(data_dir=data_dir, trade_date=_md,
-                                daily_quotes_map=_dq, industry_map=industry_map or {},
-                                branches_results=_raw.get('branches', []))
-                            _fd = _raw.get('futures_data')
-                            if _fd:
-                                hist_mod.update_futures_history(data_dir=data_dir, trade_date=_md, futures_data=_fd)
-                            print(f"  ✓ {_md} 回補 {len(_dq)} stocks" + (" + futures" if _fd else ""))
-                    except Exception as _be:
-                        print(f"  ⚠️ {_md} 回補失敗: {type(_be).__name__}")
-    except Exception as _abf:
-        print(f"  ⚠️ auto-backfill 失敗: {type(_abf).__name__}: {_abf}")
-
-    # ════════════════════════════════════════════════════════════════
-    # v3.31.16: 處置股歷史快照 (每天存 disposal_history/YYYYMMDD.json)
-    # 累積後可做「誰買注意股 → 持倉 → 變處置」分析
-    # ════════════════════════════════════════════════════════════════
-    try:
-        from disposal_fetcher import save_daily_snapshot
-        snap_path = save_daily_snapshot(str(data_dir))
-        if snap_path:
-            print(f"[Disposal History v3.31.17] ✓ 快照 → {snap_path.name}")
-            # v3.31.17: 快照也進 DB (保留原始 JSON 檔 + DB 雙份)
-            try:
-                import db_pipeline as _dbp
-                _db_conn = _dbp.init_db(str(data_dir / "chip_radar_v2.db"))
-                import json as _json
-                _snap = _json.loads(snap_path.read_text(encoding='utf-8'))
-                _n = _dbp.upsert_disposal_snapshot(_db_conn, _snap)
-                _db_conn.close()
-                print(f"                          + DB {_n} rows")
-            except Exception as _dbe2:
-                print(f"  ⚠️ disposal → DB 失敗: {type(_dbe2).__name__}")
-    except Exception as _dse:
-        print(f"  ⚠️ disposal snapshot 失敗 (不影響主流程): {type(_dse).__name__}: {_dse}")
+    # v3.47.0 後2: 6 個 post-processing block 全部抽成 _post_* helper
+    # main() 從 1225 → ~1010 行, 各 stage 獨立易測 / 易換序 / 易加新模組
+    _post_generate_reports(data_dir, password)
+    _post_build_master_profile(data_dir, password)
+    _post_upsert_db(raw_output, trade_date, data_dir)
+    _post_archive_rotate(data_dir)
+    _post_auto_backfill_history(data_dir, password, industry_map)
+    _post_disposal_snapshot(data_dir)
 
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")
