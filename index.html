@@ -3685,9 +3685,9 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <button class="tab" data-tab="stock"><span class="tab-num">10</span>📈 個股追蹤</button>
     <button class="tab" data-tab="master"><span class="tab-num">11</span>👥 單分點偏好</button>
     <button class="tab" data-tab="reports"><span class="tab-num">12</span>📊 報告中心</button>
-    <button class="tab" data-tab="watchlist"><span class="tab-num">13</span>⚙️ 關注設定</button>
-    <button class="tab" data-tab="masterprofile"><span class="tab-num">14</span>📊 大戶畫像</button>
-    <button class="tab" data-tab="holdings"><span class="tab-num">15</span>🏦 持股結構</button>
+    <button class="tab" data-tab="masterprofile"><span class="tab-num">13</span>📊 大戶畫像</button>
+    <button class="tab" data-tab="holdings"><span class="tab-num">14</span>🏦 持股結構</button>
+    <button class="tab" data-tab="watchlist"><span class="tab-num">15</span>⚙️ 關注設定</button>
   </div>
 
   <!-- 01 今日三視角 (新主頁) -->
@@ -4596,7 +4596,7 @@ async function downloadBossExcel(ev, btnEl) {
 // 不加密 fetch + render 15 個個人大戶 × 15 標籤 + per-branch 細分
 // ============================================================
 let MP_CACHE = null;
-// v3.33.1 (B2): tab14 排序 + 篩選狀態
+// v3.33.1 (B2): tab 13「大戶畫像」排序 + 篩選狀態 (原 tab14, v3.38.0 重排)
 let MP_SORT = { key: 'total_amt', dir: -1 };               // 預設按買進金額降冪
 let MP_FILTER = { l2: 'all', label: 'all' };
 
@@ -5134,7 +5134,7 @@ function showMPDetail(name) {
 }
 
 // ════════════════════════════════════════════════════════════════════
-// v3.37.0: tab 15 持股結構 — 集保 400 張大戶 + 融資維持率市場估算
+// v3.37.0: tab 14「持股結構」— 集保 400 張大戶 + 融資維持率市場估算 (原 tab15, v3.38.0 重排)
 // ════════════════════════════════════════════════════════════════════
 function renderHoldingsTab() {
   const cont = document.getElementById('holdings-container');
@@ -5264,14 +5264,14 @@ function renderHoldingsTab() {
   cont.innerHTML = html;
 }
 
-// hook: 點 tab 14 自動載入 (一次性 cache)
+// hook: 點 tab 13「大戶畫像」自動載入 (一次性 cache, v3.38.0 從 tab14 重排)
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-tab="masterprofile"]').forEach(btn => {
     btn.addEventListener('click', () => {
       setTimeout(() => loadMasterProfileTab(false), 50);   // 等 switchTab class 切完
     });
   });
-  // v3.37.0: tab 15 持股結構 hook
+  // v3.37.0: tab 14「持股結構」hook (v3.38.0 從 tab15 重排)
   document.querySelectorAll('[data-tab="holdings"]').forEach(btn => {
     btn.addEventListener('click', () => {
       setTimeout(() => renderHoldingsTab(), 50);
