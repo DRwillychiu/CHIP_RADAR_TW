@@ -3017,6 +3017,32 @@ th.sortable.sort-desc::after {
 }
 .tab.active .tab-num { color: var(--gold); }
 
+/* P1-10 (v3.39.0): tab 視覺優先級
+   tab-tier-core: 紅 — 每天必看 (主視角/解讀/大戶/持股)
+   tab-tier-query: 綠 — 情境查詢 (排行/法人/期權/融資/漲停/個股/單分點)
+   tab-tier-config: 灰 — 偶用 (報告/關注設定)
+   底邊左上 dot 標示, 不破壞 layout */
+.tab.tab-tier-core::before {
+  content: ''; display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #f87171; margin-right: 5px;
+  vertical-align: middle;
+}
+.tab.tab-tier-query::before {
+  content: ''; display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #3fb950; margin-right: 5px;
+  vertical-align: middle;
+  opacity: 0.5;
+}
+.tab.tab-tier-config::before {
+  content: ''; display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-3); margin-right: 5px;
+  vertical-align: middle;
+  opacity: 0.4;
+}
+
 .panel { display: none; }
 .panel.active { display: block; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn {
@@ -3673,21 +3699,21 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <div class="tabs">
-    <button class="tab active" data-tab="today3"><span class="tab-num">01</span>🌅 今日三視角</button>
-    <button class="tab" data-tab="overview"><span class="tab-num">02</span>🔥 共買榜</button>
-    <button class="tab" data-tab="branches"><span class="tab-num">03</span>📊 分點動態</button>
-    <button class="tab" data-tab="ranking"><span class="tab-num">04</span>🏆 累積排行</button>
-    <button class="tab" data-tab="masterview"><span class="tab-num">05</span>👤 高手合併視圖</button>
-    <button class="tab" data-tab="institutional"><span class="tab-num">06</span>🏛️ 三大法人</button>
-    <button class="tab" data-tab="futures"><span class="tab-num">07</span>🎯 期貨情報</button>
-    <button class="tab" data-tab="margin"><span class="tab-num">08</span>💹 融資融券</button>
-    <button class="tab" data-tab="limitup"><span class="tab-num">09</span>🎯 漲停狙擊</button>
-    <button class="tab" data-tab="stock"><span class="tab-num">10</span>📈 個股追蹤</button>
-    <button class="tab" data-tab="master"><span class="tab-num">11</span>👥 單分點偏好</button>
-    <button class="tab" data-tab="reports"><span class="tab-num">12</span>📊 報告中心</button>
-    <button class="tab" data-tab="masterprofile"><span class="tab-num">13</span>📊 大戶畫像</button>
-    <button class="tab" data-tab="holdings"><span class="tab-num">14</span>🏦 持股結構</button>
-    <button class="tab" data-tab="watchlist"><span class="tab-num">15</span>⚙️ 關注設定</button>
+    <button class="tab tab-tier-core active" data-tab="today3"><span class="tab-num">01</span>🌅 今日三視角</button>
+    <button class="tab tab-tier-core" data-tab="overview"><span class="tab-num">02</span>🔥 共買榜</button>
+    <button class="tab tab-tier-query" data-tab="branches"><span class="tab-num">03</span>📊 分點動態</button>
+    <button class="tab tab-tier-query" data-tab="ranking"><span class="tab-num">04</span>🏆 累積排行</button>
+    <button class="tab tab-tier-core" data-tab="masterview"><span class="tab-num">05</span>👤 高手合併視圖</button>
+    <button class="tab tab-tier-query" data-tab="institutional"><span class="tab-num">06</span>🏛️ 三大法人</button>
+    <button class="tab tab-tier-query" data-tab="futures"><span class="tab-num">07</span>🎯 期貨情報</button>
+    <button class="tab tab-tier-query" data-tab="margin"><span class="tab-num">08</span>💹 融資融券</button>
+    <button class="tab tab-tier-query" data-tab="limitup"><span class="tab-num">09</span>🎯 漲停狙擊</button>
+    <button class="tab tab-tier-query" data-tab="stock"><span class="tab-num">10</span>📈 個股追蹤</button>
+    <button class="tab tab-tier-query" data-tab="master"><span class="tab-num">11</span>👥 單分點偏好</button>
+    <button class="tab tab-tier-config" data-tab="reports"><span class="tab-num">12</span>📊 報告中心</button>
+    <button class="tab tab-tier-core" data-tab="masterprofile"><span class="tab-num">13</span>📊 大戶畫像</button>
+    <button class="tab tab-tier-core" data-tab="holdings"><span class="tab-num">14</span>🏦 持股結構</button>
+    <button class="tab tab-tier-config" data-tab="watchlist"><span class="tab-num">15</span>⚙️ 關注設定</button>
   </div>
 
   <!-- 01 今日三視角 (新主頁) -->
@@ -4521,27 +4547,30 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 
 <script>
 // ========== 加密 ==========
-const PBKDF2_ITERATIONS = 100000;
+const PBKDF2_DEFAULT_ITERATIONS = 100000;   // v3.30.1 預設; P1-1 升 600k 鋪路
 function b64ToBytes(b64) {
   const bin = atob(b64);
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return bytes;
 }
-async function deriveKey(password, salt) {
+async function deriveKey(password, salt, iterations) {
   const enc = new TextEncoder();
   const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt, iterations: iterations || PBKDF2_DEFAULT_ITERATIONS, hash: 'SHA-256' },
     baseKey, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
   );
 }
-async function decryptToken(token, password) {
+// P1-1 (v3.39.0): decryptToken 接受 iterations 參數
+//   呼叫端從 outer JSON 讀 enc.iterations 傳入; 缺值時 fallback 100k (向後相容)
+//   未來升 600k 後新檔自動套新值, 舊 archive 仍 100k 仍能解
+async function decryptToken(token, password, iterations) {
   const raw = b64ToBytes(token);
   const salt = raw.slice(0, 16);
   const iv = raw.slice(16, 28);
   const ct = raw.slice(28);
-  const key = await deriveKey(password, salt);
+  const key = await deriveKey(password, salt, iterations);
   const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
 
   // v3.30.1: gzip magic bytes (1F 8B) auto-detect.
@@ -4570,7 +4599,7 @@ async function downloadBossExcel(ev, btnEl) {
   if (btnEl) { btnEl.dataset.dl = '1'; btnEl.style.opacity = '0.7'; }
   const fallbackUrl = location.href.replace(/[^/]*(\?.*)?$/, '') + 'data/reports/latest.xlsx';
   try {
-    const r = await fetch(`${DATA_BASE}/reports/latest.xlsx?_=${Date.now()}`, { cache: 'no-store' });
+    const r = await fetchWithTimeout(`${DATA_BASE}/reports/latest.xlsx?_=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const blob = await r.blob();
     const url = URL.createObjectURL(blob);
@@ -4642,7 +4671,7 @@ async function loadMasterProfileTab(forceRefresh) {
   if (MP_CACHE && !forceRefresh) { renderMP(); return; }
   cont.innerHTML = '<div style="text-align:center;color:var(--text-2);padding:40px;">⏳ 載入 master_profiles.json...</div>';
   try {
-    const r = await fetch(`${DATA_BASE}/master_profiles.json?_=${Date.now()}`, { cache: 'no-store' });
+    const r = await fetchWithTimeout(`${DATA_BASE}/master_profiles.json?_=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) {
       cont.innerHTML = `<div style="padding:30px;color:#fca5a5;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.4);border-radius:8px;">⚠️ <strong>master_profiles.json 不存在 (HTTP ${r.status})</strong><br><br>原因: 下一次 daily-full crawler 跑完才會自動生成 (v3.30.14 起整合)。可手動跑:<br><code style="background:#0f1525;padding:4px 8px;border-radius:4px;display:inline-block;margin-top:8px;">CHIP_RADAR_PASSWORD=&lt;prod&gt; python master_profile.py</code></div>`;
       return;
@@ -4907,7 +4936,7 @@ function renderMP() {
       html += `<tr style="border-top:1px solid var(--border);cursor:pointer;" onclick="showMPDetail('${e.master.replace(/'/g, "\\'")}')">
         <td style="padding:6px 8px;color:${rm.color};font-weight:700;">${rm.icon} ${rm.label}</td>
         <td style="padding:6px 8px;font-weight:600;color:var(--gold-bright);">${e.master}</td>
-        <td style="padding:6px 8px;">${e.stock_name} <span style="color:var(--text-3);">${e.stock_code}</span></td>
+        <td style="padding:6px 8px;">${e.stock_name} <span class="jump-stock" data-code="${e.stock_code}" onclick="event.stopPropagation(); jumpToStockTrace('${e.stock_code}')" style="color:var(--brand);text-decoration:underline dotted;cursor:pointer;" title="跳到個股追蹤">${e.stock_code}</span></td>
         <td style="padding:6px 8px;text-align:right;font-weight:700;">${e.net_lots.toLocaleString()} 張 / ${e.net_amt_wan.toLocaleString()} 萬</td>
         <td style="padding:6px 8px;text-align:right;">${e.buy_days}</td>
         <td style="padding:6px 8px;text-align:right;color:var(--text-2);">${(e.last_buy_date || '').slice(4)}</td>
@@ -4965,7 +4994,7 @@ function renderMP() {
   }
 
   html += `<div id="mp-detail" style="margin-top:18px;"></div>`;
-  cont.innerHTML = html;
+  renderWithFragment(cont, html);   // P1-7
 }
 
 function showMPDetail(name) {
@@ -5074,7 +5103,7 @@ function showMPDetail(name) {
       const rm = riskMeta[pos.risk] || riskMeta.watch;
       html += `<tr style="border-top:1px solid var(--border);">
         <td style="padding:4px 6px;color:${rm.color};font-weight:700;">${rm.icon} ${rm.label}</td>
-        <td style="padding:4px 6px;">${pos.stock_name} <span style="color:var(--text-3);">${pos.stock_code}</span></td>
+        <td style="padding:4px 6px;">${pos.stock_name} <span class="jump-stock" onclick="event.stopPropagation(); jumpToStockTrace('${pos.stock_code}')" style="color:var(--brand);text-decoration:underline dotted;cursor:pointer;" title="跳到個股追蹤">${pos.stock_code}</span></td>
         <td style="padding:4px 6px;text-align:right;font-weight:700;">${pos.net_lots.toLocaleString()} 張 / ${pos.net_amt_wan.toLocaleString()} 萬</td>
         <td style="padding:4px 6px;text-align:right;color:var(--text-2);">${pos.buy_lot.toLocaleString()}/${pos.sell_lot.toLocaleString()}</td>
         <td style="padding:4px 6px;text-align:right;">${pos.buy_days}</td>
@@ -5206,7 +5235,7 @@ function renderHoldingsTab() {
         const color = s.risk_level === 'margin_call' ? '#f87171' : '#fb923c';
         const icon = s.risk_level === 'margin_call' ? '❌' : '🚨';
         html += `<tr style="border-top:1px solid var(--border);">
-          <td style="padding:4px 6px;">${s.name || ''} <span style="color:var(--text-3);">${s.code}</span></td>
+          <td style="padding:4px 6px;">${s.name || ''} <span class="jump-stock" onclick="jumpToStockTrace('${s.code}')" style="color:var(--brand);text-decoration:underline dotted;cursor:pointer;" title="跳到個股追蹤">${s.code}</span></td>
           <td style="padding:4px 6px;text-align:right;color:${color};font-weight:700;">${s.ratio}%</td>
           <td style="padding:4px 6px;text-align:right;">${s.today_close}</td>
           <td style="padding:4px 6px;text-align:right;color:var(--text-3);">${s.estimated_cost}</td>
@@ -5237,7 +5266,7 @@ function renderHoldingsTab() {
             <tr style="color:var(--text-3);"><th style="padding:4px;text-align:left;">代號</th><th style="padding:4px;text-align:right;">本週%</th><th style="padding:4px;text-align:right;">+pp</th><th style="padding:4px;text-align:right;">散戶pp</th></tr>`;
     (tdccMovers.big400_risers || []).slice(0, 10).forEach(r => {
       html += `<tr style="border-top:1px solid var(--border);">
-        <td style="padding:4px;">${r.code}</td>
+        <td style="padding:4px;"><span class="jump-stock" onclick="jumpToStockTrace('${r.code}')" style="color:var(--brand);text-decoration:underline dotted;cursor:pointer;" title="跳到個股追蹤">${r.code}</span></td>
         <td style="padding:4px;text-align:right;">${r.big400_pct?.toFixed(1)}%</td>
         <td style="padding:4px;text-align:right;color:#f87171;font-weight:700;">+${r.big400_delta_pp?.toFixed(2)}</td>
         <td style="padding:4px;text-align:right;color:${r.retail_delta_pp<0?'#3fb950':'#f87171'};">${r.retail_delta_pp>=0?'+':''}${r.retail_delta_pp?.toFixed(2)}</td>
@@ -5250,7 +5279,7 @@ function renderHoldingsTab() {
             <tr style="color:var(--text-3);"><th style="padding:4px;text-align:left;">代號</th><th style="padding:4px;text-align:right;">本週%</th><th style="padding:4px;text-align:right;">−pp</th><th style="padding:4px;text-align:right;">散戶pp</th></tr>`;
     (tdccMovers.big400_fallers || []).slice(0, 10).forEach(r => {
       html += `<tr style="border-top:1px solid var(--border);">
-        <td style="padding:4px;">${r.code}</td>
+        <td style="padding:4px;"><span class="jump-stock" onclick="jumpToStockTrace('${r.code}')" style="color:var(--brand);text-decoration:underline dotted;cursor:pointer;" title="跳到個股追蹤">${r.code}</span></td>
         <td style="padding:4px;text-align:right;">${r.big400_pct?.toFixed(1)}%</td>
         <td style="padding:4px;text-align:right;color:#3fb950;font-weight:700;">${r.big400_delta_pp?.toFixed(2)}</td>
         <td style="padding:4px;text-align:right;color:${r.retail_delta_pp>0?'#f87171':'#3fb950'};">${r.retail_delta_pp>=0?'+':''}${r.retail_delta_pp?.toFixed(2)}</td>
@@ -5261,7 +5290,7 @@ function renderHoldingsTab() {
     html += `<div style="padding:14px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.3);border-radius:8px;color:var(--text-2);font-size:12px;">⏳ TDCC 集保資料尚未生成 (週六 11:00 TW workflow 跑完後出現, 第二週開始才有 vs_prev_week)</div>`;
   }
 
-  cont.innerHTML = html;
+  renderWithFragment(cont, html);   // P1-7
 }
 
 // hook: 點 tab 13「大戶畫像」自動載入 (一次性 cache, v3.38.0 從 tab14 重排)
@@ -5285,6 +5314,31 @@ let ALL_HISTORY = {};
 let POSITIONS = null;  // 累積部位
 let WATCHLIST = new Set();
 let SESSION_PASSWORD = null;
+
+// P1-8 (v3.39.0): fetchWithTimeout — 防伺服器慢/離線時 spinner 卡死
+// 預設 10s timeout, 也可指定; 失敗以 standard Error 拋出 (caller 既有 try/catch 接)
+const DEFAULT_FETCH_TIMEOUT_MS = 10000;
+async function fetchWithTimeout(url, opts = {}, timeoutMs = DEFAULT_FETCH_TIMEOUT_MS) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(new Error(`fetch timeout ${timeoutMs}ms: ${url}`)), timeoutMs);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// P1-7 (v3.39.0): renderWithFragment — 用 <template> 一次替換 DOM
+//   原本 container.innerHTML = html 寫入時 browser 會逐段 parse + reflow
+//   改用 <template> detached parse (不執行 script, 不觸發 reflow), 完成後一次 replaceChildren
+//   對 30 master × 多 panel 的 tab 13 / 14, 在排序/篩選頻繁切換時減少 layout thrash
+function renderWithFragment(container, html) {
+  if (!container) return;
+  const tmpl = document.createElement('template');
+  tmpl.innerHTML = html;
+  // replaceChildren 在現代瀏覽器 = 一次清空 + 一次 append, 比 innerHTML 賦值更 atomic
+  container.replaceChildren(tmpl.content);
+}
 // P0-4 (v3.38.0): 加密明文 cache 防 stale
 //   每次解密後記錄 latest.json 的 crawled_at, 偵測到後端推新檔時
 //   自動清空 CURRENT_DATA + ALL_HISTORY + 重抓 (避免用舊資料做決策)
@@ -5294,7 +5348,7 @@ const REVALIDATE_INTERVAL_MS = 5 * 60 * 1000;   // 5 分鐘檢查一次後端 cr
 async function revalidateCache() {
   if (!SESSION_PASSWORD) return;   // 未解鎖時不檢查
   try {
-    const r = await fetch(`${DATA_BASE}/latest.json?t=${Date.now()}`, { cache: 'no-store' });
+    const r = await fetchWithTimeout(`${DATA_BASE}/latest.json?t=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) return;
     const enc = await r.json();
     const serverCrawled = enc.crawled_at;
@@ -5303,7 +5357,7 @@ async function revalidateCache() {
       // 清明文 cache, 用既有密碼重新解密
       CURRENT_DATA = null;
       ALL_HISTORY = {};
-      const plain = await decryptToken(enc.data, SESSION_PASSWORD);
+      const plain = await decryptToken(enc.data, SESSION_PASSWORD, enc.iterations);
       const data = JSON.parse(plain);
       CURRENT_CRAWLED_AT = data.crawled_at || serverCrawled;
       ALL_HISTORY[enc.trade_date || data.trade_date] = data;
@@ -5453,7 +5507,7 @@ async function attemptUnlock() {
   btn.innerHTML = '<span class="login-spinner"></span>解密驗證中...';
   errEl.classList.remove('show');
   try {
-    const r = await fetch(`${DATA_BASE}/latest.json?t=${Date.now()}`);
+    const r = await fetchWithTimeout(`${DATA_BASE}/latest.json?t=${Date.now()}`);
     if (!r.ok) {
       errEl.textContent = '找不到資料檔案';
       errEl.classList.add('show');
@@ -5467,7 +5521,7 @@ async function attemptUnlock() {
       btn.disabled = false; btn.textContent = '解 鎖';
       return;
     }
-    const plain = await decryptToken(enc.data, password);
+    const plain = await decryptToken(enc.data, password, enc.iterations);
     const data = JSON.parse(plain);
     SESSION_PASSWORD = password;
     CURRENT_CRAWLED_AT = data.crawled_at || enc.crawled_at || null;   // P0-4
@@ -5504,7 +5558,7 @@ document.getElementById('passwordInput').addEventListener('keypress', (e) => {
 // ========== 載入 ==========
 async function loadIndex() {
   try {
-    const r = await fetch(`${DATA_BASE}/index.json?t=${Date.now()}`);
+    const r = await fetchWithTimeout(`${DATA_BASE}/index.json?t=${Date.now()}`);
     if (!r.ok) throw new Error('index.json 讀取失敗');
     const idx = await r.json();
     AVAILABLE_DATES = idx.dates || [];
@@ -5521,11 +5575,11 @@ async function loadDate(date) {
   if (ALL_HISTORY[date]) return ALL_HISTORY[date];
   if (!SESSION_PASSWORD) return null;
   try {
-    const r = await fetch(`${DATA_BASE}/${date}.json?t=${Date.now()}`);
+    const r = await fetchWithTimeout(`${DATA_BASE}/${date}.json?t=${Date.now()}`);
     if (!r.ok) return null;
     const enc = await r.json();
     if (!enc.encrypted || !enc.data) return null;
-    const plain = await decryptToken(enc.data, SESSION_PASSWORD);
+    const plain = await decryptToken(enc.data, SESSION_PASSWORD, enc.iterations);
     const data = JSON.parse(plain);
     ALL_HISTORY[date] = data;
     return data;
@@ -5536,7 +5590,7 @@ async function loadPositions() {
   if (POSITIONS) return POSITIONS;
   if (!SESSION_PASSWORD) return null;
   try {
-    const r = await fetch(`${DATA_BASE}/positions.json?t=${Date.now()}`);
+    const r = await fetchWithTimeout(`${DATA_BASE}/positions.json?t=${Date.now()}`);
     if (!r.ok) {
       POSITIONS = { branches: {}, baseline_date: '20260421' };
       return POSITIONS;
@@ -5546,7 +5600,7 @@ async function loadPositions() {
       POSITIONS = enc;
       return POSITIONS;
     }
-    const plain = await decryptToken(enc.data, SESSION_PASSWORD);
+    const plain = await decryptToken(enc.data, SESSION_PASSWORD, enc.iterations);
     POSITIONS = JSON.parse(plain);
     return POSITIONS;
   } catch (e) {
@@ -6060,7 +6114,7 @@ async function renderTempHistory() {
   // Fetch (with 24h cache to avoid spam)
   if (!TEMP_HISTORY_CACHE) {
     try {
-      const r = await fetch(`${DATA_BASE}/temp_history.json?_=${Date.now()}`);
+      const r = await fetchWithTimeout(`${DATA_BASE}/temp_history.json?_=${Date.now()}`);
       if (!r.ok) {
         wrap.innerHTML = '';  // 還沒累積資料,隱藏
         return;
@@ -7385,7 +7439,7 @@ async function loadFuturesHistory() {
   // 從 stock_history.json 抓 futures 區塊
   if (FUTURES_HISTORY_CACHE) return FUTURES_HISTORY_CACHE;
   try {
-    const r = await fetch('data/stock_history.json?_=' + Date.now());
+    const r = await fetchWithTimeout('data/stock_history.json?_=' + Date.now());
     if (!r.ok) return null;
     const h = await r.json();
     FUTURES_HISTORY_CACHE = h.futures || {};
@@ -7810,7 +7864,7 @@ function fmtAmtWan(amt) {
 
 async function loadReportsIndex() {
   try {
-    const r = await fetch(`${DATA_BASE}/reports_index.json?_=${Date.now()}`);
+    const r = await fetchWithTimeout(`${DATA_BASE}/reports_index.json?_=${Date.now()}`);
     if (r.ok) {
       REPORTS_INDEX = await r.json();
     } else {
@@ -7824,11 +7878,11 @@ async function loadReportsIndex() {
 async function loadReportFile(type, period) {
   try {
     const filename = `${type}_${period}.json`;
-    const r = await fetch(`${DATA_BASE}/reports/${filename}?_=${Date.now()}`);
+    const r = await fetchWithTimeout(`${DATA_BASE}/reports/${filename}?_=${Date.now()}`);
     if (!r.ok) return null;
     const encrypted = await r.json();
     if (encrypted.encrypted) {
-      const plain = await decryptToken(encrypted.data, SESSION_PASSWORD);
+      const plain = await decryptToken(encrypted.data, SESSION_PASSWORD, encrypted.iterations);
       return JSON.parse(plain);
     }
     return encrypted;
@@ -8356,6 +8410,25 @@ document.querySelectorAll('.tab').forEach(btn => {
     else if (tab === 'limitup') renderLimitUpPanel();
   });
 });
+
+// P1-10 (v3.39.0): 跨 tab 連結 helper — 從任何地方跳到「個股追蹤 tab + 自動填入 code」
+// 用途: tab 13 大戶畫像表格 stock code click / tab 14 持股結構表格 click
+// 設 global window 函式, inline onclick 可直接呼叫
+window.jumpToStockTrace = function(code) {
+  if (!code) return;
+  const tabBtn = document.querySelector('[data-tab="stock"]');
+  if (!tabBtn) return;
+  tabBtn.click();
+  // 等 tab 切換完, 填入搜尋框並觸發 render
+  setTimeout(() => {
+    const input = document.getElementById('stockSearchInput');
+    if (input) {
+      input.value = String(code);
+      if (typeof renderStockTrace === 'function') renderStockTrace();
+      input.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 60);
+};
 function toggleHelp() {
   const help = document.getElementById('panel-help');
   const isOpen = help.style.display === 'block';
@@ -8497,7 +8570,7 @@ let CURRENT_TREND_DAYS = 10;      // 當前觀察天數
 async function loadStockHistory() {
   if (STOCK_HISTORY_CACHE) return STOCK_HISTORY_CACHE;
   try {
-    const r = await fetch('data/stock_history.json?_=' + Date.now());
+    const r = await fetchWithTimeout('data/stock_history.json?_=' + Date.now());
     if (!r.ok) return null;
     STOCK_HISTORY_CACHE = await r.json();
     return STOCK_HISTORY_CACHE;

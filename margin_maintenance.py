@@ -34,15 +34,28 @@ from typing import Dict, Any, Optional, List
 # ════════════════════════════════════════════════════════════════════
 
 N_DAYS_AVG = 30           # 用近 N 天收盤均價當融資成本估算
-MARGIN_RATE = 0.6         # 融資成數 (1.6 倍槓桿; 60% 自備款 40% 融資)
-INITIAL_MAINT = 1.667     # 初始維持率 (1/0.6) ≈ 166.67%
 
-# 風險分級門檻 (%)
+# P1-6 (v3.39.0): 融資成數法源 — TWSE 證券交易法
+# 官方融資成數: 上市/上櫃股票 60% (亦即客戶自付 40%, 證金公司借 60%)
+# 部分主管機關列管股 (處置/警示) 融資成數降至 50% 甚或停止融資
+# 來源: https://www.twse.com.tw/zh/products/trading/services/margin/announcement.html
+# 來源: https://www.tdcc.com.tw/portal/zh/marketing/financing
+# 此常數變動時請同步檢查: 處置股維持率估算需另用 0.5 (處置中常見成數)
+MARGIN_RATE = 0.6
+INITIAL_MAINT = 1.667     # 初始維持率 = 1/MARGIN_RATE ≈ 166.67%
+
+# P1-6: 風險分級門檻 (%) 法源 — TWSE「整戶擔保維持率」規定
+# 健康 ≥150%: 一般操作區間
+# 警戒 130-150%: 接近追繳線, 風險偵測區
+# 高風險 120-130%: 跌破即觸發補繳通知 (T+2 內須補)
+# 斷頭 <120%: 證金公司強制平倉 (整戶斷頭)
+# 來源: 證券商辦理有價證券買賣融資融券業務操作辦法 第 11/12 條
+# 來源: https://www.cnyes.com/glossary/maintain.aspx (淺顯說明)
 THRESHOLDS = {
     'healthy':      150.0,    # ≥ 150%
-    'watch':        130.0,    # 130-150%
-    'high_risk':    120.0,    # 120-130% (跌破即追繳)
-    # 'margin_call': < 120%
+    'watch':        130.0,    # 130-150% — 法定追繳線
+    'high_risk':    120.0,    # 120-130% — 跌破即追繳
+    # 'margin_call': < 120% — 法定斷頭線
 }
 
 # 最低有效融資餘額 (張) — 低於此不算 (估算失準)
