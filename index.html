@@ -5380,6 +5380,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let CURRENT_DATA = null;
+// C2 (v3.42.0): Phase B backtest results (preload 一次, 給溫度計 chip 顯示 hit_rate)
+let PHASE_B_RESULTS = null;
+async function loadPhaseBResults() {
+  if (PHASE_B_RESULTS !== null) return PHASE_B_RESULTS;
+  try {
+    const r = await fetchWithTimeout(`${DATA_BASE}/backtest_phase_b_results.json?_=${Date.now()}`, { cache: 'no-store' }, 5000);
+    if (r.ok) PHASE_B_RESULTS = await r.json();
+    else PHASE_B_RESULTS = {};
+  } catch (e) { PHASE_B_RESULTS = {}; }
+  return PHASE_B_RESULTS;
+}
 let AVAILABLE_DATES = [];
 let ALL_HISTORY = {};
 let POSITIONS = null;  // 累積部位
@@ -5709,6 +5720,8 @@ async function loadPositions() {
 }
 
 async function init() {
+  // C2 (v3.42.0): preload Phase B backtest results (失敗不阻擋主流程)
+  loadPhaseBResults().catch(() => {});
   const latestDate = await loadIndex();
   if (!latestDate) {
     document.getElementById('overviewResult').innerHTML = `
@@ -5962,6 +5975,26 @@ function renderChipTemperature() {
     return;
   }
 
+  // C2 (v3.42.0): 注入 Phase B backtest hit_rate (供 hover tooltip + 視覺標)
+  // PHASE_B_RESULTS 由 init() 預載入, 失敗 fallback {}
+  if (typeof PHASE_B_RESULTS !== 'undefined' && PHASE_B_RESULTS) {
+    signals.forEach(s => {
+      const sig_data = PHASE_B_RESULTS.results && PHASE_B_RESULTS.results[s.name];
+      if (sig_data) {
+        const lvl_data = sig_data.levels && sig_data.levels[s.level];
+        if (lvl_data && lvl_data.hit_rate_pct !== null) {
+          s.backtest = {
+            hit_rate_pct: lvl_data.hit_rate_pct,
+            n: lvl_data.n,
+            verdict: lvl_data.verdict,
+          };
+        } else if (lvl_data) {
+          s.backtest = { hit_rate_pct: null, n: lvl_data.n, verdict: lvl_data.verdict };
+        }
+      }
+    });
+  }
+
   // 計算綜合判讀 + 0-100 分數
   const bulls = signals.filter(s => s.level === 'bull' || s.level === 'extreme-bull').length;
   const bears = signals.filter(s => s.level === 'bear' || s.level === 'extreme-bear').length;
@@ -6021,15 +6054,38 @@ function renderChipTemperature() {
     </div>
     
     <div class="chip-temp-grid">
-      ${signals.map(s => `
-        <div class="chip-temp-card chip-temp-${s.level}" onclick="if(window.switchTab) switchTab('${s.tab}'); else document.querySelector('[data-tab=\\'${s.tab}\\']')?.click();" title="${s.name} ${s.levelLabel}\n貢獻 ${s.score}/20 分 (權重 ${s.weight}x)\n${s.hint}\n\n計算: ${s.label}">
+      ${signals.map(s => {
+        // C2 (v3.42.0): backtest hit_rate badge
+        let btBadge = '';
+        let btTitle = '';
+        if (s.backtest) {
+          const bt = s.backtest;
+          const hr = bt.hit_rate_pct;
+          const verdict = bt.verdict;
+          let icon = '⏳', color = 'var(--text-3)';
+          if (verdict === 'enable') { icon = '✅'; color = '#3fb950'; }
+          else if (verdict === 'disable') { icon = '❌'; color = '#f87171'; }
+          else if (verdict === 'maintain') { icon = '→'; color = '#fbbf24'; }
+          else if (verdict === 'insufficient') { icon = '⏳'; color = 'var(--text-3)'; }
+          else if (verdict === 'neutral_level') { icon = '·'; color = 'var(--text-3)'; }
+          const hrTxt = hr !== null ? `${hr}%` : 'n/a';
+          btBadge = `<div style="font-size:9px;color:${color};margin-top:2px;" title="backtest hit_rate ${hrTxt} (n=${bt.n}) → ${verdict}">${icon} ${hrTxt} (n=${bt.n})</div>`;
+          btTitle = `\nBacktest: ${hrTxt} hit_rate (n=${bt.n}) → ${verdict}`;
+        }
+        return `
+        <div class="chip-temp-card chip-temp-${s.level}" onclick="if(window.switchTab) switchTab('${s.tab}'); else document.querySelector('[data-tab=\\'${s.tab}\\']')?.click();" title="${s.name} ${s.levelLabel}\n貢獻 ${s.score}/20 分 (權重 ${s.weight}x)\n${s.hint}\n\n計算: ${s.label}${btTitle}">
           <div class="chip-temp-name">${s.name}</div>
           <div class="chip-temp-value">${s.label}</div>
           <div class="chip-temp-hint">${s.hint}</div>
           <div class="chip-temp-score">${s.score}/20 · ${s.levelLabel}</div>
+          ${btBadge}
         </div>
-      `).join('')}
+      `;}).join('')}
     </div>
+    ${(PHASE_B_RESULTS && PHASE_B_RESULTS.market_regime_caveat && PHASE_B_RESULTS.market_regime_caveat.warning) ? `
+      <div style="margin-top:8px;padding:8px 12px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.3);border-radius:6px;font-size:11px;color:#fca5a5;">
+        ${PHASE_B_RESULTS.market_regime_caveat.warning} 樣本 ${PHASE_B_RESULTS.samples_with_next_day_chg}/${PHASE_B_RESULTS.window_days} 天.
+      </div>` : ''}
 
     <!-- v3.25: 加權公式透明化 -->
     <div class="chip-temp-formula" title="點擊看完整公式">

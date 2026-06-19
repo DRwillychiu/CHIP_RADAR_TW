@@ -12,6 +12,34 @@
 
 ---
 
+## algo-v3.42.0 (2026-06-19) — C2 Phase B backtest 上線
+
+**作者**:DRwillychiu (Sprint 5)
+**狀態**:🟢 active
+**git tag**:`algo-v3.42.0`
+
+**內容**:
+- 新 `backtester_phase_b.py` — 用內建 `data/temp_history.json` 跑 Phase B backtest
+- 避開 FinMind 外部 API (對抗式建議: API 風險 + 配額)
+- 涵蓋 4 個未回測信號: 外資現貨 / 分點漲停 / 融資熱度 / 法人共識
+- 二分法:≥55% enable / <45% disable / 樣本 n<10 insufficient
+- market_regime_caveat 偵測強單邊行情 → trust_weights=False → signal_engine 自動歸 0
+- `signal_engine.load_phase_b_weights()` 從 `data/backtest_phase_b_results.json` 動態載入
+- 前端溫度計 chip 加 hit_rate badge + 樣本警示
+
+**實證結果 (首次跑 2026-06-19, 樣本 25 天)**:
+- market_regime = strong_bull(next_day_up_pct=100%)
+- 🚨 偵測到 data quality bug: temp_history.next_day_change_pct 30 天全正 → 不可能
+- trust_weights = False → 所有 weights 暫不採信
+- 待修 crawler 的 next_day backfill 邏輯 + 累積 180+ 天樣本後重評
+
+**影響**:
+- ✅ signal_engine Phase B weights 仍維持 0 (因 strong_bull regime 不採信)
+- ✅ daily_signal 行為跟 v3.40.0 一致 (無 weight 漂移)
+- ✅ 機制就緒, 等資料品質修好 + 樣本累積後自動生效
+
+---
+
 ## algo-v3.40.0 (2026-06-19) — 凍結基線
 
 **作者**:DRwillychiu via institutional roadmap Sprint 3

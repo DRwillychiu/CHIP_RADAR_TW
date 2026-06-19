@@ -1,0 +1,98 @@
+{
+  "backtest_run_at": "2026-06-19T15:14:30.102597+08:00",
+  "window_days": 30,
+  "samples_with_next_day_chg": 25,
+  "data_source": "data\\temp_history.json",
+  "min_sample_size": 10,
+  "enable_threshold_pct": 55.0,
+  "disable_threshold_pct": 45.0,
+  "level_expected_dir": {
+    "extreme-bull": "up",
+    "bull": "up",
+    "neutral": "flat",
+    "bear": "down",
+    "extreme-bear": "down"
+  },
+  "phase_b_signals": [
+    "外資現貨",
+    "分點漲停",
+    "融資熱度",
+    "法人共識"
+  ],
+  "market_regime_caveat": {
+    "regime": "strong_bull",
+    "next_day_up_pct": 100.0,
+    "mean_next_day_chg_pct": 1.425,
+    "n_up": 25,
+    "n_down": 0,
+    "warning": "🚨 next_day_change_pct 100% 正值 — 高度懷疑 data quality bug (真實大盤不可能 30 天全漲), 不是真實 alpha. crawler temp_history backfill 邏輯需查 (TODO).",
+    "trust_weights": false
+  },
+  "caveat": "樣本 n<10 不評估 (verdict=insufficient); ≥55.0% enable / <45.0% disable / 中間 maintain. 從內建 temp_history 跑, 樣本數 = 累積天數, 隨時間自然增加. ⚠️ 樣本期間若市場偏單邊 (見 market_regime_caveat), hit_rate 可能 spurious, 需累積 180+ 天涵蓋 bull+bear 才能信賴.",
+  "results": {
+    "外資現貨": {
+      "levels": {
+        "neutral": {
+          "n": 0,
+          "mean_next_chg_pct": 1.425,
+          "hits": 0,
+          "misses": 0,
+          "hit_rate_pct": null,
+          "expected_dir": "flat",
+          "verdict": "insufficient",
+          "weight": 0.0
+        }
+      },
+      "overall_hit_rate_directional": null,
+      "overall_n_directional": 0
+    },
+    "分點漲停": {
+      "levels": {
+        "extreme-bull": {
+          "n": 25,
+          "mean_next_chg_pct": 1.425,
+          "hits": 25,
+          "misses": 0,
+          "hit_rate_pct": 100.0,
+          "expected_dir": "up",
+          "verdict": "enable",
+          "weight": 0.5
+        }
+      },
+      "overall_hit_rate_directional": 100.0,
+      "overall_n_directional": 25
+    },
+    "融資熱度": {
+      "levels": {
+        "neutral": {
+          "n": 0,
+          "mean_next_chg_pct": 1.425,
+          "hits": 0,
+          "misses": 0,
+          "hit_rate_pct": null,
+          "expected_dir": "flat",
+          "verdict": "insufficient",
+          "weight": 0.0
+        }
+      },
+      "overall_hit_rate_directional": null,
+      "overall_n_directional": 0
+    },
+    "法人共識": {
+      "levels": {
+        "neutral": {
+          "n": 0,
+          "mean_next_chg_pct": 1.452,
+          "hits": 0,
+          "misses": 0,
+          "hit_rate_pct": null,
+          "expected_dir": "flat",
+          "verdict": "insufficient",
+          "weight": 0.0
+        }
+      },
+      "overall_hit_rate_directional": null,
+      "overall_n_directional": 0
+    }
+  }
+}

@@ -55,9 +55,59 @@ SIGNAL_WEIGHTS = {
     'settlement_pressure_near_bear':    -0.033,   # 結算當日±1 + 深多
     'settlement_pressure_neutral':       0.000,   # 非結算週,不參與
 
-    # 信號 1/4/5/6: Phase B 未 backtest, 暫不參與決策
-    # 一旦 Phase B 完成, 把此表 expand
+    # 信號 1/4/5/6: Phase B v3.42.0 — 從 data/backtest_phase_b_results.json 動態載入
+    # (見下方 load_phase_b_weights 函式; 不採信時 fallback 0)
 }
+
+
+# ════════════════════════════════════════════════════════════════════
+#  v3.42.0 C2: Phase B 動態載入 (signal 1/4/5/6 weights from backtest)
+# ════════════════════════════════════════════════════════════════════
+# Cache: 載入一次, 主流程結束清空 (避免長 process 抓不到新檔)
+_phase_b_cache = None
+
+def load_phase_b_weights(data_dir: str = 'data') -> Dict[str, Dict[str, float]]:
+    """從 backtest_phase_b_results.json 載入 Phase B 4 信號權重.
+
+    Returns:
+      {signal_name: {level: weight}} or {} if file 不存在 / 不可採信
+    """
+    global _phase_b_cache
+    if _phase_b_cache is not None:
+        return _phase_b_cache
+    from pathlib import Path
+    import json as _json
+    p = Path(data_dir) / 'backtest_phase_b_results.json'
+    if not p.exists():
+        _phase_b_cache = {}
+        return _phase_b_cache
+    try:
+        d = _json.loads(p.read_text(encoding='utf-8'))
+    except Exception:
+        _phase_b_cache = {}
+        return _phase_b_cache
+    # 對抗式驗證: market_regime 強單邊時不採信 weights
+    # 注意: 不依賴 trust_weights 欄位 (舊檔可能缺), 直接看 regime
+    regime_caveat = d.get('market_regime_caveat', {}) or {}
+    regime = regime_caveat.get('regime')
+    trust = regime_caveat.get('trust_weights')
+    # 明確 False / 強單邊 regime → 不採信
+    if trust is False or regime in ('strong_bull', 'strong_bear'):
+        _phase_b_cache = {}
+        return _phase_b_cache
+    # 萃取 weights
+    out = {}
+    for sig_name, sig_data in (d.get('results') or {}).items():
+        levels_w = {}
+        for level, lvl_data in (sig_data.get('levels') or {}).items():
+            if lvl_data.get('verdict') == 'enable':
+                w = lvl_data.get('weight', 0.0)
+                if w != 0:
+                    levels_w[level] = w
+        if levels_w:
+            out[sig_name] = levels_w
+    _phase_b_cache = out
+    return _phase_b_cache
 
 # ════════════════════════════════════════════════════════════════════
 #  Killed signals (backtest 證實 < 隨機 50%)
@@ -100,7 +150,13 @@ def _signal_weight(name: str, sig_data: Dict) -> float:
                 if level == 'bear': return SIGNAL_WEIGHTS['settlement_pressure_week_bear']
             return SIGNAL_WEIGHTS['settlement_pressure_neutral']
 
-    return 0.0  # 其他信號 (1/2/4/5/6) 目前 0 權重
+    # v3.42.0 C2: Phase B 動態 (信號 1/4/5/6)
+    # 若 backtest 期間 strong_bull/bear → trust_weights=False → 自然返 0
+    pb = load_phase_b_weights()
+    if name in pb:
+        return pb[name].get(level, 0.0)
+
+    return 0.0  # 其他信號 (含信號 2 等被 KILLED) 維持 0 權重
 
 
 def infer_market_direction(temp_signals: List[Dict]) -> Dict[str, Any]:
