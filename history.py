@@ -48,7 +48,7 @@ from typing import Dict, Any, Optional
 TW_TZ = timezone(timedelta(hours=8))
 
 HISTORY_FILE = 'stock_history.json'
-MAX_DAYS = 30  # 保留最近 30 天
+MAX_DAYS = 60  # v3.44.0: 30 → 60 配合 master_profile B3 時間衰減 60 天視窗 + 給 margin_maintenance 60 日均價選項
 
 # TWSE 大盤指數 API (FMTQIK 或 MI_INDEX)
 TAIEX_URL = 'https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX'
@@ -75,10 +75,22 @@ def _fetch_taiex_index(expected_trade_date: str = None,
     """
     expected_roc = _yyyymmdd_to_roc(expected_trade_date) if expected_trade_date else ""
 
+    # v3.44.0 後1: safe_fetch + backoff + quota log
+    try:
+        from safe_fetch import safe_get, RateLimitedError, ResponseTooLargeError
+        _has_safe_fetch = True
+    except ImportError:
+        _has_safe_fetch = False
+
     for attempt in range(max_retries):
         try:
-            r = requests.get(TAIEX_URL, timeout=20,
-                           headers={'User-Agent': 'Mozilla/5.0'})
+            if _has_safe_fetch:
+                r = safe_get(TAIEX_URL, source_id='TWSE_MI_INDEX',
+                              max_retries=2, timeout=20,
+                              headers={'User-Agent': 'Mozilla/5.0'})
+            else:
+                r = requests.get(TAIEX_URL, timeout=20,
+                               headers={'User-Agent': 'Mozilla/5.0'})
             if r.status_code != 200:
                 print(f"    ⚠️ TAIEX 第 {attempt+1}/{max_retries} 次: HTTP {r.status_code}")
                 if attempt < max_retries - 1:

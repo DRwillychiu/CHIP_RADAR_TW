@@ -62,10 +62,20 @@ HEADERS = {
 
 
 def _fetch_disposal_html(timeout: int = 15, max_retries: int = 2) -> Optional[str]:
-    """抓 chengwaye disposal-forecast.html, 失敗回 None。"""
+    """抓 chengwaye disposal-forecast.html, 失敗回 None。
+    v3.44.0 後1: safe_fetch + backoff + quota log."""
+    try:
+        from safe_fetch import safe_get
+        _use_safe = True
+    except ImportError:
+        _use_safe = False
     for attempt in range(max_retries):
         try:
-            r = requests.get(CHENGWAYE_URL, headers=HEADERS, timeout=timeout)
+            if _use_safe:
+                r = safe_get(CHENGWAYE_URL, source_id='chengwaye_disposal_forecast',
+                              max_retries=2, headers=HEADERS, timeout=timeout)
+            else:
+                r = requests.get(CHENGWAYE_URL, headers=HEADERS, timeout=timeout)
             if r.status_code == 200:
                 r.encoding = 'utf-8'
                 return r.text
@@ -117,23 +127,35 @@ def parse_disposal_html(html: str) -> Dict[str, Any]:
 
 def get_disposal_map(data_dir: str = 'data',
                       force_refresh: bool = False,
-                      ttl_days: int = 1) -> Optional[Dict[str, Any]]:
+                      ttl_days: int = 1,
+                      stale_fallback_days: int = 7) -> Optional[Dict[str, Any]]:
     """主 API: cache (TTL 1 天) → fetch → parse → save → return.
-    回傳 None 表示無法取得 (網路失敗或 parse 失敗); 呼叫者應跳過處置股 metric."""
+    回傳 None 表示無法取得 (網路失敗或 parse 失敗); 呼叫者應跳過處置股 metric.
+
+    v3.44.0 (後4): stale_fallback_days — chengwaye 抓取失敗時,允許用最多 N 天舊
+    cache 當 fallback (避免處置股偵測整週斷線). 帶 stale=True flag + stale_days 標.
+    """
     cache_path = Path(data_dir) / CACHE_FILE
 
-    # 1. 看 cache
+    # 1. 看 cache (fresh 內 → 直接返)
+    cached_fresh = None
+    cached_stale = None
     if not force_refresh and cache_path.exists():
         try:
             cached = json.loads(cache_path.read_text(encoding='utf-8'))
             fetched_at = datetime.fromisoformat(cached['fetched_at'])
             now = datetime.now(fetched_at.tzinfo) if fetched_at.tzinfo else datetime.now()
-            age = (now - fetched_at).total_seconds() / 86400
-            if age < ttl_days:
-                # 轉回 set (給呼叫者直接用)
+            age_days = (now - fetched_at).total_seconds() / 86400
+            if age_days < ttl_days:
                 cached['sets'] = {k: set(v) for k, v in cached['sets'].items()}
                 cached['all_risky'] = set(cached['all_risky'])
+                cached['stale'] = False
+                cached['stale_days'] = round(age_days, 1)
                 return cached
+            elif age_days < stale_fallback_days:
+                # 留作 stale fallback (若 fetch 失敗)
+                cached_stale = cached
+                cached_stale['_age_days'] = round(age_days, 1)
         except Exception as e:
             print(f"  ⚠️ disposal cache 讀取失敗 ({type(e).__name__}), 重抓")
 
@@ -141,14 +163,34 @@ def get_disposal_map(data_dir: str = 'data',
     html = _fetch_disposal_html()
     if not html:
         print("  ❌ chengwaye disposal-forecast 抓取失敗")
+        # v3.44.0 後4: stale fallback
+        if cached_stale:
+            age = cached_stale.pop('_age_days', '?')
+            print(f"  ⚠️ [後4 fallback] 用 {age} 天舊 cache 撐 (帶 stale=True 標記)")
+            cached_stale['sets'] = {k: set(v) for k, v in cached_stale['sets'].items()}
+            cached_stale['all_risky'] = set(cached_stale['all_risky'])
+            cached_stale['stale'] = True
+            cached_stale['stale_days'] = age
+            return cached_stale
         return None
 
     parsed = parse_disposal_html(html)
     parsed['fetched_at'] = datetime.now(TW_TZ).isoformat()
     parsed['count'] = len(parsed['all_risky'])
+    parsed['stale'] = False
+    parsed['stale_days'] = 0
 
     if parsed['count'] == 0:
         print("  ⚠️ disposal parse 0 筆, 結構可能變動")
+        # 結構變動時也試 stale fallback
+        if cached_stale:
+            age = cached_stale.pop('_age_days', '?')
+            print(f"  ⚠️ [後4 fallback] 用 {age} 天舊 cache (parse 結構異常)")
+            cached_stale['sets'] = {k: set(v) for k, v in cached_stale['sets'].items()}
+            cached_stale['all_risky'] = set(cached_stale['all_risky'])
+            cached_stale['stale'] = True
+            cached_stale['stale_days'] = age
+            return cached_stale
         return None
 
     # 3. save (set → sorted list 給 JSON)

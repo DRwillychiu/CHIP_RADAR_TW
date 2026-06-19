@@ -49,11 +49,21 @@ def _date_fmt(yyyymmdd: str) -> str:
 
 
 def _post_csv(endpoint: str, data: Dict[str, str], max_retries: int = 3) -> Optional[str]:
-    """POST 到 TAIFEX 取 CSV,含 retry 邏輯 (遵循 api-crawler-checklist)"""
+    """POST 到 TAIFEX 取 CSV,含 retry 邏輯 (遵循 api-crawler-checklist)
+    v3.44.0 後1: safe_fetch + backoff + quota log"""
     url = f"{BASE_URL}/{endpoint}"
+    try:
+        from safe_fetch import safe_post as _safe_post
+        _use_safe = True
+    except ImportError:
+        _use_safe = False
     for attempt in range(max_retries):
         try:
-            r = requests.post(url, data=data, headers=HEADERS, timeout=20)
+            if _use_safe:
+                r = _safe_post(url, source_id=f'TAIFEX_{endpoint}',
+                                max_retries=2, data=data, headers=HEADERS, timeout=20)
+            else:
+                r = requests.post(url, data=data, headers=HEADERS, timeout=20)
             if r.status_code == 200 and len(r.text) > 100:
                 r.encoding = 'big5'  # TAIFEX 用 Big5 編碼
                 return r.text

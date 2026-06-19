@@ -60,17 +60,28 @@ from typing import Dict, Any, Optional
 def fetch_twse_margin(timeout: int = 20, max_retries: int = 3) -> Dict[str, Dict[str, Any]]:
     """
     抓 TWSE 上市融資融券
-    
+
     Returns: {code: {...融資融券資料...}}
+    v3.44.0 後1: safe_fetch + backoff + quota log
     """
     url = "https://openapi.twse.com.tw/v1/exchangeReport/MI_MARGN"
+    try:
+        from safe_fetch import safe_get
+        _use_safe = True
+    except ImportError:
+        _use_safe = False
     for attempt in range(max_retries):
         try:
-            r = requests.get(
-                url, 
-                timeout=timeout,
-                headers={'User-Agent': 'Mozilla/5.0'}
-            )
+            if _use_safe:
+                r = safe_get(url, source_id='TWSE_MI_MARGN',
+                              max_retries=2, timeout=timeout,
+                              headers={'User-Agent': 'Mozilla/5.0'})
+            else:
+                r = requests.get(
+                    url,
+                    timeout=timeout,
+                    headers={'User-Agent': 'Mozilla/5.0'}
+                )
             r.raise_for_status()
             raw_data = r.json()
             break
@@ -140,15 +151,26 @@ def fetch_twse_margin(timeout: int = 20, max_retries: int = 3) -> Dict[str, Dict
 def fetch_tpex_margin(timeout: int = 20, max_retries: int = 3) -> Dict[str, Dict[str, Any]]:
     """
     抓 TPEx 上櫃融資融券
+    v3.44.0 後1: safe_fetch + backoff + quota log
     """
     url = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_margin_balance"
+    try:
+        from safe_fetch import safe_get
+        _use_safe = True
+    except ImportError:
+        _use_safe = False
     for attempt in range(max_retries):
         try:
-            r = requests.get(
-                url,
-                timeout=timeout,
-                headers={'User-Agent': 'Mozilla/5.0'}
-            )
+            if _use_safe:
+                r = safe_get(url, source_id='TPEx_margin_balance',
+                              max_retries=2, timeout=timeout,
+                              headers={'User-Agent': 'Mozilla/5.0'})
+            else:
+                r = requests.get(
+                    url,
+                    timeout=timeout,
+                    headers={'User-Agent': 'Mozilla/5.0'}
+                )
             r.raise_for_status()
             raw_data = r.json()
             break

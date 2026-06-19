@@ -107,12 +107,22 @@ def fetch_twse_t86(trade_date: str, timeout=30, retries=3) -> Dict[str, dict]:
     """
     url = f"{TWSE_T86_URL}?response=json&date={trade_date}&selectType=ALL"
     
+    # v3.44.0 後1: safe_fetch + backoff + quota log
+    try:
+        from safe_fetch import safe_get as _safe_get
+        _use_safe = True
+    except ImportError:
+        _use_safe = False
     for attempt in range(retries):
         try:
-            r = requests.get(url, timeout=timeout, headers=DEFAULT_HEADERS)
+            if _use_safe:
+                r = _safe_get(url, source_id='TWSE_T86',
+                               max_retries=2, timeout=timeout, headers=DEFAULT_HEADERS)
+            else:
+                r = requests.get(url, timeout=timeout, headers=DEFAULT_HEADERS)
             r.raise_for_status()
             d = r.json()
-            
+
             if d.get('stat') != 'OK':
                 print(f"  ⚠️ TWSE T86 狀態非 OK: {d.get('stat', '未知')}")
                 return {}
@@ -186,12 +196,22 @@ def fetch_tpex_3insti(timeout=30, retries=3) -> Dict[str, dict]:
     """
     抓 TPEx 上櫃股票的三大法人買賣超
     Returns: 與 fetch_twse_t86 相同結構（單位：張）
-    
+
     注意：TPEx API 原始欄位含不規則空白與拼寫，以下欄位是實測可用的。
+    v3.44.0 後1: safe_fetch + backoff + quota log.
     """
+    try:
+        from safe_fetch import safe_get as _safe_get
+        _use_safe = True
+    except ImportError:
+        _use_safe = False
     for attempt in range(retries):
         try:
-            r = requests.get(TPEX_3INSTI_URL, timeout=timeout, headers=DEFAULT_HEADERS)
+            if _use_safe:
+                r = _safe_get(TPEX_3INSTI_URL, source_id='TPEx_3insti',
+                               max_retries=2, timeout=timeout, headers=DEFAULT_HEADERS)
+            else:
+                r = requests.get(TPEX_3INSTI_URL, timeout=timeout, headers=DEFAULT_HEADERS)
             r.raise_for_status()
             data = r.json()
             
@@ -282,9 +302,19 @@ def fetch_twse_daily_quotes(expected_trade_date: str = None,
     expected_roc = _yyyymmdd_to_roc(expected_trade_date) if expected_trade_date else ""
     prev_close_map = prev_close_map or {}
 
+    # v3.44.0 後1: safe_fetch + backoff + quota log
+    try:
+        from safe_fetch import safe_get as _safe_get
+        _use_safe = True
+    except ImportError:
+        _use_safe = False
     for attempt in range(retries):
         try:
-            r = requests.get(TWSE_STOCK_DAY_ALL_URL, timeout=timeout, headers=DEFAULT_HEADERS)
+            if _use_safe:
+                r = _safe_get(TWSE_STOCK_DAY_ALL_URL, source_id='TWSE_STOCK_DAY_ALL',
+                               max_retries=2, timeout=timeout, headers=DEFAULT_HEADERS)
+            else:
+                r = requests.get(TWSE_STOCK_DAY_ALL_URL, timeout=timeout, headers=DEFAULT_HEADERS)
             r.raise_for_status()
             data = r.json()
 
@@ -360,9 +390,19 @@ def fetch_tpex_daily_quotes(expected_trade_date: str = None,
     expected_roc = _yyyymmdd_to_roc(expected_trade_date) if expected_trade_date else ""
     prev_close_map = prev_close_map or {}
 
+    # v3.44.0 後1: safe_fetch + backoff + quota log
+    try:
+        from safe_fetch import safe_get as _safe_get
+        _use_safe = True
+    except ImportError:
+        _use_safe = False
     for attempt in range(retries):
         try:
-            r = requests.get(TPEX_DAILY_URL, timeout=timeout, headers=DEFAULT_HEADERS)
+            if _use_safe:
+                r = _safe_get(TPEX_DAILY_URL, source_id='TPEx_daily_quote',
+                               max_retries=2, timeout=timeout, headers=DEFAULT_HEADERS)
+            else:
+                r = requests.get(TPEX_DAILY_URL, timeout=timeout, headers=DEFAULT_HEADERS)
             r.raise_for_status()
             data = r.json()
 
