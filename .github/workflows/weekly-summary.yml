@@ -1,0 +1,63 @@
+name: 10. Weekly Summary (週五 14:30 TW)
+
+# v3.41.0 (2026-06-19, Sprint 4):
+# 週五收盤後產 markdown 週度綜合報告
+#   - TDCC 大戶比例 movers Top 10
+#   - master 週度曝險排名
+#   - 處置股名單變動
+#   - 籌碼溫度近 5 日
+# 寫 data/reports/weekly_YYYY_WXX.md
+
+on:
+  schedule:
+    # 週五 UTC 06:30 = TW 14:30 (收盤 1 小時後)
+    - cron: '30 6 * * 5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate weekly summary
+        run: python weekly_summary.py
+
+      - name: Commit weekly report
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add data/reports/
+
+          if git diff --staged --quiet; then
+            echo "::notice title=No weekly changes::週報已存在"
+            exit 0
+          fi
+
+          # 取 ISO 週號 for commit message
+          WEEK=$(TZ=Asia/Taipei date +%G-W%V)
+          git commit -m "📈 [WEEKLY] Summary $WEEK"
+
+          for i in 1 2 3; do
+            if git push; then break
+            else git pull --rebase --strategy-option=theirs || git rebase --abort
+                 sleep $((i * 5))
+            fi
+          done

@@ -244,18 +244,40 @@ def run_alerts(latest_data: Dict[str, Any], insider_data: Optional[Dict] = None,
     
     detected = []
     
+    # v3.41.0 C1: 引入 EventLogger 統一 SIEM-ready format
+    try:
+        from event_logger import emit_event
+        from reasoning import build_reasoning
+        _has_logger = True
+    except ImportError:
+        _has_logger = False
+
     # 訊號 1-4 (從 latest_data)
-    for fn, label in [
-        (lambda: detect_foreign_extreme(latest_data.get('institutional_rankings')), '外資'),
-        (lambda: detect_pcr_extreme(latest_data.get('futures_data')), 'PCR'),
-        (lambda: detect_limit_up_overheat(latest_data.get('limit_up_summary')), '漲停'),
-        (lambda: detect_settlement_reminder(latest_data.get('futures_data')), '結算'),
+    for fn, label, category in [
+        (lambda: detect_foreign_extreme(latest_data.get('institutional_rankings')), '外資', 'foreign_extreme'),
+        (lambda: detect_pcr_extreme(latest_data.get('futures_data')), 'PCR', 'pcr_extreme'),
+        (lambda: detect_limit_up_overheat(latest_data.get('limit_up_summary')), '漲停', 'limit_up_overheat'),
+        (lambda: detect_settlement_reminder(latest_data.get('futures_data')), '結算', 'settlement_reminder'),
     ]:
         try:
             sig = fn()
             if sig:
                 detected.append(sig)
                 print(f"  ✓ [{label}] {sig['title']}: {sig['message']}")
+                # C1: 同時 emit 到 event_logger (SIEM-ready)
+                if _has_logger:
+                    emit_event(
+                        module='alerts', category=category,
+                        severity=sig.get('severity', 'info'),
+                        reasoning=build_reasoning(
+                            conditions=[sig.get('message', '')],
+                            conclusion=sig.get('title', ''),
+                            evidence=[],
+                            severity=sig.get('severity', 'info'),
+                            category=category,
+                        ),
+                        detail=sig,
+                    )
             else:
                 print(f"  · [{label}] 無異常")
         except Exception as e:

@@ -4,3 +4,7 @@ data/chip_radar_v2.db-wal
 data/chip_radar_v2.db-shm
 __pycache__/
 *.pyc
+
+# v3.41.0 C1: event log + fetch quota 不入 repo (運行時資料)
+logs/
+data/fetch_quota.json

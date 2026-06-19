@@ -1,0 +1,83 @@
+name: 9. Settlement Tracking (D-3 ~ D+1, 3x/day)
+
+# v3.41.0 (2026-06-19, Sprint 4):
+# 結算日週 (每月第三個週三 D-3 ~ D+1) 期間, 每天 TW 13:30/17:30/21:30 跑 3 次
+# 對抗式建議: 不用 */4 排程 (避免每月 4-5 天太閒 + 配額浪費)
+# 改用固定 3 時段, 由 intraday_settlement / daily-full 等 script 內部判斷 D-? 才做事
+#
+# 配額: 4 天/月 × 3 = 12 次/月 × 10 min = 120 min/月
+
+on:
+  schedule:
+    # 週二-六 TW 13:30 / 17:30 / 21:30 (UTC 05:30 / 09:30 / 13:30)
+    - cron: '30 5,9,13 * * 2-6'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check if settlement window
+        id: check
+        run: |
+          # 用 crawler_pipeline._days_to_settlement 判斷是否 D-3 ~ D+1
+          # 不在窗口 → 早退避免浪費配額
+          python -c "
+          from crawler_pipeline import _days_to_settlement
+          from datetime import datetime, timezone, timedelta
+          tw = datetime.now(timezone(timedelta(hours=8)))
+          d = _days_to_settlement(tw.strftime('%Y%m%d'))
+          import os
+          in_window = d is not None and -1 <= d <= 3
+          print(f'days_to_settlement={d}, in_window={in_window}')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'in_window={str(in_window).lower()}\n')
+          " || echo "in_window=false" >> "$GITHUB_OUTPUT"
+
+      - name: Early exit (非結算窗口)
+        if: steps.check.outputs.in_window != 'true'
+        run: |
+          echo "::notice title=Settlement tracking::非結算窗口 (D-3~D+1) 早退, 省配額"
+          exit 0
+
+      - name: Tail risk monitor
+        if: steps.check.outputs.in_window == 'true'
+        run: python intraday_settlement.py
+        continue-on-error: true
+
+      - name: Commit if changed
+        if: steps.check.outputs.in_window == 'true'
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add data/intraday_settlement.json
+
+          if git diff --staged --quiet; then exit 0; fi
+
+          git commit -m "🎯 [SETTLEMENT-TRACK] Tail risk $(TZ=Asia/Taipei date +%Y-%m-%d\ %H:%M)"
+
+          for i in 1 2 3; do
+            if git push; then break
+            else git pull --rebase --strategy-option=theirs || git rebase --abort
+                 sleep $((i * 5))
+            fi
+          done

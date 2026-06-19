@@ -1003,6 +1003,16 @@ def main():
         print("  [警報] alerts 模組未安裝, 略過")
     except Exception as e:
         print(f"  [警報] 執行失敗: {e}")
+
+    # v3.41.0 C1: 結尾 flush event_logger buffer → logs/events_YYYYMMDD.jsonl
+    # (alerts.run_alerts 已在內部 emit 各筆事件, 這裡 batch 寫檔)
+    try:
+        from event_logger import EventLogger
+        n_flushed = EventLogger.flush_buffer(data_dir=str(data_dir))
+        if n_flushed > 0:
+            print(f"  [event_logger] flush {n_flushed} 筆事件 → logs/events_*.jsonl")
+    except Exception as _e:
+        print(f"  [event_logger] flush 失敗 (不影響主流程): {_e}")
     
     # ════════════════════════════════════════════════════════════════
     # v3.22+v3.23+v3.24: 老闆版 Excel 日報 (嚴格模仿手動版「分點觀察」)

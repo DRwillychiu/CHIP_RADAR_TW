@@ -1,0 +1,60 @@
+name: 7. Pre-Market Alert (08:50 TW)
+
+# v3.41.0 (2026-06-19, Sprint 4):
+# 盤前快訊 — 讀已存在的 data 檔產出 3 行摘要
+#   - 昨日大戶 Top 3 累積買進金額
+#   - 新增處置股 + 新差 1 次
+#   - 結算日壓力 (D-?)
+# 不爬新資料, 純摘要 (秒級完成)
+
+on:
+  schedule:
+    # 週二-六 UTC 00:50 = TW 08:50 (週一是台股休市)
+    - cron: '50 0 * * 2-6'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build pre-market brief
+        run: python pre_market_brief.py
+
+      - name: Commit brief
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add data/pre_market_brief.json
+
+          if git diff --staged --quiet; then
+            echo "::notice title=No brief changes::Brief already up to date"
+            exit 0
+          fi
+
+          git commit -m "🌅 [PRE-MARKET] Brief $(TZ=Asia/Taipei date +%Y-%m-%d)"
+
+          for i in 1 2 3; do
+            if git push; then break
+            else git pull --rebase --strategy-option=theirs || git rebase --abort
+                 sleep $((i * 5))
+            fi
+          done

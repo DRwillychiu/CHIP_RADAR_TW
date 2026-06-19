@@ -1,0 +1,58 @@
+name: 8. Intraday Settlement First Look (13:35 TW)
+
+# v3.41.0 (2026-06-19, Sprint 4):
+# 盤後 5 分鐘抓 TWSE 三大法人 first look
+# 不等 21:17 主排程, 提早 8 小時看到當日法人態勢
+
+on:
+  schedule:
+    # 週二-六 UTC 05:35 = TW 13:35 (盤後 5 分鐘)
+    - cron: '35 5 * * 2-6'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  settlement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch intraday settlement
+        run: python intraday_settlement.py
+        continue-on-error: true   # TWSE 偶爾 lag, 不視為錯誤
+
+      - name: Commit
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add data/intraday_settlement.json
+
+          if git diff --staged --quiet; then
+            echo "::notice title=No settlement changes::TWSE 仍是舊資料 (可能尚未公布)"
+            exit 0
+          fi
+
+          git commit -m "📊 [INTRADAY] First look $(TZ=Asia/Taipei date +%Y-%m-%d\ %H:%M)"
+
+          for i in 1 2 3; do
+            if git push; then break
+            else git pull --rebase --strategy-option=theirs || git rebase --abort
+                 sleep $((i * 5))
+            fi
+          done

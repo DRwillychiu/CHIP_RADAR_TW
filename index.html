@@ -4730,6 +4730,7 @@ function renderMP() {
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
       <h2 style="margin:0;color:var(--gold-bright);">📊 大戶操作畫像 <span style="font-size:13px;color:var(--text-2);font-weight:400;">(${filterActive ? masters.length + '/' : ''}${totalCount} 個個人大戶 × 15 標籤)</span></h2>
       <button onclick="loadMasterProfileTab(true)" style="padding:6px 12px;background:rgba(99,102,241,0.15);border:1px solid var(--brand);border-radius:6px;color:var(--brand);cursor:pointer;">🔄 重抓</button>
+      <button onclick="tableToCSV('#mp-container table', 'masters')" style="padding:6px 12px;background:rgba(63,185,80,0.12);border:1px solid rgba(63,185,80,0.4);border-radius:6px;color:#3fb950;cursor:pointer;" title="匯出 CSV (含 algo_version + trade_date 檔名)">📥 匯出 CSV</button>
     </div>
     <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">
       📅 窗口 <strong>${d.trade_date_range?.[0] || '?'} ~ ${d.trade_date_range?.[1] || '?'}</strong> (${d.window_days} 天)
@@ -5246,6 +5247,8 @@ function renderHoldingsTab() {
   let html = `
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
       <h2 style="margin:0;color:var(--gold-bright);">🏦 持股結構 — 大戶 / 散戶 / 維持率風險</h2>
+      <button onclick="tableToCSV('#holdings-container table', 'maintenance_high_risk')" style="padding:6px 12px;background:rgba(63,185,80,0.12);border:1px solid rgba(63,185,80,0.4);border-radius:6px;color:#3fb950;cursor:pointer;font-size:12px;" title="匯出維持率高風險 CSV">📥 維持率 CSV</button>
+      <button onclick="(function(){const tables=document.querySelectorAll('#holdings-container table');if(tables.length>=2){tableToCSV(tables[1],'tdcc_movers');}else{alert('TDCC movers 表格未生成');}})()" style="padding:6px 12px;background:rgba(63,185,80,0.12);border:1px solid rgba(63,185,80,0.4);border-radius:6px;color:#3fb950;cursor:pointer;font-size:12px;" title="匯出 TDCC 大戶 movers CSV">📥 TDCC CSV</button>
     </div>
     <div style="font-size:11px;color:var(--text-3);margin-bottom:14px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.3);padding:10px 12px;border-radius:6px;">
       ⚠️ <strong>誠實揭露</strong>:本頁所有「融資維持率」是<strong>市場平均估算</strong> (用近 30 日均價 × 0.6 反推融資成本)
@@ -5406,6 +5409,33 @@ function renderWithFragment(container, html) {
   tmpl.innerHTML = html;
   // replaceChildren 在現代瀏覽器 = 一次清空 + 一次 append, 比 innerHTML 賦值更 atomic
   container.replaceChildren(tmpl.content);
+}
+
+// C7 (v3.41.0): tableToCSV — 各表格匯出 CSV (含 UTF-8 BOM 避 Excel 亂碼)
+// metadata 寫進檔名 (對抗式建議: 不寫前綴避免破壞 Excel header 偵測)
+function tableToCSV(tableSelector, tabLabel) {
+  const table = (typeof tableSelector === 'string')
+    ? document.querySelector(tableSelector) : tableSelector;
+  if (!table) { alert('找不到表格'); return; }
+  let csv = '﻿';   // UTF-8 BOM
+  const rows = table.querySelectorAll('tr');
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('th, td');
+    const line = Array.from(cells).map(c => {
+      const txt = (c.textContent || '').trim().replace(/\s+/g, ' ').replace(/"/g, '""');
+      return `"${txt}"`;
+    }).join(',');
+    csv += line + '\n';
+  });
+  // 檔名帶 meta: tab_algoversion_date.csv
+  const algoVer = (CURRENT_DATA && CURRENT_DATA._meta && CURRENT_DATA._meta.algo_version) || 'v0';
+  const date = (CURRENT_DATA && CURRENT_DATA.trade_date) || new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const fname = `${tabLabel}_${algoVer}_${date}.csv`;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fname; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 // P0-4 (v3.38.0): 加密明文 cache 防 stale
 //   每次解密後記錄 latest.json 的 crawled_at, 偵測到後端推新檔時
@@ -8580,23 +8610,47 @@ function showAccuracyModal() {
 }
 document.addEventListener('keydown', (e) => {
   if (!SESSION_PASSWORD) return;
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  const tabs = document.querySelectorAll('.tab');
   if (e.key >= '1' && e.key <= '9') {
-    const tabs = document.querySelectorAll('.tab');
     if (tabs[parseInt(e.key)-1]) tabs[parseInt(e.key)-1].click();
   } else if (e.key === '0') {
-    // 0 切到第 10 tab (👥 單分點偏好)
-    const tabs = document.querySelectorAll('.tab');
     if (tabs[9]) tabs[9].click();
   } else if (e.key === '-' || e.key === '_') {
-    // - 切到第 11 tab (📊 報告中心)
-    const tabs = document.querySelectorAll('.tab');
     if (tabs[10]) tabs[10].click();
   } else if (e.key === '=' || e.key === '+') {
-    // = 切到第 12 tab (⚙️ 關注設定)
-    const tabs = document.querySelectorAll('.tab');
     if (tabs[11]) tabs[11].click();
-  } else if (e.key === 'Escape') closeDrawer();
+  // C6 (v3.41.0): vim-style 鍵盤導航
+  } else if (e.key === 'j') {
+    // j: 下一個 tab
+    const cur = document.querySelector('.tab.active');
+    const arr = Array.from(tabs);
+    const idx = arr.indexOf(cur);
+    if (idx >= 0 && idx < arr.length - 1) arr[idx + 1].click();
+  } else if (e.key === 'k') {
+    // k: 上一個 tab
+    const cur = document.querySelector('.tab.active');
+    const arr = Array.from(tabs);
+    const idx = arr.indexOf(cur);
+    if (idx > 0) arr[idx - 1].click();
+  } else if (e.key === '/') {
+    // /: focus 搜尋框 (tab 10 個股追蹤)
+    e.preventDefault();
+    const stockTab = document.querySelector('[data-tab="stock"]');
+    if (stockTab) stockTab.click();
+    setTimeout(() => {
+      const input = document.getElementById('stockSearchInput');
+      if (input) input.focus();
+    }, 80);
+  } else if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+    // ?: toggle help overlay
+    if (typeof toggleHelp === 'function') toggleHelp();
+  } else if (e.key === 'Escape') {
+    closeDrawer();
+    // C6: 同時關 detail popup (清空 mp-detail)
+    const md = document.getElementById('mp-detail');
+    if (md && md.innerHTML.trim()) md.innerHTML = '';
+  }
 });
 
 function setOverviewMode(m) {
