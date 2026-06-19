@@ -70,6 +70,21 @@
 
 ---
 
+### ✅ Sprint 3 P0 全部完成 (2026-06-19 / v3.40.0)
+
+| # | 項目 | 交付 |
+|---|---|---|
+| B1 | Masters Roster | `data/masters_roster.json` (29 master × added_by/criteria/declared_styles/review_status) |
+| B2 | 演算法參數凍結 | `config/algo_params.yaml` (集中 6 模組閾值) + `CHANGELOG_ALGO.md` |
+| B3 | Daily JSON `_meta` | crawler raw_output 注入 algo_version + calculated_at + sourcing_trail (11 個欄位→端點映射) |
+| B4 | 樣本不足三檔 | master_profile data_sufficiency (full≥60d / partial 20-59d / insufficient<20d) + 前端灰階 + caveat banner |
+| B5 | ToS 合規 + backoff | `DATA_SOURCES_COMPLIANCE.md` (7 源 ToS 摘要) + safe_fetch exponential backoff + per-source quota log |
+| B6 | manipulation_flags | A_拉抬 / B_對敲 / C_出貨 三規則 + `data/red_flags.json` + tab 13 紅旗面板 + jump-stock 連結 |
+
+**驗證**: 36 套件 0 regression + 新增 43 case (B4×22 / B6×21) PASS
+
+---
+
 ## C. P1 提升質感(8 項精簡)
 
 | # | 項目 | 工時 | 一句話 |

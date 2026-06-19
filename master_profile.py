@@ -986,6 +986,20 @@ def build_master_profile(master_name: str,
     narrative = generate_narrative(master_name, op, timing, labels)
     label_hierarchy = build_label_hierarchy(labels, op)
 
+    # B4 (v3.40.0 機構級 P0): data_sufficiency 三檔顯式標籤
+    # 防 n=4 樣本標 99% CI 的「假信心」(機構紅旗)
+    # full ≥60d, partial 20-59d, insufficient <20d (從 algo_params.yaml)
+    active = (timing or {}).get('active_days', 0)
+    if active >= 60:
+        sufficiency = 'full'
+        sufficiency_label = '充足'
+    elif active >= 20:
+        sufficiency = 'partial'
+        sufficiency_label = '部分'
+    else:
+        sufficiency = 'insufficient'
+        sufficiency_label = '樣本不足'
+
     result = {
         'master': master_name,
         'declared_styles': declared,
@@ -994,6 +1008,18 @@ def build_master_profile(master_name: str,
         'strategy_labels': labels,
         'label_hierarchy': label_hierarchy,
         'narrative': narrative,
+        # B4: 機構級 sufficiency 三檔
+        'data_sufficiency': {
+            'level': sufficiency,
+            'label': sufficiency_label,
+            'active_days': active,
+            'thresholds': {'full': 60, 'partial': 20},
+            'caveat': (
+                '⏳ 樣本不足, 標籤待校準, 結論僅供參考'
+                if sufficiency == 'insufficient'
+                else ('部分樣本, 標籤可能漂移' if sufficiency == 'partial' else None)
+            ),
+        },
     }
     if branch_filter:
         result['branch_filter'] = branch_filter

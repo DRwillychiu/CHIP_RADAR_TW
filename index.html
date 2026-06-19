@@ -4784,9 +4784,19 @@ function renderMP() {
     const dispR = op.disposal_amt_ratio;
     const disp = dispR ? `<span style="color:#fca5a5;">${(dispR*100).toFixed(0)}% (${op.disposal_stocks_count})</span>` : '-';
     const lockR = op.limit_up_locked_ratio_amt || 0;
+    // B4: data_sufficiency 三檔 (full/partial/insufficient) — 灰階 + caveat
+    const suff = p.data_sufficiency || {};
+    const isInsuf = suff.level === 'insufficient';
+    const isPartial = suff.level === 'partial';
+    const rowStyle = isInsuf
+      ? 'opacity:0.5;background:rgba(255,255,255,0.02);'
+      : isPartial ? 'opacity:0.8;' : '';
+    const nameIcon = isInsuf ? '⏳ ' : isPartial ? '🟡 ' : '';
+    const daysHint = (isInsuf || isPartial)
+      ? `<span style="font-size:10px;color:var(--text-3);font-weight:400;margin-left:4px;">(${suff.active_days || 0}d)</span>` : '';
     html += `
-      <tr style="border-top:1px solid var(--line);cursor:pointer;${tm.active_days < 5 ? 'opacity:0.6;' : ''}" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background=''" onclick="showMPDetail('${name.replace(/'/g, "\\'")}')">
-        <td style="padding:8px 10px;font-weight:600;color:var(--gold-bright);">${tm.active_days < 5 ? '⏳ ' : ''}${name}</td>
+      <tr style="border-top:1px solid var(--line);cursor:pointer;${rowStyle}" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background=''" onclick="showMPDetail('${name.replace(/'/g, "\\'")}')">
+        <td style="padding:8px 10px;font-weight:600;color:var(--gold-bright);">${nameIcon}${name}${daysHint}</td>
         <td style="padding:8px 6px;text-align:right;">${op.trades_count}</td>
         <td style="padding:8px 6px;text-align:right;">${tm.active_days}</td>
         <td style="padding:8px 6px;text-align:right;">${(op.limit_up_hit_ratio*100).toFixed(0)}%</td>
@@ -4949,6 +4959,55 @@ function renderMP() {
     </div>`;
   }
 
+  // v3.40.0 (B6): 操縱 / 對敲 / 出貨紅旗面板 (機構級)
+  // 注意: red_flags 不在 master_profiles.json 而在 CURRENT_DATA (latest.json) — 從那邊讀
+  const redFlags = (typeof CURRENT_DATA !== 'undefined' && CURRENT_DATA) ? CURRENT_DATA.red_flags : null;
+  if (redFlags && redFlags.summary && redFlags.summary.total > 0) {
+    html += `
+    <div style="margin-top:24px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="padding:14px 18px;background:rgba(248,113,113,0.08);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">⚠️</span>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#f87171;">操縱 / 對敲 / 出貨紅旗 — ${redFlags.trade_date || ''}</div>
+          <div style="font-size:11px;color:var(--muted);">拉抬 ${redFlags.summary.pump_count} ｜ 對敲 ${redFlags.summary.wash_count} ｜ 出貨 ${redFlags.summary.distribution_count} ｜ 合計 ${redFlags.summary.total} (機構級嫌疑偵測, 非定罪)</div>
+        </div>
+      </div>
+      <div style="padding:16px 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;">`;
+    // 拉抬
+    if (redFlags.pump_suspicion && redFlags.pump_suspicion.length > 0) {
+      html += `<div><div style="font-size:12px;font-weight:700;color:#f87171;margin-bottom:8px;">🚨 拉抬嫌疑 (${redFlags.pump_suspicion.length})</div>`;
+      redFlags.pump_suspicion.slice(0, 5).forEach(f => {
+        html += `<div style="padding:6px 10px;margin-bottom:4px;background:rgba(248,113,113,0.06);border-radius:6px;font-size:11px;color:var(--text-1);">
+          <strong>${f.stock_name || ''} <span class="jump-stock" onclick="jumpToStockTrace('${f.stock_code}')" style="color:var(--brand);text-decoration:underline dotted;cursor:pointer;">${f.stock_code}</span></strong> @${f.master||f.branch_code}<br><span style="color:var(--text-3);">${f.reasoning}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    // 對敲
+    if (redFlags.wash_trade && redFlags.wash_trade.length > 0) {
+      html += `<div><div style="font-size:12px;font-weight:700;color:#fb923c;margin-bottom:8px;">🔁 對敲 / Wash trade (${redFlags.wash_trade.length})</div>`;
+      redFlags.wash_trade.slice(0, 5).forEach(f => {
+        html += `<div style="padding:6px 10px;margin-bottom:4px;background:rgba(251,146,60,0.06);border-radius:6px;font-size:11px;color:var(--text-1);">
+          <strong>${f.stock_name || ''} <span class="jump-stock" onclick="jumpToStockTrace('${f.stock_code}')" style="color:var(--brand);text-decoration:underline dotted;cursor:pointer;">${f.stock_code}</span></strong>${f.same_master?' <span style="color:#f87171;">(同 master!)</span>':''}<br><span style="color:var(--text-3);">${f.reasoning}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    // 出貨
+    if (redFlags.distribution && redFlags.distribution.length > 0) {
+      html += `<div><div style="font-size:12px;font-weight:700;color:#fbbf24;margin-bottom:8px;">📤 主力出貨 (${redFlags.distribution.length})</div>`;
+      redFlags.distribution.slice(0, 5).forEach(f => {
+        html += `<div style="padding:6px 10px;margin-bottom:4px;background:rgba(251,191,36,0.06);border-radius:6px;font-size:11px;color:var(--text-1);">
+          <strong>${f.stock_name || ''} <span class="jump-stock" onclick="jumpToStockTrace('${f.stock_code}')" style="color:var(--brand);text-decoration:underline dotted;cursor:pointer;">${f.stock_code}</span></strong> @${f.master||f.branch_code}<br><span style="color:var(--text-3);">${f.reasoning}</span>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>
+      <div style="padding:6px 18px 14px;font-size:10px;color:var(--text-3);">${redFlags.disclaimer || ''}</div>
+    </div>`;
+  }
+
   // v3.32.0: 實戰信號面板 (異常+共識+連續加碼)
   const ds = d.daily_signals;
   if (ds) {
@@ -5009,13 +5068,22 @@ function showMPDetail(name) {
   const l2 = lh.level2_strategy || '';
   const l1g = lh.level1_groups || {};
 
+  // B4: data_sufficiency caveat banner
+  const suff = p.data_sufficiency || {};
+  const suffBanner = suff.caveat ? `
+    <div style="margin-bottom:10px;padding:8px 12px;border-radius:8px;font-size:12px;border:1px solid ${suff.level==='insufficient'?'rgba(251,191,36,0.4)':'rgba(251,146,60,0.4)'};background:${suff.level==='insufficient'?'rgba(251,191,36,0.08)':'rgba(251,146,60,0.06)'};color:${suff.level==='insufficient'?'#fbbf24':'#fb923c'};">
+      ${suff.level==='insufficient'?'⏳':'🟡'} <strong>${suff.label}</strong> (${suff.active_days||0} 個交易日) — ${suff.caveat}
+    </div>` : '';
+
   let html = `
     <div style="background:rgba(99,102,241,0.08);border:1px solid var(--brand);border-radius:10px;padding:16px;">
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;">
         <h3 style="margin:0;color:var(--gold-bright);">${name}</h3>
         ${l2 ? `<span style="padding:4px 12px;background:rgba(16,185,129,0.2);border:1px solid rgba(16,185,129,0.5);border-radius:14px;font-size:12px;font-weight:700;color:#86efac;">⚡ ${l2}</span>` : ''}
         <span style="font-size:11px;color:var(--text-2);background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:10px;">declared: ${declared}</span>
+        ${suff.level==='full'?'<span style="font-size:10px;color:#86efac;background:rgba(63,185,80,0.15);padding:2px 6px;border-radius:8px;">✓ 樣本充足 '+suff.active_days+'d</span>':''}
       </div>
+      ${suffBanner}
       <div style="font-size:14px;line-height:1.7;color:var(--text-1);margin-bottom:14px;background:rgba(15,21,37,0.5);padding:12px;border-radius:8px;">
         ${p.narrative}
       </div>

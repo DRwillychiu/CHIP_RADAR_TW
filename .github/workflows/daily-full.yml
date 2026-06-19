@@ -56,7 +56,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install requests cryptography openpyxl
+          pip install requests cryptography openpyxl pyyaml
 
       # v3.31.14: 下載前一天 DB (GitHub Artifact, 90 天保留)
       # 若無前次 artifact → init 空 DB (第一次跑或 artifact 過期)

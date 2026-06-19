@@ -8,10 +8,12 @@ from unittest.mock import patch, MagicMock
 from safe_fetch import safe_get, safe_post, ResponseTooLargeError
 
 
-def _make_mock_response(content_chunks, url='http://test.example/'):
-    """構造 mock response 用 iter_content 餵 chunks."""
+def _make_mock_response(content_chunks, url='http://test.example/', status_code=200):
+    """構造 mock response 用 iter_content 餵 chunks.
+    v3.40.0 B5: 加 status_code (backoff 需要)."""
     mock = MagicMock(spec=requests.Response)
     mock.url = url
+    mock.status_code = status_code   # v3.40.0 B5
     mock.iter_content = MagicMock(return_value=iter(content_chunks))
     mock.close = MagicMock()
     mock._content = None

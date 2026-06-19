@@ -1,6 +1,7 @@
-# Chip Radar TW 依賴釘版 — v3.38.0 (P0-7)
+# Chip Radar TW 依賴釘版 — v3.40.0 (B3 機構級)
 # 釘上下界防 RCE/CVE 自動升入 main; 升版時手動跑 pip-audit + 全套迴歸
 # 上限是次主版本 (allow minor + patch, block major break)
 requests>=2.31.0,<3.0
 cryptography>=43.0,<46.0
 openpyxl>=3.1,<4.0
+pyyaml>=6.0,<7.0

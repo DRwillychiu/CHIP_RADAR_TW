@@ -1,0 +1,258 @@
+{
+  "schema_version": "v1",
+  "doc_version": "v3.40.0",
+  "generated_at": "2026-06-19T14:00:00+08:00",
+  "doc_purpose": "高手分點納入/剔除 owner trail — 機構級可追溯性 (INSTITUTIONAL_ROADMAP P0-B1)",
+  "criteria_general": {
+    "intro": "Master 必須符合以下任一條件才納入 WATCHED_BRANCHES",
+    "rules": [
+      "業界廣泛認可 (Smart 商週/財訊/TechNews/StockFeel/股市老耿 Threads 等媒體多次點名)",
+      "獨家分點明確可追蹤 (分點代號穩定, 不會頻繁換家)",
+      "操作風格可分類 (declared_style ∈ {next_day_flipper, day_trader, swing, longterm, foreign_ib, public, company_total, area_hotspot})",
+      "至少累積 30 天觀察樣本後才能上「策略標籤」結論 (見 data_sufficiency 三檔)"
+    ],
+    "exclusion": [
+      "純外資/官股法人不列「個人大戶」分析範圍 (但仍 watched)",
+      "整家證券公司合計 (e.g. 凱基/富邦) 列 company_total, 不適用個人操作分類",
+      "分點異動超過 6 個月未追蹤到 → 列入 to_review"
+    ]
+  },
+  "added_by_legend": {
+    "DRwillychiu": "本專案作者, 主要 master 來源",
+    "user_excel_v3.31.18": "使用者私人 Excel「分點人之秘密」交叉比對 (2026-06-04)",
+    "media_consensus": "Smart 商週/財訊/TechNews 等媒體已多次點名"
+  },
+  "masters": {
+    "民哥": {
+      "branches": ["9B25", "9666", "779W"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "Smart 商週/股市老耿多次點名波段操作高手, 9B25 跟強森共用分點 (v3.31.18 確認)",
+      "declared_styles": ["swing"],
+      "co_masters": ["強森"]
+    },
+    "林滄海": {
+      "branches": ["9658", "9309", "1260", "9216"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界知名長線/波段大戶, 9216 凱基-信義跟陳族元共用",
+      "declared_styles": ["swing", "longterm"]
+    },
+    "張濬安(航海王)": {
+      "branches": ["779Z", "9B2E", "920F", "6167", "961M", "9100"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "媒體高知名度航運股大戶, 6 分點獨家追蹤; 業界印象「航運專家」(B6 族群輪動已驗證)",
+      "declared_styles": ["swing"]
+    },
+    "陳族元": {
+      "branches": ["8880", "9300", "9661", "9A9g", "9216"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界波段建倉派, T+1 真隔日沖率 48.5% (v3.31.22 verified)",
+      "declared_styles": ["swing"],
+      "co_masters": ["林滄海"]
+    },
+    "陳律師": {
+      "branches": ["700c", "8450"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界波段大戶, 2 分點明確",
+      "declared_styles": ["swing"]
+    },
+    "巨人傑(蔡明翰)": {
+      "branches": ["9B2n", "9B2z"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "媒體點名 sniper + 隔日沖, declared 雙風格 next_day_flipper + day_trader (v3.31.13 declared override 機制)",
+      "declared_styles": ["next_day_flipper", "day_trader"]
+    },
+    "迷你哥/松山哥": {
+      "branches": ["9217"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界知名漲停當沖代表, 9200/9600 v3.31.7 確認是整家公司不是迷你哥分點",
+      "declared_styles": ["day_trader"]
+    },
+    "蔣承翰": {
+      "branches": ["9227", "9B18"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界第一漲停獵手, Excel 漲停法 SNIPER_MASTER_WHITELIST 唯一名單 (v3.30.5)",
+      "declared_styles": ["next_day_flipper"]
+    },
+    "Tradow": {
+      "branches": ["9A99"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界 sniper 隔日沖代表, 漲停命中率 20% (v3.31.10 驗證)",
+      "declared_styles": ["next_day_flipper"]
+    },
+    "Krenz(再多一位數本人)": {
+      "branches": ["9821"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界波段代表, T+1 真隔日沖率僅 16.8% 證實波段風格",
+      "declared_styles": ["swing"]
+    },
+    "優式資本": {
+      "branches": ["8560"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界鎖漲停代表, +7% 鎖漲停策略, longterm 風格",
+      "declared_styles": ["longterm"]
+    },
+    "東億資本": {
+      "branches": ["1380"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界長線資本代表",
+      "declared_styles": ["longterm"]
+    },
+    "布哥/n_nchang": {
+      "branches": ["8454"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界波段大戶",
+      "declared_styles": ["swing"]
+    },
+    "大牌分析師": {
+      "branches": ["8563"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界知名波段分析師, 8563 新光-新竹分點 Top 20 row 客製 (v3.29.5)",
+      "declared_styles": ["swing"]
+    },
+    "強森": {
+      "branches": ["9B25", "9B2r", "984K", "989N", "9215", "9B2D"],
+      "added_date": "2026-04-21",
+      "added_by": "DRwillychiu",
+      "criteria": "業界波段大戶, 9B25 跟民哥共用分點 (v3.31.18 使用者確認)",
+      "declared_styles": ["swing"],
+      "co_masters": ["民哥"]
+    },
+    "志誠資本": {
+      "branches": ["9166"],
+      "added_date": "2026-06-01",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "Excel 漏網補充 (v3.31.8)",
+      "declared_styles": ["longterm"]
+    },
+    "林適中": {
+      "branches": ["9B22"],
+      "added_date": "2026-06-01",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "Excel 漏網補充 (v3.31.8)",
+      "declared_styles": ["swing"]
+    },
+    "竹科主力分點": {
+      "branches": ["9809"],
+      "added_date": "2026-06-01",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "Excel 漏網補充 (v3.31.8) - 業界知名竹科地緣特色分點",
+      "declared_styles": ["swing"]
+    },
+    "謝明彧大哥(華南永昌)": {
+      "branches": ["9305"],
+      "added_date": "2026-06-01",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "Excel 漏網補充 (v3.31.8)",
+      "declared_styles": ["swing"]
+    },
+    "宋福祥": {
+      "branches": ["TBD"],
+      "added_date": "2026-06-04",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "AES-KY 董事長, 董事長級大戶 - 樣本累積中",
+      "declared_styles": ["swing"],
+      "review_status": "watching - 4-10 天樣本"
+    },
+    "呂金發": {
+      "branches": ["TBD"],
+      "added_date": "2026-06-04",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "業界波段大戶 - 樣本累積中",
+      "declared_styles": ["swing"],
+      "review_status": "watching - 4-10 天樣本"
+    },
+    "陳光裕": {
+      "branches": ["TBD"],
+      "added_date": "2026-06-04",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "世德董事長, 董事長級大戶 - 樣本累積中",
+      "declared_styles": ["swing"],
+      "review_status": "watching - 4-10 天樣本"
+    },
+    "謝孟恭(股癌)": {
+      "branches": ["TBD"],
+      "added_date": "2026-06-04",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "Podcast 股癌主理人, 6/4 加入後尚未抓到分點資料, 6/11 audit 確認 0/0 active days, 需查分點代號是否變更",
+      "declared_styles": ["swing"],
+      "review_status": "to_review_branch_code"
+    },
+    "丁凌全": {
+      "branches": ["TBD"],
+      "added_date": "2026-06-04",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "時碩董事長, 董事長級大戶 - 樣本累積中",
+      "declared_styles": ["swing"],
+      "review_status": "watching - 4-10 天樣本"
+    },
+    "何莎": {
+      "branches": ["TBD"],
+      "added_date": "2026-06-04",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "廣達董娘 - 樣本累積中",
+      "declared_styles": ["swing"],
+      "review_status": "watching - 4-10 天樣本"
+    },
+    "江士勳": {
+      "branches": ["TBD"],
+      "added_date": "2026-06-04",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "金山電董事長, 董事長級大戶 - 樣本累積中",
+      "declared_styles": ["swing"],
+      "review_status": "watching - 4-10 天樣本"
+    },
+    "劉子豪": {
+      "branches": ["TBD"],
+      "added_date": "2026-06-04",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "業界波段大戶 - 樣本累積中",
+      "declared_styles": ["swing"],
+      "review_status": "watching - 4-10 天樣本"
+    },
+    "陳泊澔": {
+      "branches": ["TBD"],
+      "added_date": "2026-06-04",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "業界波段大戶 - 樣本累積中",
+      "declared_styles": ["swing"],
+      "review_status": "watching - 4-10 天樣本"
+    },
+    "嘉義幫": {
+      "branches": ["TBD"],
+      "added_date": "2026-06-04",
+      "added_by": "user_excel_v3.31.18",
+      "criteria": "業界知名地緣派系 - 樣本累積中",
+      "declared_styles": ["swing"],
+      "review_status": "watching - 樣本顯示明顯漲停獵手特徵 (9 檔處置中買進)"
+    }
+  },
+  "review_schedule": {
+    "next_review_date": "2026-07-04",
+    "review_criteria": [
+      "新增的 10 個 master (6/4 加入) 樣本滿 30 天後, 評估標籤穩定性",
+      "謝孟恭(股癌) 分點代號需確認",
+      "業界印象 vs T+1 verified flip ratio 差異 > 50% 的 master 重評",
+      "閾值校準: half_life=20 / Jaccard=0.30 / MIN_CO_DAYS=5 是否需動"
+    ]
+  },
+  "history": [
+    {"date": "2026-04-21", "version": "v3.0", "action": "initial 15 個人大戶 + 8 外資 + 2 官股"},
+    {"date": "2026-06-01", "version": "v3.31.8", "action": "+4 漏網 (志誠/林適中/竹科/謝明彧)"},
+    {"date": "2026-06-04", "version": "v3.31.18", "action": "+10 Excel 交叉比對 (含董事長級)"},
+    {"date": "2026-06-19", "version": "v3.40.0", "action": "建立 roster.json 結構化 owner trail (B1 機構級 P0)"}
+  ]
+}

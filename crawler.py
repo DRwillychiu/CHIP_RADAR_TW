@@ -727,6 +727,33 @@ def main():
             print(f"\n[TDCC 集保] ⏭️ tdcc_holdings.json 不存在 (週六 workflow 還沒跑)")
     except Exception as e:
         print(f"  ⚠️ TDCC 注入失敗: {e} (不影響主流程)")
+
+    # ════════════════════════════════════════════════════════════════
+    # v3.40.0 B6 (機構級 P0): 操縱 / 對敲 / 出貨偵測
+    # 拉抬 (A_pump) + Wash trade (B_wash) + 出貨 (C_distribution)
+    # 輸出 data/red_flags.json + tab 13 detail popup 顯示
+    # ════════════════════════════════════════════════════════════════
+    red_flags_result = None
+    try:
+        import manipulation_flags
+        # 嘗試載入 60 天 history 給 C_distribution 規則用 (純結構, 不依賴密碼)
+        _mf_history = None
+        try:
+            # 用 master_profile.load_history 同邏輯但無密碼僅讀 stock_history
+            # 簡單做法: stage 6.5 已注入分點到 results, 不直接需要密碼
+            # C 規則需 30 天分點 sell_lot, 改用 master_profile cache 風格
+            from master_profile import load_history as _mp_load_history
+            _pw = os.environ.get('CHIP_RADAR_PASSWORD', '')
+            if _pw:
+                _mf_history = _mp_load_history(data_dir, 30, _pw)
+        except Exception:
+            pass
+        red_flags_result = manipulation_flags.compute_all_flags(
+            results, trade_date, history=_mf_history, data_dir=data_dir
+        )
+        print(manipulation_flags.format_summary(red_flags_result))
+    except Exception as e:
+        print(f"  ⚠️ 操縱偵測失敗: {e} (不影響主流程)")
     
     # ════════════════════════════════════════════════════════════════
     # v3.15.2 新增：歷史資料累積 (for 三線比較圖)
@@ -861,12 +888,64 @@ def main():
         print(f"  ⚠️ MOPS 抓取失敗: {e}")
         import traceback; traceback.print_exc()
     
+    # ═════════════════════════════════════════════════════════════════
+    # v3.40.0 B3 (機構級 P0): _meta 欄位 — 「6/12 算的結論用什麼演算法版本?」
+    # 載入 config/algo_params.yaml 取 algo_version, 注入 sourcing trail
+    # ═════════════════════════════════════════════════════════════════
+    _meta_block = None
+    try:
+        import yaml as _yaml
+        from pathlib import Path as _Path
+        _algo_yaml = _Path(data_dir).parent / 'config' / 'algo_params.yaml'
+        if _algo_yaml.exists():
+            with open(_algo_yaml, 'r', encoding='utf-8') as _f:
+                _algo_cfg = _yaml.safe_load(_f) or {}
+            _meta_block = {
+                'algo_version': _algo_cfg.get('algo_version', 'unknown'),
+                'algo_frozen_date': _algo_cfg.get('frozen_date'),
+                'algo_frozen_by': _algo_cfg.get('frozen_by'),
+            }
+    except Exception as _e:
+        print(f"  ⚠️ algo_params.yaml 載入失敗 (B3 metadata 不完整): {_e}",
+              file=sys.stderr)
+        _meta_block = {'algo_version': 'unknown', 'algo_load_error': str(_e)}
+
+    if _meta_block is None:
+        _meta_block = {'algo_version': 'pre-v3.40.0'}
+
+    # B3 附加: 計算當下時間 + 視窗 + sourcing trail
+    _meta_block.update({
+        'calculated_at': now_tw().isoformat(),
+        'schema_version': 'v1',
+        'data_window': {
+            'trade_date': trade_date,
+            'baseline_date': BASELINE_DATE,
+        },
+        'sourcing_trail': {
+            # 每欄位指向其資料源 (機構審計可追溯)
+            'branches': 'fubon-ebrokerdj.fbs.com.tw c=B+c=E (分點雙模式)',
+            'institutional_rankings': 'TWSE OpenAPI BFI82U / TPEx tpex_daily_quote_index',
+            'daily_quotes': 'TWSE OpenAPI MI_INDEX (+ MIS fallback)',
+            'margin_data': 'TWSE OpenAPI MI_MARGN + TPEx tpex_mainboard_margin_balance',
+            'margin_maintenance_summary': 'estimated from stock_history 30d avg close × 0.6',
+            'tdcc_metadata': 'TDCC opendata getOD.ashx?id=1-5 (weekly)',
+            'futures_data': 'TAIFEX futContractsDateDown + callsAndPutsDateDown + pcRatio',
+            'limit_up_summary': 'price_utils.calc_limit_up_price (tick-size 精確)',
+            'next_day_verification': 'cross_day_tracker T+1 buy vs T+1 sell verification',
+            'industry': 'TWSE 33 類產業分類 (v3.15.0)',
+            'disposal_codes': 'chengwaye.com/disposal-forecast.html (T+3 lag)',
+        },
+        'roster_ref': 'data/masters_roster.json (B1 owner trail)',
+        'compliance_ref': 'DATA_SOURCES_COMPLIANCE.md (B5 ToS 摘要)',
+    })
+
     # ===== 組裝當日 JSON =====
     raw_output = {
+        "_meta": _meta_block,  # v3.40.0 B3: 機構級可追溯性 metadata
         "trade_date": trade_date,
         "crawled_at": now_tw().isoformat(),
         "baseline_date": BASELINE_DATE,
-        "version": "3.30.1",
+        "version": "3.40.0",  # v3.40.0 B3: 從 3.30.1 升 (機構級 P0 ship)
         "stage": STAGE,  # v3.14.4: 記錄此次爬蟲階段 (full/margin_only)
         "success": success_count,
         "failed": fail_count,
@@ -884,6 +963,8 @@ def main():
         "margin_maintenance_summary": margin_maint_summary,   # 全市場分布 + Top 30 危險
         "tdcc_metadata": (tdcc_inject or {}).get('metadata'),
         "tdcc_movers": (tdcc_inject or {}).get('movers'),
+        # v3.40.0 B6: 操縱/對敲/出貨偵測 (機構級)
+        "red_flags": red_flags_result,
         "margin_total_count": len(margin_all),    # 全市場總檔數（統計用）
         # v3.14.4 新增：融資融券資料日期驗證結果
         "margin_verification": margin_verification,  # HiStock 驗證結果

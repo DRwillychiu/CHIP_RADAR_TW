@@ -1,0 +1,103 @@
+# Chip Radar TW · 演算法參數凍結檔
+#
+# 機構級 P0-B2: 集中所有閾值參數, 凍結版本, 季度 review
+#
+# 變更紀律:
+#   1. 每次改值要在 CHANGELOG_ALGO.md 留底 (誰改/何時/為何/影響範圍)
+#   2. 升 algo_version 號 (semver-like: major.minor.patch)
+#   3. 每日 latest.json 的 _meta.algo_version 會帶入此版本
+#   4. 不可在 .py 內 hardcode 跟此檔不同的值 (用 fallback 是 OK 的)
+#
+# Review 週期: 每季 (1/4/7/10 月第一週)
+# 下次 review: 2026-07-04 (10 個新 master 滿 30 天後)
+#
+# ⚠️ 改值前必跑: pytest test_v3380_settlement_tz.py test_v3370_margin_maintenance.py test_v3371_tdcc_holdings.py
+
+algo_version: "3.40.0"
+frozen_date: "2026-06-19"
+frozen_by: "DRwillychiu via institutional roadmap Sprint 3"
+
+# ════════════════════════════════════════════════════════════════════
+# Master Profile (master_profile.py THRESH dict)
+# ════════════════════════════════════════════════════════════════════
+master_profile:
+  # v3.31.10 一次性重校 (32 天真實資料 + 業界印象反推)
+  limit_up_hit_high: 0.18              # 漲停獵手 (v3.30.8: 0.60 → 0.18)
+  locked_at_lu_tolerance: 0.99         # 鎖漲停判定容忍 (買均 ≥ 漲停價 × 0.99)
+  locked_at_lu_ratio_amt: 0.15         # 🔒鎖漲停 (v3.30.9: 0.40 → 0.15)
+  style_dominant: 0.40                 # 風格三互斥 (v3.30.8: 0.50 → 0.40)
+  long_term_days_threshold: 15         # 長線天數 (v3.30.9: 5 → 15)
+  long_term_amt_ratio: 0.65            # 長線金額比 (v3.30.9: 0.50 → 0.65)
+  concentration_high: 35.0             # 集中投資 (v3.30.8: 50 → 35)
+  concentration_low: 18.0              # 分散布局 (v3.30.8: 20 → 18)
+  consistency_high: 0.65               # 風格純粹 (v3.30.8: 0.80 → 0.65)
+  consistency_low: 0.40                # 多變策略 (v3.30.8: 0.50 → 0.40)
+  active_ratio_high: 0.85              # 高頻交易 (不變)
+  active_ratio_low: 0.40               # 精選出手 (不變)
+  streak_long: 15                      # 持續進場 (v3.30.8: 8 → 15)
+  top_industry_pct_high: 60.0          # 🎯族群專家 (不變)
+  disposal_amt_ratio_high: 0.30        # ⚠️處置股獵手 (不變)
+  # v3.33.0 時間衰減
+  decay_half_life: 20                  # 指數衰減半衰期 (日曆天), 0/None 停用
+
+# ════════════════════════════════════════════════════════════════════
+# Master Alliance / 派系 (master_alliance.py)
+# ════════════════════════════════════════════════════════════════════
+master_alliance:
+  jaccard_threshold: 0.30              # 同向率門檻 (v3.31.19)
+  min_co_days: 5                       # 至少共同出現天數 (v3.31.23)
+
+# ════════════════════════════════════════════════════════════════════
+# 資料充足度三檔 (B4)
+# ════════════════════════════════════════════════════════════════════
+data_sufficiency:
+  full_days_min: 60                    # ≥60 天 = full
+  partial_days_min: 20                 # 20-59 天 = partial
+  # <20 天 = insufficient
+
+# ════════════════════════════════════════════════════════════════════
+# Disposal Holdings (disposal_holdings.py)
+# ════════════════════════════════════════════════════════════════════
+disposal_holdings:
+  min_net_lots: 100                    # 大額門檻 (張)
+  min_net_wan: 1000                    # 或大額金額 (萬元)
+
+# ════════════════════════════════════════════════════════════════════
+# Margin Maintenance (margin_maintenance.py)
+# ════════════════════════════════════════════════════════════════════
+margin_maintenance:
+  n_days_avg: 30                       # 30 天均價當融資成本估算
+  margin_rate: 0.6                     # 融資成數 (60%)
+  min_balance_lots: 100                # 餘額最低門檻
+  ex_div_drop_pct: 7.0                 # 除權息跳空門檻
+  thresholds_healthy: 150.0            # ≥150% 健康
+  thresholds_watch: 130.0              # 130-150% 警戒
+  thresholds_high_risk: 120.0          # 120-130% 高風險
+
+# ════════════════════════════════════════════════════════════════════
+# TDCC Holdings (tdcc_holdings.py)
+# ════════════════════════════════════════════════════════════════════
+tdcc_holdings:
+  big_holder_levels: [12, 13, 14, 15]  # ≥400 張大戶 (業界共識)
+  mega_holder_levels: [15]             # ≥1000 張千張大戶
+  retail_levels: [1, 2, 3, 4, 5, 6, 7, 8]  # ≤50 張散戶
+  mid_holder_levels: [9, 10, 11]       # 50-400 張中戶
+  max_csv_size_mb: 50                  # safe guard (TDCC 實際 ~2.3MB)
+
+# ════════════════════════════════════════════════════════════════════
+# Chip Temperature (crawler_pipeline.py TEMP_THRESHOLDS)
+# ════════════════════════════════════════════════════════════════════
+# ⚠️ v3.27 拍腦袋初值, 7 信號未經完整回測; backtester Phase B 待補
+chip_temperature:
+  status: "pending_calibration"        # 標記未校準
+  calibration_target_date: "2026-09-01"  # Q3 結束前完成
+  signals:
+    foreign_cash:        [50000, 10000, -10000, -50000]
+    foreign_futures_eq:  [30000, 10000, -10000, -30000]
+    pc_ratio_oi:         [1.3, 1.0, 0.8, 0.6]
+    limit_up_count:      [8, 4, 1, 0]
+    margin_top5_yi:      [30, 10, -10, -30]
+    consensus_foreign:   30000
+    consensus_trust:     3000
+    settlement_near_oi:  20000
+    settlement_week_oi:  10000
