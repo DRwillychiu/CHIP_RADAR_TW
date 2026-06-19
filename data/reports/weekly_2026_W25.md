@@ -1,6 +1,6 @@
 # Chip Radar TW · 週度綜合報告 · 2026-W25
 
-> **產生時間**: 2026-06-19T14:50:45.875081+08:00
+> **產生時間**: 2026-06-19T14:57:14.953361+08:00
 > **資料源**: data/tdcc_holdings.json + data/master_profiles.json + data/disposal_map.json
 
 ---
@@ -41,4 +41,4 @@
 
 ---
 
-*本報告由 weekly_summary.py 自動產生 · 2026-06-19 14:50 +0800*
+*本報告由 weekly_summary.py 自動產生 · 2026-06-19 14:57 +0800*
