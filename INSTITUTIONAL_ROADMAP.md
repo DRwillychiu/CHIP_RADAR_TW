@@ -93,6 +93,19 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 11 完成 (v3.49.0) — 運1 trigger.ps1 入庫 (Tier 3 維運)
+
+| 變更 | 內容 |
+|---|---|
+| `scripts/trigger_chip_radar.ps1` 入庫 | 從 Desktop 移進 repo, log 路徑改可配置 3-tier fallback |
+| `scripts/README.md` | Task Scheduler setup / log 路徑配置 / prereq / 安全性說明 |
+| 去個人化 | log 路徑優先 `$env:CHIP_RADAR_LOG_DIR`, 次選 Desktop, 最後 `$PSScriptRoot` |
+| 安全性 | 無 password / 無 API key / 無 hardcoded absolute path |
+
+**驗證**: PSParser 0 errors (Rule 9)
+
+---
+
 ### ✅ Sprint 10 完成 (v3.48.0) — Tier 2 整合進 crawler + 前端 chip
 
 **後端**:
