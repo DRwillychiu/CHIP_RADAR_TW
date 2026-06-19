@@ -5391,6 +5391,67 @@ async function loadPhaseBResults() {
   } catch (e) { PHASE_B_RESULTS = {}; }
   return PHASE_B_RESULTS;
 }
+
+// v3.48.0 Tier 2: 注意股 / 借券 / 除權息 — 個股追蹤頁面 chip 用
+let ATTENTION_MAP = null, SHORT_LENDING_MAP = null, DIVIDEND_CAL = null;
+async function loadTier2Maps() {
+  if (ATTENTION_MAP !== null) return;
+  await Promise.all([
+    fetchWithTimeout(`${DATA_BASE}/attention_map.json?_=${Date.now()}`, { cache: 'no-store' }, 5000)
+      .then(r => r.ok ? r.json() : {}).then(d => { ATTENTION_MAP = d || {}; }).catch(() => { ATTENTION_MAP = {}; }),
+    fetchWithTimeout(`${DATA_BASE}/short_lending.json?_=${Date.now()}`, { cache: 'no-store' }, 5000)
+      .then(r => r.ok ? r.json() : {}).then(d => { SHORT_LENDING_MAP = d || {}; }).catch(() => { SHORT_LENDING_MAP = {}; }),
+    fetchWithTimeout(`${DATA_BASE}/dividend_calendar.json?_=${Date.now()}`, { cache: 'no-store' }, 5000)
+      .then(r => r.ok ? r.json() : {}).then(d => { DIVIDEND_CAL = d || {}; }).catch(() => { DIVIDEND_CAL = {}; }),
+  ]);
+}
+
+// v3.48.0 Tier 2 chips for 個股追蹤 stock card
+function renderTier2Chips(code, sampleStock) {
+  if (!code) return '';
+  const chips = [];
+  // 主力成本線 (從注入的 daily JSON 取)
+  const c5 = sampleStock?.main_force_cost_5d;
+  const c20 = sampleStock?.main_force_cost_20d;
+  const p5 = sampleStock?.main_force_cost_premium_5d_pct;
+  if (c5 != null || c20 != null) {
+    const cost5s = c5 != null ? `5d ${c5}` : '';
+    const cost20s = c20 != null ? `20d ${c20}` : '';
+    const premStr = p5 != null
+      ? ` <span style="color:${p5 > 0 ? 'var(--red)' : 'var(--green)'};font-weight:600;">(prem ${p5 > 0 ? '+' : ''}${p5}%)</span>`
+      : '';
+    chips.push(`<span class="ind-chip" style="background:rgba(124,58,237,0.15);color:#c4b5fd;border:1px solid rgba(124,58,237,0.4);" title="主力成本線 = Σbuy_amt ÷ Σbuy_lot, premium = 今日收盤 vs 5d 成本">💰 主力成本 ${cost5s} ${cost20s}${premStr}</span>`);
+  }
+  // 除權息倒數
+  const div = DIVIDEND_CAL?.by_code?.[code];
+  if (div) {
+    const today = new Date();
+    const exY = parseInt(div.ex_date.substr(0,4));
+    const exM = parseInt(div.ex_date.substr(4,2)) - 1;
+    const exD = parseInt(div.ex_date.substr(6,2));
+    const exDate = new Date(exY, exM, exD);
+    const daysLeft = Math.ceil((exDate - today) / 86400000);
+    if (daysLeft >= -10 && daysLeft <= 60) {
+      const cashStr = div.cash_dividend ? ` 現金 ${div.cash_dividend}` : '';
+      const lbl = daysLeft >= 0 ? `D-${daysLeft}` : `(除過 ${-daysLeft}d)`;
+      chips.push(`<span class="ind-chip" style="background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.4);" title="除權息日: ${div.ex_date}">📅 除${div.type}${lbl}${cashStr}</span>`);
+    }
+  }
+  // 借券賣出
+  const sl = SHORT_LENDING_MAP?.by_code?.[code];
+  if (sl && sl.borrow_sell_lot > 100) {
+    const ratio = sl.borrow_vs_short_ratio;
+    const ratioStr = ratio ? ` ratio ${ratio}x` : '';
+    chips.push(`<span class="ind-chip" style="background:rgba(239,68,68,0.12);color:#fca5a5;border:1px solid rgba(239,68,68,0.4);" title="借券 ${sl.borrow_sell_lot.toLocaleString()} 張 vs 融券 ${sl.short_sell_lot.toLocaleString()} 張">🔻 借券 ${sl.borrow_sell_lot.toLocaleString()}張${ratioStr}</span>`);
+  }
+  // 注意股
+  const att = ATTENTION_MAP?.by_code?.[code];
+  if (att) {
+    chips.push(`<span class="ind-chip" style="background:rgba(251,146,60,0.15);color:#fdba74;border:1px solid rgba(251,146,60,0.5);" title="${att.info}">⚠️ 注意股 累計 ${att.cumulative_count}次</span>`);
+  }
+  if (chips.length === 0) return '';
+  return `<div style="margin:8px 0 12px 0;display:flex;gap:6px;flex-wrap:wrap;">${chips.join('')}</div>`;
+}
 let AVAILABLE_DATES = [];
 let ALL_HISTORY = {};
 let POSITIONS = null;  // 累積部位
@@ -11326,6 +11387,8 @@ async function renderStockTrace() {
   if (!CURRENT_DATA) return;
   // v3.19: 確保 stock_history 已載入 (供股價顯示用)
   await loadStockHistory();
+  // v3.48.0: 確保 Tier 2 maps 已載入 (注意/借券/除權息)
+  await loadTier2Maps();
   const q = document.getElementById('stockSearchInput').value.trim().toLowerCase();
   if (!q) {
     // v3.17.2: 預設顯示「今日熱門個股 Top 10」+ 「自選股」+ 引導
@@ -11354,6 +11417,11 @@ async function renderStockTrace() {
             net: s.net_amt !== undefined ? s.net_amt : s.net,
             buy_lot: s.buy_lot || 0, sell_lot: s.sell_lot || 0, net_lot: s.net_lot || 0,
             market_type: s.market_type, market_type_simple: s.market_type_simple,
+            // v3.48.0 Tier 2: 主力成本線 (來自 main_force_cost.inject)
+            main_force_cost_5d: s.main_force_cost_5d,
+            main_force_cost_20d: s.main_force_cost_20d,
+            main_force_cost_premium_5d_pct: s.main_force_cost_premium_5d_pct,
+            main_force_cost_premium_20d_pct: s.main_force_cost_premium_20d_pct,
           });
         }
       }
@@ -11414,12 +11482,15 @@ async function renderStockTrace() {
       ? `<div class="info-banner" style="margin-bottom:12px;">🏦 目前未平倉：${openSummary.map(o => `${o.master} ${o.lots}張`).join('、')}</div>`
       : '';
     
+    // v3.48.0: Tier 2 chip 用最新 record 的個股資料 (main_force_cost_5d 等)
+    const _sampleStock = stock.records[0] || {};
     parts.push(`
       <div style="margin-bottom:24px;">
         <div class="section-title" style="font-size:18px;">
           ${stock.name} <span style="color:var(--text-3);font-family:monospace;font-size:14px;font-weight:400;">(${stock.code})</span>
           ${renderQuoteChip(stock.code)}
         </div>
+        ${renderTier2Chips(stock.code, _sampleStock)}
         <div class="stat-row">
           <div class="stat-box"><div class="label">出現次數</div><div class="val">${stock.records.length}</div></div>
           <div class="stat-box"><div class="label">涉及分點</div><div class="val">${branches.size}</div></div>

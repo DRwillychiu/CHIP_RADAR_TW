@@ -196,6 +196,44 @@ def _post_auto_backfill_history(data_dir, password, industry_map):
         print(f"  ⚠️ auto-backfill 失敗: {type(_abf).__name__}: {_abf}")
 
 
+def _post_refresh_tier2_market_data(data_dir):
+    """v3.48.0 Tier 2 整合: 更新 3 個獨立 fetcher cache (注意/借券/除權息).
+
+    Tier 2 main_force_cost 已直接注入 raw_output (見 main() raw_output 之後).
+    這 3 個是全市場 daily 資料, 各自有獨立 data/*_map.json cache.
+    前端從各 JSON 獨立 fetch (不打 raw_output, 減少 daily JSON 膨脹).
+    """
+    # 注意股 (TWSE announcement/notice)
+    try:
+        from attention_fetcher import get_attention_map
+        a = get_attention_map(str(data_dir))
+        if a:
+            print(f"[Tier2 v3.48.0] ✓ 注意股 {a.get('count', 0)} 檔 "
+                  f"(stale={a.get('stale', False)})")
+    except Exception as _ae:
+        print(f"  ⚠️ attention_fetcher 失敗: {type(_ae).__name__}: {_ae}")
+
+    # 借券+融券 (TWSE TWTASU)
+    try:
+        from short_lending_fetcher import get_short_lending_map
+        s = get_short_lending_map(str(data_dir))
+        if s:
+            print(f"[Tier2 v3.48.0] ✓ 借券+融券 {s.get('count_with_activity', 0)} 檔 "
+                  f"(Top borrow {len(s.get('top_borrow_sell', []))} 名)")
+    except Exception as _se:
+        print(f"  ⚠️ short_lending_fetcher 失敗: {type(_se).__name__}: {_se}")
+
+    # 除權息預告 (TWSE TWT48U)
+    try:
+        from dividend_fetcher import get_dividend_calendar
+        d = get_dividend_calendar(str(data_dir))
+        if d:
+            print(f"[Tier2 v3.48.0] ✓ 除權息預告 {d.get('count', 0)} 檔 "
+                  f"(未來 30 天 {len(d.get('upcoming_30d', []))} 檔)")
+    except Exception as _de:
+        print(f"  ⚠️ dividend_fetcher 失敗: {type(_de).__name__}: {_de}")
+
+
 def _post_disposal_snapshot(data_dir):
     """v3.31.16+17: 處置股每日 JSON 快照 + DB 雙份."""
     try:
@@ -1127,7 +1165,23 @@ def main():
         "insider_data": insider_data,
         "announcements": announcements,
     }
-    
+
+    # ════════════════════════════════════════════════════════════════
+    # v3.48.0 Tier 2 整合: 注入主力成本線 5d/20d + premium% 到每筆 stock
+    # 用 60 天 stock_history.json (B3 master_profile 同 window) 計算
+    # ════════════════════════════════════════════════════════════════
+    try:
+        import main_force_cost as mfc
+        import master_profile as _mp_hist
+        _mfc_history = _mp_hist.load_history(str(data_dir), window_days=None, password=password)
+        if _mfc_history:
+            _mfc_r = mfc.inject_main_force_cost(
+                results, _mfc_history, daily_quotes_map=daily_quotes_map)
+            print(f"[Tier2 主力成本 v3.48.0] ✓ 注入 {_mfc_r['computed']} 筆 "
+                  f"({_mfc_r['unique_codes_5d']} 檔有 5d 成本線)")
+    except Exception as _mfce:
+        print(f"  ⚠️ main_force_cost inject 失敗: {type(_mfce).__name__}: {_mfce}")
+
     # ════════════════════════════════════════════════════════════════
     # v3.20: 推播警報系統 (在加密前用 raw_output 跑警報)
     # ════════════════════════════════════════════════════════════════
@@ -1300,6 +1354,7 @@ def main():
     _post_archive_rotate(data_dir)
     _post_auto_backfill_history(data_dir, password, industry_map)
     _post_disposal_snapshot(data_dir)
+    _post_refresh_tier2_market_data(data_dir)   # v3.48.0: 注意/借券/除權息
 
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")

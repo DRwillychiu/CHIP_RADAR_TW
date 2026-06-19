@@ -93,6 +93,26 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 10 完成 (v3.48.0) — Tier 2 整合進 crawler + 前端 chip
+
+**後端**:
+- crawler.py 新 helper `_post_refresh_tier2_market_data` (呼叫 3 個 fetcher 更新獨立 cache)
+- crawler.py raw_output 組裝後注入 main_force_cost 5d/20d + premium% 進每筆 stock
+- 每日 daily-full 自動更新 4 種資料
+
+**前端** (index.html `renderStockTrace` 個股追蹤):
+- 新 `loadTier2Maps()` 一次性 load 3 個 JSON cache (with 5s timeout)
+- 新 `renderTier2Chips(code, sampleStock)` 渲染 4 個 chip:
+  - 💰 主力成本 5d / 20d + premium% (從 daily JSON 注入欄位)
+  - 📅 除權息 D-N (從 dividend_calendar 算)
+  - 🔻 借券 N 張 + ratio (從 short_lending)
+  - ⚠️ 注意股 累計 N 次 (從 attention_map)
+- chips 插在股票標題之後 / stat-row 之前
+
+**驗證**: JS syntax OK (7312 行) + 41 套件 0 regression
+
+---
+
 ### ✅ Sprint 9 完成 (v3.47.0) — 後2 crawler.py post-processing 抽 6 helper
 
 | 抽出 helper | 原 line | 抽後 line | 內容 |
