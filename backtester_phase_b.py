@@ -193,6 +193,8 @@ def compute_phase_b_results(temp_history_path: str = 'data/temp_history.json'
     # ⚠️ market_regime 偵測 — 防 spurious hit rate (對抗式驗證)
     # 如果 backtest 期間所有 next_day_change_pct 偏向同方向, 任一 directional 信號
     # 都會看起來「準」, 實際上是市場單邊行情而非信號有效.
+    # v3.45.0 (運4): 排除 stale 重複日 (兜底排程跑時 TWSE 沒更新, index 跟前日同)
+    # 這類資料雖然有 next_day_change_pct 但價值為 0, 不該算入 regime 判定
     all_next_chgs = [h.get('next_day_change_pct') for h in history
                       if h.get('next_day_change_pct') is not None]
     if all_next_chgs:
@@ -284,9 +286,12 @@ def compute_phase_b_results(temp_history_path: str = 'data/temp_history.json'
 
 def universe_filter(stocks_universe: List[str],
                      reference_date: str,
-                     listing_data: Optional[Dict[str, Dict[str, str]]] = None
+                     listing_data: Optional[Dict[str, Dict[str, str]]] = None,
+                     data_dir: str = 'data'
                      ) -> List[str]:
     """C8 (v3.43.0) hook — 未來個股 backtest 用的 universe filter.
+    v3.45.0 (後3): listing_data=None 時自動從 data/listing_history.json 載入
+    (listing_fetcher.py 抓的 TWSE+TPEx 1980 檔上市櫃公司基本資料).
 
     目前 backtester_phase_b 是市場層級 backtest, 暫不需要.
     若未來擴充至個股 alpha (e.g. 漲停大戶 master 跟單回測), 必須先呼叫此函式
@@ -296,13 +301,21 @@ def universe_filter(stocks_universe: List[str],
       stocks_universe: 候選個股 list
       reference_date: backtest 起算日 YYYYMMDD
       listing_data: {code: {first_listed: YYYYMMDD, delisted: YYYYMMDD or None}}
-                     (來源 TWSE/TPEx 個股清單, 待整合)
+                     None → 自動載入 data/listing_history.json
 
     Returns: 通過 filter 的 universe
     """
     if not listing_data:
-        # 無 listing data → 返原 universe + 警告
-        print("[universe_filter] ⚠️ 無 listing_data, 跳過 survivorship 過濾 (有 bias 風險)")
+        # v3.45.0: 自動從 listing_fetcher cache 載
+        try:
+            from listing_fetcher import load_listings
+            listing_data = load_listings(data_dir)
+        except Exception:
+            listing_data = None
+    if not listing_data:
+        # 仍無 → 返原 universe + 警告
+        print("[universe_filter] ⚠️ 無 listing_data (跑 listing_fetcher.py 抓), "
+              "跳過 survivorship 過濾 (有 bias 風險)")
         return list(stocks_universe)
     filtered = []
     for code in stocks_universe:

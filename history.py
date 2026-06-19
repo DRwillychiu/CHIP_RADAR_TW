@@ -301,33 +301,42 @@ def update_history(
     taiex = _fetch_taiex_index(expected_trade_date=trade_date)
     if taiex:
         # v3.43.0 fix: 用前日 index 自己算 signed change_pct (絕對事實)
-        # 避免 API sign 偶爾空白導致負日子也存成正值 (5/14 index 41898→41374
-        # 跌 1.25% 卻 stored +1.25%)
+        # v3.45.0 (運4): 若 index 跟前日完全相同 (兜底排程在 TWSE 還沒更新前跑) →
+        #          不寫入 history, 等下次排程拿到新資料 (避免污染 backtester regime)
         prev_dates = sorted(d for d in history.get("market", {}) if d < trade_date)
         api_pct = taiex.get('change_pct', 0)
         verified_pct = None
+        skip_due_to_stale = False
         if prev_dates:
             prev_date = prev_dates[-1]
             prev_index = (history["market"].get(prev_date) or {}).get('index')
             cur_index = taiex.get('index')
             if prev_index and cur_index and prev_index > 0:
-                # 真實 signed change_pct = (today - yesterday) / yesterday × 100
-                verified_pct = round((cur_index - prev_index) / prev_index * 100, 2)
-                # 若 API sign 跟事實不符, 用 verified 取代
-                if abs(verified_pct - api_pct) > 0.05:   # 0.05% 容差
-                    print(f"  ⚠️ [v3.43.0 fix] TAIEX API change_pct={api_pct:+.2f}% "
-                          f"vs index-diff verified={verified_pct:+.2f}% "
-                          f"(prev_idx={prev_index} cur_idx={cur_index}) → 採用 verified")
-                    taiex['change_pct'] = verified_pct
-                    taiex['change_pct_source'] = 'index_diff_verified'
-                    taiex['change_pct_api_original'] = api_pct
+                # 運4 (v3.45.0): index 完全相同 → 嫌疑 TWSE 還沒更新 (兜底跑太早)
+                if cur_index == prev_index:
+                    print(f"  ⚠️ [運4 stale] 今日 index ({cur_index}) 跟前日 ({prev_date}) "
+                          f"完全相同 → 嫌疑 TWSE OpenAPI 尚未更新, 不寫 history.market[{trade_date}] "
+                          f"(等兜底排程下次跑)")
+                    skip_due_to_stale = True
                 else:
-                    taiex['change_pct_source'] = 'api_confirmed'
-        if 'change_pct_source' not in taiex:
-            taiex['change_pct_source'] = 'api_only'   # 無前日可比 (首日)
-        history["market"][trade_date] = taiex
-        print(f"  ✓ 大盤 {taiex['index']} ({taiex['change_pct']:+.2f}%) "
-              f"[source={taiex['change_pct_source']}]")
+                    # 真實 signed change_pct = (today - yesterday) / yesterday × 100
+                    verified_pct = round((cur_index - prev_index) / prev_index * 100, 2)
+                    # 若 API sign 跟事實不符, 用 verified 取代
+                    if abs(verified_pct - api_pct) > 0.05:   # 0.05% 容差
+                        print(f"  ⚠️ [v3.43.0 fix] TAIEX API change_pct={api_pct:+.2f}% "
+                              f"vs index-diff verified={verified_pct:+.2f}% "
+                              f"(prev_idx={prev_index} cur_idx={cur_index}) → 採用 verified")
+                        taiex['change_pct'] = verified_pct
+                        taiex['change_pct_source'] = 'index_diff_verified'
+                        taiex['change_pct_api_original'] = api_pct
+                    else:
+                        taiex['change_pct_source'] = 'api_confirmed'
+        if not skip_due_to_stale:
+            if 'change_pct_source' not in taiex:
+                taiex['change_pct_source'] = 'api_only'   # 無前日可比 (首日)
+            history["market"][trade_date] = taiex
+            print(f"  ✓ 大盤 {taiex['index']} ({taiex['change_pct']:+.2f}%) "
+                  f"[source={taiex['change_pct_source']}]")
     else:
         print(f"  ⚠️ 大盤指數抓取失敗或 stale,跳過本次 (保留前次資料)")
     

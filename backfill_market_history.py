@@ -52,6 +52,10 @@ def backfill_market(data_dir: str = 'data', dry_run: bool = False) -> dict:
             if not prev_idx or prev_idx <= 0:
                 new_pct = rec.get('change_pct')
                 source = 'api_only_no_prev'
+            elif cur_idx == prev_idx:
+                # v3.45.0 (運4): index 完全相同 → 兜底排程在 TWSE 沒更新前跑 → 標 stale
+                new_pct = 0.0
+                source = 'index_diff_stale_duplicate'
             else:
                 new_pct = round((cur_idx - prev_idx) / prev_idx * 100, 2)
                 source = 'index_diff_verified'

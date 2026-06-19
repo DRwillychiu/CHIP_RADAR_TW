@@ -184,12 +184,13 @@
       "review_status": "watching - 4-10 天樣本"
     },
     "謝孟恭(股癌)": {
-      "branches": ["TBD"],
+      "branches": ["9676"],
       "added_date": "2026-06-04",
       "added_by": "user_excel_v3.31.18",
-      "criteria": "Podcast 股癌主理人, 6/4 加入後尚未抓到分點資料, 6/11 audit 確認 0/0 active days, 需查分點代號是否變更",
-      "declared_styles": ["swing"],
-      "review_status": "to_review_branch_code"
+      "criteria": "Podcast 股癌主理人, 業界知名分點 9676 富邦-仁愛 (branches.py 已設定)",
+      "declared_styles": ["longterm"],
+      "review_status": "verified_low_visibility",
+      "review_notes": "6/19 運3 已查證: 9676 富邦-仁愛 是業界共識分點. 6/4-6/19 期間 0 active days 是 longterm 風格不進 TWSE Top 30 榜的合理現象 (跟林滄海 longterm 同性質). 樣本不足靠時間累積, 不是 bug"
     },
     "丁凌全": {
       "branches": ["TBD"],
@@ -244,7 +245,7 @@
     "next_review_date": "2026-07-04",
     "review_criteria": [
       "新增的 10 個 master (6/4 加入) 樣本滿 30 天後, 評估標籤穩定性",
-      "謝孟恭(股癌) 分點代號需確認",
+      "謝孟恭(股癌) 已驗證 9676 富邦-仁愛 (6/19 運3 完成)",
       "業界印象 vs T+1 verified flip ratio 差異 > 50% 的 master 重評",
       "閾值校準: half_life=20 / Jaccard=0.30 / MIN_CO_DAYS=5 是否需動"
     ]
@@ -253,6 +254,7 @@
     {"date": "2026-04-21", "version": "v3.0", "action": "initial 15 個人大戶 + 8 外資 + 2 官股"},
     {"date": "2026-06-01", "version": "v3.31.8", "action": "+4 漏網 (志誠/林適中/竹科/謝明彧)"},
     {"date": "2026-06-04", "version": "v3.31.18", "action": "+10 Excel 交叉比對 (含董事長級)"},
-    {"date": "2026-06-19", "version": "v3.40.0", "action": "建立 roster.json 結構化 owner trail (B1 機構級 P0)"}
+    {"date": "2026-06-19", "version": "v3.40.0", "action": "建立 roster.json 結構化 owner trail (B1 機構級 P0)"},
+    {"date": "2026-06-19", "version": "v3.45.0", "action": "運3: 謝孟恭(股癌) 分點驗證為 9676 富邦-仁愛, 標 verified_low_visibility"}
   ]
 }
