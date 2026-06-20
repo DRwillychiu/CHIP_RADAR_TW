@@ -93,6 +93,25 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 12 完成 (v3.50.0) — 後2 main() 前段抽 3 pure-read stage helper
+
+| 抽出 helper | line | 內容 |
+|---|---|---|
+| `_stage_quote_audit` | 30 行 | 個股 quote 新鮮度 + source 分布統計 (原 main L627-651) |
+| `_stage_limit_up_audit` | 45 行 | 漲停判定透明化 Top10/Bottom3/可疑警示 (原 main L653-697) |
+| `_stage_load_yesterday_branches` | 28 行 | 載昨日加密檔 + decrypt (給 next_day_flip_verification, 原 main L716-736) |
+
+**效益**:
+- main() 1090 → **1022 行** (本 sprint -68 行, 累計從 1225 降 203 行 / -16.6%)
+- 3 個 stage 全是 pure-read (無 side effect), 風險最低
+- 未來補 unit test 容易 (不需 mock 整個 crawler)
+
+**defer 到 Sprint 13+**: 機構注入主迴圈 (170 行 — L453-624) + 融資融券 (L656-755) + 全市場排行 (L878-918) — 這些涉及修改 results 內部 dict 結構, 需 state dict 模式才能安全拆
+
+**驗證**: 41 套件 0 regression + crawler.main + 9 helper 全可 import
+
+---
+
 ### ✅ Sprint 11 完成 (v3.49.0) — 運1 trigger.ps1 入庫 (Tier 3 維運)
 
 | 變更 | 內容 |

@@ -196,6 +196,115 @@ def _post_auto_backfill_history(data_dir, password, industry_map):
         print(f"  ⚠️ auto-backfill 失敗: {type(_abf).__name__}: {_abf}")
 
 
+def _stage_quote_audit(results):
+    """v3.50.0 後2 (Sprint 12): Quote 新鮮度 audit (從 main() L627-651 抽出).
+
+    純 read + print, 不修改 results. 統計各個股 quote source 分布
+    + lot 反推估算 + stale 警告.
+    """
+    _audit_fresh = 0
+    _audit_stale = 0
+    _audit_missing = 0
+    _audit_sources = {}
+    _audit_lot_estimated = 0
+    for br in results:
+        for s in (br.get("buys", []) + br.get("sells", [])):
+            if s.get("quote_stale"):
+                _audit_stale += 1
+            elif s.get("close_price") is not None:
+                _audit_fresh += 1
+            else:
+                _audit_missing += 1
+            src = s.get("quote_source") or "none"
+            _audit_sources[src] = _audit_sources.get(src, 0) + 1
+            if s.get("lot_source") == "estimated_from_close":
+                _audit_lot_estimated += 1
+    print(f"[Quote Audit v3.27.3] fresh={_audit_fresh} / stale={_audit_stale} / missing={_audit_missing}")
+    print(f"                     source: " + ", ".join(f"{k}={v}" for k, v in sorted(_audit_sources.items())))
+    if _audit_lot_estimated:
+        print(f"                     lot 反推估算: {_audit_lot_estimated} 筆 (高價股 TWSE Top 15 盲點)")
+    if _audit_stale > 0:
+        print(f"  🚨 警告:仍有 {_audit_stale} 筆 quote 標記 stale — MIS fallback 沒涵蓋到的全市場股票")
+        print(f"           分點+法人欄位資料不受影響,但部分非優先股票顯示可能為舊資料")
+
+
+def _stage_limit_up_audit(results, _prev_close_map):
+    """v3.50.0 後2 (Sprint 12): Limit-Up 漲停判定 audit (從 main() L653-697 抽出).
+
+    純 read + print, 不修改 results. 印出所有 is_limit_up=True 個股及判定依據.
+    """
+    from crawler_pipeline import LIMIT_UP_THRESHOLD
+    _lu_audit = {}
+    _lu_suspicious = []
+    for br in results:
+        for s in (br.get("buys", []) + br.get("sells", [])):
+            code = s.get("code")
+            if not code or code in _lu_audit:
+                continue
+            if s.get("is_limit_up"):
+                _lu_audit[code] = {
+                    'name': s.get('name', ''),
+                    'close': s.get('close_price'),
+                    'change_pct': s.get('change_pct'),
+                    'source': s.get('quote_source', ''),
+                    'prev_close': _prev_close_map.get(code),
+                }
+                _cp = s.get('change_pct') or 0
+                if _cp < LIMIT_UP_THRESHOLD:
+                    _lu_suspicious.append((code, s.get('name', ''), _cp, 'below_threshold'))
+                elif _cp < 9.8:
+                    _lu_suspicious.append((code, s.get('name', ''), _cp, 'near_boundary'))
+
+    print(f"\n[Limit-Up Audit v3.27.4] 今日漲停股: {len(_lu_audit)} 檔 (LIMIT_UP_THRESHOLD={LIMIT_UP_THRESHOLD}%)")
+    if _lu_audit:
+        _sorted_lu = sorted(_lu_audit.items(), key=lambda x: x[1].get('change_pct') or 0, reverse=True)
+        _show = _sorted_lu[:10]
+        print(f"  Top 10: ", end="")
+        print(" | ".join(f"{v['name']}({k}) {v['change_pct']}%" for k, v in _show))
+        if len(_sorted_lu) > 10:
+            _bottom3 = _sorted_lu[-3:]
+            print(f"  Bottom3:", end="")
+            print(" | ".join(f"{v['name']}({k}) {v['change_pct']}%" for k, v in _bottom3))
+    if _lu_suspicious:
+        print(f"  🚨 可疑漲停判定 ({len(_lu_suspicious)} 筆):")
+        for _code, _name, _cp, _reason in _lu_suspicious:
+            _pv = _prev_close_map.get(_code)
+            print(f"    {_name}({_code}): change_pct={_cp}% reason={_reason}"
+                  f"{f' prev_close={_pv}' if _pv else ''}")
+    else:
+        print(f"  ✅ 所有漲停判定一致 (change_pct ≥ {LIMIT_UP_THRESHOLD}%)")
+
+
+def _stage_load_yesterday_branches(data_dir, trade_date, password):
+    """v3.50.0 後2 (Sprint 12): 載昨日加密檔 + decrypt (從 main() L716-736 抽出).
+
+    給 next_day_flip_verification 用. 找到 < trade_date 最近一檔加密 JSON,
+    解密後返 branches list. 首日執行返 [].
+    """
+    try:
+        existing_dates_sorted = sorted(
+            [f.stem for f in data_dir.glob("*.json")
+              if f.stem.isdigit() and len(f.stem) == 8 and f.stem != trade_date],
+            reverse=True
+        )
+        if not existing_dates_sorted:
+            return []
+        yest_date = existing_dates_sorted[0]
+        yest_file = data_dir / f"{yest_date}.json"
+        with open(yest_file, "r", encoding="utf-8") as f:
+            yest_raw = json.load(f)
+        if yest_raw.get("encrypted"):
+            yest_plain = decrypt_data(yest_raw["data"], password)
+            yest_data = json.loads(yest_plain)
+            branches = yest_data.get("branches", [])
+            print(f"  ✓ 載入昨日資料 ({yest_date}): {len(branches)} 個分點")
+            return branches
+        return []
+    except Exception as e:
+        print(f"  ⚠️ 昨日資料載入失敗: {e}（首日執行此為正常現象）")
+        return []
+
+
 def _post_refresh_tier2_market_data(data_dir):
     """v3.48.0 Tier 2 整合: 更新 3 個獨立 fetcher cache (注意/借券/除權息).
 
@@ -624,77 +733,9 @@ def main():
     print(f"[公開資訊] ✓ 注入完成 — 三大法人 {inst_inject_count} 筆 / 收盤行情 {quote_inject_count} 筆")
     print(f"          對齊統計：與外資同向 {align_aligned} / 反向 {align_opposing}")
 
-    # v3.27.3 quote audit: 統計各個股 quote 新鮮度 + source 分布
-    _audit_fresh = 0
-    _audit_stale = 0
-    _audit_missing = 0
-    _audit_sources = {}
-    _audit_lot_estimated = 0
-    for br in results:
-        for s in (br.get("buys", []) + br.get("sells", [])):
-            if s.get("quote_stale"):
-                _audit_stale += 1
-            elif s.get("close_price") is not None:
-                _audit_fresh += 1
-            else:
-                _audit_missing += 1
-            src = s.get("quote_source") or "none"
-            _audit_sources[src] = _audit_sources.get(src, 0) + 1
-            if s.get("lot_source") == "estimated_from_close":
-                _audit_lot_estimated += 1
-    print(f"[Quote Audit v3.27.3] fresh={_audit_fresh} / stale={_audit_stale} / missing={_audit_missing}")
-    print(f"                     source: " + ", ".join(f"{k}={v}" for k, v in sorted(_audit_sources.items())))
-    if _audit_lot_estimated:
-        print(f"                     lot 反推估算: {_audit_lot_estimated} 筆 (高價股 TWSE Top 15 盲點)")
-    if _audit_stale > 0:
-        print(f"  🚨 警告:仍有 {_audit_stale} 筆 quote 標記 stale — MIS fallback 沒涵蓋到的全市場股票")
-        print(f"           分點+法人欄位資料不受影響,但部分非優先股票顯示可能為舊資料")
-    
-    # ════════════════════════════════════════════════════════════════
-    # v3.27.4 L3: Limit-Up Audit — 漲停判定透明化
-    # 印出所有被標為 is_limit_up=True 的個股及判定依據
-    # ════════════════════════════════════════════════════════════════
-    _lu_audit = {}  # {code: {name, close, change_pct, source, prev_close}}
-    _lu_suspicious = []
-    for br in results:
-        for s in (br.get("buys", []) + br.get("sells", [])):
-            code = s.get("code")
-            if not code or code in _lu_audit:
-                continue
-            if s.get("is_limit_up"):
-                _lu_audit[code] = {
-                    'name': s.get('name', ''),
-                    'close': s.get('close_price'),
-                    'change_pct': s.get('change_pct'),
-                    'source': s.get('quote_source', ''),
-                    'prev_close': _prev_close_map.get(code),
-                }
-                # Suspicious: marked limit-up but change_pct < 9.5 or near boundary
-                _cp = s.get('change_pct') or 0
-                if _cp < LIMIT_UP_THRESHOLD:
-                    _lu_suspicious.append((code, s.get('name', ''), _cp, 'below_threshold'))
-                elif _cp < 9.8:
-                    _lu_suspicious.append((code, s.get('name', ''), _cp, 'near_boundary'))
-
-    print(f"\n[Limit-Up Audit v3.27.4] 今日漲停股: {len(_lu_audit)} 檔 (LIMIT_UP_THRESHOLD={LIMIT_UP_THRESHOLD}%)")
-    if _lu_audit:
-        # Print top 10 by change_pct desc + any suspicious
-        _sorted_lu = sorted(_lu_audit.items(), key=lambda x: x[1].get('change_pct') or 0, reverse=True)
-        _show = _sorted_lu[:10]
-        print(f"  Top 10: ", end="")
-        print(" | ".join(f"{v['name']}({k}) {v['change_pct']}%" for k, v in _show))
-        if len(_sorted_lu) > 10:
-            _bottom3 = _sorted_lu[-3:]
-            print(f"  Bottom3:", end="")
-            print(" | ".join(f"{v['name']}({k}) {v['change_pct']}%" for k, v in _bottom3))
-    if _lu_suspicious:
-        print(f"  🚨 可疑漲停判定 ({len(_lu_suspicious)} 筆):")
-        for _code, _name, _cp, _reason in _lu_suspicious:
-            _pv = _prev_close_map.get(_code)
-            print(f"    {_name}({_code}): change_pct={_cp}% reason={_reason}"
-                  f"{f' prev_close={_pv}' if _pv else ''}")
-    else:
-        print(f"  ✅ 所有漲停判定一致 (change_pct ≥ {LIMIT_UP_THRESHOLD}%)")
+    # v3.50.0 後2 (Sprint 12): quote audit + limit-up audit 抽 helper
+    _stage_quote_audit(results)
+    _stage_limit_up_audit(results, _prev_close_map)
 
     # 計算各期間匯總（含當日風格指標）
     summaries = compute_period_summaries(positions, trade_date, today_branches_data=results)
@@ -714,26 +755,9 @@ def main():
         print(f"  👥 多位高手共買漲停股：{len(limit_up_summary['consensus_limit_up'])} 檔")
     
     # v3.13 隔日沖驗證 — 比對昨日漲停買進 × 今日賣超
+    # v3.50.0 後2 (Sprint 12): 抽 _stage_load_yesterday_branches helper
     print(f"\n[隔日沖驗證] 比對昨日漲停買進 vs 今日賣超...")
-    yesterday_branches_data = []
-    try:
-        # 找昨日的加密檔
-        existing_dates_sorted = sorted(
-            [f.stem for f in data_dir.glob("*.json") if f.stem.isdigit() and len(f.stem) == 8 and f.stem != trade_date],
-            reverse=True
-        )
-        if existing_dates_sorted:
-            yest_date = existing_dates_sorted[0]
-            yest_file = data_dir / f"{yest_date}.json"
-            with open(yest_file, "r", encoding="utf-8") as f:
-                yest_raw = json.load(f)
-            if yest_raw.get("encrypted"):
-                yest_plain = decrypt_data(yest_raw["data"], password)
-                yest_data = json.loads(yest_plain)
-                yesterday_branches_data = yest_data.get("branches", [])
-                print(f"  ✓ 載入昨日資料 ({yest_date}): {len(yesterday_branches_data)} 個分點")
-    except Exception as e:
-        print(f"  ⚠️ 昨日資料載入失敗: {e}（首日執行此為正常現象）")
+    yesterday_branches_data = _stage_load_yesterday_branches(data_dir, trade_date, password)
     
     next_day_verification = compute_next_day_flip_verification(
         results, yesterday_branches_data, unique_branches)
