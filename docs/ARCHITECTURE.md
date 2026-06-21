@@ -2,8 +2,20 @@
 
 > **目的**:給「接手這個 repo 的另一個工程師」一張完整地圖。
 > **受眾**:讀程式碼前需要先建心智模型的開發者(非終端使用者 — 那份請看 `README.md`)。
-> **適用版本**:v3.30.1(2026-05-24),累計戰力 100/100,production-grade 6.0/10。
-> **最後修訂**:2026-05-24。
+> **適用版本**:**v3.51.0(2026-06-21)**,機構級 Data Analyst 結構(src/ 8 大類 60 模組),13 Sprint 完成 production 0 regression.
+> **最後修訂**:2026-06-21(Sprint 13 機構級重整後)。
+
+## ⚠️ 結構變更(v3.51.0)
+
+Root 從 110+ .py 重整為 7 個 entry points + `src/` 8 大類:
+- `crawler.py` / `heartbeat_check.py` / `tdcc_holdings.py` / `intraday_settlement.py` / `pre_market_brief.py` / `weekly_summary.py` — 6 個 workflow entry
+- `src/fetchers/` (13) — 抓資料層 (含 v3.46+ attention/short_lending/dividend / v3.45+ listing)
+- `src/analyzers/` (11) — 分析層 (含 v3.46+ main_force_cost)
+- `src/pipelines/` (6) / `src/backtest/` (3) / `src/audit/` (12) / `src/alerts/` (3) / `src/exports/` (4) / `src/core/` (3)
+- 6 entry 開頭加 `import src` 觸發 sys.path 注入 → 既有 `import attention_fetcher` 100% backward compat
+- main() 從 1225 → 1022 行(-16.6%, Sprint 9+12 抽 9 個 _post_/_stage_ helper)
+
+詳完整 Sprint 1-13 紀錄見 `INSTITUTIONAL_ROADMAP.md`.
 
 ---
 
