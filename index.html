@@ -3658,6 +3658,93 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   .login-card { padding: 32px 24px; }
   .stock-row .middle { min-width: 80px; font-size: 10px; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   v3.58.0 (Sprint 21 P0-F): 機構級 mobile-first 響應式
+   既有 5 個 media query 已涵蓋部分, 補強 tab nav / stat-row / controls /
+   theme-toggle 等真實痛點 (用戶實測 < 640px 手機體驗)
+   ════════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Tab nav — 15 個 tab 水平 scroll 不擠 */
+  .tabs, .tab-container, .tabs-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+  .tabs::-webkit-scrollbar, .tab-container::-webkit-scrollbar {
+    height: 4px;
+  }
+  .tab { flex-shrink: 0; padding: 8px 12px; font-size: 12px; }
+  .tab .tab-num { font-size: 11px; }
+
+  /* stat-row — flex-wrap 自動換行 (原是 row) */
+  .stat-row {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+  .stat-box {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 0;
+    padding: 8px 10px !important;
+  }
+  .stat-box .label { font-size: 10px; }
+  .stat-box .val { font-size: 14px !important; }
+
+  /* table-wrap 強制 horizontal scroll (機構級 16 欄 table 不適合改 stack) */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -12px; /* 邊緣對齊 main padding */
+    padding: 0 12px;
+  }
+  table { min-width: 480px; }
+
+  /* controls 多欄堆疊 */
+  .controls, .control-row {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .control-group {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .control-group input[type="text"],
+  .control-group select {
+    min-width: 0 !important;
+    flex: 1;
+  }
+
+  /* theme-toggle 移到不擋手機 thumb zone */
+  .theme-toggle {
+    bottom: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  /* section-title 字級 */
+  .section-title { font-size: 16px !important; }
+  /* info-banner padding 縮 */
+  .info-banner, .help-card { padding: 10px 12px; font-size: 12px; }
+
+  /* Tier 2 chip 字級 (個股追蹤) */
+  .ind-chip { font-size: 10px; padding: 3px 8px; }
+
+  /* 老闆版 Excel button 不溢出 */
+  button { min-width: 0; }
+}
+
+@media (max-width: 380px) {
+  /* 超小手機 (iPhone SE 等) — 進一步緊縮 */
+  main { padding: 12px; }
+  .stat-box { flex: 1 1 100%; }
+  .tab { padding: 6px 10px; font-size: 11px; }
+  th, td { padding: 6px 8px; font-size: 11px; }
+}
 </style>
 </head>
 <body>

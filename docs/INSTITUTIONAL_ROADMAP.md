@@ -93,6 +93,31 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 21 完成 (v3.58.0) — P0-F 前端機構級響應式佈局 (mobile-first)
+
+**動機**: 既有 5 個 media query 涵蓋 cards-grid / header / table padding 等基本元素, 但機構級重點 (15 tab 水平 scroll / stat-row flex-wrap / controls 堆疊 / table-wrap horizontal scroll / theme-toggle thumb zone) 全缺. 用戶手機看板體驗差.
+
+**實作** (`index.html` 加 2 個新 breakpoint):
+
+`@media (max-width: 640px)` — mobile 主邏輯:
+- **Tab nav**: `overflow-x: auto` + `flex-shrink: 0` + `-webkit-overflow-scrolling: touch` → 15 tab 水平 scroll 流暢
+- **stat-row**: `flex-wrap: wrap` + `flex: 1 1 calc(50% - 6px)` → 兩欄自動換行
+- **table-wrap**: `overflow-x: auto` + `min-width: 480px` + 負 margin 對齊 main padding → 16 欄 table 不裁切
+- **controls / control-group**: `flex-direction: column` + `align-items: stretch` → input / select 自動延展
+- **theme-toggle**: 縮 40px + bottom 12px (不擋 thumb zone)
+- **section-title / info-banner / chip / button**: 字級 + padding 全面縮
+
+`@media (max-width: 380px)` — 超小手機 (iPhone SE):
+- stat-box 全欄 `flex: 1 1 100%`
+- main padding 12px
+- tab 字級 11px
+
+**設計取捨**: table 用 horizontal scroll 而非 stack (機構級 multi-column 資料不適合 stack — 失去對齊性)
+
+**驗證**: JS syntax OK + 43 套件 0 regression
+
+---
+
 ### ✅ Sprint 20 完成 (v3.57.0) — P0-B 前端 Dark / Light theme 切換
 
 **動機**: 機構辦公室白天明亮環境長時看 dark theme 容易眼花. 加 light theme + 即時切換, localStorage 持久.
