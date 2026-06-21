@@ -93,6 +93,34 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 22 完成 (v3.59.0) — P0-C 前端 ARIA + 鍵盤導航 (機構 a11y 合規)
+
+**動機**: 前端 audit `0 個 ARIA attribute`. 機構級合規 (政府/銀行/上市公司內部 site) 需符合 WCAG 2.1 AA 鍵盤族友善基準.
+
+**ARIA roles + states**:
+- `<div class="tabs" role="tablist" aria-label="主功能分頁">`
+- 15 個 tab 加 `role="tab"` + `aria-selected` + `aria-controls="panel-X"` + `tabindex` (selected=0, others=-1 — WAI-ARIA roving tabindex pattern)
+- 15 個 panel 加 `role="tabpanel"` + `aria-label` (sed 批次)
+- `<main id="main-content" role="main">` 主 landmark
+- theme-toggle emoji 加 `aria-hidden="true"` (避免 SR 讀「月亮」)
+
+**鍵盤導航** (WAI-ARIA tablist 標準):
+- `ArrowRight/Left`: 上/下一個 tab + auto click + auto focus
+- `Home/End`: 跳首/尾 tab
+- 既有 1-9/0/-/=/j/k/ESC 保留 (v3.41.0 C6 已有)
+- tab click handler 同步 update aria-selected + tabindex
+
+**Skip link**: `<a href="#main-content" class="skip-link">跳至主內容</a>`
+- 滑鼠隱藏(left: -9999px), Tab 第一次按到 focus 顯示, 跳過 header 直達 main
+
+**Focus visible 統一樣式**:
+- `*:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }`
+- 鍵盤族用 outline, 滑鼠點不顯示(`:focus-visible` 而非 `:focus`)
+
+**驗證**: JS syntax OK + 43 套件 0 regression
+
+---
+
 ### ✅ Sprint 21 完成 (v3.58.0) — P0-F 前端機構級響應式佈局 (mobile-first)
 
 **動機**: 既有 5 個 media query 涵蓋 cards-grid / header / table padding 等基本元素, 但機構級重點 (15 tab 水平 scroll / stat-row flex-wrap / controls 堆疊 / table-wrap horizontal scroll / theme-toggle thumb zone) 全缺. 用戶手機看板體驗差.

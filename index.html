@@ -3100,6 +3100,37 @@ th.sortable.sort-desc::after {
 }
 
 .panel { display: none; }
+.panel[role="tabpanel"] { outline: none; }
+
+/* v3.59.0 (Sprint 22 P0-C): 機構級 a11y — Skip link + focus visible */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--gold);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  z-index: 10000;
+  text-decoration: none;
+}
+.skip-link:focus {
+  left: 12px;
+  top: 12px;
+  outline: 3px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+/* 統一 keyboard focus 樣式 (鍵盤族友善, 滑鼠點不會顯示) */
+*:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+button:focus-visible, .tab:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
 /* v3.56.0 (Sprint 19 P0-D): contain + content-visibility 機構級 perf 優化
    - contain: layout style — panel 內部 reflow 不傳播到外部 (大幅降 layout cost)
    - content-visibility: auto — 不在視口的 panel skip render (Chrome 700%+ speedup)
@@ -3749,11 +3780,14 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 </head>
 <body>
 
+<!-- v3.59.0 (Sprint 22 P0-C): Skip link 鍵盤首跳 main content -->
+<a href="#main-content" class="skip-link">跳至主內容</a>
+
 <!-- v3.57.0 (Sprint 20 P0-B): Theme toggle 浮動 button (右下) -->
 <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()"
         title="切換深色/明亮主題" aria-label="切換主題">
-  <span class="icon-moon">🌙</span>
-  <span class="icon-sun">☀️</span>
+  <span class="icon-moon" aria-hidden="true">🌙</span>
+  <span class="icon-sun" aria-hidden="true">☀️</span>
 </button>
 
 <!-- ===== 登入 ===== -->
@@ -3791,7 +3825,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 </header>
 
-<main>
+<main id="main-content" role="main" aria-label="主內容">
   <div class="status-bar">
     <div class="status-info">
       <div><span class="label">資料日期</span><span class="val" id="tradeDate">—</span></div>
@@ -3863,26 +3897,28 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <span class="market-global-hint">💡 各頁可獨立覆蓋</span>
   </div>
 
-  <div class="tabs">
-    <button class="tab tab-tier-core active" data-tab="today3"><span class="tab-num">01</span>🌅 今日三視角</button>
-    <button class="tab tab-tier-core" data-tab="overview"><span class="tab-num">02</span>🔥 共買榜</button>
-    <button class="tab tab-tier-query" data-tab="branches"><span class="tab-num">03</span>📊 分點動態</button>
-    <button class="tab tab-tier-query" data-tab="ranking"><span class="tab-num">04</span>🏆 累積排行</button>
-    <button class="tab tab-tier-core" data-tab="masterview"><span class="tab-num">05</span>👤 高手合併視圖</button>
-    <button class="tab tab-tier-query" data-tab="institutional"><span class="tab-num">06</span>🏛️ 三大法人</button>
-    <button class="tab tab-tier-query" data-tab="futures"><span class="tab-num">07</span>🎯 期貨情報</button>
-    <button class="tab tab-tier-query" data-tab="margin"><span class="tab-num">08</span>💹 融資融券</button>
-    <button class="tab tab-tier-query" data-tab="limitup"><span class="tab-num">09</span>🎯 漲停狙擊</button>
-    <button class="tab tab-tier-query" data-tab="stock"><span class="tab-num">10</span>📈 個股追蹤</button>
-    <button class="tab tab-tier-query" data-tab="master"><span class="tab-num">11</span>👥 單分點偏好</button>
-    <button class="tab tab-tier-config" data-tab="reports"><span class="tab-num">12</span>📊 報告中心</button>
-    <button class="tab tab-tier-core" data-tab="masterprofile"><span class="tab-num">13</span>📊 大戶畫像</button>
-    <button class="tab tab-tier-core" data-tab="holdings"><span class="tab-num">14</span>🏦 持股結構</button>
-    <button class="tab tab-tier-config" data-tab="watchlist"><span class="tab-num">15</span>⚙️ 關注設定</button>
+  <!-- v3.59.0 (Sprint 22 P0-C): tablist ARIA + 鍵盤導航
+       Arrow keys 左右移動 focus, Home/End 跳首尾, Enter/Space 啟用 -->
+  <div class="tabs" role="tablist" aria-label="主功能分頁">
+    <button class="tab tab-tier-core active" data-tab="today3" role="tab" aria-selected="true" aria-controls="panel-today3" tabindex="0"><span class="tab-num">01</span>🌅 今日三視角</button>
+    <button class="tab tab-tier-core" data-tab="overview" role="tab" aria-selected="false" aria-controls="panel-overview" tabindex="-1"><span class="tab-num">02</span>🔥 共買榜</button>
+    <button class="tab tab-tier-query" data-tab="branches" role="tab" aria-selected="false" aria-controls="panel-branches" tabindex="-1"><span class="tab-num">03</span>📊 分點動態</button>
+    <button class="tab tab-tier-query" data-tab="ranking" role="tab" aria-selected="false" aria-controls="panel-ranking" tabindex="-1"><span class="tab-num">04</span>🏆 累積排行</button>
+    <button class="tab tab-tier-core" data-tab="masterview" role="tab" aria-selected="false" aria-controls="panel-masterview" tabindex="-1"><span class="tab-num">05</span>👤 高手合併視圖</button>
+    <button class="tab tab-tier-query" data-tab="institutional" role="tab" aria-selected="false" aria-controls="panel-institutional" tabindex="-1"><span class="tab-num">06</span>🏛️ 三大法人</button>
+    <button class="tab tab-tier-query" data-tab="futures" role="tab" aria-selected="false" aria-controls="panel-futures" tabindex="-1"><span class="tab-num">07</span>🎯 期貨情報</button>
+    <button class="tab tab-tier-query" data-tab="margin" role="tab" aria-selected="false" aria-controls="panel-margin" tabindex="-1"><span class="tab-num">08</span>💹 融資融券</button>
+    <button class="tab tab-tier-query" data-tab="limitup" role="tab" aria-selected="false" aria-controls="panel-limitup" tabindex="-1"><span class="tab-num">09</span>🎯 漲停狙擊</button>
+    <button class="tab tab-tier-query" data-tab="stock" role="tab" aria-selected="false" aria-controls="panel-stock" tabindex="-1"><span class="tab-num">10</span>📈 個股追蹤</button>
+    <button class="tab tab-tier-query" data-tab="master" role="tab" aria-selected="false" aria-controls="panel-master" tabindex="-1"><span class="tab-num">11</span>👥 單分點偏好</button>
+    <button class="tab tab-tier-config" data-tab="reports" role="tab" aria-selected="false" aria-controls="panel-reports" tabindex="-1"><span class="tab-num">12</span>📊 報告中心</button>
+    <button class="tab tab-tier-core" data-tab="masterprofile" role="tab" aria-selected="false" aria-controls="panel-masterprofile" tabindex="-1"><span class="tab-num">13</span>📊 大戶畫像</button>
+    <button class="tab tab-tier-core" data-tab="holdings" role="tab" aria-selected="false" aria-controls="panel-holdings" tabindex="-1"><span class="tab-num">14</span>🏦 持股結構</button>
+    <button class="tab tab-tier-config" data-tab="watchlist" role="tab" aria-selected="false" aria-controls="panel-watchlist" tabindex="-1"><span class="tab-num">15</span>⚙️ 關注設定</button>
   </div>
 
   <!-- 01 今日三視角 (新主頁) -->
-  <div class="panel active" id="panel-today3">
+  <div class="panel active" id="panel-today3" role="tabpanel" aria-label="today3 分頁內容">
     <div class="controls">
       <div class="control-group">
         <span class="control-label">觀察角度</span>
@@ -3912,7 +3948,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 02 共買榜 -->
-  <div class="panel" id="panel-overview">
+  <div class="panel" id="panel-overview" role="tabpanel" aria-label="overview 分頁內容">
     <div class="controls">
       <div class="control-group">
         <span class="control-label">榜單類型</span>
@@ -4050,7 +4086,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 02 分點動態 -->
-  <div class="panel" id="panel-branches">
+  <div class="panel" id="panel-branches" role="tabpanel" aria-label="branches 分頁內容">
     <div class="controls">
       <div class="control-group">
         <span class="control-label">顯示範圍</span>
@@ -4078,7 +4114,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 04 累積排行 -->
-  <div class="panel" id="panel-ranking">
+  <div class="panel" id="panel-ranking" role="tabpanel" aria-label="ranking 分頁內容">
     <div class="controls">
       <div class="control-group">
         <span class="control-label">期間</span>
@@ -4111,7 +4147,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 05 高手合併視圖（新） -->
-  <div class="panel" id="panel-masterview">
+  <div class="panel" id="panel-masterview" role="tabpanel" aria-label="masterview 分頁內容">
     <div class="controls">
       <div class="control-group">
         <span class="control-label">選擇高手</span>
@@ -4122,7 +4158,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 06 🏛️ 三大法人 (v3.7 新增) -->
-  <div class="panel" id="panel-institutional">
+  <div class="panel" id="panel-institutional" role="tabpanel" aria-label="institutional 分頁內容">
     <div class="controls">
       <div class="control-group">
         <span class="control-label">視角</span>
@@ -4157,7 +4193,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 07 🎯 期貨情報 (v3.17 新增) -->
-  <div class="panel" id="panel-futures">
+  <div class="panel" id="panel-futures" role="tabpanel" aria-label="futures 分頁內容">
     <div class="help-card">
       <h3>🎯 期貨情報 × 外資多空 × 散戶反指標</h3>
       <p>📊 <strong>資料涵蓋</strong>:大台/小台/微台三大期貨商品 + 臺指選擇權 Call/Put + 十大交易人集中度</p>
@@ -4171,7 +4207,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 08 💹 融資融券 (v3.11 新增) -->
-  <div class="panel" id="panel-margin">
+  <div class="panel" id="panel-margin" role="tabpanel" aria-label="margin 分頁內容">
     <div class="help-card">
       <h3>💹 融資融券 × 散戶情緒溫度計</h3>
       <p>📊 <strong>資料涵蓋</strong>：全市場 2,000+ 檔個股融資融券（智慧混合策略：你的分點個股全部 + 全市場 Top 100）</p>
@@ -4191,7 +4227,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 08 🎯 漲停狙擊 (v3.12 新增) -->
-  <div class="panel" id="panel-limitup">
+  <div class="panel" id="panel-limitup" role="tabpanel" aria-label="limitup 分頁內容">
     <div class="help-card">
       <h3>🎯 漲停狙擊中心</h3>
       <p>📊 <strong>漲停定義</strong>：漲跌幅 ≥ 9.5%（可在 branches.py 調整）</p>
@@ -4240,7 +4276,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 08 個股追蹤 -->
-  <div class="panel" id="panel-stock">
+  <div class="panel" id="panel-stock" role="tabpanel" aria-label="stock 分頁內容">
     <div class="controls">
       <div class="control-group">
         <span class="control-label">輸入股票</span>
@@ -4280,7 +4316,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 07 單分點偏好（原高手偏好） -->
-  <div class="panel" id="panel-master">
+  <div class="panel" id="panel-master" role="tabpanel" aria-label="master 分頁內容">
     <div class="controls">
       <div class="control-group">
         <span class="control-label">選擇分點</span>
@@ -4301,7 +4337,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 09 📊 報告中心 (v3.9 新增) -->
-  <div class="panel" id="panel-reports">
+  <div class="panel" id="panel-reports" role="tabpanel" aria-label="reports 分頁內容">
     <div class="help-card">
       <h3>📊 週/月報告中心</h3>
       <p>🗓️ <strong>自動生成規則</strong>：週一產生上週報告 / 每月 1 號產生上月報告。爬蟲會自動觸發，不需手動操作。</p>
@@ -4370,7 +4406,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- v3.30.14: 14 大戶畫像 — fetch data/master_profiles.json (不加密) + render 15 master × 15 標籤 -->
-  <div class="panel" id="panel-masterprofile">
+  <div class="panel" id="panel-masterprofile" role="tabpanel" aria-label="masterprofile 分頁內容">
     <div id="mp-container" style="padding:18px;">
       <div style="text-align:center;color:var(--text-2);padding:60px 20px;">
         🔄 載入大戶畫像中... (若一直停留在此, 表示 data/master_profiles.json 尚未生成, 等待下次 daily-full crawler 跑完)
@@ -4379,7 +4415,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- v3.37.0: 15 持股結構 — 集保 400 張大戶 + 融資維持率市場估算 -->
-  <div class="panel" id="panel-holdings">
+  <div class="panel" id="panel-holdings" role="tabpanel" aria-label="holdings 分頁內容">
     <div id="holdings-container" style="padding:18px;">
       <div style="text-align:center;color:var(--text-2);padding:60px 20px;">
         🔄 載入持股結構中...
@@ -4388,7 +4424,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 
   <!-- 10 關注設定 (v3.8 完整客製化) -->
-  <div class="panel" id="panel-watchlist">
+  <div class="panel" id="panel-watchlist" role="tabpanel" aria-label="watchlist 分頁內容">
     <div class="help-card">
       <h3>⚙️ 分點管理中心 (v3.8)</h3>
       <p>在這裡可以勾選要顯示的分點、依地區/高手快速過濾、或新增自訂分點（會儲存在瀏覽器，不影響爬蟲後端）。</p>
@@ -8932,8 +8968,15 @@ function renderWatchlistPanel() {
 // ========== Tabs & Modes ==========
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.remove('active');
+      // v3.59.0 (Sprint 22 P0-C): ARIA sync
+      t.setAttribute('aria-selected', 'false');
+      t.setAttribute('tabindex', '-1');
+    });
     btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    btn.setAttribute('tabindex', '0');
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
     document.getElementById('panel-help').style.display = 'none';
@@ -8947,6 +8990,21 @@ document.querySelectorAll('.tab').forEach(btn => {
     else if (tab === 'reports') renderReport();
     else if (tab === 'margin') renderMarginPanel();
     else if (tab === 'limitup') renderLimitUpPanel();
+  });
+  // v3.59.0 (Sprint 22 P0-C): WAI-ARIA tablist 鍵盤標準 — Arrow/Home/End
+  btn.addEventListener('keydown', (e) => {
+    const tabs = Array.from(document.querySelectorAll('.tab'));
+    const idx = tabs.indexOf(btn);
+    let next = -1;
+    if (e.key === 'ArrowRight') next = (idx + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft') next = (idx - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = tabs.length - 1;
+    if (next >= 0) {
+      e.preventDefault();
+      tabs[next].click();
+      tabs[next].focus();
+    }
   });
 });
 
