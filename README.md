@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.61.0(2026-06-21) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.62.0(2026-06-21) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.61.0** | 6/21 | **Sprint 24 DB 進階查詢** — query_db CLI 7→15 preset + JSON/CSV 輸出 + crawler 每日 snapshot + 前端 Tab 12 預設下拉 + CSV 匯出 |
+| **v3.62.0** | 6/21 | **Sprint 25 Excel 增強 E1-E5** — 4 個新 enrichment sheet(摘要/警報/連續囤貨/風險警示) + L 欄損益色階 + strict_verify D1-D8 |
+| v3.61.0 | 6/21 | Sprint 24 DB 進階查詢 — query_db CLI 7→15 preset + JSON/CSV 輸出 + crawler 每日 snapshot + 前端 Tab 12 預設下拉 + CSV 匯出 |
 | v3.60.0 | 6/21 | Sprint 23 P0-E Tab lazy render + DOM 快取 — 前端 P0 6/6 完滿,切回 tab 從 100-300ms → <1ms |
 | v3.59.0 | 6/21 | Sprint 22 P0-C 前端 ARIA + 鍵盤導航 — WAI-ARIA tablist + Arrow/Home/End 標準 + Skip link + focus-visible 統一樣式 |
 | v3.58.0 | 6/21 | Sprint 21 P0-F 前端機構級響應式佈局 — 2 新 breakpoint(640/380), tab nav scroll / stat-row wrap / controls 堆疊 / table horizontal scroll |
