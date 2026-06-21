@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.51.0(2026-06-21) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.52.0(2026-06-21) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -81,7 +81,7 @@ Chip Radar 是「台股籌碼分析專家」
 |------|------|
 | 監控分點 | **81 個**（含 10 地緣特色分點） |
 | Master 高手 | **29 位個人大戶** + 8 外資 + 2 官股 + 2 公司 + 10 地緣 = 51 |
-| 個人大戶標籤 | 15 規則標籤 + 2 T+1 verified = 17 |
+| 個人大戶標籤 | 16 規則標籤 + 2 T+1 verified = 18 (v3.52.0 加 📦 連續囤貨) |
 | Level 2 策略 | 10 種子類 |
 | 派系 | 2 個已知派系（Jaccard ≥ 30%） |
 | 產業分類 | 上市 1082 + 上櫃 883 = **1965 檔** |
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.51.0** | 6/21 | **Sprint 13 機構級 Data Analyst 重整** — root 110+→7 .py / src/ 8 大類 / tests+docs 分離 |
+| **v3.52.0** | 6/21 | **Sprint 14 長4 跨日囤貨偵測** — 新標籤 📦 連續囤貨 + accumulation_stocks per-master |
+| v3.51.0 | 6/21 | Sprint 13 機構級 Data Analyst 重整 — root 110+→7 .py / src/ 8 大類 / tests+docs 分離 |
 | v3.50.0 | 6/20 | Sprint 12 後2 main() 抽 3 pure-read stage helper (1090→1022 行) |
 | v3.49.0 | 6/19 | Sprint 11 運1 trigger_chip_radar.ps1 入庫 (Tier 3 維運) |
 | v3.48.0 | 6/19 | **Sprint 10 Tier 2 整合** — Tab 10 加 4 chip (主力成本/除權息/借券/注意股) |

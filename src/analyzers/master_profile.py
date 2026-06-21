@@ -104,6 +104,9 @@ THRESH = {
     'top_industry_pct_high': 60.0,    # 不變
     # v3.30.13: 處置股獵手
     'disposal_amt_ratio_high': 0.30,  # 不變
+    # v3.52.0 (長4): 連續囤貨偵測 — 連續 K 個交易日加碼同一檔
+    # 跟長線持有「散加 15 天」不同, 連續 5 天 = 一週連買 = 強烈做多訊號
+    'consecutive_accumulation_days_min': 5,
     # v3.33.0: 滾動窗口時間衰減 (B3) — 近期行為權重高於遠期
     # weight = 0.5 ** (age_days / half_life): 今天=1.0, 20天前=0.5, 40天前=0.25
     # 60 天窗口下最舊資料權重 0.125, 標籤反映「最近在做什麼」而非「歷史平均」
@@ -382,6 +385,97 @@ def compute_global_rotation(history: List[Dict[str, Any]],
     return result
 
 
+def _compute_consecutive_accumulation_metrics(trades: List[Dict[str, Any]],
+                                                 min_consecutive_days: int = 5
+                                                 ) -> Dict[str, Any]:
+    """v3.52.0 長4: 跨日連續囤貨偵測 — 任意連續 K 天加碼同一檔.
+
+    跟「長線持有」(_compute_long_term_metrics) 的差別:
+      - 長線持有: 窗口內被加碼 ≥ N 天 (離散, 可斷續)
+      - 連續囤貨: K 個交易日「連續不斷」買入同一檔 — 更激烈的做多訊號
+
+    Args:
+      trades: master 在窗口內所有 buy trades (含 date / stock_code / buy_amt)
+      min_consecutive_days: 觸發門檻 (預設 5 = 一週連買)
+
+    Returns:
+      {
+        'accumulation_stocks': [
+          {stock_code, max_consecutive_days, latest_date, total_buy_amt, is_active}
+        ],   # sorted by max_consecutive_days desc
+        'has_active_accumulation': bool,   # 截至最近一天仍在連續
+        'max_consecutive_days_overall': int,   # 整體最高紀錄
+        'min_threshold': int,
+      }
+
+      is_active = 該股最後加碼日 == 整體 trades 最後一天 (今天還在買)
+    """
+    if not trades:
+        return {
+            'accumulation_stocks': [],
+            'has_active_accumulation': False,
+            'max_consecutive_days_overall': 0,
+            'min_threshold': min_consecutive_days,
+        }
+
+    # 整體 trade 範圍最後一天 (用來判定 is_active)
+    all_dates = sorted({t['date'] for t in trades})
+    overall_latest = all_dates[-1]
+
+    # 每股 → 排序後的買入日期 list
+    stock_dates: Dict[str, set] = defaultdict(set)
+    stock_amts: Dict[str, float] = defaultdict(float)
+    for t in trades:
+        c = t.get('stock_code')
+        if c:
+            stock_dates[c].add(t['date'])
+            stock_amts[c] += t.get('buy_amt', 0)
+
+    # 對每股找最長連續加碼天數 + 最後加碼日
+    # 「連續」定義: 兩買進日自然日相差 ≤ 3 (跳週末; 跟 timing streaks 一致 line 671)
+    from datetime import datetime
+    def _date_diff(d1: str, d2: str) -> int:
+        return (datetime.strptime(d2, '%Y%m%d') - datetime.strptime(d1, '%Y%m%d')).days
+
+    results = []
+    for code, dates in stock_dates.items():
+        sorted_dates = sorted(dates)
+        # 找最長連續 streak
+        max_streak = 1
+        cur_streak = 1
+        active_streak = 1   # 結尾的 streak
+        for i in range(1, len(sorted_dates)):
+            if _date_diff(sorted_dates[i-1], sorted_dates[i]) <= 3:   # 鄰近交易日 (含週末)
+                cur_streak += 1
+                active_streak = cur_streak
+                max_streak = max(max_streak, cur_streak)
+            else:
+                cur_streak = 1
+                active_streak = 1
+        # 是否仍 active (最後加碼日 == overall_latest 且 active_streak >= 門檻)
+        is_active = (sorted_dates[-1] == overall_latest and
+                      active_streak >= min_consecutive_days)
+        if max_streak >= min_consecutive_days:
+            results.append({
+                'stock_code': code,
+                'max_consecutive_days': max_streak,
+                'latest_date': sorted_dates[-1],
+                'total_buy_amt': round(stock_amts[code], 2),
+                'is_active': is_active,
+            })
+
+    results.sort(key=lambda r: (-r['max_consecutive_days'], -r['total_buy_amt']))
+    has_active = any(r['is_active'] for r in results)
+    overall_max = max((r['max_consecutive_days'] for r in results), default=0)
+
+    return {
+        'accumulation_stocks': results,
+        'has_active_accumulation': has_active,
+        'max_consecutive_days_overall': overall_max,
+        'min_threshold': min_consecutive_days,
+    }
+
+
 def _compute_long_term_metrics(trades: List[Dict[str, Any]],
                                  days_threshold: int,
                                  weights: Optional[List[float]] = None
@@ -612,6 +706,12 @@ def compute_operation_metrics(trades: List[Dict[str, Any]],
     disposal_metrics = _compute_disposal_metrics(trades, disposal_codes,
                                                   weights=weights)
 
+    # v3.52.0 (長4): 📦 連續囤貨 metric — 連續 K 天加碼同一檔
+    # 只看 buy trades (sells 不算囤貨)
+    buy_trades = [t for t in trades if t.get('buy_amt', 0) > 0]
+    consecutive_acc = _compute_consecutive_accumulation_metrics(
+        buy_trades, min_consecutive_days=THRESH['consecutive_accumulation_days_min'])
+
     result = {
         'trades_count': total,
         'unique_stocks': len(stock_amt),
@@ -637,6 +737,8 @@ def compute_operation_metrics(trades: List[Dict[str, Any]],
         result.update(industry_metrics)   # top_industry / top_industry_pct / industry_count / top3_industries
     if disposal_metrics:
         result.update(disposal_metrics)   # disposal_stocks_count / disposal_amt_ratio
+    # v3.52.0 (長4): 連續囤貨 metrics
+    result['consecutive_accumulation'] = consecutive_acc
     return result
 
 
@@ -782,6 +884,14 @@ def generate_labels(op: Dict[str, Any], timing: Dict[str, Any],
     if op.get('disposal_amt_ratio', 0) > THRESH['disposal_amt_ratio_high']:
         labels.append('⚠️ 處置股獵手')
 
+    # v3.52.0 (長4): 📦 連續囤貨 (獨立, 強烈做多訊號)
+    # 觸發: 至少 1 檔 max_consecutive_days >= THRESH['consecutive_accumulation_days_min']
+    # 跟「📈 長線持有」差異: 長線 15 天散加, 連續囤貨是真的「連 N 天不停」
+    # 跟「持續進場」差異: 持續進場看 master 整體 streaks, 連續囤貨看「同一檔」
+    _ca = op.get('consecutive_accumulation') or {}
+    if _ca.get('accumulation_stocks'):
+        labels.append('📦 連續囤貨')
+
     # v3.36.2 (B5-D): 處置持倉「不上標籤」, 純資料層提供 + 前端面板顯示
     # 歷程: v3.36.0「⛓️ 處置持倉」(trapped/high 即標) → 實跑 28/29 全中=噪音
     #       v3.36.1「⛓️ 處置玩家」(bought_during_disposal>0) → 仍 28/29 全中
@@ -924,11 +1034,23 @@ def generate_narrative(master_name: str,
     disp_part = (f", ⚠️ 處置股部位 {disp_ratio:.0f}% ({disp_n} 檔)"
                  if disp_n > 0 else "")
 
+    # v3.52.0 (長4): 連續囤貨補充 (強做多訊號)
+    _ca = op.get('consecutive_accumulation') or {}
+    _ca_stocks = _ca.get('accumulation_stocks') or []
+    ca_part = ""
+    if _ca_stocks:
+        _top = _ca_stocks[0]
+        _active_n = sum(1 for s in _ca_stocks if s.get('is_active'))
+        _active_str = f"{_active_n} 檔仍 active" if _active_n else "皆已停止"
+        ca_part = (f", 📦 連續囤貨 {len(_ca_stocks)} 檔 "
+                    f"(最長 {_top['max_consecutive_days']} 天 {_top['stock_code']}, "
+                    f"{_active_str})")
+
     return (
         f"{master_name} 近 {timing['active_days']}/{timing['total_window_days']} 交易日出手 "
         f"{op['trades_count']} 次 ({op['unique_stocks']} 檔), "
         f"風格分布: {style_str}, {lu_part}, "
-        f"前 5 大集中 {op['concentration_top5_pct']:.0f}%{lt_part}{ind_part}{disp_part}。"
+        f"前 5 大集中 {op['concentration_top5_pct']:.0f}%{lt_part}{ind_part}{disp_part}{ca_part}。"
         f" 主軸: {label_str}。"
     )
 

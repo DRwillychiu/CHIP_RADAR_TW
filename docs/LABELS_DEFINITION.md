@@ -345,10 +345,26 @@ weight = 0.5 ** (age_days / half_life)
 | 標籤 | 觸發 | 說明 |
 |---|---|---|
 | **⚠️ 處置股獵手** | `disposal_amt_ratio > 0.30` | 買進金額 30%+ 在處置/注意股 |
+| **📦 連續囤貨** (v3.52.0) | `accumulation_stocks` 非空 | 任意 ≥1 檔連續 5+ 個交易日加碼;`is_active=True` 截至今日仍在連續 |
 | **資料源** | chengwaye.com/disposal-forecast.html（TWSE 無公開 JSON API） |
 | **風險揭露** | chengwaye 改 HTML/關站 → break,fallback 跳過此 metric |
 
-### 4.9 處置持倉「資料層」（不上標籤,v3.36.0 B5 → v3.36.2 D 方案）
+### 4.9 📦 連續囤貨 (v3.52.0, Sprint 14 長4)
+
+跟「📈 長線持有」差異 — 同樣是「重複買同一檔」,但:
+- **長線持有**:60 天內被加碼 ≥15 天(離散,可斷續)
+- **連續囤貨**:任意連續 K=5 個交易日「不斷」買入同一檔(自然日 ≤3 視為相鄰 — 跨週末 OK,斷 ≥4 天 streak 重置)
+
+跟「持續進場」差異:持續進場看 master 整體 streaks,連續囤貨看「**同一檔**」。
+
+**結構**(`op['consecutive_accumulation']`):
+- `accumulation_stocks: [{stock_code, max_consecutive_days, latest_date, total_buy_amt, is_active}]`
+- `has_active_accumulation: bool` — 任意一檔截至今日仍 active
+- `max_consecutive_days_overall: int` — 全 master 最高紀錄
+
+**閾值**:`THRESH['consecutive_accumulation_days_min'] = 5`(config/algo_params.yaml `consecutive_accumulation_days_min`)
+
+### 4.10 處置持倉「資料層」（不上標籤,v3.36.0 B5 → v3.36.2 D 方案）
 
 **v3.36.2 結論:不上標籤,純資料層提供。** 標籤總數維持 15。
 
