@@ -24,9 +24,17 @@ import openpyxl
 
 
 def parse_excel(xlsx_path):
-    """Parse the boss Excel into structured rows."""
+    """Parse the boss Excel into structured rows.
+    v3.62.1: 跳過 enrichment sheet (📋 Dashboard etc), 抓第一個 YYYYMMDD sheet."""
     wb = openpyxl.load_workbook(xlsx_path, data_only=False)
-    ws = wb.active
+    # 找第一個 sheet name 是 8 位數字 (YYYYMMDD) 的當 date sheet
+    ws = None
+    for sn in wb.sheetnames:
+        if len(sn) == 8 and sn.isdigit():
+            ws = wb[sn]
+            break
+    if ws is None:
+        ws = wb.active
     rows = []
     current_master = ''
     current_branch = ''

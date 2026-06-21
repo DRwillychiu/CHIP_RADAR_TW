@@ -38,8 +38,15 @@ sys.path.insert(0, str(Path(__file__).parent))
 #  Excel parsing
 # ════════════════════════════════════════════════════════════════════
 def parse_excel(xlsx_path):
+    """v3.62.1: 跳過 enrichment sheet (📋 Dashboard), 抓第一個 YYYYMMDD sheet."""
     wb = openpyxl.load_workbook(str(xlsx_path), data_only=False)
-    ws = wb.active
+    ws = None
+    for sn in wb.sheetnames:
+        if len(sn) == 8 and sn.isdigit():
+            ws = wb[sn]
+            break
+    if ws is None:
+        ws = wb.active
     rows = []
     current_master = ''
     current_branch = ''
