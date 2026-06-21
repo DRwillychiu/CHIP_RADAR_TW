@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.60.0(2026-06-21) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.61.0(2026-06-21) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.60.0** | 6/21 | **Sprint 23 P0-E Tab lazy render + DOM 快取** — 前端 P0 6/6 完滿,切回 tab 從 100-300ms → <1ms |
+| **v3.61.0** | 6/21 | **Sprint 24 DB 進階查詢** — query_db CLI 7→15 preset + JSON/CSV 輸出 + crawler 每日 snapshot + 前端 Tab 12 預設下拉 + CSV 匯出 |
+| v3.60.0 | 6/21 | Sprint 23 P0-E Tab lazy render + DOM 快取 — 前端 P0 6/6 完滿,切回 tab 從 100-300ms → <1ms |
 | v3.59.0 | 6/21 | Sprint 22 P0-C 前端 ARIA + 鍵盤導航 — WAI-ARIA tablist + Arrow/Home/End 標準 + Skip link + focus-visible 統一樣式 |
 | v3.58.0 | 6/21 | Sprint 21 P0-F 前端機構級響應式佈局 — 2 新 breakpoint(640/380), tab nav scroll / stat-row wrap / controls 堆疊 / table horizontal scroll |
 | v3.57.0 | 6/21 | Sprint 20 P0-B 前端 Dark / Light theme 切換 — `:root[data-theme]` 雙 palette + 浮動 toggle button + localStorage 持久 |

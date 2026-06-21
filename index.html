@@ -4338,6 +4338,23 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 
   <!-- 09 📊 報告中心 (v3.9 新增) -->
   <div class="panel" id="panel-reports" role="tabpanel" aria-label="reports 分頁內容">
+    <!-- v3.61.0 (Sprint 24): DB 進階查詢 section (從 chip_radar_v2.db snapshot 讀) -->
+    <div class="help-card" style="margin-bottom:14px;">
+      <h3>🗄️ DB 進階查詢 (v3.61.0)</h3>
+      <p>從 <code>chip_radar_v2.db</code> 每日 snapshot 預跑 15 個高價值 query 供前端瀏覽 (跨日聯動 / 派系 / 隔日沖驗證 / 漲停獵手 / 風格畫像 等)。</p>
+      <p>📋 <strong>進階自訂 query</strong>:本機 <code>python src/core/query_db.py --q N</code> 或 <code>"SELECT ..."</code> 自訂 SQL。<code>--format json/csv</code> / <code>--save FILE</code> / <code>--explain</code> 支援。</p>
+    </div>
+    <div id="dbQueryPanel" style="margin-bottom:18px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+        <span class="control-label">選擇 query:</span>
+        <select id="dbQuerySelect" onchange="renderDbQuery()" style="flex:1;min-width:300px;"></select>
+        <button class="mode-btn" onclick="exportDbQueryCsv()" title="匯出當前 query 為 CSV">⬇ CSV</button>
+      </div>
+      <div id="dbQueryResult">
+        <div class="loading"><div class="loading-spinner"></div>載入 DB query snapshot 中... (若一直停留, 表示 data/db_query_snapshot.json 尚未生成, 等下次 daily-full crawler 跑完)</div>
+      </div>
+    </div>
+
     <div class="help-card">
       <h3>📊 週/月報告中心</h3>
       <p>🗓️ <strong>自動生成規則</strong>：週一產生上週報告 / 每月 1 號產生上月報告。爬蟲會自動觸發，不需手動操作。</p>
@@ -5727,6 +5744,89 @@ async function loadPhaseBResults() {
 // 後端寫 latest_inst_rankings.json + latest_margin_rankings.json (unencrypted, 公開資料)
 // 前端 init 時並行 fetch, 不必等 latest.json 整檔解密就能用
 let LAZY_INST_RANKINGS = null, LAZY_MARGIN_RANKINGS = null;
+
+// v3.61.0 (Sprint 24): DB query snapshot (crawler 每天 export 全 preset query 結果)
+let DB_QUERY_SNAPSHOT = null;
+async function loadDbQuerySnapshot() {
+  if (DB_QUERY_SNAPSHOT !== null) return DB_QUERY_SNAPSHOT;
+  try {
+    const r = await fetchWithTimeout(`${DATA_BASE}/db_query_snapshot.json?_=${Date.now()}`,
+      { cache: 'no-store' }, 8000);
+    if (r.ok) DB_QUERY_SNAPSHOT = await r.json();
+    else DB_QUERY_SNAPSHOT = {};
+  } catch (e) { DB_QUERY_SNAPSHOT = {}; }
+  return DB_QUERY_SNAPSHOT;
+}
+
+async function renderDbQuery() {
+  const sel = document.getElementById('dbQuerySelect');
+  const out = document.getElementById('dbQueryResult');
+  if (!sel || !out) return;
+  const snap = await loadDbQuerySnapshot();
+  if (!snap || !snap.queries) {
+    out.innerHTML = '<div class="empty"><div class="empty-icon">🗄️</div>尚無 DB snapshot, 等下次 daily-full crawler 跑完</div>';
+    return;
+  }
+  // populate select
+  if (sel.options.length === 0) {
+    const keys = Object.keys(snap.queries).sort((a, b) => parseInt(a) - parseInt(b));
+    sel.innerHTML = keys.map(k =>
+      `<option value="${k}">Q${k}: ${snap.queries[k].title}</option>`).join('');
+  }
+  const q = snap.queries[sel.value || Object.keys(snap.queries).sort((a, b) => parseInt(a) - parseInt(b))[0]];
+  if (!q) { out.innerHTML = '<div class="empty">no data</div>'; return; }
+  const cols = q.columns || [];
+  const rows = q.rows || [];
+  const trunc = q.truncated ? ` <span style="color:var(--text-3);font-size:11px;">(已限 200 行, 總 ${q.row_count})</span>` : '';
+  const sqlBlock = `<details style="margin:8px 0 12px;"><summary style="cursor:pointer;color:var(--text-2);font-size:12px;">SQL</summary>
+    <pre style="background:var(--bg-2);padding:10px;border-radius:6px;font-size:11px;overflow-x:auto;color:var(--text-2);margin-top:6px;">${q.sql.replace(/</g, '&lt;')}</pre></details>`;
+  const headerRow = '<tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+  const bodyRows = rows.map(r =>
+    '<tr>' + cols.map(c => {
+      const v = r[c];
+      if (v == null) return '<td style="color:var(--text-3);">—</td>';
+      // 數值 right-align + 千分位
+      if (typeof v === 'number') return `<td class="num">${v.toLocaleString()}</td>`;
+      return `<td>${String(v).replace(/</g, '&lt;')}</td>`;
+    }).join('') + '</tr>'
+  ).join('');
+  out.innerHTML = `
+    <div style="margin-bottom:6px;color:var(--text-2);font-size:13px;">
+      <strong>Q${sel.value}</strong>: ${q.title}${trunc}
+    </div>
+    ${sqlBlock}
+    <div class="table-wrap"><table>
+      <thead>${headerRow}</thead>
+      <tbody>${bodyRows}</tbody>
+    </table></div>`;
+}
+
+function exportDbQueryCsv() {
+  const sel = document.getElementById('dbQuerySelect');
+  if (!sel || !DB_QUERY_SNAPSHOT || !DB_QUERY_SNAPSHOT.queries) return;
+  const q = DB_QUERY_SNAPSHOT.queries[sel.value];
+  if (!q) return;
+  const cols = q.columns || [];
+  const rows = q.rows || [];
+  let csv = '﻿' + cols.join(',') + '\n';   // UTF-8 BOM
+  for (const r of rows) {
+    csv += cols.map(c => {
+      const v = r[c];
+      if (v == null) return '';
+      const s = String(v).replace(/"/g, '""');
+      return /[,\n"]/.test(s) ? `"${s}"` : s;
+    }).join(',') + '\n';
+  }
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chip_radar_Q${sel.value}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 async function loadLazyRankings() {
   if (LAZY_INST_RANKINGS !== null) return;
   await Promise.all([
@@ -9001,7 +9101,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     else if (tab === 'masterview') renderMasterView();
     else if (tab === 'institutional') renderInstitutional();
     else if (tab === 'futures') renderFutures();
-    else if (tab === 'reports') renderReport();
+    else if (tab === 'reports') { renderReport(); renderDbQuery(); }
     else if (tab === 'margin') renderMarginPanel();
     else if (tab === 'limitup') renderLimitUpPanel();
   });

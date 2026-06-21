@@ -308,6 +308,21 @@ def _stage_load_yesterday_branches(data_dir, trade_date, password):
         return []
 
 
+def _post_export_db_query_snapshot(data_dir):
+    """v3.61.0 Sprint 24: 每天跑全 preset query 寫 db_query_snapshot.json
+    給前端 Tab 12 「DB 查詢」顯示. DB 在本機產生但 snapshot JSON 可隨網站發布."""
+    try:
+        import query_db
+        snap_path = data_dir / 'db_query_snapshot.json'
+        db_path = data_dir / 'chip_radar_v2.db'
+        if not db_path.exists():
+            print(f"  ⚠️ chip_radar_v2.db 不存在, skip query snapshot")
+            return
+        query_db.export_all_snapshot(str(snap_path), str(db_path))
+    except Exception as _qse:
+        print(f"  ⚠️ query snapshot 失敗 (不影響主流程): {type(_qse).__name__}: {_qse}")
+
+
 def _post_refresh_tier2_market_data(data_dir):
     """v3.48.0 Tier 2 整合: 更新 3 個獨立 fetcher cache (注意/借券/除權息).
 
@@ -1407,6 +1422,7 @@ def main():
     _post_auto_backfill_history(data_dir, password, industry_map)
     _post_disposal_snapshot(data_dir)
     _post_refresh_tier2_market_data(data_dir)   # v3.48.0: 注意/借券/除權息
+    _post_export_db_query_snapshot(data_dir)    # v3.61.0 Sprint 24: DB query snapshot
 
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")

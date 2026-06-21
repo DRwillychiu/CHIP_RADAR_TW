@@ -93,6 +93,40 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 24 完成 (v3.61.0) — DB 進階查詢功能 (CLI + 前端 Tab 12)
+
+**動機**: 既有 `query_db.py` 只 7 個 preset + 純 table output. 機構級 data analyst 用法需要更多 high-value query + JSON/CSV 多形態輸出 + web 介面瀏覽結果.
+
+**CLI 擴充** (`src/core/query_db.py` 7 → 15 preset):
+- Q8: 跨日聯動(連續加碼同一檔 5+ 天 trader×stock)
+- Q9: 派系初探(兩 master 同檔同日買進次數 Top 20)
+- Q10: 隔日沖驗證(T+1 flip 昨日漲停買→今日賣 + flip_pct)
+- Q11: 處置股獵手(漲停個股累積買進 Top trader)
+- Q12: Master 風格畫像(漲停買進 vs 一般買進比 + lu_pct)
+- Q13: 每日最強 master(當日總買金額 排行)
+- Q14: 個股觀察(過去 30 天交易 master 數最多 Top 20)
+- Q15: 活躍天數分布(每位 master 出手天數 + 平均單日金額)
+
+**多形態輸出**:
+- `--format table/json/csv` 三選一
+- `--save FILE` 存檔
+- `--explain` 印 EXPLAIN QUERY PLAN
+- `--export-all FILE` 跑全 preset 包成 snapshot JSON
+
+**Crawler 整合** (`crawler.py`):
+- 新 helper `_post_export_db_query_snapshot(data_dir)` 加進 main() post-processing
+- 每天自動 export `data/db_query_snapshot.json` (per-query 限 200 行避免太大)
+
+**前端 Tab 12 報告中心擴充** (`index.html`):
+- 加 「🗄️ DB 進階查詢」section + 預設下拉 + result table + CSV 匯出 button
+- `loadDbQuerySnapshot()` lazy fetch 8s timeout + cache
+- `renderDbQuery()` 含 SQL <details> 摺疊 + 數值千分位 + truncated 提示
+- `exportDbQueryCsv()` 直接從 snapshot 客戶端產 CSV (UTF-8 BOM 避 Excel 亂碼)
+
+**驗證**: 44 套件 0 regression + 新 test_v3610_query_db 17 case PASS (含 in-memory schema + 15 preset SQL syntax check + 3 format 一致性)
+
+---
+
 ### ✅ Sprint 23 完成 (v3.60.0) — P0-E Tab lazy render + DOM 快取 (前端 P0 6/6 完滿)
 
 **動機**: 機構級用戶頻繁切換 tab 比對資料. 既有 tab.click 每次都重 render, 即使資料沒變. Sprint 19 content-visibility 已涵蓋 layout perf 大頭, 但 JS render work 仍重複跑.
