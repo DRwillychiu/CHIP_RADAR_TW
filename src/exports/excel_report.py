@@ -728,6 +728,9 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
         print(f"  [Excel v3.26] sniper-mode masters: {sniper_with_data}/{sniper_count} "
               f"have limit-up buys today (others get blank rows)")
 
+    # v3.63.0 (E6): freeze A 欄 (master name) + B 欄 (分點 name) → 'C2'
+    #   滾右仍能看到 master + 分點對應, header 第 1 row 也固定
+    ws.freeze_panes = 'C2'
     return row - 1
 
 
@@ -969,6 +972,71 @@ def _build_section_accumulation(ws, data_dir, start_row):
     return row
 
 
+def _build_section_pivot(ws, branches_data, start_row):
+    """E7 (v3.63.0): Section J Master × Top 3 個股 cross-table.
+
+    每個 master 一 row, 把該 master 今日 buys 按 buy_amt sort top 3, 寬展開為 6 cols
+    (個股1+金額, 個股2+金額, 個股3+金額) + 總額.
+    """
+    hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
+    hdr_fill = _summary_fill('FFE0E7FF')
+
+    row = start_row + 1
+    _section_header(ws, row, "▍ J. Master × Top 3 個股 cross-table (今日)",
+                     color='FF6366F1'); row += 1
+    # headers
+    for h_col, h in [('B', 'Master'), ('C', '今日總買(萬)'),
+                      ('D', 'Top1 個股'), ('E', 'Top1 金額'),
+                      ('F', 'Top2 個股'), ('G', 'Top2 金額'),
+                      ('H', 'Top3 個股'), ('I', 'Top3 金額')]:
+        cell = ws[f'{h_col}{row}']
+        cell.value = h
+        cell.font = hdr_font
+        cell.fill = hdr_fill
+        cell.alignment = Alignment(horizontal='center')
+    row += 1
+
+    # 算每個 master 的 today's stocks
+    master_stocks = {}
+    for b in branches_data:
+        m = b.get('master')
+        if not m: continue
+        for s in (b.get('buys') or []):
+            code = s.get('code')
+            if not code: continue
+            master_stocks.setdefault(m, {})
+            key = (code, s.get('name', ''))
+            master_stocks[m][key] = master_stocks[m].get(key, 0) + (s.get('buy_amt') or 0)
+
+    # 每 master sorted top 3
+    rows_data = []
+    for master, stocks in master_stocks.items():
+        sorted_s = sorted(stocks.items(), key=lambda kv: -kv[1])
+        total = sum(stocks.values())
+        rows_data.append({
+            'master': master,
+            'total': total,
+            'top': sorted_s[:3],
+        })
+    rows_data.sort(key=lambda x: -x['total'])
+
+    start_data = row
+    for d in rows_data[:30]:
+        ws.cell(row, 2, d['master'])
+        ws.cell(row, 2).font = Font(name='Noto Sans TC', size=11, bold=True)
+        ws.cell(row, 3, round(d['total'] / 10, 0))
+        for i, ((code, name), amt) in enumerate(d['top']):
+            col_name = chr(ord('D') + i * 2)  # D, F, H
+            col_amt = chr(ord('E') + i * 2)   # E, G, I
+            ws.cell(row, ord(col_name) - 64, f"{name}({code})")
+            ws.cell(row, ord(col_amt) - 64, round(amt / 10, 0))
+        row += 1
+    if row == start_data:
+        ws.cell(row, 2, '今日無 master 有買進資料')
+        ws.merge_cells(f'B{row}:I{row}'); row += 1
+    return row
+
+
 def _build_section_risk(ws, data_dir, start_row):
     """Section G+H+I: 注意股 + 借券 + 除權息. Returns next row."""
     hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
@@ -1068,7 +1136,11 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     row = _build_section_summary(ws, branches_data, trade_date, data_dir, row)
     row = _build_section_alerts(ws, data_dir, row)
     row = _build_section_accumulation(ws, data_dir, row)
+    row = _build_section_pivot(ws, branches_data, row)   # v3.63.0 E7 Pivot
     row = _build_section_risk(ws, data_dir, row)
+
+    # v3.63.0 (E6): freeze pane — title row 不滾走
+    ws.freeze_panes = 'A3'
 
 
 # v3.62.0 → v3.62.1 backward compat: 舊 builder name 保留但呼叫 dashboard

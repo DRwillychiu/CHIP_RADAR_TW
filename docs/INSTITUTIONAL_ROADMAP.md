@@ -93,6 +93,24 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 26 完成 (v3.63.0) — Excel Tier 2: E6 freeze + E7 Pivot-style Section J
+
+**E6 Freeze panes**:
+- Dashboard sheet `freeze_panes = 'A3'` — title row 不滾走
+- 日期 sheet `freeze_panes = 'C2'` — 滾右仍能看到 A 欄 master + B 欄分點對應, header row 也固定
+
+**E7 Pivot-style Section J** (取代真 PivotTable, openpyxl 對 PivotTable 支援差):
+- `_build_section_pivot` — Master × Top 3 個股 cross-table (今日)
+- 每 master 一 row, 6 cols 寬展開 (Top1/2/3 個股名+金額) + 今日總買
+- 按 master 總買降序, 限 30 row
+- 加在 Dashboard Section F 之後 (F→J→G/H/I)
+
+**Dashboard 完整 section 順序**: A 規模 → B Top master → C Top stocks → D 籌碼溫度 → E 警報 → F 連續囤貨 → J Master×Top3 個股 → G 注意股 → H 借券 → I 除權息
+
+**驗證**: 44 套件 0 regression + 本機 build test 含 10 個 section + freeze 兩 sheet 全生效
+
+---
+
 ### ✅ v3.62.1 (Sprint 25 patch) — Dashboard 改單一 sheet (用戶要求)
 
 **用戶反饋**: 「新元素全部放同頁面」— 把 v3.62.0 4 個 enrichment sheet 合 1 sheet.
