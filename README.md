@@ -256,10 +256,44 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 文件 | 內容 |
 |------|------|
-| `ARCHITECTURE.md` | 系統架構（4 層資料流 + 27 module 清單 + 9 階段 + 8 ADR） |
-| `ONBOARDING.md` | 7 天新手指南 + 紀律 5 條 + 3 練習任務 |
-| `LABELS_DEFINITION.md` | 17 標籤完整定義 + Level 1/2/3 + 閾值 + 共存矩陣 |
-| `AUDIT_REPORT.md` | TAIFEX 83 欄位逐項對比報告 |
+| `docs/ARCHITECTURE.md` | 系統架構（4 層資料流 + 27 module 清單 + 9 階段 + 8 ADR） |
+| `docs/ONBOARDING.md` | 7 天新手指南 + 紀律 5 條 + 3 練習任務 |
+| `docs/LABELS_DEFINITION.md` | 17 標籤完整定義 + Level 1/2/3 + 閾值 + 共存矩陣 |
+| `docs/INSTITUTIONAL_ROADMAP.md` | 機構級升級藍圖（Sprint 1-12 完成紀錄） |
+| `docs/CHANGELOG_ALGO.md` | 演算法參數變更紀錄 |
+| `docs/COMPETITIVE_ANALYSIS.md` | 業界對比+獨家功能 |
+| `docs/DATA_SOURCES_COMPLIANCE.md` | 資料源 ToS 合規 |
+
+---
+
+## 專案結構 (v3.51.0 機構級 Data Analyst 重整)
+
+```
+chip_radar_tw/
+├── README.md, requirements.txt                       ← root 必留
+├── index.html, 404.html                              ← GitHub Pages 必留
+├── crawler.py, tdcc_holdings.py, heartbeat_check.py  ← workflow entry
+├── intraday_settlement.py, pre_market_brief.py, weekly_summary.py
+│
+├── src/             核心程式 (8 大類, 60 模組)
+│   ├── fetchers/    抓資料 (TWSE/TPEx/TDCC/chengwaye APIs, 13)
+│   ├── analyzers/   分析計算 (master_profile, signal_engine, 11)
+│   ├── pipelines/   編排流程 (crawler_*, db_pipeline, 6)
+│   ├── backtest/    回測驗證 (backtester_phase_b, 3)
+│   ├── audit/       稽核品質 (cross_check / heartbeat, 12)
+│   ├── alerts/      警報通知 (alerts/daily_signals/event_logger, 3)
+│   ├── exports/     輸出報告 (excel_report/reasoning, 4)
+│   └── core/        共用工具 (branches/price_utils/query_db, 3)
+│
+├── tests/           測試 (41 個 test_*.py + conftest.py)
+├── docs/            文檔 (8 個 .md)
+├── config/          參數凍結 (algo_params.yaml)
+├── scripts/         維運腳本 (trigger_chip_radar.ps1)
+├── data/            產出資料 (加密 JSON + DB + cache)
+└── .github/         CI/CD workflows
+```
+
+**Import 策略**: 6 個 root entry 開頭加 `import src`(side-effect 把 src/* 加進 sys.path),既有 `import attention_fetcher` 仍 work,免改 60 個模組內部 import。
 
 ---
 

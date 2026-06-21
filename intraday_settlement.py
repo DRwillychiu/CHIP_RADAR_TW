@@ -1,3 +1,5 @@
+# v3.51.0 機構級重整: sys.path 注入
+import src  # noqa: F401
 """
 ========================================================================
 Module: intraday_settlement.py  (v3.41.0 Sprint 4)

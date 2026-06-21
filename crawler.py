@@ -1,3 +1,6 @@
+# v3.51.0 機構級重整: 自動把 src/* 8 個子目錄加進 sys.path
+# 讓既有 `import attention_fetcher` / `from master_profile import x` 仍 work
+import src  # noqa: F401 — side effect only
 """
 分點籌碼觀察站 - 完整版爬蟲 (v3.6)
 功能：
