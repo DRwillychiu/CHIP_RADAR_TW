@@ -93,6 +93,32 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 19 完成 (v3.56.0) — P0-D 前端 render 大型增量重繪 + CSS 隔離
+
+**動機**: 機構級前端 audit 顯示 124 處 `.innerHTML=`, 大型 render(81 分點/100 records) 主流程 layout cost 偏高. 切換 sort/filter 頻繁時 reflow 傳到全頁 DOM.
+
+**CSS 三層 perf 優化**(立即對所有 panel 生效):
+1. `.panel.active { contain: layout style; }` — 內部 reflow 不傳播外部
+2. `.panel:not(.active) { content-visibility: auto; contain-intrinsic-size: 0 800px; }` — 不在視口 panel skip render(Chrome 700% speedup)
+3. `.table-wrap { contain: layout style; }` + `.stat-row { contain: layout style; }` — table 隔離 reflow
+
+**renderWithFragment 擴大採用**(v3.39.0 P1-7 已有 helper, 用在 2 處 → 擴到 6 處 hot path):
+- `renderRanking` 3 view (branches/masters/stocks) 全改 fragment
+- `renderInstitutional` 改 fragment
+- `renderStockTrace` 改 fragment
+- 用 `<template>` detached parse + `replaceChildren` atomic swap, 比 innerHTML 賦值少一次 reflow
+
+**效益**:
+- panel 切換從 100-300ms → 預估 <50ms (content-visibility 大頭)
+- table 內 sort/filter 切換 reflow 不傳全頁
+- 既有 stable load 不變(`<template>` 不執行 script 安全)
+
+**backward compat**: zero behavior change (HTML output 完全一致)
+
+**驗證**: JS syntax OK + 43 套件 0 regression
+
+---
+
 ### ✅ Sprint 18 完成 (v3.55.0) — P0-A 前端 Web Worker 解密
 
 **動機**: latest.json 加密 + gzip 2.4 MB 解密 + gunzip 在 main thread 跑 1-2s, scroll / click / tab 切換全部凍結. 機構級 UX 不能接受.

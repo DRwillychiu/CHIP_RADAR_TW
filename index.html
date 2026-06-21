@@ -3044,7 +3044,22 @@ th.sortable.sort-desc::after {
 }
 
 .panel { display: none; }
-.panel.active { display: block; animation: fadeIn 0.3s ease; }
+/* v3.56.0 (Sprint 19 P0-D): contain + content-visibility 機構級 perf 優化
+   - contain: layout style — panel 內部 reflow 不傳播到外部 (大幅降 layout cost)
+   - content-visibility: auto — 不在視口的 panel skip render (Chrome 700%+ speedup)
+   - contain-intrinsic-size — 預留高度避免 scroll jump (估算 800px 平均) */
+.panel.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+  contain: layout style;
+}
+.panel:not(.active) {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 800px;
+}
+/* 大型 table-wrap / stat-row 加 contain 隔離 reflow */
+.table-wrap { contain: layout style; }
+.stat-row { contain: layout style; }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
@@ -10748,7 +10763,7 @@ function renderRanking() {
       <td class="num" style="color:var(--text-2);">${x.open_cnt}檔/${x.open_lots.toLocaleString()}張</td>
     </tr>`).join('');
     
-    el.innerHTML = renderLocalMarketBar('ranking') + infoHTML + statsHTML + `
+    renderWithFragment(el, renderLocalMarketBar('ranking') + infoHTML + statsHTML + `
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -10763,7 +10778,7 @@ function renderRanking() {
           </tr></thead>
           <tbody>${rowsHTML}</tbody>
         </table>
-      </div>`;
+      </div>`);
   } else if (rankView === 'masters') {
     // 高手排行（按 master 聚合）
     const masterSummaries = CURRENT_DATA.master_summaries || {};
@@ -10825,7 +10840,7 @@ function renderRanking() {
       </tr>`;
     }).join('');
     
-    el.innerHTML = renderLocalMarketBar('ranking') + infoHTML + statsHTML + `
+    renderWithFragment(el, renderLocalMarketBar('ranking') + infoHTML + statsHTML + `
       <div class="view-hint">💡 點擊任一高手 → 跳轉到「高手合併視圖」查看完整細節。</div>
       <div class="table-wrap">
         <table>
@@ -10842,7 +10857,7 @@ function renderRanking() {
           </tr></thead>
           <tbody>${rowsHTML}</tbody>
         </table>
-      </div>`;
+      </div>`);
   } else {
     // 熱門個股：聚合所有分點的該檔股票累積損益
     // 先從當日資料建立 stock_code → market_type 對照
@@ -10904,7 +10919,7 @@ function renderRanking() {
       <td class="num" style="color:var(--text-2);">${s.open_lots.toLocaleString()}張</td>
     </tr>`).join('');
     
-    el.innerHTML = renderLocalMarketBar('ranking') + infoHTML + statsHTML + `
+    renderWithFragment(el, renderLocalMarketBar('ranking') + infoHTML + statsHTML + `
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -10916,7 +10931,7 @@ function renderRanking() {
           </tr></thead>
           <tbody>${rowsHTML}</tbody>
         </table>
-      </div>`;
+      </div>`);
   }
 }
 
@@ -11122,7 +11137,7 @@ function renderInstRanking(el, ir) {
   
   const helpText = `💡 顯示 ${meta.label} ${sideLabel}前 ${Math.min(filtered.length, 100)} 名。「關注分點」表示你關注的高手今日是否也有買入。`;
   
-  el.innerHTML = renderLocalMarketBar('institutional') + statsHTML + 
+  renderWithFragment(el, renderLocalMarketBar('institutional') + statsHTML +
     `<div class="view-hint">${helpText}</div>
     <div class="table-wrap">
       <table>
@@ -11136,7 +11151,7 @@ function renderInstRanking(el, ir) {
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
-    </div>`;
+    </div>`);
 }
 
 // v3.7 三大法人排行表頭點擊排序
@@ -11640,7 +11655,7 @@ async function renderStockTrace() {
         </div>
       </div>`);
   }
-  el.innerHTML = renderLocalMarketBar('stock') + parts.join('');
+  renderWithFragment(el, renderLocalMarketBar('stock') + parts.join(''));
 }
 
 // ========== 05 高手偏好 ==========
