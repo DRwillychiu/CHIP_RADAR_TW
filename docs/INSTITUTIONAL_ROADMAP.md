@@ -93,6 +93,31 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 15 完成 (v3.53.0) — 長3 latest.json lazy load (rankings 拆出)
+
+**動機**: latest.json 整檔加密 ~2.4 MB, 解密需 1-2s. tab 06 三大法人 + tab 08 融資融券用到的 rankings 屬於**公開資料**(無需加密), 可獨立 fetch 加速 UX.
+
+**後端** (`crawler.py`):
+- raw_output 組裝後新增 `_lazy_payload_inst` + `_lazy_payload_margin`
+- 寫 `data/latest_inst_rankings.json` (unencrypted, 公開資料)
+- 寫 `data/latest_margin_rankings.json` (unencrypted, 含 margin_maintenance_summary)
+- 純額外寫不影響原 latest.json 結構 (backward compat 100%)
+
+**前端** (`index.html`):
+- 新 `loadLazyRankings()` Promise.all 並行 fetch (5s timeout each)
+- 新 `getInstRankings() / getMarginRankings()` getter helper:
+  - 優先用 CURRENT_DATA (latest.json 解密後)
+  - fallback 用 LAZY_INST_RANKINGS / LAZY_MARGIN_RANKINGS (lazy fetch)
+- init 時觸發 lazy load 並行 (不阻擋主流程)
+- 10 處 consumer (`CURRENT_DATA.institutional_rankings` / `margin_rankings`)
+  改為 getter — tab 06/08 即使 latest.json 還沒解開也能顯示資料
+
+**對外**: API consumer 可直接 fetch `data/latest_inst_rankings.json` 取公開排行(不需密碼)
+
+**驗證**: JS syntax OK + 42 套件 0 regression
+
+---
+
 ### ✅ Sprint 14 完成 (v3.52.0) — 長4 跨日囤貨偵測 (master_profile 升級)
 
 **動機**: 「長線持有」(15 天散加) 跟「持續進場」(master 整體 streaks) 都已有, 但缺「**同一檔連續 K 天不停加碼**」這種強做多訊號 (連 5 天買 2330 比 30 天散加 15 天 2330 訊號更強).

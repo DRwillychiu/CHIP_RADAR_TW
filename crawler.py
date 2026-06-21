@@ -1210,6 +1210,31 @@ def main():
         print(f"  ⚠️ main_force_cost inject 失敗: {type(_mfce).__name__}: {_mfce}")
 
     # ════════════════════════════════════════════════════════════════
+    # v3.53.0 (長3) lazy load: 寫 institutional_rankings + margin_rankings
+    # 為獨立 unencrypted JSON (公開資料無需加密). 前端 tab 06/08 開啟時才 fetch
+    # → 不必等 latest.json 整檔解密就能看到資料 (UX 加快感受)
+    # ════════════════════════════════════════════════════════════════
+    try:
+        _lazy_payload_inst = {
+            'trade_date': trade_date,
+            'updated_at': now_tw().isoformat(),
+            'institutional_rankings': institutional_rankings,
+        }
+        with open(data_dir / 'latest_inst_rankings.json', 'w', encoding='utf-8') as _f:
+            json.dump(_lazy_payload_inst, _f, ensure_ascii=False, indent=1)
+        _lazy_payload_margin = {
+            'trade_date': trade_date,
+            'updated_at': now_tw().isoformat(),
+            'margin_rankings': margin_rankings,
+            'margin_maintenance_summary': margin_maint_summary,
+        }
+        with open(data_dir / 'latest_margin_rankings.json', 'w', encoding='utf-8') as _f:
+            json.dump(_lazy_payload_margin, _f, ensure_ascii=False, indent=1)
+        print(f"[Lazy Load v3.53.0] ✓ latest_inst_rankings.json + latest_margin_rankings.json")
+    except Exception as _lle:
+        print(f"  ⚠️ lazy load JSON 寫入失敗: {type(_lle).__name__}: {_lle}")
+
+    # ════════════════════════════════════════════════════════════════
     # v3.20: 推播警報系統 (在加密前用 raw_output 跑警報)
     # ════════════════════════════════════════════════════════════════
     try:

@@ -5392,6 +5392,32 @@ async function loadPhaseBResults() {
   return PHASE_B_RESULTS;
 }
 
+// v3.53.0 (Sprint 15 長3): lazy load institutional + margin rankings
+// 後端寫 latest_inst_rankings.json + latest_margin_rankings.json (unencrypted, 公開資料)
+// 前端 init 時並行 fetch, 不必等 latest.json 整檔解密就能用
+let LAZY_INST_RANKINGS = null, LAZY_MARGIN_RANKINGS = null;
+async function loadLazyRankings() {
+  if (LAZY_INST_RANKINGS !== null) return;
+  await Promise.all([
+    fetchWithTimeout(`${DATA_BASE}/latest_inst_rankings.json?_=${Date.now()}`, { cache: 'no-store' }, 5000)
+      .then(r => r.ok ? r.json() : {}).then(d => { LAZY_INST_RANKINGS = d || {}; })
+      .catch(() => { LAZY_INST_RANKINGS = {}; }),
+    fetchWithTimeout(`${DATA_BASE}/latest_margin_rankings.json?_=${Date.now()}`, { cache: 'no-store' }, 5000)
+      .then(r => r.ok ? r.json() : {}).then(d => { LAZY_MARGIN_RANKINGS = d || {}; })
+      .catch(() => { LAZY_MARGIN_RANKINGS = {}; }),
+  ]);
+}
+
+// v3.53.0: helper — 給 CURRENT_DATA 還沒 ready 但用戶已切到 tab 06/08 的 fallback
+function getInstRankings() {
+  return (CURRENT_DATA && CURRENT_DATA.institutional_rankings) ||
+         (LAZY_INST_RANKINGS && LAZY_INST_RANKINGS.institutional_rankings) || null;
+}
+function getMarginRankings() {
+  return (CURRENT_DATA && CURRENT_DATA.margin_rankings) ||
+         (LAZY_MARGIN_RANKINGS && LAZY_MARGIN_RANKINGS.margin_rankings) || null;
+}
+
 // v3.48.0 Tier 2: 注意股 / 借券 / 除權息 — 個股追蹤頁面 chip 用
 let ATTENTION_MAP = null, SHORT_LENDING_MAP = null, DIVIDEND_CAL = null;
 async function loadTier2Maps() {
@@ -5783,6 +5809,9 @@ async function loadPositions() {
 async function init() {
   // C2 (v3.42.0): preload Phase B backtest results (失敗不阻擋主流程)
   loadPhaseBResults().catch(() => {});
+  // v3.53.0 (Sprint 15 長3): lazy load institutional + margin rankings 並行
+  // 不阻擋主流程, tab 06/08 切到時若 CURRENT_DATA 還沒 ready 用這個 fallback
+  loadLazyRankings().catch(() => {});
   const latestDate = await loadIndex();
   if (!latestDate) {
     document.getElementById('overviewResult').innerHTML = `
@@ -5865,7 +5894,7 @@ function renderChipTemperature() {
     //   a) institutional_rankings.foreign 的 buy[].foreign_net_lot 加總 - sell[].foreign_net_lot 加總
     //   b) institutional_data.foreign_total_amount (舊版)
     //   c) summary
-    const r = CURRENT_DATA.institutional_rankings?.foreign;
+    const r = getInstRankings()?.foreign;
     let netLot = null;
     if (r?.buy && r?.sell) {
       const buySum = r.buy.reduce((s, x) => s + (x.foreign_net_lot || 0), 0);
@@ -5944,7 +5973,7 @@ function renderChipTemperature() {
   const sig5 = (() => {
     // 真實: 沒有 smart_money_in_count 欄位
     // 改用 margin_rankings.top_margin_buy 與 top_margin_usage 推估
-    const mr = CURRENT_DATA.margin_rankings;
+    const mr = getMarginRankings();
     if (!mr) return null;
     
     // 看融資增加最多 Top 5 的合計 (散戶熱度指標)
@@ -5969,7 +5998,7 @@ function renderChipTemperature() {
   // ─── 信號 6 (v3.27 新): 法人共識 (外資 + 投信 雙條件) ───
   // ⚠️ 閾值 v3.27 初版,待 30-60 個交易日回測校準
   const sig6 = (() => {
-    const ir = CURRENT_DATA.institutional_rankings || {};
+    const ir = getInstRankings() || {};
     const fr = ir.foreign, tr = ir.trust;
     if (!fr || !tr) return null;
     const fNet = ((fr.buy || []).reduce((s, x) => s + (x.foreign_net_lot || 0), 0)
@@ -6187,7 +6216,7 @@ function renderSmartRetailContrast() {
 
   // ─── 主力 1: 外資現貨 ───
   const smartForeign = (() => {
-    const r = CURRENT_DATA.institutional_rankings?.foreign;
+    const r = getInstRankings()?.foreign;
     let netLot = null;
     if (r?.buy && r?.sell) {
       netLot = r.buy.reduce((s, x) => s + (x.foreign_net_lot || 0), 0)
@@ -6206,7 +6235,7 @@ function renderSmartRetailContrast() {
 
   // ─── 主力 2: 投信現貨 ───
   const smartTrust = (() => {
-    const r = CURRENT_DATA.institutional_rankings?.trust;
+    const r = getInstRankings()?.trust;
     let netLot = null;
     if (r?.buy && r?.sell) {
       netLot = r.buy.reduce((s, x) => s + (x.trust_net_lot || 0), 0)
@@ -6225,7 +6254,7 @@ function renderSmartRetailContrast() {
 
   // ─── 散戶 1: 融資熱度 (反指標 — 散戶追漲 = 看空主散背離) ───
   const retailMargin = (() => {
-    const mr = CURRENT_DATA.margin_rankings;
+    const mr = getMarginRankings();
     if (!mr || !mr.top_margin_buy) return null;
     const top5 = mr.top_margin_buy.slice(0, 5);
     if (top5.length === 0) return null;
@@ -8017,7 +8046,7 @@ function renderMarginPanel() {
   `;
 
   // ─── 全市場排行榜 ───
-  const rankings = CURRENT_DATA.margin_rankings || {};
+  const rankings = getMarginRankings() || {};
   const grid = document.getElementById('marginRankGrid');
   
   const rankConfigs = [
@@ -9601,7 +9630,7 @@ function renderFxSyncPanel(targetId) {
   
   // 現貨外資買賣超 (從 institutional_rankings 聚合當日全市場)
   let foreignSpotNet = 0;
-  const ir = CURRENT_DATA.institutional_rankings || {};
+  const ir = getInstRankings() || {};
   if (ir.foreign) {
     // 加總所有外資買超張數 - 賣超張數
     const buyTotal = (ir.foreign.buy || []).reduce((sum, x) => sum + (x.net_lot || 0), 0);
@@ -10878,7 +10907,7 @@ function renderInstitutional() {
     el.innerHTML = '<div class="loading"><div class="loading-spinner"></div>解密資料中...</div>';
     return;
   }
-  const ir = CURRENT_DATA.institutional_rankings;
+  const ir = getInstRankings();
   if (!ir) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">📡</div>
       此份資料無三大法人資訊（v3.6 以下舊資料）<br>
@@ -11159,7 +11188,7 @@ function renderInstSearch(el) {
   }
   
   // 也從全市場排行找（即使分點沒交易，外資/投信有交易）
-  const ir = CURRENT_DATA.institutional_rankings || {};
+  const ir = getInstRankings() || {};
   for (const ranking of Object.values(ir)) {
     for (const side of [ranking.buy || [], ranking.sell || []]) {
       for (const r of side) {
