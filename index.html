@@ -6170,6 +6170,8 @@ async function showDate(date) {
     return;
   }
   CURRENT_DATA = data;
+  // v3.60.0 (Sprint 23 P0-E): CURRENT_DATA 換了, tab cache 全 invalidate
+  if (typeof markTabsDirty === 'function') markTabsDirty('CURRENT_DATA loaded');
   document.getElementById('tradeDate').textContent = formatDate(data.trade_date);
   document.getElementById('lastUpdate').textContent = 
     data.crawled_at ? data.crawled_at.slice(5, 16).replace('T', ' ') : '—';
@@ -8966,6 +8968,16 @@ function renderWatchlistPanel() {
 }
 
 // ========== Tabs & Modes ==========
+// v3.60.0 (Sprint 23 P0-E): Tab lazy render + DOM 快取
+// 切回已 render 過的 tab → 跳過 re-render 直接顯示 cached DOM
+// 資料變化時 (CURRENT_DATA 更新 / WATCHLIST 改 / 日期切換) 必須 markTabsDirty
+const _TAB_RENDERED = new Set();
+function markTabsDirty(reason) {
+  if (reason) console.log(`[TabCache] markTabsDirty: ${reason}`);
+  _TAB_RENDERED.clear();
+}
+// Tab 內部 sort/filter 切換時也要重 render — 這些 caller 由 set*Sort/set*Filter 直接呼叫 render
+// 不過 set*Sort/set*Filter 通常 render 同一個 tab, 不影響 cache 機制
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => {
@@ -8980,8 +8992,10 @@ document.querySelectorAll('.tab').forEach(btn => {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
     document.getElementById('panel-help').style.display = 'none';
-    // 各頁的按需渲染
+    // v3.60.0: 各頁按需渲染 — first time 才 render, 之後 cache DOM 直接顯示
     const tab = btn.dataset.tab;
+    if (_TAB_RENDERED.has(tab)) return;   // cache hit: skip re-render
+    _TAB_RENDERED.add(tab);
     if (tab === 'today3') renderToday3();
     else if (tab === 'ranking') renderRanking();
     else if (tab === 'masterview') renderMasterView();
@@ -9545,6 +9559,8 @@ function setTodayScope(s) {
 
 function renderAll() {
   if (!CURRENT_DATA) return;
+  // v3.60.0 (Sprint 23 P0-E): WATCHLIST 變化 → tab cache 全 invalidate
+  if (typeof markTabsDirty === 'function') markTabsDirty('WATCHLIST changed');
   renderToday3();
   renderOverview();
   renderBranches();
