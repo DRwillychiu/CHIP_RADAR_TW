@@ -93,6 +93,32 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 16 完成 (v3.54.0) — 長2 Telegram Bot 推播 (跟 Discord 平行)
+
+**實作** (`src/alerts/alerts.py`):
+- 新 `send_telegram(text, parse_mode='Markdown', bot_token=None, chat_id=None)`
+  - 讀 `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` env var
+  - 未設兩個之一 → test mode (print only, return None)
+  - 有設 → POST `https://api.telegram.org/bot<TOKEN>/sendMessage`
+  - HTTP 200 → True, 其他 → False
+- 新 `_format_telegram_alert(detected, trade_date)`:
+  Markdown 格式 (跟 Discord embed 對應), 最多顯示 8 則細節
+- `run_alerts` 末尾並行推 Discord + Telegram
+- return dict 多 2 欄: `pushed_telegram` / `pushed_telegram_test_mode`
+- 無 detected / dry_run 路徑也保持 schema 一致
+
+**Token 使用機制** (`docs/TELEGRAM_BOT_SETUP.md`):
+- BotFather `/newbot` 拿 token
+- @userinfobot 拿個人 chat_id (或 getUpdates API 拿群組 chat_id)
+- 兩個值放 GitHub Repo Secret
+- workflow 自動 inject 進 env var
+
+**驗證**: 43 套件 0 regression + 新 test_v3540_telegram_alerts 16 PASS
+
+**狀態**: code 上線, **用戶設 Secret 後即生效**(目前 test mode)
+
+---
+
 ### ✅ Sprint 15 完成 (v3.53.0) — 長3 latest.json lazy load (rankings 拆出)
 
 **動機**: latest.json 整檔加密 ~2.4 MB, 解密需 1-2s. tab 06 三大法人 + tab 08 融資融券用到的 rankings 屬於**公開資料**(無需加密), 可獨立 fetch 加速 UX.

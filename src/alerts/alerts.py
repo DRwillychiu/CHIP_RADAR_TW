@@ -88,6 +88,94 @@ def send_discord(content: str, embeds: Optional[List[Dict]] = None, webhook_url:
 
 
 # ════════════════════════════════════════════════════════════════════
+#  v3.54.0 (Sprint 16 長2): Telegram Bot 推播
+#
+#  Token 使用機制 (BotFather workflow):
+#    1. Telegram 跟 @BotFather 對話 → /newbot → 拿 token (format `123456789:ABC...`)
+#    2. 跟自己的 bot 發任意訊息 → 跟 @userinfobot 拿你的 chat_id
+#    3. GitHub Repo → Settings → Secrets → 加 2 個 secret:
+#         - TELEGRAM_BOT_TOKEN = <上面拿的 token>
+#         - TELEGRAM_CHAT_ID   = <個人 chat_id 或群組 chat_id>
+#    4. crawler 跑時自動讀 env var → POST 到 telegram API
+#    5. 沒設兩個之一 → 走 test mode (只 print)
+#
+#  訊息 format: Markdown (Telegram 支援 *bold* _italic_ `code` [link](url))
+#  限制: 單則 4096 字元 (我們不會超過, alert 通常 < 1000 字)
+# ════════════════════════════════════════════════════════════════════
+
+def send_telegram(text: str,
+                    parse_mode: str = 'Markdown',
+                    bot_token: Optional[str] = None,
+                    chat_id: Optional[str] = None) -> Optional[bool]:
+    """發送 Telegram 訊息.
+
+    Args:
+      text: 訊息正文 (支援 Markdown, *bold* _italic_ `code`)
+      parse_mode: 'Markdown' / 'HTML' / None
+      bot_token: 覆蓋環境變數 TELEGRAM_BOT_TOKEN
+      chat_id: 覆蓋環境變數 TELEGRAM_CHAT_ID
+
+    Returns:
+      True 成功 / False 失敗 / None test mode (未設 token 或 chat_id)
+    """
+    token = bot_token or os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
+    cid = chat_id or os.environ.get('TELEGRAM_CHAT_ID', '').strip()
+
+    if not token or not cid:
+        # Test mode: 只 print 不發送
+        print(f"\n  [TEST MODE] 模擬 Telegram 推播 (TELEGRAM_BOT_TOKEN 或 TELEGRAM_CHAT_ID 未設):")
+        print(f"  {'─' * 60}")
+        for line in text.split('\n'):
+            print(f"  | {line}")
+        print(f"  {'─' * 60}")
+        return None
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        'chat_id': cid,
+        'text': text[:4096],   # Telegram 上限 4096 字
+        'parse_mode': parse_mode,
+        'disable_web_page_preview': True,
+    }
+    try:
+        r = requests.post(url, json=payload, timeout=10)
+        if r.status_code == 200:
+            print(f"  ✓ Telegram 推播成功")
+            return True
+        else:
+            print(f"  ⚠️ Telegram 推播失敗: HTTP {r.status_code}, {r.text[:200]}")
+            return False
+    except Exception as e:
+        print(f"  ⚠️ Telegram 推播例外: {e}")
+        return False
+
+
+def _format_telegram_alert(detected: List[Dict[str, Any]], trade_date: str) -> str:
+    """把 detected alerts list 格式化為 Telegram Markdown 訊息.
+
+    跟 Discord embed 風格對應, 但純文字 + emoji + Markdown.
+    """
+    if not detected:
+        return f"📊 *Chip Radar* {trade_date}\n\n今日無重大警報訊號"
+
+    lines = [f"📊 *Chip Radar* {trade_date}", ""]
+    by_type = _count_by_type(detected)
+    summary = " / ".join(f"{k}: {v}" for k, v in by_type.items())
+    lines.append(f"_共 {len(detected)} 則警報_  ({summary})")
+    lines.append("")
+    # 最多顯示 8 則細節 (避免訊息太長)
+    for d in detected[:8]:
+        title = d.get('title', d.get('type', 'alert'))
+        msg = d.get('message', '')
+        lines.append(f"▸ *{title}*")
+        if msg:
+            lines.append(f"  {msg[:200]}")
+    if len(detected) > 8:
+        lines.append(f"\n_...另 {len(detected) - 8} 則, 詳見網站 / Discord_")
+    return "\n".join(lines)
+
+
+# ════════════════════════════════════════════════════════════════════
 #  訊號偵測函數
 # ════════════════════════════════════════════════════════════════════
 
@@ -306,11 +394,14 @@ def run_alerts(latest_data: Dict[str, Any], insider_data: Optional[Dict] = None,
     # 推播
     if not detected:
         print("\n  📭 今日無異常,不推播")
-        return {'detected': [], 'pushed': False, 'count_by_type': {}}
-    
+        # v3.54.0: 仍 return Telegram 欄位 (test mode 表示沒推) 給 caller 一致 schema
+        return {'detected': [], 'pushed': False, 'count_by_type': {},
+                'pushed_telegram': False, 'pushed_telegram_test_mode': True}
+
     if dry_run:
         print(f"\n  🧪 dry_run 模式,共偵測 {len(detected)} 個訊號 (不推播)")
-        return {'detected': detected, 'pushed': False, 'count_by_type': _count_by_type(detected)}
+        return {'detected': detected, 'pushed': False, 'count_by_type': _count_by_type(detected),
+                'pushed_telegram': False, 'pushed_telegram_test_mode': True}
     
     # 組推播訊息
     today_str = latest_data.get('trade_date') or date.today().strftime('%Y/%m/%d')
@@ -327,12 +418,19 @@ def run_alerts(latest_data: Dict[str, Any], insider_data: Optional[Dict] = None,
     
     content = '\n'.join(content_lines)
     push_result = send_discord(content)
-    
+
+    # v3.54.0 (Sprint 16 長2): 並行推 Telegram (跟 Discord 獨立, 各自有 token 就推)
+    tg_text = _format_telegram_alert(detected, today_str)
+    tg_result = send_telegram(tg_text)
+
     return {
         'detected': detected,
         'pushed': push_result is True,
         'pushed_test_mode': push_result is None,
         'count_by_type': _count_by_type(detected),
+        # v3.54.0: Telegram 推播狀態 (跟 Discord 各自獨立)
+        'pushed_telegram': tg_result is True,
+        'pushed_telegram_test_mode': tg_result is None,
     }
 
 
