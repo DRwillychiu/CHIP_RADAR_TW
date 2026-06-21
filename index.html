@@ -4562,10 +4562,9 @@ async function deriveKey(password, salt, iterations) {
     baseKey, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
   );
 }
-// P1-1 (v3.39.0): decryptToken 接受 iterations 參數
-//   呼叫端從 outer JSON 讀 enc.iterations 傳入; 缺值時 fallback 100k (向後相容)
-//   未來升 600k 後新檔自動套新值, 舊 archive 仍 100k 仍能解
-async function decryptToken(token, password, iterations) {
+// _decryptTokenInline (v3.55.0 Sprint 18 P0-A): 既有 main-thread 解密邏輯改名
+//   (原 decryptToken). 新 decryptToken 改成 Worker wrapper, 失敗時 fallback 走這個.
+async function _decryptTokenInline(token, password, iterations) {
   const raw = b64ToBytes(token);
   const salt = raw.slice(0, 16);
   const iv = raw.slice(16, 28);
@@ -4583,6 +4582,107 @@ async function decryptToken(token, password, iterations) {
     return new TextDecoder().decode(inflated);
   }
   return new TextDecoder().decode(plainBuf);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// v3.55.0 (Sprint 18 P0-A): Web Worker 解密
+// 把 PBKDF2 + AES-GCM + gunzip 從 main thread 移出, UI 不再凍結 1-2s.
+// Worker code 用 Blob URL inline 載入 (零部署複雜度 — 不需多 .js 檔案)
+// 設計:
+//   - 單一 worker + request id → resolver map 支援併發
+//   - Worker 失敗 (older browser / CSP block) → fallback _decryptTokenInline
+//   - 加密/解密 logic 完全跟 main thread 一致 (zero behavior change)
+// ════════════════════════════════════════════════════════════════════
+const _DECRYPT_WORKER_CODE = `
+function b64ToBytes(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+async function deriveKey(password, salt, iterations) {
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: salt, iterations: iterations || 100000, hash: 'SHA-256' },
+    baseKey, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
+  );
+}
+async function decryptTokenWorker(token, password, iterations) {
+  const raw = b64ToBytes(token);
+  const salt = raw.slice(0, 16);
+  const iv = raw.slice(16, 28);
+  const ct = raw.slice(28);
+  const key = await deriveKey(password, salt, iterations);
+  const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, ct);
+  const bytes = new Uint8Array(plainBuf);
+  if (bytes.length >= 2 && bytes[0] === 0x1F && bytes[1] === 0x8B) {
+    const stream = new Blob([plainBuf]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const inflated = await new Response(stream).arrayBuffer();
+    return new TextDecoder().decode(inflated);
+  }
+  return new TextDecoder().decode(plainBuf);
+}
+self.onmessage = async (e) => {
+  const {id, token, password, iterations} = e.data;
+  try {
+    const plaintext = await decryptTokenWorker(token, password, iterations);
+    self.postMessage({id, ok: true, plaintext});
+  } catch (err) {
+    self.postMessage({id, ok: false, error: String(err && err.message || err)});
+  }
+};
+`;
+
+let _decryptWorker = null;   // null = 尚未初始化 / Worker instance / false = 不可用
+const _decryptResolvers = new Map();
+let _decryptReqId = 0;
+
+function _getDecryptWorker() {
+  if (_decryptWorker !== null) return _decryptWorker || null;
+  try {
+    if (typeof Worker === 'undefined' || typeof Blob === 'undefined') throw new Error('Worker/Blob unavailable');
+    const blob = new Blob([_DECRYPT_WORKER_CODE], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    _decryptWorker = new Worker(url);
+    _decryptWorker.onmessage = (e) => {
+      const { id, ok, plaintext, error } = e.data;
+      const resolver = _decryptResolvers.get(id);
+      if (!resolver) return;
+      _decryptResolvers.delete(id);
+      if (ok) resolver.resolve(plaintext);
+      else resolver.reject(new Error(error));
+    };
+    _decryptWorker.onerror = (e) => {
+      console.warn('[Decrypt Worker] error event:', e.message || e);
+    };
+    console.log('[Decrypt Worker v3.55.0] initialized — 解密移出 main thread');
+    return _decryptWorker;
+  } catch (e) {
+    console.warn('[Decrypt Worker] init failed, fallback inline:', e);
+    _decryptWorker = false;
+    return null;
+  }
+}
+
+// P1-1 (v3.39.0): decryptToken 接受 iterations 參數
+//   呼叫端從 outer JSON 讀 enc.iterations 傳入; 缺值時 fallback 100k (向後相容)
+//   未來升 600k 後新檔自動套新值, 舊 archive 仍 100k 仍能解
+// v3.55.0 (Sprint 18 P0-A): 改成 Worker wrapper. Worker 失敗 → fallback _decryptTokenInline
+async function decryptToken(token, password, iterations) {
+  const worker = _getDecryptWorker();
+  if (!worker) return _decryptTokenInline(token, password, iterations);
+  const id = ++_decryptReqId;
+  return new Promise((resolve, reject) => {
+    _decryptResolvers.set(id, { resolve, reject });
+    try {
+      worker.postMessage({ id, token, password, iterations: iterations || PBKDF2_DEFAULT_ITERATIONS });
+    } catch (e) {
+      // postMessage 失敗 (e.g. worker 已 terminate) → 立即 fallback
+      _decryptResolvers.delete(id);
+      _decryptTokenInline(token, password, iterations).then(resolve, reject);
+    }
+  });
 }
 
 // ========== 狀態 ==========

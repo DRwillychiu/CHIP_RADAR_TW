@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.54.0(2026-06-21) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.55.0(2026-06-21) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.54.0** | 6/21 | **Sprint 16 長2 Telegram Bot 推播** — send_telegram + 並行推 Discord, setup 教學 docs/TELEGRAM_BOT_SETUP.md |
+| **v3.55.0** | 6/21 | **Sprint 18 P0-A 前端 Web Worker 解密** — latest.json 解密移出 main thread, UI 不再凍結 1-2s |
+| v3.54.0 | 6/21 | Sprint 16 長2 Telegram Bot 推播 — send_telegram + 並行推 Discord, setup 教學 docs/TELEGRAM_BOT_SETUP.md |
 | v3.53.0 | 6/21 | Sprint 15 長3 latest.json lazy load — 拆出 inst_rankings + margin_rankings 獨立 unencrypted JSON,前端 getter 加 fallback |
 | v3.52.0 | 6/21 | Sprint 14 長4 跨日囤貨偵測 — 新標籤 📦 連續囤貨 + accumulation_stocks per-master |
 | v3.51.0 | 6/21 | Sprint 13 機構級 Data Analyst 重整 — root 110+→7 .py / src/ 8 大類 / tests+docs 分離 |
