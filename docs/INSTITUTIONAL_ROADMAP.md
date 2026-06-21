@@ -93,6 +93,40 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ Sprint 20 完成 (v3.57.0) — P0-B 前端 Dark / Light theme 切換
+
+**動機**: 機構辦公室白天明亮環境長時看 dark theme 容易眼花. 加 light theme + 即時切換, localStorage 持久.
+
+**實作** (`index.html`):
+
+CSS:
+- 既有 `:root` dark theme 變數補 `--bg-radial-1/2` (gradient stop 也可 themeable)
+- 新 `:root[data-theme="light"]` 全套 light theme palette:
+  - `--bg`: `#f5f7fb` (淡灰白)
+  - `--text`: `#1a2236` (深藍黑)
+  - `--shadow`: 從 0.4 alpha 降 0.08
+  - 紅綠(盤面色) 保留鮮明對比, 略微深沉
+- body 加 `transition: background-color, color 0.25s ease`
+- `.theme-toggle` 浮動 button (右下 16px, 44px 圓):
+  - 暗色顯示 🌙, light theme 自動切換 ☀️
+  - hover scale 1.08 / active scale 0.95
+
+HTML:
+- 加 `<button class="theme-toggle" onclick="toggleTheme()">` + ARIA label
+
+JS:
+- `getInitialTheme()` 讀 localStorage `chip_radar_theme` (fallback 'dark')
+- `applyTheme(theme)` 設 `data-theme` attribute + localStorage persist
+  + Chart.js theme-aware 重畫 (CURRENT_TREND_STOCK 存在時)
+- `toggleTheme()` 切換 dark ↔ light
+- 即時 apply 避免 FOUC (flash of unstyled content)
+
+**131 處 hardcoded color 處置**: 大部分是 transparent rgba overlay (兩主題都 OK). 純色 hardcode 細節用戶實測後 polish.
+
+**驗證**: JS syntax OK + 43 套件 0 regression
+
+---
+
 ### ✅ Sprint 19 完成 (v3.56.0) — P0-D 前端 render 大型增量重繪 + CSS 隔離
 
 **動機**: 機構級前端 audit 顯示 124 處 `.innerHTML=`, 大型 render(81 分點/100 records) 主流程 layout cost 偏高. 切換 sort/filter 頻繁時 reflow 傳到全頁 DOM.

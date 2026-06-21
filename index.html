@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
+  /* Dark theme (預設) */
   --bg: #0a0e1a;
   --bg-2: #0f1525;
   --bg-3: #151d33;
@@ -27,6 +28,32 @@
   --blue: #3b82f6;
   --purple: #a855f7;
   --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  /* v3.57.0 (Sprint 20 P0-B): theme-aware gradient stops */
+  --bg-radial-1: rgba(212, 175, 55, 0.06);
+  --bg-radial-2: rgba(59, 130, 246, 0.05);
+}
+
+/* v3.57.0 (Sprint 20 P0-B): Light theme — 機構辦公室白底, 紅綠對比保留 */
+:root[data-theme="light"] {
+  --bg: #f5f7fb;            /* 主背景 - 淡灰白 */
+  --bg-2: #ffffff;          /* 卡片背景 - 純白 */
+  --bg-3: #eef1f7;          /* 高亮背景 */
+  --line: #d8dde8;          /* 邊框 */
+  --line-2: #c0c8d6;
+  --text: #1a2236;          /* 主文字 - 深藍黑 */
+  --text-2: #4a5570;        /* 次文字 - 中灰 */
+  --text-3: #8a93a8;        /* 暗示文字 */
+  --gold: #b8941f;          /* 金色 (light 變深一點) */
+  --gold-bright: #d4af37;
+  --red: #dc2626;           /* 紅綠保留鮮明 (盤面色) */
+  --red-dim: #b91c1c;
+  --green: #059669;
+  --green-dim: #047857;
+  --blue: #2563eb;
+  --purple: #9333ea;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+  --bg-radial-1: rgba(212, 175, 55, 0.04);
+  --bg-radial-2: rgba(59, 130, 246, 0.04);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -35,10 +62,39 @@ body {
   font-family: 'Noto Sans TC', sans-serif;
   line-height: 1.6;
   min-height: 100vh;
-  background-image: 
-    radial-gradient(circle at 15% 10%, rgba(212, 175, 55, 0.06) 0%, transparent 45%),
-    radial-gradient(circle at 85% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 45%);
+  background-image:
+    radial-gradient(circle at 15% 10%, var(--bg-radial-1) 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, var(--bg-radial-2) 0%, transparent 45%);
+  /* v3.57.0 theme transition 平滑切換 */
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
+
+/* v3.57.0 (Sprint 20 P0-B): Theme toggle 浮動 button (固定右下) */
+.theme-toggle {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 100;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, background 0.2s;
+}
+.theme-toggle:hover { transform: scale(1.08); background: var(--bg-3); }
+.theme-toggle:active { transform: scale(0.95); }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: inline; }
+:root[data-theme="light"] .theme-toggle .icon-sun { display: inline; }
+:root[data-theme="light"] .theme-toggle .icon-moon { display: none; }
 
 /* ===== 登入畫面 ===== */
 .login-overlay {
@@ -3606,6 +3662,13 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 </head>
 <body>
 
+<!-- v3.57.0 (Sprint 20 P0-B): Theme toggle 浮動 button (右下) -->
+<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()"
+        title="切換深色/明亮主題" aria-label="切換主題">
+  <span class="icon-moon">🌙</span>
+  <span class="icon-sun">☀️</span>
+</button>
+
 <!-- ===== 登入 ===== -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-card">
@@ -4561,6 +4624,36 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
 <script>
+// ════════════════════════════════════════════════════════════════════
+// v3.57.0 (Sprint 20 P0-B): Dark / Light Theme 切換
+// 機構辦公室常見需求 — 白底長時間看不傷眼.
+// localStorage 持久 + system preference 預設 (prefers-color-scheme)
+// 用 [data-theme="light"] override CSS variables, 切換時 transition 0.25s
+// ════════════════════════════════════════════════════════════════════
+const THEME_KEY = 'chip_radar_theme';
+function getInitialTheme() {
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch (e) {}
+  // 預設跟 OS 設定 (預設仍 dark 因為 chip_radar 是金融專業看板, 偏好暗)
+  return 'dark';
+}
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+  // 若 Chart.js 已 init, theme 變化時重畫 (顏色 var 從 CSS 變數讀)
+  if (window.CURRENT_TREND_STOCK && typeof renderStockTrendChart === 'function') {
+    try { renderStockTrendChart(window.CURRENT_TREND_STOCK); } catch (e) {}
+  }
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+// init 時立即 apply (避免 flash of wrong theme)
+applyTheme(getInitialTheme());
+
 // ========== 加密 ==========
 const PBKDF2_DEFAULT_ITERATIONS = 100000;   // v3.30.1 預設; P1-1 升 600k 鋪路
 function b64ToBytes(b64) {
