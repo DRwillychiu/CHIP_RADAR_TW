@@ -46,13 +46,12 @@ try:
 except ImportError:
     OPENPYXL_AVAILABLE = False
 
-# v3.62.0 (Sprint 25): 全域 enrichment sheet 名稱
-# 月檔結構: [📋 摘要, 🚨 警報, 📦 連續囤貨, ⚠️ 風險警示] + 日期 sheet desc
-SUMMARY_SHEET_NAME = "📋 今日摘要"
-ALERTS_SHEET_NAME = "🚨 異常警報"
-ACCUMULATION_SHEET_NAME = "📦 連續囤貨"
-RISK_SHEET_NAME = "⚠️ 風險警示"
-ENRICHMENT_SHEETS = [SUMMARY_SHEET_NAME, ALERTS_SHEET_NAME, ACCUMULATION_SHEET_NAME, RISK_SHEET_NAME]
+# v3.62.0 (Sprint 25 → v3.62.1): 用戶決定把 E1-E4 4 個 section 全合 1 sheet
+# 月檔結構: [📋 今日 Dashboard (含全 4 section)] + 日期 sheet desc
+DASHBOARD_SHEET_NAME = "📋 今日 Dashboard"
+ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME]
+# 舊 sheet 名 (給 cleanup 移除舊月檔殘留)
+LEGACY_ENRICHMENT_NAMES = ["📋 今日摘要", "🚨 異常警報", "📦 連續囤貨", "⚠️ 風險警示"]
 
 try:
     from branches import MASTER_STYLES
@@ -758,34 +757,30 @@ def _summary_fill(color: str) -> "PatternFill":
     return PatternFill('solid', fgColor=color)
 
 
-def build_summary_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str,
-                          data_dir: Optional[Path] = None):
-    """E1: 今日執行摘要. Crawler 完成後寫,一頁秒看重點."""
-    data_dir = data_dir or Path('data')
-    title_fill = _summary_fill('FF1F2A48')
-    title_font = _summary_font_header()
-    section_fill = _summary_fill('FFD4AF37')
-    section_font = Font(name='Noto Sans TC', size=11, bold=True, color='FF000000')
-    val_font = Font(name='Noto Sans TC', size=14, bold=True)
+def _section_header(ws, row: int, title: str, span_cols: int = 9, color: str = 'FFD4AF37'):
+    """共用 section header row."""
+    section_font = Font(name='Noto Sans TC', size=12, bold=True, color='FF000000')
+    section_fill = _summary_fill(color)
+    end_col = chr(ord('B') + span_cols - 1)
+    ws.merge_cells(f'B{row}:{end_col}{row}')
+    c = ws[f'B{row}']
+    c.value = title
+    c.font = section_font
+    c.fill = section_fill
+    c.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+    ws.row_dimensions[row].height = 22
+
+
+def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row):
+    """Section A: 規模統計 + Top 5 master + Top 5 個股 + 籌碼溫度.
+    Returns: next available row."""
     label_font = Font(name='Noto Sans TC', size=10, color='FF666666')
+    val_font = Font(name='Noto Sans TC', size=14, bold=True)
+    hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
+    hdr_fill = _summary_fill('FFF0F0F0')
 
-    for col, w in [('A', 4), ('B', 22), ('C', 16), ('D', 22), ('E', 16),
-                    ('F', 22), ('G', 16), ('H', 22), ('I', 16)]:
-        ws.column_dimensions[col].width = w
-
-    # ── Title row ──
-    ws.merge_cells('B2:I2')
-    c = ws['B2']
-    c.value = f"📋 Chip Radar 今日摘要 — {trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]}"
-    c.font = title_font
-    c.fill = title_fill
-    c.alignment = Alignment(horizontal='center', vertical='center')
-    ws.row_dimensions[2].height = 28
-
-    # ── Section 1: 規模統計 (row 4-5) ──
-    ws.merge_cells('B4:I4')
-    s1 = ws['B4']; s1.value = "▍ 規模統計"; s1.font = section_font; s1.fill = section_fill
-    s1.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+    row = start_row
+    _section_header(ws, row, "▍ A. 規模統計"); row += 1
 
     total_buy = sum((s.get('buy_amt') or 0) for b in branches_data for s in (b.get('buys') or []))
     total_master_active = len({b.get('master') for b in branches_data
@@ -794,8 +789,6 @@ def build_summary_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: 
                             for s in (b.get('buys') or []) if s.get('code')})
     limit_up_buys = sum(1 for b in branches_data for s in (b.get('buys') or [])
                          if s.get('is_limit_up'))
-
-    # total_buy 單位仟元 → 萬元 ÷ 10, → 億元 ÷ 100000
     stats = [
         ('B', '活躍 Master', total_master_active, '位'),
         ('D', '個股涉及', distinct_stocks, '檔'),
@@ -804,22 +797,29 @@ def build_summary_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: 
     ]
     for col_l, label, val, unit in stats:
         col_v = chr(ord(col_l) + 1)
-        ws[f'{col_l}5'] = label
-        ws[f'{col_l}5'].font = label_font
-        ws[f'{col_l}5'].alignment = Alignment(horizontal='right', vertical='center')
-        ws[f'{col_v}5'] = f"{val} {unit}"
-        ws[f'{col_v}5'].font = val_font
-        ws[f'{col_v}5'].alignment = Alignment(horizontal='left', vertical='center')
+        ws[f'{col_l}{row}'] = label
+        ws[f'{col_l}{row}'].font = label_font
+        ws[f'{col_l}{row}'].alignment = Alignment(horizontal='right', vertical='center')
+        ws[f'{col_v}{row}'] = f"{val} {unit}"
+        ws[f'{col_v}{row}'].font = val_font
+        ws[f'{col_v}{row}'].alignment = Alignment(horizontal='left', vertical='center')
+    row += 2
 
-    # ── Section 2: Top 高手 + Top 個股 (row 7-15) ──
-    ws.merge_cells('B7:E7')
-    s2 = ws['B7']; s2.value = "▍ Top 5 高手(按今日總買金額)"; s2.font = section_font; s2.fill = section_fill
+    # Top master + Top stocks 並排
+    ws.merge_cells(f'B{row}:E{row}')
+    s2 = ws[f'B{row}']
+    s2.value = "▍ B. Top 5 高手(按今日總買金額)"
+    s2.font = Font(name='Noto Sans TC', size=11, bold=True)
+    s2.fill = _summary_fill('FFE8F5E9')
     s2.alignment = Alignment(horizontal='left', vertical='center', indent=1)
-    ws.merge_cells('F7:I7')
-    s3 = ws['F7']; s3.value = "▍ Top 5 熱門個股(按今日淨買金額)"; s3.font = section_font; s3.fill = section_fill
+    ws.merge_cells(f'F{row}:I{row}')
+    s3 = ws[f'F{row}']
+    s3.value = "▍ C. Top 5 熱門個股(按今日淨買金額)"
+    s3.font = Font(name='Noto Sans TC', size=11, bold=True)
+    s3.fill = _summary_fill('FFE3F2FD')
     s3.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+    row += 1
 
-    # Top masters
     master_amt = {}
     for b in branches_data:
         m = b.get('master')
@@ -827,22 +827,6 @@ def build_summary_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: 
         amt = sum((s.get('buy_amt') or 0) for s in (b.get('buys') or []))
         master_amt[m] = master_amt.get(m, 0) + amt
     top_masters = sorted(master_amt.items(), key=lambda x: -x[1])[:5]
-
-    hdr_row = 8
-    for col_letter, txt in [('B', '#'), ('C', 'Master'), ('D', '買進(萬元)'), ('E', '佔比%')]:
-        ws[f'{col_letter}{hdr_row}'] = txt
-        ws[f'{col_letter}{hdr_row}'].font = Font(name='Noto Sans TC', size=10, bold=True)
-        ws[f'{col_letter}{hdr_row}'].fill = _summary_fill('FFF0F0F0')
-    total_all = sum(master_amt.values()) or 1
-    for i, (m, amt) in enumerate(top_masters):
-        r = hdr_row + 1 + i
-        ws[f'B{r}'] = i + 1
-        ws[f'C{r}'] = m
-        ws[f'D{r}'] = round(amt / 10, 0)  # 仟 → 萬
-        ws[f'E{r}'] = f"{amt/total_all*100:.1f}%"
-        ws[f'C{r}'].font = Font(name='Noto Sans TC', size=11, bold=True)
-
-    # Top stocks
     stock_net = {}
     stock_name = {}
     for b in branches_data:
@@ -853,121 +837,114 @@ def build_summary_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: 
             stock_name[c] = s.get('name', '')
     top_stocks = sorted(stock_net.items(), key=lambda x: -x[1])[:5]
 
-    for col_letter, txt in [('F', '#'), ('G', '個股'), ('H', '代號'), ('I', '淨買(萬元)')]:
-        ws[f'{col_letter}{hdr_row}'] = txt
-        ws[f'{col_letter}{hdr_row}'].font = Font(name='Noto Sans TC', size=10, bold=True)
-        ws[f'{col_letter}{hdr_row}'].fill = _summary_fill('FFF0F0F0')
-    for i, (c, net) in enumerate(top_stocks):
-        r = hdr_row + 1 + i
-        ws[f'F{r}'] = i + 1
-        ws[f'G{r}'] = stock_name.get(c, '')
-        ws[f'H{r}'] = c
-        ws[f'I{r}'] = round(net / 10, 0)
+    # headers (兩組並排)
+    for col_letter, txt in [('B', '#'), ('C', 'Master'), ('D', '買進(萬元)'), ('E', '佔比%'),
+                              ('F', '#'), ('G', '個股'), ('H', '代號'), ('I', '淨買(萬元)')]:
+        ws[f'{col_letter}{row}'] = txt
+        ws[f'{col_letter}{row}'].font = hdr_font
+        ws[f'{col_letter}{row}'].fill = hdr_fill
+    row += 1
 
-    # ── Section 3: 籌碼溫度 (signal_engine) ──
+    total_all = sum(master_amt.values()) or 1
+    for i in range(5):
+        m_item = top_masters[i] if i < len(top_masters) else None
+        s_item = top_stocks[i] if i < len(top_stocks) else None
+        if m_item:
+            ws[f'B{row}'] = i + 1
+            ws[f'C{row}'] = m_item[0]
+            ws[f'C{row}'].font = Font(name='Noto Sans TC', size=11, bold=True)
+            ws[f'D{row}'] = round(m_item[1] / 10, 0)
+            ws[f'E{row}'] = f"{m_item[1]/total_all*100:.1f}%"
+        if s_item:
+            ws[f'F{row}'] = i + 1
+            ws[f'G{row}'] = stock_name.get(s_item[0], '')
+            ws[f'H{row}'] = s_item[0]
+            ws[f'I{row}'] = round(s_item[1] / 10, 0)
+        row += 1
+    row += 1
+
+    # 籌碼溫度
     daily_signal = _read_json_safely(data_dir / 'daily_signal.json')
     if daily_signal:
-        ws.merge_cells('B16:I16')
-        s4 = ws['B16']; s4.value = "▍ 籌碼溫度 + 信號"; s4.font = section_font; s4.fill = section_fill
-        s4.alignment = Alignment(horizontal='left', vertical='center', indent=1)
-        ws['B17'] = '溫度等級'
-        ws['C17'] = daily_signal.get('temperature_level', '—')
-        ws['C17'].font = val_font
-        ws['D17'] = '溫度分數'
-        ws['E17'] = daily_signal.get('temperature_score', '—')
-        ws['F17'] = '主信號'
-        ws['G17'] = (daily_signal.get('top_signals') or [{}])[0].get('name', '—') if daily_signal.get('top_signals') else '—'
-        for col_l in ['B17', 'D17', 'F17']:
+        _section_header(ws, row, "▍ D. 籌碼溫度 + 信號", color='FFFDE68A'); row += 1
+        ws[f'B{row}'] = '溫度等級'
+        ws[f'C{row}'] = daily_signal.get('temperature_level', '—')
+        ws[f'C{row}'].font = val_font
+        ws[f'D{row}'] = '溫度分數'
+        ws[f'E{row}'] = daily_signal.get('temperature_score', '—')
+        ws[f'F{row}'] = '主信號'
+        sigs = daily_signal.get('top_signals') or []
+        ws[f'G{row}'] = sigs[0].get('name', '—') if sigs else '—'
+        for col_l in [f'B{row}', f'D{row}', f'F{row}']:
             ws[col_l].font = label_font
             ws[col_l].alignment = Alignment(horizontal='right', vertical='center')
+        row += 1
+    return row
 
 
-def build_alerts_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str,
-                        data_dir: Optional[Path] = None):
-    """E2: 紅綠燈異常警報. 從 daily_trading_signals.json + branches 內 red_flags."""
-    data_dir = data_dir or Path('data')
-    title_font = _summary_font_header()
-    title_fill = _summary_fill('FF7C2D12')   # 暗紅
-    header_font = Font(name='Noto Sans TC', size=11, bold=True)
-    header_fill = _summary_fill('FFFEE2E2')
+def _build_section_alerts(ws, data_dir, start_row):
+    """Section E: 紅綠燈異常警報. Returns next row."""
+    hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
+    hdr_fill = _summary_fill('FFFEE2E2')
 
-    for col, w in [('A', 4), ('B', 14), ('C', 22), ('D', 14), ('E', 50), ('F', 14)]:
-        ws.column_dimensions[col].width = w
-
-    ws.merge_cells('B2:F2')
-    c = ws['B2']
-    c.value = f"🚨 異常警報 — {trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]}"
-    c.font = title_font; c.fill = title_fill
-    c.alignment = Alignment(horizontal='center', vertical='center')
-    ws.row_dimensions[2].height = 28
-
-    # Header
+    row = start_row + 1   # 留一行空白
+    _section_header(ws, row, "▍ E. 異常警報 (anomaly / consensus / accumulation)",
+                     color='FFEF4444'); row += 1
     headers = ['類型', 'Master / 個股', '嚴重度', '說明', '金額(萬)']
     for i, h in enumerate(headers):
-        cell = ws.cell(4, 2 + i, h)
-        cell.font = header_font; cell.fill = header_fill
-        cell.alignment = Alignment(horizontal='center', vertical='center')
+        cell = ws.cell(row, 2 + i, h)
+        cell.font = hdr_font; cell.fill = hdr_fill
+        cell.alignment = Alignment(horizontal='center')
+    row += 1
 
-    # 抓 alerts data
     signals = _read_json_safely(data_dir / 'daily_trading_signals.json')
-    row = 5
+    start_data = row
     if signals:
-        for sig in (signals.get('anomalies') or [])[:20]:
-            ws.cell(row, 2, '異常')
+        for sig in (signals.get('anomalies') or [])[:15]:
+            ws.cell(row, 2, '🔴 異常')
             ws.cell(row, 3, sig.get('master', '—'))
             ws.cell(row, 4, sig.get('severity', 'medium'))
             ws.cell(row, 5, sig.get('description', sig.get('reason', '—')))
             ws.cell(row, 6, sig.get('amount_wan', '—'))
             row += 1
-        for sig in (signals.get('consensus') or [])[:20]:
-            ws.cell(row, 2, '共識')
+        for sig in (signals.get('consensus') or [])[:15]:
+            ws.cell(row, 2, '🟡 共識')
             ws.cell(row, 3, sig.get('stock_name', sig.get('code', '—')))
             ws.cell(row, 4, sig.get('severity', 'medium'))
             ws.cell(row, 5, sig.get('description', f"{sig.get('master_count', '?')} 位高手同買"))
             ws.cell(row, 6, sig.get('total_buy_wan', '—'))
             row += 1
-        for sig in (signals.get('accumulation') or [])[:20]:
-            ws.cell(row, 2, '連續加碼')
+        for sig in (signals.get('accumulation') or [])[:15]:
+            ws.cell(row, 2, '🟢 連續加碼')
             ws.cell(row, 3, f"{sig.get('master', '?')} → {sig.get('stock_name', '?')}")
             ws.cell(row, 4, sig.get('severity', 'medium'))
-            ws.cell(row, 5, sig.get('description',
-                f"連續 {sig.get('days', '?')} 天加碼"))
+            ws.cell(row, 5, sig.get('description', f"連續 {sig.get('days', '?')} 天加碼"))
             ws.cell(row, 6, sig.get('cum_buy_wan', '—'))
             row += 1
-    if row == 5:
-        ws.cell(5, 2, '✅')
-        ws.cell(5, 3, '今日無異常警報')
-        ws.merge_cells('C5:F5')
+    if row == start_data:
+        ws.cell(row, 2, '✅ 今日無異常警報')
+        ws.merge_cells(f'B{row}:F{row}')
+        row += 1
+    return row
 
 
-def build_accumulation_sheet(ws: "Worksheet", trade_date: str,
-                               data_dir: Optional[Path] = None):
-    """E3: 跨日連續囤貨 (master_profile.consecutive_accumulation)."""
-    data_dir = data_dir or Path('data')
-    title_font = _summary_font_header()
-    title_fill = _summary_fill('FF1B5E20')   # 深綠
-    header_font = Font(name='Noto Sans TC', size=11, bold=True)
-    header_fill = _summary_fill('FFE8F5E9')
+def _build_section_accumulation(ws, data_dir, start_row):
+    """Section F: 跨日連續囤貨. Returns next row."""
+    hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
+    hdr_fill = _summary_fill('FFE8F5E9')
 
-    for col, w in [('A', 4), ('B', 16), ('C', 12), ('D', 20), ('E', 12),
-                    ('F', 14), ('G', 14), ('H', 10)]:
-        ws.column_dimensions[col].width = w
-
-    ws.merge_cells('B2:H2')
-    c = ws['B2']
-    c.value = f"📦 跨日連續囤貨 — {trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]}"
-    c.font = title_font; c.fill = title_fill
-    c.alignment = Alignment(horizontal='center', vertical='center')
-    ws.row_dimensions[2].height = 28
-
+    row = start_row + 1
+    _section_header(ws, row, "▍ F. 跨日連續囤貨 (master_profile)",
+                     color='FF10B981'); row += 1
     headers = ['Master', '股票代號', '股票名稱', '連續天數', '截至日期', '累計買金額(萬)', '仍 active']
     for i, h in enumerate(headers):
-        cell = ws.cell(4, 2 + i, h)
-        cell.font = header_font; cell.fill = header_fill
-        cell.alignment = Alignment(horizontal='center', vertical='center')
+        cell = ws.cell(row, 2 + i, h)
+        cell.font = hdr_font; cell.fill = hdr_fill
+        cell.alignment = Alignment(horizontal='center')
+    row += 1
 
     profiles = _read_json_safely(data_dir / 'master_profiles.json')
-    row = 5
+    start_data = row
     if profiles:
         master_profiles = profiles.get('master_profiles') or {}
         all_acc = []
@@ -976,7 +953,7 @@ def build_accumulation_sheet(ws: "Worksheet", trade_date: str,
             for s in (acc.get('accumulation_stocks') or []):
                 all_acc.append({'master': master, **s})
         all_acc.sort(key=lambda x: -x.get('max_consecutive_days', 0))
-        for s in all_acc[:50]:
+        for s in all_acc[:30]:
             ws.cell(row, 2, s['master'])
             ws.cell(row, 3, s.get('stock_code', '—'))
             ws.cell(row, 4, s.get('stock_name', '—'))
@@ -985,92 +962,119 @@ def build_accumulation_sheet(ws: "Worksheet", trade_date: str,
             ws.cell(row, 7, round((s.get('total_buy_amt') or 0) / 10, 0))
             ws.cell(row, 8, '✓' if s.get('is_active') else '')
             row += 1
-    if row == 5:
-        ws.cell(5, 2, '尚無連續囤貨紀錄')
-        ws.merge_cells('B5:H5')
+    if row == start_data:
+        ws.cell(row, 2, '尚無連續囤貨紀錄')
+        ws.merge_cells(f'B{row}:H{row}')
+        row += 1
+    return row
 
 
-def build_risk_sheet(ws: "Worksheet", trade_date: str, data_dir: Optional[Path] = None):
-    """E4: 風險警示 — 注意股 / 借券 Top / 除權息預告."""
-    data_dir = data_dir or Path('data')
-    title_font = _summary_font_header()
-    title_fill = _summary_fill('FF7C2D12')
-    section_font = Font(name='Noto Sans TC', size=11, bold=True, color='FF000000')
-    section_fill = _summary_fill('FFFCD34D')
-    header_font = Font(name='Noto Sans TC', size=10, bold=True)
-    header_fill = _summary_fill('FFF5F5F5')
+def _build_section_risk(ws, data_dir, start_row):
+    """Section G+H+I: 注意股 + 借券 + 除權息. Returns next row."""
+    hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
+    sub_font = Font(name='Noto Sans TC', size=11, bold=True)
 
-    for col, w in [('A', 4), ('B', 12), ('C', 22), ('D', 14), ('E', 14), ('F', 14)]:
-        ws.column_dimensions[col].width = w
-
-    ws.merge_cells('B2:F2')
-    c = ws['B2']
-    c.value = f"⚠️ 風險警示 — {trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]}"
-    c.font = title_font; c.fill = title_fill
-    c.alignment = Alignment(horizontal='center', vertical='center')
-    ws.row_dimensions[2].height = 28
-
-    row = 4
-    # 注意股
+    row = start_row + 1
+    _section_header(ws, row, "▍ G. 注意股", color='FFFB923C'); row += 1
     attention = _read_json_safely(data_dir / 'attention_map.json')
-    ws.merge_cells(f'B{row}:F{row}')
-    s = ws.cell(row, 2, f"▍ 注意股 ({(attention or {}).get('count', 0)} 檔)")
-    s.font = section_font; s.fill = section_fill
-    s.alignment = Alignment(horizontal='left', indent=1)
-    row += 1
     for h_col, h in [('B', '代號'), ('C', '名稱'), ('D', '累計次數'), ('E', '收盤價'), ('F', '本益比')]:
-        cell = ws[f'{h_col}{row}']; cell.value = h; cell.font = header_font; cell.fill = header_fill
+        cell = ws[f'{h_col}{row}']; cell.value = h; cell.font = hdr_font
+        cell.fill = _summary_fill('FFFEF3C7')
         cell.alignment = Alignment(horizontal='center')
     row += 1
-    for code, info in list((attention or {}).get('by_code', {}).items())[:20]:
-        ws.cell(row, 2, code); ws.cell(row, 3, info.get('name', '—'))
-        ws.cell(row, 4, info.get('cumulative_count', 0))
-        ws.cell(row, 5, info.get('close', '—'))
-        ws.cell(row, 6, info.get('pe', '—'))
-        row += 1
-    if not (attention or {}).get('by_code'):
-        ws.cell(row, 2, '今日無注意股'); ws.merge_cells(f'B{row}:F{row}'); row += 1
+    by_code = (attention or {}).get('by_code') or {}
+    if by_code:
+        for code, info in list(by_code.items())[:15]:
+            ws.cell(row, 2, code); ws.cell(row, 3, info.get('name', '—'))
+            ws.cell(row, 4, info.get('cumulative_count', 0))
+            ws.cell(row, 5, info.get('close', '—'))
+            ws.cell(row, 6, info.get('pe', '—'))
+            row += 1
+    else:
+        ws.cell(row, 2, '今日無注意股')
+        ws.merge_cells(f'B{row}:F{row}'); row += 1
 
-    # 借券 Top
     row += 1
+    _section_header(ws, row, "▍ H. 借券賣出 Top 15 (機構級反向力量)", color='FFDC2626'); row += 1
     short_lending = _read_json_safely(data_dir / 'short_lending.json')
-    ws.merge_cells(f'B{row}:F{row}')
-    s = ws.cell(row, 2, "▍ 借券賣出 Top 15 (機構級反向力量)")
-    s.font = section_font; s.fill = section_fill
-    s.alignment = Alignment(horizontal='left', indent=1)
-    row += 1
     for h_col, h in [('B', '代號'), ('C', '名稱'), ('D', '借券張數'), ('E', '融券張數'), ('F', 'ratio')]:
-        cell = ws[f'{h_col}{row}']; cell.value = h; cell.font = header_font; cell.fill = header_fill
+        cell = ws[f'{h_col}{row}']; cell.value = h; cell.font = hdr_font
+        cell.fill = _summary_fill('FFFEE2E2')
         cell.alignment = Alignment(horizontal='center')
     row += 1
-    for item in ((short_lending or {}).get('top_borrow_sell') or [])[:15]:
-        ws.cell(row, 2, item.get('code', '—'))
-        ws.cell(row, 3, item.get('name', '—'))
-        ws.cell(row, 4, item.get('borrow_sell_lot', 0))
-        ws.cell(row, 5, item.get('short_sell_lot', 0))
-        ws.cell(row, 6, item.get('borrow_vs_short_ratio', '—'))
-        row += 1
+    top_borrow = ((short_lending or {}).get('top_borrow_sell') or [])
+    if top_borrow:
+        for item in top_borrow[:15]:
+            ws.cell(row, 2, item.get('code', '—'))
+            ws.cell(row, 3, item.get('name', '—'))
+            ws.cell(row, 4, item.get('borrow_sell_lot', 0))
+            ws.cell(row, 5, item.get('short_sell_lot', 0))
+            ws.cell(row, 6, item.get('borrow_vs_short_ratio', '—'))
+            row += 1
+    else:
+        ws.cell(row, 2, '今日無借券資料')
+        ws.merge_cells(f'B{row}:F{row}'); row += 1
 
-    # 除權息預告
     row += 1
     dividend = _read_json_safely(data_dir / 'dividend_calendar.json')
-    ws.merge_cells(f'B{row}:F{row}')
     upcoming = (dividend or {}).get('upcoming_30d') or []
-    s = ws.cell(row, 2, f"▍ 未來 30 天除權息 ({len(upcoming)} 檔)")
-    s.font = section_font; s.fill = section_fill
-    s.alignment = Alignment(horizontal='left', indent=1)
-    row += 1
+    _section_header(ws, row, f"▍ I. 未來 30 天除權息 ({len(upcoming)} 檔)",
+                     color='FFFBBF24'); row += 1
     for h_col, h in [('B', '除權息日'), ('C', '代號'), ('D', '名稱'), ('E', '類型'), ('F', '現金股利')]:
-        cell = ws[f'{h_col}{row}']; cell.value = h; cell.font = header_font; cell.fill = header_fill
+        cell = ws[f'{h_col}{row}']; cell.value = h; cell.font = hdr_font
+        cell.fill = _summary_fill('FFFEF3C7')
         cell.alignment = Alignment(horizontal='center')
     row += 1
-    for item in upcoming[:20]:
-        ws.cell(row, 2, item.get('ex_date', '—'))
-        ws.cell(row, 3, item.get('code', '—'))
-        ws.cell(row, 4, item.get('name', '—'))
-        ws.cell(row, 5, item.get('type', '—'))
-        ws.cell(row, 6, item.get('cash_dividend', '—'))
-        row += 1
+    if upcoming:
+        for item in upcoming[:15]:
+            ws.cell(row, 2, item.get('ex_date', '—'))
+            ws.cell(row, 3, item.get('code', '—'))
+            ws.cell(row, 4, item.get('name', '—'))
+            ws.cell(row, 5, item.get('type', '—'))
+            ws.cell(row, 6, item.get('cash_dividend', '—'))
+            row += 1
+    else:
+        ws.cell(row, 2, '未來 30 天無除權息')
+        ws.merge_cells(f'B{row}:F{row}'); row += 1
+    return row
+
+
+def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str,
+                            data_dir: Optional[Path] = None):
+    """v3.62.1: 把 E1-E4 4 個 section 全部寫到單一 sheet (用戶要求).
+    順序: A 規模 → B Top master → C Top stocks → D 籌碼溫度
+        → E 異常警報 → F 連續囤貨 → G 注意股 → H 借券 → I 除權息
+    """
+    data_dir = data_dir or Path('data')
+    title_fill = _summary_fill('FF1F2A48')
+    title_font = _summary_font_header()
+
+    for col, w in [('A', 4), ('B', 22), ('C', 18), ('D', 22), ('E', 16),
+                    ('F', 22), ('G', 18), ('H', 22), ('I', 16)]:
+        ws.column_dimensions[col].width = w
+
+    # ── 大標題 ──
+    ws.merge_cells('B2:I2')
+    c = ws['B2']
+    c.value = (f"📋 Chip Radar 今日 Dashboard — "
+                f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]}")
+    c.font = title_font
+    c.fill = title_fill
+    c.alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[2].height = 30
+
+    # ── 各 section ──
+    row = 4
+    row = _build_section_summary(ws, branches_data, trade_date, data_dir, row)
+    row = _build_section_alerts(ws, data_dir, row)
+    row = _build_section_accumulation(ws, data_dir, row)
+    row = _build_section_risk(ws, data_dir, row)
+
+
+# v3.62.0 → v3.62.1 backward compat: 舊 builder name 保留但呼叫 dashboard
+def build_summary_sheet(ws, branches_data, trade_date, data_dir=None):
+    """DEPRECATED v3.62.1: 用戶要求合 dashboard. 此 fn 仍 alias 給 build_dashboard_sheet."""
+    return build_dashboard_sheet(ws, branches_data, trade_date, data_dir)
 
 
 def apply_pnl_color_scale(ws: "Worksheet", first_row: int, last_row: int, col_letter: str = 'L'):
@@ -1115,26 +1119,26 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     except Exception as _cse:
         print(f"  [Excel] E5 color scale 失敗: {type(_cse).__name__}: {_cse}")
 
-    # v3.62.0 (E1-E4): rebuild 4 enrichment sheets (覆蓋舊版本)
-    data_dir = monthly_path.parent.parent if monthly_path.parent.name == 'reports' else Path('data')
-    for sn, builder in [
-        (SUMMARY_SHEET_NAME, lambda w: build_summary_sheet(w, branches_data, trade_date, data_dir)),
-        (ALERTS_SHEET_NAME, lambda w: build_alerts_sheet(w, branches_data, trade_date, data_dir)),
-        (ACCUMULATION_SHEET_NAME, lambda w: build_accumulation_sheet(w, trade_date, data_dir)),
-        (RISK_SHEET_NAME, lambda w: build_risk_sheet(w, trade_date, data_dir)),
-    ]:
-        if sn in wb.sheetnames:
-            wb.remove(wb[sn])
-        new_ws = wb.create_sheet(title=sn)
-        try:
-            builder(new_ws)
-        except Exception as _be:
-            print(f"  [Excel] enrichment sheet {sn} build 失敗: {type(_be).__name__}: {_be}")
+    # v3.62.1: 清舊版本殘留 (從 v3.62.0 升級時) — 4 個舊 sheet 移除
+    for legacy_name in LEGACY_ENRICHMENT_NAMES:
+        if legacy_name in wb.sheetnames:
+            wb.remove(wb[legacy_name])
 
-    # 排序: enrichment sheets 在前, 日期 sheets 按 desc
-    enrichment_in_wb = [s for s in ENRICHMENT_SHEETS if s in wb.sheetnames]
-    date_sheets = sorted([s for s in wb.sheetnames if s not in ENRICHMENT_SHEETS], reverse=True)
-    wb._sheets = [wb[name] for name in enrichment_in_wb + date_sheets]
+    # v3.62.1: rebuild 1 個 dashboard sheet (E1-E4 全 section)
+    data_dir = monthly_path.parent.parent if monthly_path.parent.name == 'reports' else Path('data')
+    if DASHBOARD_SHEET_NAME in wb.sheetnames:
+        wb.remove(wb[DASHBOARD_SHEET_NAME])
+    dashboard_ws = wb.create_sheet(title=DASHBOARD_SHEET_NAME)
+    try:
+        build_dashboard_sheet(dashboard_ws, branches_data, trade_date, data_dir)
+    except Exception as _be:
+        print(f"  [Excel] dashboard sheet build 失敗: {type(_be).__name__}: {_be}")
+
+    # 排序: dashboard 在前, 日期 sheets 按 desc
+    other_sheets = sorted([s for s in wb.sheetnames if s != DASHBOARD_SHEET_NAME],
+                            reverse=True)
+    order = ([DASHBOARD_SHEET_NAME] if DASHBOARD_SHEET_NAME in wb.sheetnames else []) + other_sheets
+    wb._sheets = [wb[name] for name in order]
 
     wb.save(str(monthly_path))
 
