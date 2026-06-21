@@ -1,7 +1,16 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.32.4 ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.51.0(2026-06-21) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
+
+v3.40-v3.51 機構級升級重點(Sprint 1-13):
+- **B1-B6**:masters_roster owner trail / algo_params 凍結 / _meta metadata / 樣本不足三檔標籤 / ToS 合規 + safe_fetch 指數退避 / manipulation_flags 操縱偵測
+- **C1-C7**:EventLogger SIEM-ready JSONL / ReasoningChain dataclass / keyboard shortcuts / CSV export 4 button
+- **C2 backtest**:Phase B hit_rate 二元判定(揭穿 TAIEX 100% 全正 data bug + 修)
+- **Tier 1**:後端最痛(stock_history 60 天 / disposal 7-day fallback / safe_fetch 全 migrate)
+- **Tier 2 競品 gap**:注意股 / 借券 / 除權息 / 主力成本線(4 個 fetcher + 前端 chip)
+- **重整**:crawler.py main 拆 9 helper(1225→1022 行) / **root 110+ → 7 .py(機構級重整)**
 
 ---
 
@@ -35,7 +44,7 @@ Chip Radar 是「台股籌碼分析專家」
 
 ---
 
-## 核心功能（14 個 Tab）
+## 核心功能（15 個 Tab）
 
 ### 即時籌碼分析
 | Tab | 功能 | 資料來源 |
@@ -55,17 +64,14 @@ Chip Radar 是「台股籌碼分析專家」
 ### 進階分析
 | Tab | 功能 |
 |-----|------|
-| 08 | 融資融券 |
+| 08 | 融資融券（含維持率三級警示 + 高風險 Top 30） |
 | 09 | 漲停狙擊（分點分析） |
-| 10 | 個股追蹤（個股+產業+大盤 三線圖） |
+| **10** | **個股追蹤 + Tier 2 chip**(v3.48.0):💰 主力成本 5d/20d + premium% / 📅 除權息 D-N / 🔻 借券量 + ratio / ⚠️ 注意股累計次數 |
 | 11 | 高手 master |
 | 12 | 操作日報 |
-| 13 | 自選股 |
-
-### 大戶深度分析（v3.30.8+）
-| Tab | 功能 |
-|-----|------|
-| **14** | **大戶畫像** — 29 master × 15 標籤 + Level 1/2/3 分層 + 策略色碼 + 派系面板 + T+1 跨日追蹤 + 實戰信號 |
+| 13 | 大戶畫像 — 29 master × 15 標籤 + Level 1/2/3 分層 + 策略色碼 + 派系面板 + T+1 跨日追蹤 + 實戰信號 |
+| 14 | 處置股持倉追蹤 + 6 天歷史 |
+| 15 | TDCC 集保大戶（≥400 張 movers + 持股結構） |
 
 ---
 
@@ -82,52 +88,78 @@ Chip Radar 是「台股籌碼分析專家」
 | 期貨商品 | TXF + MXF + TMF |
 | 歷史窗口 | 60 天滾動（hot/warm/cold 三層） |
 | DB | SQLite OLAP（7 tables + 4 views + 8 indexes） |
-| Tab 數量 | **14 個** |
-| 測試套件 | 26 套 / 200+ case |
+| Tab 數量 | **15 個** |
+| 測試套件 | **41 套** / 400+ case |
+| 後端模組 | **60 個**(src/* 8 大類) + 6 entry points |
+| 新 fetcher(v3.46+) | TWSE 1980 檔上市櫃 / 注意股 / 借券+融券 / 除權息 |
 
 ---
 
 ## 技術架構
 
-### 後端（~40 個 Python 模組）
+### 後端（60 模組,機構級 Data Analyst 分層）
 
 ```
-核心 (crawler 主流程)
-├── crawler.py           主編排器 (~3100 行), 9 階段 + DB + archive + master_profile + signals
-├── branches.py          81 watched branches + 51 MASTER_STYLES + co_masters
-├── institutional.py     三大法人 (TWSE + TPEx)
-├── margin.py            融資融券
-├── futures.py           TAIFEX 期貨選擇權 (~970 行)
-├── insiders.py          MOPS 董監持股 + 重大訊息
-├── history.py           30 天歷史累積
+root (7 個 entry points)
+├── crawler.py              主編排 (~1022 行 main(), 抽 9 個 _post_*/_stage_* helper)
+├── heartbeat_check.py      資料新鮮度心跳
+├── tdcc_holdings.py        TDCC 集保大戶
+├── intraday_settlement.py  盤後 13:35 即時結算
+├── pre_market_brief.py     盤前 08:00 大事曆+夜盤
+└── weekly_summary.py       週五 14:30 高手調整+績效
 
-分析層
-├── master_profile.py    29 master × 15 標籤 + per-branch + Level 1/2/3
-├── master_alliance.py   Jaccard 同向率 + 派系 union-find
-├── cross_day_tracker.py T+1 跨日追蹤
-├── daily_signals.py     實戰信號 (異常+共識+加碼)
-├── trade_pattern.py     規則式模式分類 + narrative
-├── signal_engine.py     backtest 信號加權引擎
-├── price_utils.py       tick-size 精確漲停價
+src/fetchers/ (13) — 抓資料層
+├── safe_fetch              指數退避 + per-source 軟性配額 + ResponseTooLargeError
+├── attention_fetcher       TWSE 注意股 (v3.46.0)
+├── short_lending_fetcher   TWSE TWTASU 借券+融券 (v3.46.0)
+├── dividend_fetcher        TWSE TWT48U 除權息預告 + ROC 日期轉換 (v3.46.0)
+├── listing_fetcher         TWSE+TPEx 1980 檔上市櫃 + first_listed (v3.45.0)
+├── disposal_fetcher        chengwaye 處置股 + 7 天 stale fallback (v3.44.0)
+├── institutional / margin / futures / insiders
+├── industry_classifier / market_classifier
+└── history                 60 天滾動 (v3.44.0 從 30 天延長)
 
-DB + 資料管理
-├── db_pipeline.py       SQLite OLAP (7 tables + 4 views + 8 indexes)
-├── db_excel_import.py   Excel backup source + cross-validate
-├── archive_manager.py   hot/warm/cold 三層 (7天/60天)
-├── disposal_fetcher.py  chengwaye 處置股 + 歷史快照
-├── query_db.py          SQL wrapper
+src/analyzers/ (11) — 分析層
+├── master_profile          29 master × 15 標籤 + per-branch + Level 1/2/3 + 時間衰減
+├── master_alliance         Jaccard 同向率 + 派系 union-find
+├── master_performance / cross_day_tracker / trade_pattern
+├── manipulation_flags      操縱/對敲/出貨偵測 (v3.40.0)
+├── disposal_holdings / margin_maintenance
+├── main_force_cost         主力成本線 5d/20d + premium% (v3.46.0)
+└── signal_engine           backtest 信號加權 + regime guard
 
-驗證工具 (12 個)
-├── stress_test_data_integrity.py  5 invariant 壓力測試
-├── histock_branch_audit.py        個股×分點 histock 反向 cross-check
-├── heartbeat_check.py             資料新鮮度心跳
-├── auto_audit.py / excel_full_audit.py / excel_content_audit.py
-├── stock_cross_check.py / margin_cross_check.py / insider_cross_check.py
-└── safe_fetch.py                  HTTP size limit defense
+src/pipelines/ (6) — 編排層
+├── crawler_fetch / crawler_pipeline / crawler_output  (B1 拆三層)
+├── db_pipeline             SQLite OLAP (7 tables / 4 views / 8 indexes)
+├── archive_manager         hot/warm/cold 三層 (7天/60天)
+└── reports                 週報/月報
 
-輸出
-├── excel_report.py      月檔 Excel + master 色塊 (29 master 暖/冷/灰色系)
-└── reports.py           週報/月報
+src/backtest/ (3) — 回測層
+├── backtester              個股 alpha 回測
+├── backtester_phase_b      hit_rate 二元 ENABLE/DISABLE/INSUFFICIENT (v3.42.0)
+└── backfill_market_history TAIEX next_day backfill 修正
+
+src/audit/ (12) — 稽核層
+├── audit_branches / audit_margin / auto_audit / signal_audit
+├── excel_content_audit / excel_full_audit
+├── histock_branch_audit / histock_verifier
+├── insider_cross_check / margin_cross_check / stock_cross_check
+└── stress_test_data_integrity  5 invariant 壓力測試
+
+src/alerts/ (3) — 警報層
+├── alerts                  推播警報 + dry-run
+├── daily_signals           實戰信號 (異常+共識+加碼)
+└── event_logger            SIEM-ready JSONL (v3.41.0 C1)
+
+src/exports/ (4) — 輸出層
+├── excel_report            月檔 + 29 master 色塊
+├── reasoning               ReasoningChain dataclass (v3.41.0 C3)
+├── backfill_to_monthly / db_excel_import
+
+src/core/ (3) — 共用工具
+├── branches                81 watched + 29 MASTER_STYLES + co_masters
+├── price_utils             tick-size 精確漲停價
+└── query_db                SQL wrapper
 ```
 
 ### 前端
@@ -162,14 +194,20 @@ data/
 ├── latest.json                加密+gzip (當日, 網站讀)
 ├── YYYYMMDD.json              加密 (hot, 最近 7 天)
 ├── archive/                   加密 (warm, 7-60 天)
-├── stock_history.json         30 天個股 close + 期貨 + 大盤 (未加密)
+├── stock_history.json         60 天個股 close + 期貨 + 大盤 (v3.44+ 從 30 天延長)
 ├── temp_history.json          60 天信號歷史
 ├── master_profiles.json       29 master × 15 標籤 + 聯動 + 信號 (未加密)
 ├── daily_trading_signals.json 實戰信號 (異常+共識+加碼)
 ├── daily_audit.json           auto_audit verdict
 ├── daily_signal.json          signal_engine 輸出
-├── disposal_map.json          處置股 cache (TTL 1 天)
+├── backtest_phase_b_results.json  Phase B hit_rate 二元判定 (v3.42+)
+├── disposal_map.json          處置股 cache (TTL 1 天, 7 天 stale fallback)
 ├── disposal_history/          每日處置快照 YYYYMMDD.json
+├── attention_map.json         TWSE 注意股 (v3.46+)
+├── short_lending.json         TWSE 借券+融券 (v3.46+)
+├── dividend_calendar.json     TWSE 除權息預告 + upcoming_30d (v3.46+)
+├── listing_history.json       TWSE+TPEx 1980 檔上市櫃 (v3.45+)
+├── masters_roster.json        高手分點 owner trail (v3.40+ B1)
 ├── industry_map.json          產業分類 (7 天 cache)
 ├── chip_radar_v2.db           SQLite OLAP (本機, .gitignore)
 ├── reports/
@@ -223,6 +261,25 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
+| **v3.51.0** | 6/21 | **Sprint 13 機構級 Data Analyst 重整** — root 110+→7 .py / src/ 8 大類 / tests+docs 分離 |
+| v3.50.0 | 6/20 | Sprint 12 後2 main() 抽 3 pure-read stage helper (1090→1022 行) |
+| v3.49.0 | 6/19 | Sprint 11 運1 trigger_chip_radar.ps1 入庫 (Tier 3 維運) |
+| v3.48.0 | 6/19 | **Sprint 10 Tier 2 整合** — Tab 10 加 4 chip (主力成本/除權息/借券/注意股) |
+| v3.47.0 | 6/19 | Sprint 9 後2 crawler.py 後處理 6 helper 抽出 (main 1225→1090) |
+| v3.46.0 | 6/19 | **Sprint 8 Tier 2 4 fetcher** — 注意股 / 借券+融券 / 除權息預告 / 主力成本線 |
+| v3.45.0 | 6/19 | Sprint 7 Tier 1 — TAIEX 重複日 / 謝孟恭 9676 / listing_fetcher 1980 檔 |
+| v3.44.0 | 6/19 | Sprint 6 後端最痛 — stock_history 60 天 / disposal 7-day fallback / safe_fetch 全 migrate |
+| v3.43.0 | 6/18 | TAIEX 100% 全正 data bug 修 + backfill 30 天歷史 + C8 survivorship hook |
+| v3.42.0 | 6/18 | Sprint 5 C2 Phase B backtest hit_rate 二元判定 (≥55 enable / <45 disable) |
+| v3.41.0 | 6/18 | Sprint 4 — C1 EventLogger SIEM JSONL / C3 ReasoningChain / C6+C7 鍵盤+CSV / 4 workflow |
+| v3.40.0 | 6/18 | Sprint 3 機構級 P0 — masters_roster / algo_params / _meta / B4 三檔標籤 / safe_fetch backoff / manipulation_flags |
+| v3.39.0 | 6/17 | Sprint 2 P1 — PBKDF2 動態 / fetch timeout / DocumentFragment / tab 視覺優先級 |
+| v3.38.0 | 6/16 | Sprint 1 P0 — 7 fixes(timezone/silent_corruption/SCHEMA/cache_invalidation/ZeroDiv/dedup/CI) |
+| v3.37.0 | 6/16 | margin 維持率估算 + TDCC 400 張大戶 + tab 15 持股結構 |
+| v3.36.0 | 6/15 | B5 處置股持倉追蹤 + tab 14 disposal_holdings |
+| v3.35.0 | 6/15 | B1 crawler.py 拆 fetch/pipeline/output 三層 |
+| v3.34.0 | 6/14 | M5 audit_history 趨勢化 + B6 族群輪動 |
+| v3.33.0 | 6/13 | B3 master_profile 時間衰減 + B2 Tab 14 排序+篩選 |
 | v3.32.4 | 6/6 | GitHub Actions Node.js 20→24 升級（6/16 deadline） |
 | v3.32.3 | 6/6 | 自動回補機制 + 期貨歷史補齊 |
 | v3.32.1 | 6/6 | 修 Python 3.12 `import history` scope bug |
