@@ -9681,12 +9681,23 @@ function buildStockIndex(branches, onlyWatched, rankType, side) {
     if (!list) continue;
     for (const s of list) {
       if (!passMarketFilter(s, 'overview')) continue;
-      
+
       const hasAmt = (s.buy_amt || 0) > 0 || (s.sell_amt || 0) > 0;
       const hasLot = (s.buy_lot || 0) > 0 || (s.sell_lot || 0) > 0;
       if (rankType === 'amount' && !hasAmt) continue;
       if (rankType === 'lots' && !hasLot) continue;
-      
+
+      // v3.63.3 嚴格淨買 / 淨賣過濾 — 排除 false positive
+      // 修補前: 分點「買 200 萬 / 賣 250 萬 (淨賣 50 萬)」因為在 buys top-15 仍被算共買
+      // 修補後: 嚴格要求 side='buy' → net>0, side='sell' → net<0
+      // 對齊 Dashboard Section 0 邏輯 + 使用者 spec「兩個分點有買超」
+      const sNetAmt = (s.net_amt !== undefined ? s.net_amt : s.net) || 0;
+      const sNetLot = s.net_lot || 0;
+      // 用張數榜時用 lot 判斷, 用金額榜時用 amount 判斷 (對齊排序維度)
+      const netForFilter = rankType === 'lots' ? sNetLot : sNetAmt;
+      if (side === 'buy' && netForFilter <= 0) continue;
+      if (side === 'sell' && netForFilter >= 0) continue;
+
       const key = s.code + '::' + s.name;
       if (!map.has(key)) {
         map.set(key, {

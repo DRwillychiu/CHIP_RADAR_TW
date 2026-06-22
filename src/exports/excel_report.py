@@ -277,6 +277,22 @@ MASTER_MAPPING: List[Dict] = [
 ]
 
 
+# v3.63.2: Dashboard 追蹤範圍 — 嚴格鎖定 MASTER_MAPPING 內的大戶
+# 使用者要求: 沒放在 Excel 每日籌碼分點觀察清單 (= MASTER_MAPPING) 中的大戶,
+# 絕對禁止出現在 Dashboard.
+TRACKED_MASTERS: set = {m["name"] for m in MASTER_MAPPING}
+
+
+def _is_tracked_master(name: Optional[str]) -> bool:
+    """Dashboard filter: 該 master 是否在每日 Excel 追蹤清單內."""
+    return bool(name) and name in TRACKED_MASTERS
+
+
+def _filter_tracked_branches(branches_data: List[Dict]) -> List[Dict]:
+    """只保留 master 在追蹤清單內的 branch."""
+    return [b for b in branches_data if _is_tracked_master(b.get('master'))]
+
+
 # ============================================================
 #  Layout constants (matching manual file exactly)
 # ============================================================
@@ -780,6 +796,119 @@ def _section_header(ws, row: int, title: str, span_cols: int = 9, color: str = '
     ws.row_dimensions[row].height = 22
 
 
+def _build_section_consensus(ws, branches_data, data_dir, start_row):
+    """v3.63.2 ★ Section 0: 今日追蹤大戶共同買超 (置於 Dashboard 最前).
+
+    定義: ≥2 個追蹤清單內「分點」淨買 > 0 同一檔股票即視為共識.
+    (同一大戶不同分點也算 — 例如 民哥 同時用 台新-五權西 + 富邦-南屯 買 2330)
+
+    精準度做法: 不讀預算 signals.consensus (含非追蹤大戶), 而是從 branches_data
+              (已過濾為追蹤範圍) 獨立計算 net_amt > 0 by branch by stock,
+              100% 對齊使用者實際追蹤的分點.
+
+    排序: 同買分點數 desc → 涉及大戶數 desc → 合計淨買 desc.
+    取 Top 15.
+    """
+    hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
+    sub_font = Font(name='Noto Sans TC', size=11, bold=True)
+    hdr_fill = _summary_fill('FFFEE2E2')   # 淡紅 = high attention
+    rank_fill_top = _summary_fill('FFFEF3C7')  # 金 = top 3
+
+    row = start_row
+    _section_header(ws, row, "★ 0. 今日共同買超 (≥2 個追蹤分點淨買 — 必看)",
+                     color='FFDC2626'); row += 1
+
+    # Build code -> {name, branches: [{branch_code, branch_name, master, net_amt}]}
+    stock_map: Dict[str, Dict] = {}
+    for b in branches_data:
+        m = b.get('master')
+        if not m:
+            continue
+        b_code = b.get('code', '')
+        b_name = b.get('name', '')
+        for s in (b.get('buys') or []) + (b.get('sells') or []):
+            code = s.get('code')
+            if not code:
+                continue
+            buy_amt = s.get('buy_amt') or 0
+            sell_amt = s.get('sell_amt') or 0
+            net_amt = buy_amt - sell_amt
+            if net_amt <= 0:
+                continue   # 必須該分點該股淨買超
+            entry = stock_map.setdefault(code, {
+                'name': s.get('name', ''),
+                'branches': [],   # 每個分點一筆 (允許同 master 多分點)
+            })
+            if not entry['name'] and s.get('name'):
+                entry['name'] = s.get('name')
+            entry['branches'].append({
+                'branch_code': b_code,
+                'branch_name': b_name,
+                'master': m,
+                'net_amt': net_amt,
+            })
+
+    # 過濾: ≥2 個分點
+    consensus_list = []
+    for code, info in stock_map.items():
+        if len(info['branches']) >= 2:
+            total_net = sum(br['net_amt'] for br in info['branches'])
+            master_set = {br['master'] for br in info['branches']}
+            consensus_list.append({
+                'code': code,
+                'name': info['name'],
+                'branches': info['branches'],
+                'branch_count': len(info['branches']),
+                'master_count': len(master_set),
+                'masters': master_set,
+                'total_net_amt': total_net,
+            })
+    consensus_list.sort(key=lambda x: (-x['branch_count'], -x['master_count'],
+                                       -x['total_net_amt']))
+
+    # Headers
+    for h_col, h in [('B', '#'), ('C', '代號'), ('D', '名稱'),
+                      ('E', '同買分點數'), ('F', '涉及大戶數'),
+                      ('G', '大戶清單'), ('H', '合計淨買(萬)'),
+                      ('I', '分點明細')]:
+        cell = ws[f'{h_col}{row}']
+        cell.value = h; cell.font = hdr_font; cell.fill = hdr_fill
+        cell.alignment = Alignment(horizontal='center')
+    row += 1
+
+    start_data = row
+    for i, item in enumerate(consensus_list[:15]):
+        c_b = ws.cell(row, 2, i + 1)
+        if i < 3:
+            c_b.fill = rank_fill_top
+            c_b.font = sub_font
+        ws.cell(row, 3, item['code'])
+        ws.cell(row, 4, item['name'] or '—')
+        c_e = ws.cell(row, 5, item['branch_count'])
+        c_e.font = sub_font
+        ws.cell(row, 6, item['master_count'])
+        # 大戶清單 (按該大戶在此股總 net_amt 排序)
+        master_total = {}
+        for br in item['branches']:
+            master_total[br['master']] = master_total.get(br['master'], 0) + br['net_amt']
+        masters_sorted = sorted(master_total.items(), key=lambda kv: -kv[1])
+        ws.cell(row, 7, ' / '.join(m for m, _ in masters_sorted))
+        # 合計淨買 (千元 → 萬)
+        ws.cell(row, 8, int(round(item['total_net_amt'] / 10)))
+        # 分點明細 (分點名稱(master):萬, 按 net_amt desc)
+        brs_sorted = sorted(item['branches'], key=lambda x: -x['net_amt'])
+        detail = ' | '.join(f"{br['branch_name']}({br['master']}):{int(round(br['net_amt']/10))}萬"
+                            for br in brs_sorted)
+        ws.cell(row, 9, detail)
+        row += 1
+    if row == start_data:
+        ws.cell(row, 2, '⚪ 今日無 ≥2 追蹤分點同買的個股')
+        ws.merge_cells(f'B{row}:I{row}')
+        row += 1
+    row += 1   # 空一行
+    return row
+
+
 def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row):
     """Section A: 規模統計 + Top 5 master + Top 5 個股 + 籌碼溫度.
     Returns: next available row."""
@@ -909,71 +1038,111 @@ def _build_section_alerts(ws, data_dir, start_row):
     signals = _read_json_safely(data_dir / 'daily_trading_signals.json')
     start_data = row
     if signals:
-        for sig in (signals.get('anomalies') or [])[:15]:
+        # v3.63.2: 修 4 個資料結構 bug + 追蹤範圍 filter
+        # (1) anomalies: amount_wan -> today_buy_amt_wan, 過濾非追蹤 master
+        anomalies = [s for s in (signals.get('anomalies') or [])
+                     if _is_tracked_master(s.get('master'))][:15]
+        for sig in anomalies:
             ws.cell(row, 2, '🔴 異常')
             ws.cell(row, 3, sig.get('master', '—'))
-            ws.cell(row, 4, sig.get('severity', 'medium'))
-            ws.cell(row, 5, sig.get('description', sig.get('reason', '—')))
-            ws.cell(row, 6, sig.get('amount_wan', '—'))
+            ws.cell(row, 4, _severity_from_z(sig.get('z_score')))
+            ws.cell(row, 5, sig.get('description', '—'))
+            ws.cell(row, 6, _round_safe(sig.get('today_buy_amt_wan')))
             row += 1
-        for sig in (signals.get('consensus') or [])[:15]:
+        # (2) consensus: 結構是 faction_members list + buyer_count/total_buy_amt_wan;
+        #     至少一位追蹤 master 在 faction_members 才顯示
+        consensus_filtered = []
+        for s in (signals.get('consensus') or []):
+            members = s.get('faction_members') or []
+            tracked_in_faction = [m for m in members if _is_tracked_master(m)]
+            if tracked_in_faction:
+                consensus_filtered.append((s, tracked_in_faction))
+        for sig, tracked in consensus_filtered[:15]:
             ws.cell(row, 2, '🟡 共識')
-            ws.cell(row, 3, sig.get('stock_name', sig.get('code', '—')))
-            ws.cell(row, 4, sig.get('severity', 'medium'))
-            ws.cell(row, 5, sig.get('description', f"{sig.get('master_count', '?')} 位高手同買"))
-            ws.cell(row, 6, sig.get('total_buy_wan', '—'))
+            ws.cell(row, 3, sig.get('stock_code', '—'))
+            ws.cell(row, 4, 'high' if sig.get('buyer_count', 0) >= 5 else 'medium')
+            ws.cell(row, 5,
+                    sig.get('description',
+                            f"{sig.get('buyer_count', '?')} 位高手同買 (追蹤內:{len(tracked)})"))
+            ws.cell(row, 6, _round_safe(sig.get('total_buy_amt_wan')))
             row += 1
-        for sig in (signals.get('accumulation') or [])[:15]:
+        # (3) accumulations (複數): 過濾追蹤 master, 改用正確欄位名
+        acc_list = [s for s in (signals.get('accumulations') or [])
+                    if _is_tracked_master(s.get('master'))][:15]
+        for sig in acc_list:
             ws.cell(row, 2, '🟢 連續加碼')
-            ws.cell(row, 3, f"{sig.get('master', '?')} → {sig.get('stock_name', '?')}")
-            ws.cell(row, 4, sig.get('severity', 'medium'))
-            ws.cell(row, 5, sig.get('description', f"連續 {sig.get('days', '?')} 天加碼"))
-            ws.cell(row, 6, sig.get('cum_buy_wan', '—'))
+            ws.cell(row, 3, f"{sig.get('master', '?')} → {sig.get('stock_code', '?')}")
+            days = sig.get('consecutive_days', 0)
+            ws.cell(row, 4, 'high' if days >= 10 else 'medium')
+            ws.cell(row, 5, sig.get('description', f"連續 {days} 天加碼"))
+            ws.cell(row, 6, _round_safe(sig.get('total_buy_amt_wan')))
             row += 1
     if row == start_data:
-        ws.cell(row, 2, '✅ 今日無異常警報')
+        ws.cell(row, 2, '✅ 今日無異常警報 (追蹤範圍內)')
         ws.merge_cells(f'B{row}:F{row}')
         row += 1
     return row
 
 
+def _severity_from_z(z_score) -> str:
+    """v3.63.2: z_score -> severity 標籤 (anomaly 用)."""
+    try:
+        z = abs(float(z_score or 0))
+        if z >= 3.0: return 'high'
+        if z >= 2.0: return 'medium'
+        return 'low'
+    except (TypeError, ValueError):
+        return 'medium'
+
+
+def _round_safe(v):
+    """v3.63.2: 安全 round int(萬), 失敗回 '—'."""
+    try:
+        return int(round(float(v)))
+    except (TypeError, ValueError):
+        return '—'
+
+
 def _build_section_accumulation(ws, data_dir, start_row):
-    """Section F: 跨日連續囤貨. Returns next row."""
+    """Section F: 跨日連續囤貨 (top 30 by 連續天數). Returns next row.
+
+    v3.63.2: 兩 bug 修復
+      (a) 舊版讀 master_profiles.json 的 master_profiles.<m>.op.consecutive_accumulation
+          → 結構已重構, 改讀 daily_trading_signals.json 的 accumulations (與 Section E 同源)
+      (b) 過濾非追蹤 master
+    與 Section E 差異: E 顯示 top 15 (新鮮事), F 顯示 top 30 + 按天數深排序 (深度表).
+    """
     hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
     hdr_fill = _summary_fill('FFE8F5E9')
 
     row = start_row + 1
-    _section_header(ws, row, "▍ F. 跨日連續囤貨 (master_profile)",
+    _section_header(ws, row, "▍ F. 跨日連續囤貨 Top 30 (按連續天數排序)",
                      color='FF10B981'); row += 1
-    headers = ['Master', '股票代號', '股票名稱', '連續天數', '截至日期', '累計買金額(萬)', '仍 active']
+    # v3.63.2: headers 改為實際存在的欄位 (移除 stock_name/latest_date/is_active —
+    # daily_trading_signals.json accumulations 沒這些欄位)
+    headers = ['Master', '股票代號', '連續天數', '累計買金額(萬)', '說明']
     for i, h in enumerate(headers):
         cell = ws.cell(row, 2 + i, h)
         cell.font = hdr_font; cell.fill = hdr_fill
         cell.alignment = Alignment(horizontal='center')
     row += 1
 
-    profiles = _read_json_safely(data_dir / 'master_profiles.json')
+    signals = _read_json_safely(data_dir / 'daily_trading_signals.json')
     start_data = row
-    if profiles:
-        master_profiles = profiles.get('master_profiles') or {}
-        all_acc = []
-        for master, p in master_profiles.items():
-            acc = (p.get('op') or {}).get('consecutive_accumulation') or {}
-            for s in (acc.get('accumulation_stocks') or []):
-                all_acc.append({'master': master, **s})
-        all_acc.sort(key=lambda x: -x.get('max_consecutive_days', 0))
-        for s in all_acc[:30]:
-            ws.cell(row, 2, s['master'])
+    if signals:
+        acc_list = [s for s in (signals.get('accumulations') or [])
+                    if _is_tracked_master(s.get('master'))]
+        acc_list.sort(key=lambda x: -x.get('consecutive_days', 0))
+        for s in acc_list[:30]:
+            ws.cell(row, 2, s.get('master', '—'))
             ws.cell(row, 3, s.get('stock_code', '—'))
-            ws.cell(row, 4, s.get('stock_name', '—'))
-            ws.cell(row, 5, s.get('max_consecutive_days', 0))
-            ws.cell(row, 6, s.get('latest_date', '—'))
-            ws.cell(row, 7, round((s.get('total_buy_amt') or 0) / 10, 0))
-            ws.cell(row, 8, '✓' if s.get('is_active') else '')
+            ws.cell(row, 4, s.get('consecutive_days', 0))
+            ws.cell(row, 5, _round_safe(s.get('total_buy_amt_wan')))
+            ws.cell(row, 6, s.get('description', '—'))
             row += 1
     if row == start_data:
-        ws.cell(row, 2, '尚無連續囤貨紀錄')
-        ws.merge_cells(f'B{row}:H{row}')
+        ws.cell(row, 2, '尚無連續囤貨紀錄 (追蹤範圍內)')
+        ws.merge_cells(f'B{row}:F{row}')
         row += 1
     return row
 
@@ -1123,6 +1292,9 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     title_fill = _summary_fill('FF1F2A48')
     title_font = _summary_font_header()
 
+    # v3.63.2: 嚴格只保留追蹤清單內的大戶 (MASTER_MAPPING)
+    branches_data = _filter_tracked_branches(branches_data)
+
     for col, w in [('A', 4), ('B', 22), ('C', 18), ('D', 22), ('E', 16),
                     ('F', 22), ('G', 18), ('H', 22), ('I', 16)]:
         ws.column_dimensions[col].width = w
@@ -1131,7 +1303,8 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     ws.merge_cells('B2:I2')
     c = ws['B2']
     c.value = (f"📋 Chip Radar 今日 Dashboard — "
-                f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]}")
+                f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]} "
+                f"(追蹤 {len(TRACKED_MASTERS)} 位大戶)")
     c.font = title_font
     c.fill = title_fill
     c.alignment = Alignment(horizontal='center', vertical='center')
@@ -1139,6 +1312,8 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
 
     # ── 各 section ──
     row = 4
+    # v3.63.2: ★ Section 0 — 今日共同買超 (置於最前, 使用者最關注)
+    row = _build_section_consensus(ws, branches_data, data_dir, row)
     row = _build_section_summary(ws, branches_data, trade_date, data_dir, row)
     row = _build_section_alerts(ws, data_dir, row)
     row = _build_section_accumulation(ws, data_dir, row)
