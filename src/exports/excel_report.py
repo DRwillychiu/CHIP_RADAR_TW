@@ -366,7 +366,8 @@ def _is_excluded_by_market_type(stock: Dict) -> bool:
 
 NUMBER_FMT_INT = "#,##0"
 NUMBER_FMT_PRICE = "0.00"
-NUMBER_FMT_PNL = '0.00_ ;[Red]\\-0.00\\ '
+# v3.64.0: 純數字 + 千分位 (不靠 format color, 由 font color 處理)
+NUMBER_FMT_PNL = '#,##0.00;-#,##0.00'
 
 
 def _font_bold() -> Font:
@@ -377,12 +378,14 @@ def _font_normal() -> Font:
     return Font(name=FONT_NAME, size=FONT_SIZE, bold=False)
 
 
+# v3.64.0: L 欄損益高對比色 (取代 v3.63.1 紅綠色塊 + 白字, 用戶反饋 master block 色底上看不清)
+# 台股傳統: 紅 = 賺 (正), 綠 = 虧 (負). 字色設深色, 不靠 cell fill, 跟 master block 不衝突
 def _font_pnl_neg() -> Font:
-    return Font(name=FONT_NAME, size=FONT_SIZE, bold=True, color="FF000000")
+    return Font(name=FONT_NAME, size=FONT_SIZE, bold=True, color="FF2E7D32")  # 深綠
 
 
 def _font_pnl_pos() -> Font:
-    return Font(name=FONT_NAME, size=FONT_SIZE, bold=True, color="FFFFFFFF")
+    return Font(name=FONT_NAME, size=FONT_SIZE, bold=True, color="FFC62828")  # 深紅
 
 
 def _align_center() -> Alignment:
@@ -1046,28 +1049,60 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row):
     row = start_row
     _section_header(ws, row, "▍ A. 規模統計"); row += 1
 
+    # 計算 6 個 KPI (v3.64.0 P0: 加賣出 + 淨買差 + 分點覆蓋率)
     total_buy = sum((s.get('buy_amt') or 0) for b in branches_data for s in (b.get('buys') or []))
+    total_sell = sum((s.get('sell_amt') or 0) for b in branches_data
+                      for s in (b.get('buys') or []) + (b.get('sells') or []))
+    total_net = total_buy - total_sell
     total_master_active = len({b.get('master') for b in branches_data
                                 if (b.get('buys') or []) and b.get('master')})
     distinct_stocks = len({s.get('code') for b in branches_data
                             for s in (b.get('buys') or []) if s.get('code')})
-    limit_up_buys = sum(1 for b in branches_data for s in (b.get('buys') or [])
-                         if s.get('is_limit_up'))
-    stats = [
-        ('B', '活躍 Master', total_master_active, '位'),
-        ('D', '個股涉及', distinct_stocks, '檔'),
-        ('F', '總買進金額', f"{total_buy/100000:.2f}", '億元'),
-        ('H', '漲停買進', limit_up_buys, '筆'),
+    # 分點覆蓋率: 今天有 buys 的 branches / 全 WATCHED_BRANCHES
+    active_branches = len({b.get('code') for b in branches_data
+                            if (b.get('buys') or [])})
+    try:
+        from branches import WATCHED_BRANCHES
+        total_watched = len([b for b in WATCHED_BRANCHES if b.get('enabled', True)])
+    except Exception:
+        total_watched = 81
+    coverage_pct = round(active_branches / total_watched * 100) if total_watched else 0
+
+    # 2 row × 3 col 簡潔布局 (B/D/F 三組「label / value」並排)
+    # 仟元 → 億元: ÷ 100000
+    stats_row1 = [
+        ('B', '活躍 Master', f"{total_master_active} 位"),
+        ('E', '個股涉及', f"{distinct_stocks} 檔"),
+        ('H', '分點覆蓋', f"{active_branches}/{total_watched} ({coverage_pct}%)"),
     ]
-    for col_l, label, val, unit in stats:
-        col_v = chr(ord(col_l) + 1)
-        ws[f'{col_l}{row}'] = label
-        ws[f'{col_l}{row}'].font = label_font
-        ws[f'{col_l}{row}'].alignment = Alignment(horizontal='right', vertical='center')
-        ws[f'{col_v}{row}'] = f"{val} {unit}"
-        ws[f'{col_v}{row}'].font = val_font
-        ws[f'{col_v}{row}'].alignment = Alignment(horizontal='left', vertical='center')
-    row += 2
+    stats_row2 = [
+        ('B', '總買進', f"{total_buy/100000:.1f} 億"),
+        ('E', '總賣出', f"{total_sell/100000:.1f} 億"),
+        ('H', '淨買差', f"{'+' if total_net >= 0 else ''}{total_net/100000:.1f} 億"),
+    ]
+
+    def _put_stats(row_n, stats):
+        for col_l, label, val_text in stats:
+            col_v = chr(ord(col_l) + 1)
+            # label
+            cl = ws[f'{col_l}{row_n}']
+            cl.value = label
+            cl.font = label_font
+            cl.alignment = Alignment(horizontal='right', vertical='center')
+            # value (large bold)
+            cv = ws[f'{col_v}{row_n}']
+            cv.value = val_text
+            cv.font = val_font
+            cv.alignment = Alignment(horizontal='left', vertical='center')
+            # 淨買差用紅綠色突出
+            if label == '淨買差':
+                if total_net >= 0:
+                    cv.font = Font(name='Noto Sans TC', size=14, bold=True, color='FFDC2626')
+                else:
+                    cv.font = Font(name='Noto Sans TC', size=14, bold=True, color='FF059669')
+
+    _put_stats(row, stats_row1); row += 1
+    _put_stats(row, stats_row2); row += 2
 
     # Top master + Top stocks 並排
     ws.merge_cells(f'B{row}:E{row}')
@@ -1493,11 +1528,8 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     # 新建該日 sheet (build_day_sheet 在 ws 內 render 老闆版)
     ws = wb.create_sheet(title=trade_date)
     total_rows = build_day_sheet(ws, branches_data, trade_date)
-    # v3.62.0 (E5): L 欄損益色階
-    try:
-        apply_pnl_color_scale(ws, 2, total_rows or 50, 'L')
-    except Exception as _cse:
-        print(f"  [Excel] E5 color scale 失敗: {type(_cse).__name__}: {_cse}")
+    # v3.64.0: 拿掉 L 欄 ColorScaleRule (用戶反饋: master block 紅/淡綠 fill +
+    # 色階重疊變糊, 改用 _font_pnl_pos/neg 字色 (深紅/深綠) 直接清楚)
 
     # v3.62.1: 清舊版本殘留 (從 v3.62.0 升級時) — 4 個舊 sheet 移除
     for legacy_name in LEGACY_ENRICHMENT_NAMES:

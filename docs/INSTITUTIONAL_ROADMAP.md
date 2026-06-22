@@ -93,6 +93,28 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.64.0 — Excel Section A 規模統計擴增 + L 欄損益字色修
+
+**用戶反饋 6/22**: L 欄正值用「白字 on master block 紅淡底」+ 負值有「ColorScaleRule 紅/綠 fill 跟 master fill 重疊變糊」.
+
+**L 欄損益字色修**:
+- 拿掉 `apply_pnl_color_scale` 呼叫 (避免跟 master block fill 衝突)
+- `_font_pnl_pos`: 白字 → **深紅粗體 `#C62828`** (台股傳統紅=賺)
+- `_font_pnl_neg`: 黑字 + [Red] format → **深綠粗體 `#2E7D32`** (台股傳統綠=虧)
+- `NUMBER_FMT_PNL`: `'0.00_ ;[Red]\-0.00\ '` → `'#,##0.00;-#,##0.00'` (加千分位, 不靠 format color)
+- 結果: master block 任何色底 + L 欄損益都高對比清楚
+
+**Section A 規模統計擴增 (P0 簡化版)**:
+- 原 4 stat (master / 個股 / 總買 / 漲停買) → 6 stat × 2 row × 3 col 整齊矩陣
+- Row 1: 活躍 Master / 個股涉及 / 分點覆蓋 (XX/81 N%)
+- Row 2: 總買進 / 總賣出 / 淨買差 (紅+/綠- 自動)
+- 拿掉「漲停買進筆數」(已在 Section 0 + Tier 2 chip)
+- 簡潔: 不加 vs 5日 / vs 昨日 delta (用戶要求簡單)
+
+**驗證**: 44 套件 0 regression + 用戶本機 build 預覽 6/22 case 確認 OK
+
+---
+
 ### ✅ v3.63.9 — Section 0 強共識買超排序優化 + ⚠️ 假共識警示
 
 **用戶反饋**: Section 0 排序「大戶數→分點數→金額」導致 7591 萬資金的彩晶 rank 1, 7.4 億群聯 rank 9 — 違反「強共識」直覺.
