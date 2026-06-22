@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T21:29:47.650296+08:00",
+  "generated_at": "2026-06-22T22:49:29.836842+08:00",
   "trade_date": "20260622",
   "pump_suspicion": [
     {
@@ -590,28 +590,13 @@
       "rule": "C_distribution",
       "severity": "medium",
       "reasoning": "當日賣 15,631 張 (30 天均 2264 張 × 6.9) + 近 5 天漲停 171 次"
-    },
-    {
-      "stock_code": "009821",
-      "stock_name": "野村稀土關鍵資源",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 1940,
-      "sell_amt_wan": 543,
-      "avg_30d_sell_lot": 170.0,
-      "sell_vs_avg_x": 11.4,
-      "recent_5d_limit_up_count": 47,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 1,940 張 (30 天均 170 張 × 11.4) + 近 5 天漲停 47 次"
     }
   ],
   "summary": {
     "pump_count": 4,
     "wash_count": 30,
-    "distribution_count": 2,
-    "total": 36
+    "distribution_count": 1,
+    "total": 35
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
