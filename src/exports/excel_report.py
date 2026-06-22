@@ -117,9 +117,11 @@ def _apply_master_block_color(ws: "Worksheet",
     except Exception:
         return  # color spec 壞掉就不套
 
-    # 先全 block 套 body (淡)
+    # 先全 block 套 body (淡), L 欄(12)留白給色階 conditional formatting
     for r in data_rows:
         for c in range(1, cols + 1):
+            if c == 12:
+                continue
             ws.cell(row=r, column=c).fill = body_fill
 
     # 再套 header rows (深)
@@ -360,7 +362,7 @@ def _font_normal() -> Font:
 
 
 def _font_pnl_neg() -> Font:
-    return Font(name=FONT_NAME, size=FONT_SIZE, bold=False, color="FFFF0000")
+    return Font(name=FONT_NAME, size=FONT_SIZE, bold=True, color="FF8B0000")
 
 
 def _align_center() -> Alignment:
