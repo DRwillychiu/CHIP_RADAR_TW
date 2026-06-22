@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T02:45:32.847887+08:00",
+  "generated_at": "2026-06-23T03:13:07.209829+08:00",
   "trade_date": "20260622",
   "pump_suspicion": [
     {
@@ -358,6 +358,23 @@
       "stock_name": "台玻",
       "buy_branch_code": "779W",
       "buy_master": "民哥",
+      "sell_branch_code": "9A9g",
+      "sell_master": "陳族元",
+      "buy_lot": 134,
+      "sell_lot": 107,
+      "buy_amt_wan": 1025,
+      "sell_amt_wan": 2360,
+      "lot_match_ratio": 0.8,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "779W 買 134 張 vs 9A9g 賣 107 張 (匹配 80%)"
+    },
+    {
+      "stock_code": "1802",
+      "stock_name": "台玻",
+      "buy_branch_code": "779W",
+      "buy_master": "民哥",
       "sell_branch_code": "9217",
       "sell_master": "迷你哥/松山哥",
       "buy_lot": 134,
@@ -526,6 +543,23 @@
     {
       "stock_code": "1802",
       "stock_name": "台玻",
+      "buy_branch_code": "779W",
+      "buy_master": "民哥",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 134,
+      "sell_lot": 107,
+      "buy_amt_wan": 1025,
+      "sell_amt_wan": 2360,
+      "lot_match_ratio": 0.8,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "779W 買 134 張 vs 9A9G 賣 107 張 (匹配 80%)"
+    },
+    {
+      "stock_code": "1802",
+      "stock_name": "台玻",
       "buy_branch_code": "9309",
       "buy_master": "林滄海",
       "sell_branch_code": "6167",
@@ -539,40 +573,6 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9309 買 115 張 vs 6167 賣 102 張 (匹配 89%)"
-    },
-    {
-      "stock_code": "1802",
-      "stock_name": "台玻",
-      "buy_branch_code": "9309",
-      "buy_master": "林滄海",
-      "sell_branch_code": "9217",
-      "sell_master": "迷你哥/松山哥",
-      "buy_lot": 115,
-      "sell_lot": 137,
-      "buy_amt_wan": 881,
-      "sell_amt_wan": 1048,
-      "lot_match_ratio": 0.84,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9309 買 115 張 vs 9217 賣 137 張 (匹配 84%)"
-    },
-    {
-      "stock_code": "1802",
-      "stock_name": "台玻",
-      "buy_branch_code": "9309",
-      "buy_master": "林滄海",
-      "sell_branch_code": "9215",
-      "sell_master": "強森",
-      "buy_lot": 115,
-      "sell_lot": 147,
-      "buy_amt_wan": 881,
-      "sell_amt_wan": 1134,
-      "lot_match_ratio": 0.78,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9309 買 115 張 vs 9215 賣 147 張 (匹配 78%)"
     }
   ],
   "distribution": [
@@ -590,28 +590,13 @@
       "rule": "C_distribution",
       "severity": "medium",
       "reasoning": "當日賣 15,631 張 (30 天均 2264 張 × 6.9) + 近 5 天漲停 171 次"
-    },
-    {
-      "stock_code": "009821",
-      "stock_name": "野村稀土關鍵資源",
-      "branch_code": "9A9g",
-      "branch_name": "永豐金-內湖",
-      "master": "陳族元",
-      "sell_lot": 1940,
-      "sell_amt_wan": 3334,
-      "avg_30d_sell_lot": 170.0,
-      "sell_vs_avg_x": 11.4,
-      "recent_5d_limit_up_count": 47,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 1,940 張 (30 天均 170 張 × 11.4) + 近 5 天漲停 47 次"
     }
   ],
   "summary": {
     "pump_count": 4,
     "wash_count": 30,
-    "distribution_count": 2,
-    "total": 36
+    "distribution_count": 1,
+    "total": 35
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
