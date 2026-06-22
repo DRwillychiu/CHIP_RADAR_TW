@@ -1,6 +1,6 @@
 {
- "trade_date": "20260618",
- "updated_at": "2026-06-21T22:19:03.620989+08:00",
+ "trade_date": "20260622",
+ "updated_at": "2026-06-22T20:46:41.852423+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -2093,8 +2093,7 @@
     "short_quota": 44522,
     "short_usage": 0.53,
     "offsetting": 0,
-    "margin_short_ratio": 3.52,
-    "industry": "化學工業"
+    "margin_short_ratio": 3.52
    },
    {
     "code": "6199",
@@ -2117,8 +2116,7 @@
     "short_quota": 15440,
     "short_usage": 1.08,
     "offsetting": 1,
-    "margin_short_ratio": 3.55,
-    "industry": "其他"
+    "margin_short_ratio": 3.55
    },
    {
     "code": "6414",
@@ -2572,7 +2570,8 @@
     "short_quota": 42631,
     "short_usage": 0.49,
     "offsetting": 0,
-    "margin_short_ratio": 9.03
+    "margin_short_ratio": 9.03,
+    "industry": "綠能環保"
    },
    {
     "code": "00642U",
@@ -2737,8 +2736,7 @@
     "short_quota": 41969,
     "short_usage": 0.14,
     "offsetting": 7,
-    "margin_short_ratio": 1.12,
-    "industry": "半導體業"
+    "margin_short_ratio": 1.12
    },
    {
     "code": "00753L",
@@ -3475,7 +3473,8 @@
     "short_quota": 35950,
     "short_usage": 0.52,
     "offsetting": 153,
-    "margin_short_ratio": 4.48
+    "margin_short_ratio": 4.48,
+    "industry": "電腦及週邊設備業"
    },
    {
     "code": "2337",
@@ -3569,7 +3568,8 @@
     "short_quota": 20502,
     "short_usage": 0.1,
     "offsetting": 132,
-    "margin_short_ratio": 0.71
+    "margin_short_ratio": 0.71,
+    "industry": "光電業"
    }
   ],
   "top_margin_usage": [
@@ -5006,39 +5006,21 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1679,
-   "watch": 66,
-   "high_risk": 2,
+   "healthy": 1193,
+   "watch": 47,
+   "high_risk": 0,
    "margin_call": 1,
-   "insufficient_data": 434
+   "insufficient_data": 941
   },
   "high_risk_stocks": [
    {
     "code": "00715L",
     "name": "期街口布蘭特正2",
-    "ratio": 111.3,
+    "ratio": 114.7,
     "risk_level": "margin_call",
     "margin_balance": 12522,
-    "today_close": 37.35,
+    "today_close": 38.49,
     "estimated_cost": 55.93
-   },
-   {
-    "code": "4577",
-    "name": "達航科技",
-    "ratio": 121.0,
-    "risk_level": "high_risk",
-    "margin_balance": 1290,
-    "today_close": 87.4,
-    "estimated_cost": 120.42
-   },
-   {
-    "code": "2429",
-    "name": "銘旺科",
-    "ratio": 128.9,
-    "risk_level": "high_risk",
-    "margin_balance": 3674,
-    "today_close": 38.55,
-    "estimated_cost": 49.85
    }
   ],
   "thresholds": {
