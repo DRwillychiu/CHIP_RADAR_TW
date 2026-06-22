@@ -362,7 +362,11 @@ def _font_normal() -> Font:
 
 
 def _font_pnl_neg() -> Font:
-    return Font(name=FONT_NAME, size=FONT_SIZE, bold=True, color="FF8B0000")
+    return Font(name=FONT_NAME, size=FONT_SIZE, bold=True, color="FF000000")
+
+
+def _font_pnl_pos() -> Font:
+    return Font(name=FONT_NAME, size=FONT_SIZE, bold=True, color="FFFFFFFF")
 
 
 def _align_center() -> Alignment:
@@ -524,7 +528,7 @@ def _write_stock_row(ws: "Worksheet", row: int, stock: Dict, sniper_mode: bool =
     if pnl_value < 0:
         c_l.font = _font_pnl_neg()
     else:
-        c_l.font = _font_normal()
+        c_l.font = _font_pnl_pos()
 
 
 def _write_blank_data_row(ws: "Worksheet", row: int):
@@ -1152,13 +1156,14 @@ def build_summary_sheet(ws, branches_data, trade_date, data_dir=None):
 
 
 def apply_pnl_color_scale(ws: "Worksheet", first_row: int, last_row: int, col_letter: str = 'L'):
-    """E5: 損益欄 L 加紅綠色階 conditional formatting."""
+    """E5: 損益欄 L 加紅綠色階 conditional formatting.
+    v3.63.1: 端點改深紅/深綠 (C62828 / 2E7D32) 與白字粗體配對, 手機/筆電都高對比."""
     if last_row < first_row:
         return
     rule = ColorScaleRule(
-        start_type='num', start_value=-100, start_color='FFE57373',
+        start_type='num', start_value=-10, start_color='FFC62828',
         mid_type='num', mid_value=0, mid_color='FFFFFFFF',
-        end_type='num', end_value=100, end_color='FF81C784',
+        end_type='num', end_value=10, end_color='FF2E7D32',
     )
     ws.conditional_formatting.add(f'{col_letter}{first_row}:{col_letter}{last_row}', rule)
 
