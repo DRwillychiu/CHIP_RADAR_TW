@@ -90,6 +90,25 @@ branches_data = [
     ], 'sells': []},
 ]
 
+# v3.63.6: 構造 10+ 大戶共識個案 (TESTSTK 9988) 驗證 MIN_MASTER_COUNT=10 篩選
+# 從 MASTER_MAPPING 取前 10 位每個各 1 個 branch 都買 9988
+from src.exports.excel_report import MASTER_MAPPING
+for idx, m in enumerate(MASTER_MAPPING[:10]):
+    branch_code, branch_name = m['branches'][0]
+    branches_data.append({
+        'code': f'TEST{idx:02d}', 'name': branch_name, 'master': m['name'], 'buys': [
+            {'code': '9988', 'name': '強共識股', 'buy_lot': 100, 'sell_lot': 10,
+             'buy_amt': 100000 + idx * 1000, 'sell_amt': 10000, 'net_lot': 90,
+             'buy_avg': 100.0, 'sell_avg': 100.0, 'close_price': 100.0,
+             'change_pct': 1.0, 'is_limit_up': False},
+            # v3.63.7: 同時加 ETF 00919, 10 大戶都買 -> 應該被 ETF filter 剔除
+            {'code': '00919', 'name': '群益台灣精選高息', 'buy_lot': 1000, 'sell_lot': 0,
+             'buy_amt': 200000, 'sell_amt': 0, 'net_lot': 1000,
+             'buy_avg': 20.0, 'sell_avg': 0.0, 'close_price': 20.0,
+             'change_pct': 0.5, 'is_limit_up': False},
+        ], 'sells': []
+    })
+
 # === Render dashboard ===
 wb = Workbook()
 ws = wb.active
@@ -111,7 +130,7 @@ def cell(addr):
 
 # === Ground truth (independent calc, only tracked branches) ===
 filtered = [b for b in branches_data if b['master'] in TRACKED_MASTERS]
-assert len(filtered) == 6, f"filter should yield 6, got {len(filtered)}"
+assert len(filtered) == 16, f"filter should yield 16 (6 original + 10 high-consensus), got {len(filtered)}"
 
 # A. 規模統計
 gt_total_buy = sum(s['buy_amt'] for b in filtered for s in b['buys'])
@@ -180,6 +199,35 @@ if b_start:
             if not ok_name: err('B', gt_m, name, f'#{i+1} master')
             if not ok_amt: err('B', gt_wan, amt_wan, f'#{i+1} amt')
             if not ok_pct: err('B', gt_pct_str, pct, f'#{i+1} pct')
+
+# v3.63.7: ETF (00919) 即使 10 大戶買也應被剔除
+print(f"\n=== ETF 排除驗證 ===")
+# 直接掃 ws2 整張 sheet 內容找 00919 字串
+etf_text = []
+for row_cells in ws2.iter_rows(values_only=True):
+    for v in row_cells:
+        if v is not None:
+            etf_text.append(str(v))
+sec0_text = []
+for r in range(4, ws2.max_row+1):
+    v = cell(f'B{r}')
+    if v and isinstance(v, str) and '強共識買超' in v:
+        # 從這行 +1 (col header) +1 開始, 到下個 section header 為止
+        for rr in range(r+2, min(r+50, ws2.max_row+1)):
+            for c in 'BCDEFGHIJKLMN':
+                vv = cell(f'{c}{rr}')
+                if vv is not None:
+                    sec0_text.append(str(vv))
+            # 偵測下個 section header (▍ 開頭)
+            vv = cell(f'B{rr}')
+            if vv and isinstance(vv, str) and vv.startswith('▍'):
+                break
+        break
+sec0_str = ' | '.join(sec0_text)
+if '00919' in sec0_str:
+    err('ETF_FILTER', '不應出現', '00919', 'ETF 出現在 Section 0')
+else:
+    print(f"  ✓ 00919 群益台灣精選高息 (ETF) 已被 Section 0 排除")
 
 # Check 江士勳 (non-tracked) does NOT appear anywhere
 print(f"\n=== 非追蹤 master 過濾驗證 ===")
@@ -333,17 +381,24 @@ for b in filtered:
         e = gt_stock_map.setdefault(s['code'], {'name': s.get('name',''), 'branches': []})
         e['branches'].append({'branch_code': b_code, 'master': m, 'net_amt': net})
 gt_consensus = []
+MIN_MASTER_COUNT = 10  # v3.63.6
 for code, info in gt_stock_map.items():
-    if len(info['branches']) >= 2:
-        master_set = {br['master'] for br in info['branches']}
-        gt_consensus.append({
-            'code': code, 'name': info['name'],
-            'branch_count': len(info['branches']),
-            'master_count': len(master_set),
-            'masters': master_set,
-            'total': sum(br['net_amt'] for br in info['branches']),
-        })
-gt_consensus.sort(key=lambda x: (-x['branch_count'], -x['master_count'], -x['total']))
+    # v3.63.7: 排除 ETF
+    if code.startswith('00'):
+        continue
+    if len(info['branches']) < 2:
+        continue
+    master_set = {br['master'] for br in info['branches']}
+    if len(master_set) < MIN_MASTER_COUNT:
+        continue
+    gt_consensus.append({
+        'code': code, 'name': info['name'],
+        'branch_count': len(info['branches']),
+        'master_count': len(master_set),
+        'masters': master_set,
+        'total': sum(br['net_amt'] for br in info['branches']),
+    })
+gt_consensus.sort(key=lambda x: (-x['master_count'], -x['branch_count'], -x['total']))
 
 print(f"  GT consensus count: {len(gt_consensus)}")
 for i, c in enumerate(gt_consensus[:5]):
@@ -354,33 +409,56 @@ for i, c in enumerate(gt_consensus[:5]):
 sec0_start = None
 for r in range(4, ws2.max_row+1):
     v = cell(f'B{r}')
-    if v and isinstance(v, str) and '今日共同買超' in v:
+    # v3.63.6+: 標題含「強共識買超」或舊「共同買超」
+    if v and isinstance(v, str) and ('強共識買超' in v or '共同買超' in v):
         sec0_start = r + 2   # +1 hdr, +1 col-header
         break
 print(f"  Section 0 data starts at row {sec0_start}")
 if sec0_start and gt_consensus:
-    # Verify top 3
+    # v3.63.8 Excel-native 13 欄佈局
+    # B=#, C=代號, D=名稱, E=大戶數, F=分點數,
+    # G=領頭大戶, H=領頭金額, I=#2 大戶, J=#2 金額, K=#3 大戶, L=#3 金額,
+    # M=+更多, N=合計淨買
+    def _short(m): return m.split('(')[0].split('/')[0]
     for i in range(min(3, len(gt_consensus))):
         r = sec0_start + i
         actual_rank = cell(f'B{r}')
         actual_code = cell(f'C{r}')
-        actual_name = cell(f'D{r}')
-        actual_bc = cell(f'E{r}')
-        actual_mc = cell(f'F{r}')
-        actual_masters = cell(f'G{r}')
-        actual_total = cell(f'H{r}')
+        actual_mc = cell(f'E{r}')
+        actual_bc = cell(f'F{r}')
+        actual_lead_name = cell(f'G{r}')
+        actual_lead_amt = cell(f'H{r}')
+        actual_2_name = cell(f'I{r}')
+        actual_2_amt = cell(f'J{r}')
+        actual_3_name = cell(f'K{r}')
+        actual_3_amt = cell(f'L{r}')
+        actual_tail = cell(f'M{r}')
+        actual_total = cell(f'N{r}')
         gt = gt_consensus[i]
         gt_total = int(round(gt['total']/10))
-        print(f"  Excel #{i+1}: code={actual_code}, name={actual_name}, "
-              f"分點={actual_bc}, 大戶={actual_mc}, total={actual_total}萬, masters={actual_masters}")
+        print(f"  Excel #{i+1}: code={actual_code}, 大戶={actual_mc}, 分點={actual_bc}, "
+              f"領頭={actual_lead_name}({actual_lead_amt}萬), #2={actual_2_name}({actual_2_amt}萬), "
+              f"#3={actual_3_name}({actual_3_amt}萬), +{actual_tail}, 合計={actual_total}萬")
         if actual_rank != i+1: err('0', i+1, actual_rank, f'#{i+1} rank')
         if actual_code != gt['code']: err('0', gt['code'], actual_code, f'#{i+1} code')
         if actual_bc != gt['branch_count']: err('0', gt['branch_count'], actual_bc, f'#{i+1} branch_count')
         if actual_mc != gt['master_count']: err('0', gt['master_count'], actual_mc, f'#{i+1} master_count')
         if actual_total != gt_total: err('0', gt_total, actual_total, f'#{i+1} total')
-        actual_masters_set = set((actual_masters or '').split(' / '))
-        if gt['masters'] != actual_masters_set:
-            err('0', gt['masters'], actual_masters_set, f'#{i+1} masters')
+        # 領頭+#2+#3 名字必須都在 gt masters 內
+        gt_short = {_short(m) for m in gt['masters']}
+        for nm, label in [(actual_lead_name, 'lead'), (actual_2_name, '#2'), (actual_3_name, '#3')]:
+            if nm and nm not in gt_short:
+                err('0', f'in {gt_short}', nm, f'#{i+1} {label} master not in masters')
+        # 領頭+#2+#3+tail 名額總和 = master_count
+        visible = sum(1 for x in [actual_lead_name, actual_2_name, actual_3_name] if x)
+        tail = actual_tail if isinstance(actual_tail, int) else 0
+        if visible + tail != gt['master_count']:
+            err('0', gt['master_count'], visible + tail,
+                f'#{i+1} visible({visible}) + tail({tail}) != master_count')
+        # 領頭金額 ≥ #2 金額 ≥ #3 金額 (排序正確性)
+        amts = [a for a in [actual_lead_amt, actual_2_amt, actual_3_amt] if isinstance(a, int)]
+        if amts != sorted(amts, reverse=True):
+            err('0', 'desc sorted', amts, f'#{i+1} amount sort')
 
 # === Result ===
 print(f"\n{'='*60}")

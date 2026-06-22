@@ -68,7 +68,7 @@ for code, info in stock_map.items():
             'total': total,
             'branches': info['branches'],
         })
-consensus.sort(key=lambda x: (-x['branch_count'], -x['master_count'], -x['total']))
+consensus.sort(key=lambda x: (-x['master_count'], -x['branch_count'], -x['total']))
 
 print(f"總共同買超個股數: {len(consensus)}")
 print()

@@ -806,16 +806,21 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
               (已過濾為追蹤範圍) 獨立計算 net_amt > 0 by branch by stock,
               100% 對齊使用者實際追蹤的分點.
 
-    排序: 同買分點數 desc → 涉及大戶數 desc → 合計淨買 desc.
-    取 Top 15.
+    排序: 涉及大戶數 desc → 同買分點數 desc → 合計淨買 desc.
+    v3.63.6 篩選: 涉及大戶數 ≥ 10 (使用者調強訊號 — 13 位追蹤大戶中 ≥77% 共識才入榜).
+    取 Top 30 (soft cap).
     """
+    MIN_MASTER_COUNT = 10   # v3.63.6: 強共識門檻 — ≥10 位追蹤大戶同買才入榜
+    MAX_PICKS = 30          # 軟上限
+    TOP_MASTERS_SHOWN = 5   # 大戶清單只顯示前 5 大金額, 其餘以「+N 位」概括
     hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
     sub_font = Font(name='Noto Sans TC', size=11, bold=True)
     hdr_fill = _summary_fill('FFFEE2E2')   # 淡紅 = high attention
     rank_fill_top = _summary_fill('FFFEF3C7')  # 金 = top 3
 
     row = start_row
-    _section_header(ws, row, "★ 0. 今日共同買超 (≥2 個追蹤分點淨買 — 必看)",
+    _section_header(ws, row,
+                     f"★ 0. 今日強共識買超 (≥{MIN_MASTER_COUNT} 位追蹤大戶共同淨買, 個股 only — 必看)",
                      color='FFDC2626'); row += 1
 
     # Build code -> {name, branches: [{branch_code, branch_name, master, net_amt}]}
@@ -829,6 +834,11 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         for s in (b.get('buys') or []) + (b.get('sells') or []):
             code = s.get('code')
             if not code:
+                continue
+            # v3.63.7: 排除 ETF — code 以 '00' 開頭 (00712 / 00632R / 0050 / 0056 ...)
+            # 使用者目標: Section 0 只看「大戶共識買的個股」, 不含 ETF
+            # 已驗證 stock_categories.json: 沒有任何 listed/otc/emerging 股票 code 起始 '00'
+            if code.startswith('00'):
                 continue
             buy_amt = s.get('buy_amt') or 0
             sell_amt = s.get('sell_amt') or 0
@@ -848,63 +858,131 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
                 'net_amt': net_amt,
             })
 
-    # 過濾: ≥2 個分點
+    # 過濾: ≥2 個分點 AND ≥MIN_MASTER_COUNT 位大戶 (v3.63.6)
     consensus_list = []
     for code, info in stock_map.items():
-        if len(info['branches']) >= 2:
-            total_net = sum(br['net_amt'] for br in info['branches'])
-            master_set = {br['master'] for br in info['branches']}
-            consensus_list.append({
-                'code': code,
-                'name': info['name'],
-                'branches': info['branches'],
-                'branch_count': len(info['branches']),
-                'master_count': len(master_set),
-                'masters': master_set,
-                'total_net_amt': total_net,
-            })
-    consensus_list.sort(key=lambda x: (-x['branch_count'], -x['master_count'],
+        if len(info['branches']) < 2:
+            continue
+        master_set = {br['master'] for br in info['branches']}
+        if len(master_set) < MIN_MASTER_COUNT:
+            continue
+        total_net = sum(br['net_amt'] for br in info['branches'])
+        consensus_list.append({
+            'code': code,
+            'name': info['name'],
+            'branches': info['branches'],
+            'branch_count': len(info['branches']),
+            'master_count': len(master_set),
+            'masters': master_set,
+            'total_net_amt': total_net,
+        })
+    # v3.63.4: 排序改為 涉及大戶數 > 同買分點數 > 合計淨買 (對齊使用者「大戶共識優先」直覺)
+    consensus_list.sort(key=lambda x: (-x['master_count'], -x['branch_count'],
                                        -x['total_net_amt']))
 
-    # Headers
-    for h_col, h in [('B', '#'), ('C', '代號'), ('D', '名稱'),
-                      ('E', '同買分點數'), ('F', '涉及大戶數'),
-                      ('G', '大戶清單'), ('H', '合計淨買(萬)'),
-                      ('I', '分點明細')]:
-        cell = ws[f'{h_col}{row}']
-        cell.value = h; cell.font = hdr_font; cell.fill = hdr_fill
+    # v3.63.8 Excel-native 13 欄佈局: 一格一值, 金額為 int + 千分位 number_format
+    # B=#, C=代號, D=名稱, E=大戶數, F=分點數, G=領頭大戶, H=領頭金額(萬),
+    # I=#2 大戶, J=#2 金額, K=#3 大戶, L=#3 金額, M=+更多, N=合計淨買(萬)
+    headers = [
+        ('B', '#', 5),    ('C', '代號', 9),    ('D', '名稱', 18),
+        ('E', '大戶數', 9), ('F', '分點數', 9),
+        ('G', '領頭大戶', 14),  ('H', '領頭金額(萬)', 13),
+        ('I', '#2 大戶', 14),   ('J', '#2 金額(萬)', 13),
+        ('K', '#3 大戶', 14),   ('L', '#3 金額(萬)', 13),
+        ('M', '+更多', 8),
+        ('N', '合計淨買(萬)', 14),
+    ]
+    header_row = row
+    for col_l, h, w in headers:
+        cell = ws[f'{col_l}{row}']
+        cell.value = h
+        cell.font = hdr_font
+        cell.fill = hdr_fill
         cell.alignment = Alignment(horizontal='center')
+        ws.column_dimensions[col_l].width = w
     row += 1
 
+    # ── Data rows ──
+    num_fmt = '#,##0'
+    muted_font = Font(name='Noto Sans TC', size=10, italic=True, color='FF888888')
+    leader_font = Font(name='Noto Sans TC', size=11, bold=True)
+    total_font = Font(name='Noto Sans TC', size=11, bold=True)
+
     start_data = row
-    for i, item in enumerate(consensus_list[:15]):
+    for i, item in enumerate(consensus_list[:MAX_PICKS]):
         c_b = ws.cell(row, 2, i + 1)
         if i < 3:
             c_b.fill = rank_fill_top
             c_b.font = sub_font
         ws.cell(row, 3, item['code'])
         ws.cell(row, 4, item['name'] or '—')
-        c_e = ws.cell(row, 5, item['branch_count'])
+        c_e = ws.cell(row, 5, item['master_count'])
         c_e.font = sub_font
-        ws.cell(row, 6, item['master_count'])
-        # 大戶清單 (按該大戶在此股總 net_amt 排序)
+        c_e.alignment = Alignment(horizontal='center')
+        c_f = ws.cell(row, 6, item['branch_count'])
+        c_f.alignment = Alignment(horizontal='center')
+
+        # 排序大戶 by 該大戶在此股總 net_amt desc
         master_total = {}
         for br in item['branches']:
             master_total[br['master']] = master_total.get(br['master'], 0) + br['net_amt']
         masters_sorted = sorted(master_total.items(), key=lambda kv: -kv[1])
-        ws.cell(row, 7, ' / '.join(m for m, _ in masters_sorted))
-        # 合計淨買 (千元 → 萬)
-        ws.cell(row, 8, int(round(item['total_net_amt'] / 10)))
-        # 分點明細 (分點名稱(master):萬, 按 net_amt desc)
-        brs_sorted = sorted(item['branches'], key=lambda x: -x['net_amt'])
-        detail = ' | '.join(f"{br['branch_name']}({br['master']}):{int(round(br['net_amt']/10))}萬"
-                            for br in brs_sorted)
-        ws.cell(row, 9, detail)
+
+        # 短名稱去括號內容讓欄位緊湊 (例: "張濬安(航海王)" → "張濬安")
+        def _short(m):
+            return m.split('(')[0].split('/')[0]
+
+        # G/H = 領頭 (Top 1)
+        # I/J = #2
+        # K/L = #3
+        slot_cols = [('G', 'H'), ('I', 'J'), ('K', 'L')]
+        for slot_idx, (name_col, amt_col) in enumerate(slot_cols):
+            if slot_idx < len(masters_sorted):
+                m_name, m_amt = masters_sorted[slot_idx]
+                c_name = ws[f'{name_col}{row}']
+                c_name.value = _short(m_name)
+                c_amt = ws[f'{amt_col}{row}']
+                c_amt.value = int(round(m_amt / 10))   # int → 可 sort/sum
+                c_amt.number_format = num_fmt
+                c_amt.alignment = Alignment(horizontal='right')
+                if slot_idx == 0:
+                    c_name.font = leader_font
+                    c_amt.font = leader_font
+            else:
+                ws[f'{name_col}{row}'].value = ''
+                ws[f'{amt_col}{row}'].value = None
+
+        # M = +更多 (剩餘大戶數, 用 int 而非字串, 0 顯示為空)
+        tail = max(0, len(masters_sorted) - 3)
+        c_m = ws.cell(row, 13, tail if tail > 0 else None)
+        c_m.font = muted_font
+        c_m.alignment = Alignment(horizontal='center')
+
+        # N = 合計淨買(萬), 粗體 + 千分位
+        c_n = ws.cell(row, 14, int(round(item['total_net_amt'] / 10)))
+        c_n.number_format = num_fmt
+        c_n.font = total_font
+        c_n.alignment = Alignment(horizontal='right')
+
         row += 1
+
     if row == start_data:
-        ws.cell(row, 2, '⚪ 今日無 ≥2 追蹤分點同買的個股')
-        ws.merge_cells(f'B{row}:I{row}')
+        ws.cell(row, 2, f'⚪ 今日無 ≥{MIN_MASTER_COUNT} 位追蹤大戶共同淨買的個股')
+        ws.merge_cells(f'B{row}:N{row}')
         row += 1
+    else:
+        # v3.63.8: 把資料區包成 Excel Table → 原生 sort/filter 下拉
+        try:
+            from openpyxl.worksheet.table import Table, TableStyleInfo
+            table_range = f'B{header_row}:N{row - 1}'
+            tbl = Table(displayName=f"ConsensusTbl_{header_row}", ref=table_range)
+            tbl.tableStyleInfo = TableStyleInfo(
+                name="TableStyleLight1", showFirstColumn=False,
+                showLastColumn=False, showRowStripes=True, showColumnStripes=False,
+            )
+            ws.add_table(tbl)
+        except Exception:
+            pass   # Table 失敗不影響資料正確性
     row += 1   # 空一行
     return row
 
