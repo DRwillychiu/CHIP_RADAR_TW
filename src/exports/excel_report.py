@@ -823,6 +823,16 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
                      f"★ 0. 今日強共識買超 (≥{MIN_MASTER_COUNT} 位追蹤大戶共同淨買, 個股 only — 必看)",
                      color='FFDC2626'); row += 1
 
+    # v3.63.9: 註腳說明 ⚠️ 標記意義 (用戶要求)
+    note_cell = ws.cell(row, 2,
+                         "ⓘ 排序: 合計淨買金額 ↓  |  ⚠️ 名稱前 = 領頭大戶獨佔 ≥50% (1 人獨大, 真共識訊號被稀釋, hover 名稱看詳細%)")
+    ws.merge_cells(f'B{row}:N{row}')
+    note_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color='FF7C2D12')
+    note_cell.fill = _summary_fill('FFFFF7ED')   # 極淡橙底
+    note_cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+    ws.row_dimensions[row].height = 18
+    row += 1
+
     # Build code -> {name, branches: [{branch_code, branch_name, master, net_amt}]}
     stock_map: Dict[str, Dict] = {}
     for b in branches_data:
@@ -876,9 +886,12 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
             'masters': master_set,
             'total_net_amt': total_net,
         })
-    # v3.63.4: 排序改為 涉及大戶數 > 同買分點數 > 合計淨買 (對齊使用者「大戶共識優先」直覺)
-    consensus_list.sort(key=lambda x: (-x['master_count'], -x['branch_count'],
-                                       -x['total_net_amt']))
+    # v3.63.9 (用戶決定): 改主排序為 total_net_amt DESC (資金規模 = 真實共識深度)
+    # tie-breaker: master_count DESC → branch_count DESC
+    # 已有 master_count >= 10 硬門檻保證廣度, 排序時用金額反映深度.
+    # 案例: 群聯 7.4 億 (10 master) 在舊版 rank 9, 新版 rank 2; 彩晶 7591 萬 在舊版 rank 1, 新版 rank 8
+    consensus_list.sort(key=lambda x: (-x['total_net_amt'], -x['master_count'],
+                                        -x['branch_count']))
 
     # v3.63.8 Excel-native 13 欄佈局: 一格一值, 金額為 int + 千分位 number_format
     # B=#, C=代號, D=名稱, E=大戶數, F=分點數, G=領頭大戶, H=領頭金額(萬),
@@ -915,18 +928,53 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
             c_b.fill = rank_fill_top
             c_b.font = sub_font
         ws.cell(row, 3, item['code'])
-        ws.cell(row, 4, item['name'] or '—')
-        c_e = ws.cell(row, 5, item['master_count'])
-        c_e.font = sub_font
-        c_e.alignment = Alignment(horizontal='center')
-        c_f = ws.cell(row, 6, item['branch_count'])
-        c_f.alignment = Alignment(horizontal='center')
 
         # 排序大戶 by 該大戶在此股總 net_amt desc
         master_total = {}
         for br in item['branches']:
             master_total[br['master']] = master_total.get(br['master'], 0) + br['net_amt']
         masters_sorted = sorted(master_total.items(), key=lambda kv: -kv[1])
+
+        # v3.63.9 用戶決定: 領頭大戶佔合計 ≥50% → 加 ⚠️ 警示 (假共識防呆)
+        # 名義 ≥10 大戶共識 但 1 大戶獨大 → 真共識訊號被稀釋
+        leader_amt = masters_sorted[0][1] if masters_sorted else 0
+        total_net = item['total_net_amt']
+        leader_pct = leader_amt / total_net if total_net > 0 else 0
+        is_outlier = leader_pct >= 0.5
+        display_name = item['name'] or '—'
+        if is_outlier:
+            display_name = f"⚠️ {display_name}"
+        c_name = ws.cell(row, 4, display_name)
+        if is_outlier:
+            # 領頭佔比高 → 名稱 cell 淡橙底警示
+            c_name.fill = _summary_fill('FFFED7AA')   # 淡橙
+            c_name.font = Font(name='Noto Sans TC', size=11, bold=True, color='FF7C2D12')
+            # v3.63.9: hover comment 顯示詳細%
+            try:
+                from openpyxl.comments import Comment
+                leader_name = masters_sorted[0][0] if masters_sorted else '?'
+                comment_text = (
+                    f"⚠️ 假共識警示\n"
+                    f"領頭大戶「{leader_name}」獨佔比 {leader_pct*100:.1f}%\n"
+                    f"  • 領頭金額 {int(leader_amt/10):,} 萬\n"
+                    f"  • 合計淨買 {int(total_net/10):,} 萬\n"
+                    f"  • 大戶數 {item['master_count']} 位 (名義共識)\n\n"
+                    f"判讀: 名義 {item['master_count']} 位大戶共識,\n"
+                    f"實質 1 人下注佔 {leader_pct*100:.0f}%,\n"
+                    f"剩餘 {item['master_count']-1} 位為陪襯小單,\n"
+                    f"真共識訊號被稀釋.")
+                c = Comment(comment_text, 'Chip Radar')
+                c.width = 280
+                c.height = 180
+                c_name.comment = c
+            except Exception:
+                pass
+
+        c_e = ws.cell(row, 5, item['master_count'])
+        c_e.font = sub_font
+        c_e.alignment = Alignment(horizontal='center')
+        c_f = ws.cell(row, 6, item['branch_count'])
+        c_f.alignment = Alignment(horizontal='center')
 
         # 短名稱去括號內容讓欄位緊湊 (例: "張濬安(航海王)" → "張濬安")
         def _short(m):

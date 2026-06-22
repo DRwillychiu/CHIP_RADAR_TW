@@ -93,6 +93,38 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.63.9 — Section 0 強共識買超排序優化 + ⚠️ 假共識警示
+
+**用戶反饋**: Section 0 排序「大戶數→分點數→金額」導致 7591 萬資金的彩晶 rank 1, 7.4 億群聯 rank 9 — 違反「強共識」直覺.
+
+**改動** (`src/exports/excel_report.py _build_section_consensus`):
+
+1. **主排序改總金額 desc** (用戶確認):
+   ```
+   total_net_amt DESC → master_count DESC → branch_count DESC
+   ```
+   - ≥10 大戶硬門檻不變 (已保證廣度)
+   - 金額反映「資金共識深度」
+   - 6/18 production 變化: 群聯 #9→#2 / 彩晶 #1→#8 / 華新科 #3→#1
+
+2. **⚠️ 假共識警示**: 領頭大戶獨佔 ≥50% → 名稱前加 ⚠️ + 淡橙底
+   - 6/18 例: 華新科 領頭佔 83001/125534 = 66.1% (1 大戶獨大)
+
+3. **詳細 cell comment** (用戶要求說明):
+   - hover 名稱 cell → tooltip 顯示「領頭金額 / 合計 / 佔比% / 判讀」
+   - openpyxl Comment 280×180 px
+
+4. **註腳 row** (Section header 下方一行):
+   - 「ⓘ 排序: 合計淨買金額 ↓ | ⚠️ 名稱前 = 領頭大戶獨佔 ≥50% (1 人獨大,真共識訊號被稀釋)」
+   - 淡橙底 italic 小字, 永遠看得到
+
+**驗證**:
+- 44 套件 0 regression
+- 本機 build preview xlsx 給用戶確認 OK
+- Excel comment + 註腳 + 排序變化全顯示正確
+
+---
+
 ### ✅ Sprint 26 完成 (v3.63.0) — Excel Tier 2: E6 freeze + E7 Pivot-style Section J
 
 **E6 Freeze panes**:
