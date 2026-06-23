@@ -210,6 +210,146 @@ else:
         if val is not None and isinstance(val, str):
             err('A', 'int/float (Excel-native)', f'str: {val!r}', f'{label} 型別不是 numeric')
 
+    # ════════════════════════════════════════════════════════════════
+    # v3.64.5 Q5 banner 三層完整審計 (使用者要求 100% 精準度 + 參考資料源)
+    # ════════════════════════════════════════════════════════════════
+    # Layer 1: Excel 顯示 = daily_signal.json 內容
+    # Layer 2: daily_signal 內部公式 chain (raw → level → weight → conf → direction)
+    # Layer 3: temp_history.json raw 信號值支持 daily_signal 的 level 標籤
+    print(f"\n=== Q5 banner 三層審計 ===")
+    r5 = r2 + 1
+    q5_val = cell(f'B{r5}')
+    q5_fmt = ws2[f'B{r5}'].number_format
+    print(f"  Excel Q5 row {r5}: value={q5_val!r}, fmt={q5_fmt!r}")
+
+    if q5_val is not None:
+        from src.exports.excel_report import _read_json_safely
+        ds = _read_json_safely(ROOT / 'data' / 'daily_signal.json')
+        th = _read_json_safely(ROOT / 'data' / 'temp_history.json')
+
+        if not ds:
+            print("  [skip] daily_signal.json 不存在 (test env)")
+        else:
+            md = ds.get('market_direction') or {}
+            gt_direction = md.get('direction')
+            gt_confidence = float(md.get('confidence_pct') or 0)
+            gt_net = float(md.get('net_weight') or 0)
+            gt_contributing = md.get('contributing') or []
+            gt_top_signal = gt_contributing[0].get('name') if gt_contributing else '—'
+            gt_focus_n = len(ds.get('top_focus_stocks') or [])
+
+            # ── Layer 1: Excel cell value 必須 = daily_signal.confidence_pct ──
+            if isinstance(q5_val, str):
+                err('Q5.L1', 'numeric', f'str: {q5_val!r}', 'cell type')
+            elif not _approx(float(q5_val), gt_confidence, tol=0.01):
+                err('Q5.L1', gt_confidence, q5_val, 'banner confidence_pct')
+            else:
+                print(f"  [L1 PASS] Excel value {q5_val} = daily_signal.confidence_pct {gt_confidence}")
+
+            # ── Layer 1.b: Format string 必須含正確的 direction/arrow/top_signal/focus_n ──
+            arrow_map = {'偏多': '↑', '偏空': '↓', '中性': '↕'}
+            expected_arrow = arrow_map.get(gt_direction, '↕')
+            for expected_substr, label in [
+                (expected_arrow, 'arrow'),
+                (gt_direction, 'direction'),
+                (gt_top_signal, 'top_signal'),
+                (f'{gt_focus_n} 檔焦點', 'focus_n'),
+            ]:
+                if expected_substr not in (q5_fmt or ''):
+                    err('Q5.L1', expected_substr, q5_fmt, f'format string 缺 {label}')
+                else:
+                    print(f"  [L1 PASS] format 含 '{expected_substr}' ({label})")
+
+            # ── Layer 2: 內部公式 chain ──
+            # 2a: confidence = clamp(10, 95, 50 + net*100)
+            expected_conf = max(10, min(95, 50 + gt_net * 100))
+            if not _approx(expected_conf, gt_confidence, tol=0.1):
+                err('Q5.L2', f'{expected_conf:.1f}', f'{gt_confidence:.1f}',
+                    f'公式 conf=50+net*100 (net={gt_net})')
+            else:
+                print(f"  [L2 PASS] 公式 50 + {gt_net}*100 = {expected_conf:.1f} ≈ {gt_confidence}")
+
+            # 2b: direction 由 net thresholds 決定
+            if gt_net > 0.05:
+                expected_dir = '偏多'
+            elif gt_net < -0.05:
+                expected_dir = '偏空'
+            else:
+                expected_dir = '中性'
+            if gt_direction != expected_dir:
+                err('Q5.L2', expected_dir, gt_direction,
+                    f'direction threshold (net={gt_net}, ±0.05)')
+            else:
+                print(f"  [L2 PASS] direction '{gt_direction}' 對應 net {gt_net} 之 ±0.05 threshold")
+
+            # 2c: net = sum of contributing weights
+            recompute_net = sum(c.get('weight', 0) for c in gt_contributing)
+            if not _approx(recompute_net, gt_net, tol=0.001):
+                err('Q5.L2', recompute_net, gt_net, 'net = Σ contributing.weight')
+            else:
+                print(f"  [L2 PASS] net {gt_net} = Σ contributing weights {recompute_net}")
+
+            # ── Layer 3: temp_history raw value → level → weight ──
+            if th:
+                history = th.get('history') or []
+                if history:
+                    # 找出對應 trade_date 的 entry
+                    latest_entry = None
+                    for e in history:
+                        if e.get('date') == ds.get('date'):
+                            latest_entry = e
+                            break
+                    if latest_entry is None:
+                        latest_entry = history[-1]  # fallback
+                    th_signals = latest_entry.get('signals') or []
+                    print(f"  Layer 3: temp_history entry {latest_entry.get('date')} 有 {len(th_signals)} 信號")
+
+                    # 對每個 contributing signal 驗證 temp_history raw → level → weight
+                    try:
+                        from src.analyzers.signal_engine import _signal_weight
+                        from src.pipelines.crawler_pipeline import TEMP_THRESHOLDS, _temp_signal_score
+
+                        for sig in gt_contributing:
+                            name = sig.get('name')
+                            ds_level = sig.get('level')
+                            ds_weight = sig.get('weight')
+
+                            raw_sig = next((s for s in th_signals if s.get('name') == name), None)
+                            if not raw_sig:
+                                err('Q5.L3', f'found {name}', 'not in temp_history',
+                                    f'{name} 在 temp_history 找不到')
+                                continue
+                            raw_val = raw_sig.get('value')
+                            th_level = raw_sig.get('level')
+
+                            # 3a: temp_history.level == daily_signal.level
+                            if th_level != ds_level:
+                                err('Q5.L3', th_level, ds_level,
+                                    f'{name} level: temp_history vs daily_signal')
+                            else:
+                                print(f"  [L3 PASS] {name}: temp_history level '{th_level}' == daily_signal level")
+
+                            # 3b: SIGNAL_WEIGHTS lookup
+                            sig_data = {'level': th_level, 'value': raw_val}
+                            expected_weight = _signal_weight(name, sig_data)
+                            if not _approx(expected_weight, ds_weight, tol=0.001):
+                                err('Q5.L3', expected_weight, ds_weight,
+                                    f'{name} weight: SIGNAL_WEIGHTS[{name}][{th_level}] vs daily_signal.weight')
+                            else:
+                                print(f"  [L3 PASS] {name} weight {ds_weight} = SIGNAL_WEIGHTS lookup")
+
+                            # 3c: For P/C Ratio, verify raw → level via TEMP_THRESHOLDS
+                            if name == 'P/C Ratio' and isinstance(raw_val, (int, float)):
+                                thr = TEMP_THRESHOLDS['pc_ratio_oi']
+                                expected = _temp_signal_score(raw_val, thr)
+                                if expected and expected[1] != th_level:
+                                    err('Q5.L3', expected[1], th_level,
+                                        f'P/C Ratio threshold: value={raw_val} thresholds={thr}')
+                                else:
+                                    print(f"  [L3 PASS] P/C Ratio value {raw_val} → level '{th_level}' 符合 thresholds {thr}")
+                    except Exception as _e:
+                        err('Q5.L3', 'audit ok', f'import error: {_e}', 'cannot run weight verification')
+
 # Check Section B / C
 print(f"\n=== Section B: Top 5 高手 ===")
 gt_master_amt = {}

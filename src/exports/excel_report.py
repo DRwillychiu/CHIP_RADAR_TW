@@ -1179,6 +1179,48 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         if vcol_start != vcol_end:
             ws.merge_cells(f'{vcol_start}{r}:{vcol_end}{r}')
     row += 2
+
+    # ── v3.64.4 Q5: 市場方向 banner (整合 Section D, 全寬, 紅/綠/灰底) ──
+    # 資料源 daily_signal.json 在 v3.64+ 已重構, 新 schema:
+    #   market_direction: {direction: 偏多/偏空/中性, confidence_pct, contributing[]}
+    #   top_focus_stocks: list
+    # 顯示: ↑ 偏多 58.7% 信心 — P/C Ratio 主推 — 3 檔焦點 (banner 整列)
+    daily_signal = _read_json_safely(data_dir / 'daily_signal.json')
+    if daily_signal:
+        md = daily_signal.get('market_direction') or {}
+        direction = md.get('direction') or '—'
+        confidence = md.get('confidence_pct') or 0
+        contributing = md.get('contributing') or []
+        top_signal = contributing[0].get('name') if contributing else '—'
+        focus_n = len(daily_signal.get('top_focus_stocks') or [])
+
+        # icon + bg color by direction (台股慣例: 紅=多 / 綠=空 / 灰=中性)
+        if direction == '偏多':
+            arrow, bg = '↑', 'FFFEE2E2'   # 淡紅
+            color = 'FFDC2626'
+        elif direction == '偏空':
+            arrow, bg = '↓', 'FFD1FAE5'   # 淡綠
+            color = 'FF059669'
+        else:
+            arrow, bg = '↕', 'FFE5E7EB'   # 淡灰
+            color = 'FF374151'
+
+        # Cell value = confidence (numeric, comparable),
+        # format = full rich text suffix
+        # 例: 58.7 + fmt '"↑ 偏多 "0.0"% 信心 — P/C Ratio 主推 — 3 檔焦點"'
+        # → 顯示: "↑ 偏多 58.7% 信心 — P/C Ratio 主推 — 3 檔焦點"
+        q5_fmt = f'"{arrow} {direction} "0.0"% 信心 — {top_signal} 主推 — {focus_n} 檔焦點"'
+
+        ws.merge_cells(f'B{row}:N{row}')
+        c_q5 = ws[f'B{row}']
+        c_q5.value = float(confidence)
+        c_q5.number_format = q5_fmt
+        c_q5.alignment = Alignment(horizontal='center', vertical='center')
+        c_q5.font = Font(name='Noto Sans TC', size=12, bold=True, color=color)
+        c_q5.fill = PatternFill(start_color=bg, end_color=bg, fill_type='solid')
+        ws.row_dimensions[row].height = 22
+        row += 1
+
     row += 1   # 空一行
 
     # Top master + Top stocks 並排
@@ -1239,22 +1281,9 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         row += 1
     row += 1
 
-    # 籌碼溫度
-    daily_signal = _read_json_safely(data_dir / 'daily_signal.json')
-    if daily_signal:
-        _section_header(ws, row, "▍ D. 籌碼溫度 + 信號", color='FFFDE68A'); row += 1
-        ws[f'B{row}'] = '溫度等級'
-        ws[f'C{row}'] = daily_signal.get('temperature_level', '—')
-        ws[f'C{row}'].font = val_font
-        ws[f'D{row}'] = '溫度分數'
-        ws[f'E{row}'] = daily_signal.get('temperature_score', '—')
-        ws[f'F{row}'] = '主信號'
-        sigs = daily_signal.get('top_signals') or []
-        ws[f'G{row}'] = sigs[0].get('name', '—') if sigs else '—'
-        for col_l in [f'B{row}', f'D{row}', f'F{row}']:
-            ws[col_l].font = label_font
-            ws[col_l].alignment = Alignment(horizontal='right', vertical='center')
-        row += 1
+    # v3.64.4: 籌碼溫度 / 市場方向 已整合進 Section A Q5 banner (上方).
+    # 原 Section D 因 daily_signal.json schema 重構而 silently 失效 (顯示 '—').
+    # 新版改讀 market_direction.{direction, confidence_pct, contributing}.
     return row
 
 
