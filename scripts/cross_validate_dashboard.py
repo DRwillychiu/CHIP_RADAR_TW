@@ -132,29 +132,87 @@ def cell(addr):
 filtered = [b for b in branches_data if b['master'] in TRACKED_MASTERS]
 assert len(filtered) == 16, f"filter should yield 16 (6 original + 10 high-consensus), got {len(filtered)}"
 
-# A. 規模統計
-gt_total_buy = sum(s['buy_amt'] for b in filtered for s in b['buys'])
-gt_master_active = len({b['master'] for b in filtered if b['buys']})
-gt_distinct_stocks = len({s['code'] for b in filtered for s in b['buys']})
-gt_limit_up = sum(1 for b in filtered for s in b['buys'] if s['is_limit_up'])
+# A. 規模統計 — v3.64.1+ 三 bug 修復 + v3.64.2 Excel-native cell types
+# GT 計算對齊 production 邏輯
+gt_total_buy = sum(s.get('buy_amt', 0) for b in filtered for s in b.get('buys', []))
+# Bug 1 fix: dedup by (branch_code, stock_code) — sell_amt 只算一次
+_seen_sell = set()
+gt_total_sell = 0
+for _b in filtered:
+    _bcode = _b.get('code', '')
+    for _s in (_b.get('buys', []) or []) + (_b.get('sells', []) or []):
+        _key = (_bcode, _s.get('code'))
+        if _key in _seen_sell: continue
+        _seen_sell.add(_key)
+        gt_total_sell += _s.get('sell_amt', 0) or 0
+gt_total_net = gt_total_buy - gt_total_sell
+gt_master_active = len({b['master'] for b in filtered if b.get('buys')})
+# Bug 3 fix: distinct stocks = buys ∪ sells
+gt_distinct_stocks = len({s['code'] for b in filtered
+                          for s in (b.get('buys', []) or []) + (b.get('sells', []) or [])
+                          if s.get('code')})
+gt_limit_up = sum(1 for b in filtered for s in (b.get('buys', []) or []) if s.get('is_limit_up'))
+# Bug 2 fix: 分點覆蓋分母改用 MASTER_MAPPING unique branches
+gt_active_branches = len({b['code'] for b in filtered if b.get('buys')})
+gt_tracked_codes = {code for m in MASTER_MAPPING for code, _ in m['branches']}
+gt_total_watched = len(gt_tracked_codes)
+gt_coverage_ratio = gt_active_branches / gt_total_watched if gt_total_watched else 0
 
-print(f"=== Section A: 規模統計 ===")
-print(f"  GT  | 活躍 Master: {gt_master_active} 位")
-print(f"  GT  | 個股涉及: {gt_distinct_stocks} 檔")
-print(f"  GT  | 總買進: {gt_total_buy/100000:.2f} 億 (= {gt_total_buy} 千元 / 100000)")
-print(f"  GT  | 漲停買進: {gt_limit_up} 筆")
+print(f"=== Section A: 規模統計 (v3.64.2 strict assertions) ===")
+print(f"  GT 活躍 Master: {gt_master_active}")
+print(f"  GT 個股涉及: {gt_distinct_stocks}")
+print(f"  GT 分點覆蓋: {gt_active_branches}/{gt_total_watched} = {gt_coverage_ratio:.4f}")
+print(f"  GT 總買進: {gt_total_buy/100000:.2f} 億 (cell={gt_total_buy/100000})")
+print(f"  GT 總賣出: {gt_total_sell/100000:.2f} 億 (cell={gt_total_sell/100000})")
+print(f"  GT 淨買差: {gt_total_net/100000:.2f} 億 (cell={gt_total_net/100000})")
 
-# Scan rows 4-8 for A section
-import re as _re
-for r in range(4, 10):
-    for c in 'BCDEFGHI':
-        v = cell(f'{c}{r}')
-        if v and isinstance(v, str):
-            if '活躍' in v or 'Master' in v or '個股涉及' in v or '總買進' in v or '漲停' in v:
-                # Print row
-                row_data = [f"{c2}{r}={cell(f'{c2}{r}')!r}" for c2 in 'BCDEFGHI' if cell(f'{c2}{r}') is not None]
-                print(f"  ROW {r}: {' | '.join(row_data)}")
-                break
+# 找 Section A 的兩列 — _section_header「▍ A. 規模統計」之後的下 2 行
+sec_a_start = None
+for r in range(3, ws2.max_row + 1):
+    v = cell(f'B{r}')
+    if v and isinstance(v, str) and 'A. 規模統計' in v:
+        sec_a_start = r + 1
+        break
+
+if sec_a_start is None:
+    err('A', '找到 Section A', None, 'header missing')
+else:
+    # row1: 活躍 Master (C) / 個股涉及 (F) / 分點覆蓋 (I)
+    # row2: 總買進 (C) / 總賣出 (F) / 淨買差 (I)
+    r1, r2 = sec_a_start, sec_a_start + 1
+    actual = {
+        '活躍 Master':  cell(f'C{r1}'),
+        '個股涉及':     cell(f'F{r1}'),
+        '分點覆蓋':     cell(f'I{r1}'),
+        '總買進':       cell(f'C{r2}'),
+        '總賣出':       cell(f'F{r2}'),
+        '淨買差':       cell(f'I{r2}'),
+    }
+    print(f"  Excel row {r1}: 活躍={actual['活躍 Master']!r}, 個股={actual['個股涉及']!r}, 覆蓋={actual['分點覆蓋']!r}")
+    print(f"  Excel row {r2}: 買={actual['總買進']!r}, 賣={actual['總賣出']!r}, 淨={actual['淨買差']!r}")
+
+    # === STRICT 數值比對 (cell value 為 native int/float) ===
+    def _approx(a, b, tol=1e-6):
+        if a is None or b is None: return a == b
+        return abs(float(a) - float(b)) < tol
+
+    if actual['活躍 Master'] != gt_master_active:
+        err('A', gt_master_active, actual['活躍 Master'], '活躍 Master')
+    if actual['個股涉及'] != gt_distinct_stocks:
+        err('A', gt_distinct_stocks, actual['個股涉及'], '個股涉及')
+    if not _approx(actual['分點覆蓋'], gt_coverage_ratio):
+        err('A', gt_coverage_ratio, actual['分點覆蓋'], '分點覆蓋 ratio')
+    if not _approx(actual['總買進'], gt_total_buy / 100000):
+        err('A', gt_total_buy / 100000, actual['總買進'], '總買進 億')
+    if not _approx(actual['總賣出'], gt_total_sell / 100000):
+        err('A', gt_total_sell / 100000, actual['總賣出'], '總賣出 億')
+    if not _approx(actual['淨買差'], gt_total_net / 100000):
+        err('A', gt_total_net / 100000, actual['淨買差'], '淨買差 億')
+
+    # === Excel-native 型別檢查 (v3.64.2: 必須是 numeric 不是字串) ===
+    for label, val in actual.items():
+        if val is not None and isinstance(val, str):
+            err('A', 'int/float (Excel-native)', f'str: {val!r}', f'{label} 型別不是 numeric')
 
 # Check Section B / C
 print(f"\n=== Section B: Top 5 高手 ===")

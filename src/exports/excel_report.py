@@ -1084,38 +1084,44 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row):
     total_watched = len(_tracked_codes) or 38   # fallback 38
     coverage_pct = round(active_branches / total_watched * 100) if total_watched else 0
 
-    # 2 row × 3 col 簡潔布局 (B/D/F 三組「label / value」並排)
-    # 仟元 → 億元: ÷ 100000
+    # v3.64.2 Step E: Excel-native cell types — 純數值 + number_format
+    # 取代 f-string 字串拼接, 改為 int/float cell + Excel 內建 number_format
+    # 好處: 可 sort/sum/copy, 數字本身是 native data 不是 display string
+    coverage_ratio = (active_branches / total_watched) if total_watched else 0
+    net_billion = total_net / 100000   # 仟元 → 億元
+
+    # 動態組 coverage format — 字面附帶實際分子分母 (如 "0%" (36/38)")
+    coverage_fmt = f'0%" ({active_branches}/{total_watched})"'
+
+    # 淨買差 +/-/0 三段式 format (Excel custom)
+    # 注意: 千分位不加 (數字小, 加會跟 億 衝突), 但保留兩位小數
+    net_fmt = '+0.00" 億";-0.00" 億";0" 億"'
+
+    # ── stats schema: (label_col, label, value_col, value, number_format, color) ──
     stats_row1 = [
-        ('B', '活躍 Master', f"{total_master_active} 位"),
-        ('E', '個股涉及', f"{distinct_stocks} 檔"),
-        ('H', '分點覆蓋', f"{active_branches}/{total_watched} ({coverage_pct}%)"),
+        ('B', '活躍 Master', 'C', total_master_active, '0" 位"', None),
+        ('E', '個股涉及',    'F', distinct_stocks,      '0" 檔"', None),
+        ('H', '分點覆蓋',    'I', coverage_ratio,       coverage_fmt, None),
     ]
     stats_row2 = [
-        ('B', '總買進', f"{total_buy/100000:.1f} 億"),
-        ('E', '總賣出', f"{total_sell/100000:.1f} 億"),
-        ('H', '淨買差', f"{'+' if total_net >= 0 else ''}{total_net/100000:.1f} 億"),
+        ('B', '總買進',  'C', total_buy / 100000,  '0.00" 億"', None),
+        ('E', '總賣出',  'F', total_sell / 100000, '0.00" 億"', None),
+        ('H', '淨買差',  'I', net_billion,         net_fmt,
+            'FFDC2626' if total_net >= 0 else 'FF059669'),
     ]
 
     def _put_stats(row_n, stats):
-        for col_l, label, val_text in stats:
-            col_v = chr(ord(col_l) + 1)
-            # label
+        for col_l, label, col_v, val, fmt, color in stats:
             cl = ws[f'{col_l}{row_n}']
             cl.value = label
             cl.font = label_font
             cl.alignment = Alignment(horizontal='right', vertical='center')
-            # value (large bold)
             cv = ws[f'{col_v}{row_n}']
-            cv.value = val_text
-            cv.font = val_font
+            cv.value = val
+            cv.number_format = fmt
             cv.alignment = Alignment(horizontal='left', vertical='center')
-            # 淨買差用紅綠色突出
-            if label == '淨買差':
-                if total_net >= 0:
-                    cv.font = Font(name='Noto Sans TC', size=14, bold=True, color='FFDC2626')
-                else:
-                    cv.font = Font(name='Noto Sans TC', size=14, bold=True, color='FF059669')
+            cv.font = (Font(name='Noto Sans TC', size=14, bold=True, color=color)
+                       if color else val_font)
 
     _put_stats(row, stats_row1); row += 1
     _put_stats(row, stats_row2); row += 2
