@@ -93,6 +93,30 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.65.0 — Section B/C 視覺優化 + ETF 全 Dashboard 排除 (用戶要求)
+
+**用戶要求**: 「Dashboard 最應該呈現的是只有個股,沒有 ETF」
+
+**Section B/C 視覺改造** (`_build_section_summary` B-I 並排 4-col block):
+- **B Master 名 cell 套色塊** — 用既有 MASTER_BLOCK_COLORS body 色 (蔣承翰=淡紅 / 民哥=淡綠 / 林滄海=淡綠 etc) 跟日期 sheet 同調
+- **C 個股顯示改 `name(code)` 格式** — 一格內,跟日期 sheet 一致
+- **C 新增「漲跌%」欄 (I)** — 從 crawler 注入的 `change_pct` 抓, 紅(漲)/綠(跌)字色 + `0.00%` format
+- **數字千分位** — B 買進 / C 淨買加 `#,##0` format
+
+**ETF 全 Dashboard 排除** (5 處 helper / section):
+- Section C Top 5 個股: `_is_excluded_by_market_type(s)` filter
+- Section J Master × Top 3 個股: 同 filter
+- Section E 警報 (anomalies / consensus / accumulations): `code.startswith('00')` filter
+- Section F 跨日連續囤貨: 同 filter
+- Section 0 強共識買超: 已有 (Sprint v3.63.7)
+- Section A Q3 強共識股: 已有 (v3.64.3)
+
+**驗證**:
+- 43 套件 0 regression (skip date-dependent test_v3460_tier2)
+- 本機 build 含 ETF (00919/0050/00713) data 驗證 → Top 5 個股只剩個股 (群創/聯發科/鴻海/台積電)
+
+---
+
 ### ✅ v3.64.0 — Excel Section A 規模統計擴增 + L 欄損益字色修
 
 **用戶反饋 6/22**: L 欄正值用「白字 on master block 紅淡底」+ 負值有「ColorScaleRule 紅/綠 fill 跟 master fill 重疊變糊」.

@@ -1248,17 +1248,26 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
     top_masters = sorted(master_amt.items(), key=lambda x: -x[1])[:5]
     stock_net = {}
     stock_name = {}
+    stock_close = {}    # v3.65.0: stock_history 抓今日 close
+    stock_prev = {}
     for b in branches_data:
         for s in (b.get('buys') or []):
             c = s.get('code')
             if not c: continue
+            # v3.65.0 用戶要求: Dashboard 只顯示個股 (排 ETF 等非個股)
+            if _is_excluded_by_market_type(s):
+                continue
             stock_net[c] = stock_net.get(c, 0) + (s.get('buy_amt') or 0) - (s.get('sell_amt') or 0)
             stock_name[c] = s.get('name', '')
+            if s.get('change_pct') is not None and c not in stock_close:
+                stock_close[c] = s.get('close_price')
+                stock_prev[c] = s.get('change_pct')
     top_stocks = sorted(stock_net.items(), key=lambda x: -x[1])[:5]
 
-    # headers (兩組並排)
+    # v3.65.0: headers — C 改新增「漲跌%」col 給 Top stock 顯示, B 改 8 col → 8 col 保持
+    # 維持並排 4-col block: B-E master block, F-I stock block
     for col_letter, txt in [('B', '#'), ('C', 'Master'), ('D', '買進(萬元)'), ('E', '佔比%'),
-                              ('F', '#'), ('G', '個股'), ('H', '代號'), ('I', '淨買(萬元)')]:
+                              ('F', '#'), ('G', '個股'), ('H', '淨買(萬元)'), ('I', '漲跌%')]:
         ws[f'{col_letter}{row}'] = txt
         ws[f'{col_letter}{row}'].font = hdr_font
         ws[f'{col_letter}{row}'].fill = hdr_fill
@@ -1270,15 +1279,37 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         s_item = top_stocks[i] if i < len(top_stocks) else None
         if m_item:
             ws[f'B{row}'] = i + 1
-            ws[f'C{row}'] = m_item[0]
-            ws[f'C{row}'].font = Font(name='Noto Sans TC', size=11, bold=True)
+            c_master = ws[f'C{row}']
+            c_master.value = m_item[0]
+            c_master.font = Font(name='Noto Sans TC', size=11, bold=True)
+            # v3.65.0: master 色塊延伸 — 套既有 MASTER_BLOCK_COLORS body 色
+            colors = MASTER_BLOCK_COLORS.get(m_item[0]) or DEFAULT_MASTER_COLOR
+            c_master.fill = PatternFill('solid', fgColor=colors['body'])
             ws[f'D{row}'] = round(m_item[1] / 10, 0)
+            ws[f'D{row}'].number_format = '#,##0'
             ws[f'E{row}'] = f"{m_item[1]/total_all*100:.1f}%"
         if s_item:
+            code, net = s_item
             ws[f'F{row}'] = i + 1
-            ws[f'G{row}'] = stock_name.get(s_item[0], '')
-            ws[f'H{row}'] = s_item[0]
-            ws[f'I{row}'] = round(s_item[1] / 10, 0)
+            # G 改顯示 「name(code)」格式跟 day sheet 一致
+            stock_label = f"{stock_name.get(code, '')}({code})"
+            ws[f'G{row}'] = stock_label
+            ws[f'G{row}'].font = Font(name='Noto Sans TC', size=11, bold=True)
+            ws[f'H{row}'] = round(net / 10, 0)
+            ws[f'H{row}'].number_format = '#,##0'
+            # v3.65.0: I 欄漲跌% (從 crawler 注入的 change_pct)
+            change_pct = stock_prev.get(code)
+            if change_pct is not None:
+                ws[f'I{row}'] = change_pct / 100
+                ws[f'I{row}'].number_format = '0.00%;[Color10]-0.00%'
+                # 紅綠字色 (台股傳統)
+                if change_pct >= 0.01:
+                    ws[f'I{row}'].font = Font(name='Noto Sans TC', size=11, bold=True, color='FFC62828')
+                elif change_pct <= -0.01:
+                    ws[f'I{row}'].font = Font(name='Noto Sans TC', size=11, bold=True, color='FF2E7D32')
+            else:
+                ws[f'I{row}'] = '—'
+                ws[f'I{row}'].font = Font(name='Noto Sans TC', size=10, color='FF888888')
         row += 1
     row += 1
 
@@ -1307,9 +1338,11 @@ def _build_section_alerts(ws, data_dir, start_row):
     start_data = row
     if signals:
         # v3.63.2: 修 4 個資料結構 bug + 追蹤範圍 filter
+        # v3.65.0: 排除 ETF (code 起始 '00')
         # (1) anomalies: amount_wan -> today_buy_amt_wan, 過濾非追蹤 master
         anomalies = [s for s in (signals.get('anomalies') or [])
-                     if _is_tracked_master(s.get('master'))][:15]
+                     if _is_tracked_master(s.get('master'))
+                     and not (s.get('stock_code') or '').startswith('00')][:15]
         for sig in anomalies:
             ws.cell(row, 2, '🔴 異常')
             ws.cell(row, 3, sig.get('master', '—'))
@@ -1319,8 +1352,11 @@ def _build_section_alerts(ws, data_dir, start_row):
             row += 1
         # (2) consensus: 結構是 faction_members list + buyer_count/total_buy_amt_wan;
         #     至少一位追蹤 master 在 faction_members 才顯示
+        # v3.65.0: 排除 ETF
         consensus_filtered = []
         for s in (signals.get('consensus') or []):
+            if (s.get('stock_code') or '').startswith('00'):
+                continue
             members = s.get('faction_members') or []
             tracked_in_faction = [m for m in members if _is_tracked_master(m)]
             if tracked_in_faction:
@@ -1335,8 +1371,10 @@ def _build_section_alerts(ws, data_dir, start_row):
             ws.cell(row, 6, _round_safe(sig.get('total_buy_amt_wan')))
             row += 1
         # (3) accumulations (複數): 過濾追蹤 master, 改用正確欄位名
+        # v3.65.0: 排除 ETF
         acc_list = [s for s in (signals.get('accumulations') or [])
-                    if _is_tracked_master(s.get('master'))][:15]
+                    if _is_tracked_master(s.get('master'))
+                    and not (s.get('stock_code') or '').startswith('00')][:15]
         for sig in acc_list:
             ws.cell(row, 2, '🟢 連續加碼')
             ws.cell(row, 3, f"{sig.get('master', '?')} → {sig.get('stock_code', '?')}")
@@ -1398,8 +1436,10 @@ def _build_section_accumulation(ws, data_dir, start_row):
     signals = _read_json_safely(data_dir / 'daily_trading_signals.json')
     start_data = row
     if signals:
+        # v3.65.0: 排除 ETF (code 起始 '00')
         acc_list = [s for s in (signals.get('accumulations') or [])
-                    if _is_tracked_master(s.get('master'))]
+                    if _is_tracked_master(s.get('master'))
+                    and not (s.get('stock_code') or '').startswith('00')]
         acc_list.sort(key=lambda x: -x.get('consecutive_days', 0))
         for s in acc_list[:30]:
             ws.cell(row, 2, s.get('master', '—'))
@@ -1440,6 +1480,7 @@ def _build_section_pivot(ws, branches_data, start_row):
     row += 1
 
     # 算每個 master 的 today's stocks
+    # v3.65.0: 用戶要求 Dashboard 全只顯示個股, 排除 ETF
     master_stocks = {}
     for b in branches_data:
         m = b.get('master')
@@ -1447,6 +1488,8 @@ def _build_section_pivot(ws, branches_data, start_row):
         for s in (b.get('buys') or []):
             code = s.get('code')
             if not code: continue
+            if _is_excluded_by_market_type(s):
+                continue
             master_stocks.setdefault(m, {})
             key = (code, s.get('name', ''))
             master_stocks[m][key] = master_stocks[m].get(key, 0) + (s.get('buy_amt') or 0)

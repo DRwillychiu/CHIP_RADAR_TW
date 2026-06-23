@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.64.0(2026-06-22) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.65.0(2026-06-23) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.64.0** | 6/22 | **Excel Section A 擴增 + L 欄損益字色修** — 4→6 stat × 2 row,L 欄拿掉 ColorScaleRule 改深紅/深綠 font,master block 上高對比 |
+| **v3.65.0** | 6/23 | **Section B/C 視覺優化 + ETF 全 Dashboard 排除** — B master 色塊延伸 / C 個股 `name(code)` 格式 + 漲跌% 紅綠 / 5 section ETF filter |
+| v3.64.0 | 6/22 | Excel Section A 擴增 + L 欄損益字色修 — 4→6 stat × 2 row,L 欄拿掉 ColorScaleRule 改深紅/深綠 font,master block 上高對比 |
 | v3.63.9 | 6/22 | Section 0 強共識排序優化 — 主排序改總金額 desc + ⚠️ 領頭佔 ≥50% 假共識警示 + cell comment 詳解 + 註腳 row |
 | v3.63.1-8 | 6/21 | Section 0 完整重設計 + 嚴格淨買 + 6 個資料路徑 bug 修 + L 欄高對比配色 (筆電 push) |
 | v3.63.0 | 6/21 | Sprint 26 Excel Tier 2 — E6 freeze panes(Dashboard A3 + day sheet C2) + E7 Pivot-style Section J(Master × Top 3 個股) |
