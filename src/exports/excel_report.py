@@ -1319,15 +1319,36 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
     return row
 
 
+def _anomaly_severity(a: Dict) -> float:
+    """v3.66.0: 統一 anomaly 排序權重.
+
+    volume_spike → 用 |z_score|
+    new_stocks   → 用 2.5 + count * 0.2 (5 檔新標 = 3.5, 跟 3σ 量爆同級)
+                  原本沒 z_score 預設 0 會被沉底 → 用戶看不到新標進場警報
+
+    用戶 2026-06-23 確認砍 E 重複 sub-section, 修這個 bug 是必修 P0.
+    """
+    if a.get('type') == 'new_stocks':
+        return 2.5 + (a.get('count', 0) or 0) * 0.2
+    try:
+        return abs(float(a.get('z_score') or 0))
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def _build_section_alerts(ws, data_dir, start_row):
-    """Section E: 紅綠燈異常警報. Returns next row."""
+    """Section E v3.66.0: 砍掉 🟡 共識 + 🟢 連續加碼 (跟 Section 0/A/F 重複).
+
+    只留 🔴 異常 (volume_spike + new_stocks), top 10.
+    用戶 2026-06-23 裁示「Dashboard 要簡潔但有力」.
+    """
     hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
     hdr_fill = _summary_fill('FFFEE2E2')
 
     row = start_row + 1   # 留一行空白
-    _section_header(ws, row, "▍ E. 異常警報 (anomaly / consensus / accumulation)",
+    _section_header(ws, row, "▍ E. 異常行為警報 (z>2σ 量爆 + 新標的進場)",
                      color='FFEF4444'); row += 1
-    headers = ['類型', 'Master / 個股', '嚴重度', '說明', '金額(萬)']
+    headers = ['類型', 'Master', '嚴重度', '說明', '金額/檔數']
     for i, h in enumerate(headers):
         cell = ws.cell(row, 2 + i, h)
         cell.font = hdr_font; cell.fill = hdr_fill
@@ -1336,55 +1357,50 @@ def _build_section_alerts(ws, data_dir, start_row):
 
     signals = _read_json_safely(data_dir / 'daily_trading_signals.json')
     start_data = row
+    footer_fill = _summary_fill('FFF3F4F6')
+    footer_font = Font(name='Noto Sans TC', size=10, italic=True, color='FF6B7280')
+    TOP_N = 10
+
     if signals:
-        # v3.63.2: 修 4 個資料結構 bug + 追蹤範圍 filter
-        # v3.65.0: 排除 ETF (code 起始 '00')
-        # (1) anomalies: amount_wan -> today_buy_amt_wan, 過濾非追蹤 master
+        # v3.66.0: 砍掉 consensus + accumulations sub-section, 只留 anomalies expand to top 10
+        # 排序用 _anomaly_severity 修 new_stocks 沉底 bug
         anomalies = [s for s in (signals.get('anomalies') or [])
-                     if _is_tracked_master(s.get('master'))
-                     and not (s.get('stock_code') or '').startswith('00')][:15]
-        for sig in anomalies:
-            ws.cell(row, 2, '🔴 異常')
-            ws.cell(row, 3, sig.get('master', '—'))
-            ws.cell(row, 4, _severity_from_z(sig.get('z_score')))
-            ws.cell(row, 5, sig.get('description', '—'))
-            ws.cell(row, 6, _round_safe(sig.get('today_buy_amt_wan')))
+                     if _is_tracked_master(s.get('master'))]
+        anomalies.sort(key=lambda x: -_anomaly_severity(x))
+
+        for sig in anomalies[:TOP_N]:
+            t = sig.get('type')
+            if t == 'new_stocks':
+                ws.cell(row, 2, '🆕 新標的')
+                ws.cell(row, 3, sig.get('master', '—'))
+                count = sig.get('count', 0) or 0
+                ws.cell(row, 4, 'high' if count >= 5 else 'medium')
+                top_new = sig.get('top_new') or []
+                codes_preview = ', '.join([n.get('code', '') for n in top_new[:3]])
+                ws.cell(row, 5,
+                        sig.get('description',
+                                f"今日買進 {count} 檔過去從未買過 (top: {codes_preview})"))
+                ws.cell(row, 6, f'{count} 檔')
+            else:
+                ws.cell(row, 2, '🔴 量爆')
+                ws.cell(row, 3, sig.get('master', '—'))
+                ws.cell(row, 4, _severity_from_z(sig.get('z_score')))
+                ws.cell(row, 5, sig.get('description', '—'))
+                ws.cell(row, 6, _round_safe(sig.get('today_buy_amt_wan')))
             row += 1
-        # (2) consensus: 結構是 faction_members list + buyer_count/total_buy_amt_wan;
-        #     至少一位追蹤 master 在 faction_members 才顯示
-        # v3.65.0: 排除 ETF
-        consensus_filtered = []
-        for s in (signals.get('consensus') or []):
-            if (s.get('stock_code') or '').startswith('00'):
-                continue
-            members = s.get('faction_members') or []
-            tracked_in_faction = [m for m in members if _is_tracked_master(m)]
-            if tracked_in_faction:
-                consensus_filtered.append((s, tracked_in_faction))
-        for sig, tracked in consensus_filtered[:15]:
-            ws.cell(row, 2, '🟡 共識')
-            ws.cell(row, 3, sig.get('stock_code', '—'))
-            ws.cell(row, 4, 'high' if sig.get('buyer_count', 0) >= 5 else 'medium')
-            ws.cell(row, 5,
-                    sig.get('description',
-                            f"{sig.get('buyer_count', '?')} 位高手同買 (追蹤內:{len(tracked)})"))
-            ws.cell(row, 6, _round_safe(sig.get('total_buy_amt_wan')))
+
+        if len(anomalies) > TOP_N:
+            extra = len(anomalies) - TOP_N
+            ws.cell(row, 2, f'… 另 {extra} 筆 anomaly (詳見當日 sheet)')
+            ws.merge_cells(f'B{row}:F{row}')
+            for col in range(2, 7):
+                ws.cell(row, col).fill = footer_fill
+                ws.cell(row, col).font = footer_font
+            ws.cell(row, 2).alignment = Alignment(horizontal='left', indent=1)
             row += 1
-        # (3) accumulations (複數): 過濾追蹤 master, 改用正確欄位名
-        # v3.65.0: 排除 ETF
-        acc_list = [s for s in (signals.get('accumulations') or [])
-                    if _is_tracked_master(s.get('master'))
-                    and not (s.get('stock_code') or '').startswith('00')][:15]
-        for sig in acc_list:
-            ws.cell(row, 2, '🟢 連續加碼')
-            ws.cell(row, 3, f"{sig.get('master', '?')} → {sig.get('stock_code', '?')}")
-            days = sig.get('consecutive_days', 0)
-            ws.cell(row, 4, 'high' if days >= 10 else 'medium')
-            ws.cell(row, 5, sig.get('description', f"連續 {days} 天加碼"))
-            ws.cell(row, 6, _round_safe(sig.get('total_buy_amt_wan')))
-            row += 1
+
     if row == start_data:
-        ws.cell(row, 2, '✅ 今日無異常警報 (追蹤範圍內)')
+        ws.cell(row, 2, '✅ 今日無異常行為 (追蹤範圍內)')
         ws.merge_cells(f'B{row}:F{row}')
         row += 1
     return row
@@ -1435,16 +1451,26 @@ def _build_section_accumulation(ws, data_dir, start_row):
 
     signals = _read_json_safely(data_dir / 'daily_trading_signals.json')
     start_data = row
+    hot_font_red = Font(name='Noto Sans TC', size=11, bold=True, color='FFC62828')
+    HOT_DAYS = 10
     if signals:
         # v3.65.0: 排除 ETF (code 起始 '00')
+        # v3.66.0: 連續 ≥10 天標 🔴 hot (master prefix + 紅字粗體連續天數)
         acc_list = [s for s in (signals.get('accumulations') or [])
                     if _is_tracked_master(s.get('master'))
                     and not (s.get('stock_code') or '').startswith('00')]
         acc_list.sort(key=lambda x: -x.get('consecutive_days', 0))
         for s in acc_list[:30]:
-            ws.cell(row, 2, s.get('master', '—'))
+            days = s.get('consecutive_days', 0) or 0
+            is_hot = days >= HOT_DAYS
+            master_label = s.get('master', '—')
+            if is_hot:
+                master_label = f'🔴 {master_label}'
+            ws.cell(row, 2, master_label)
             ws.cell(row, 3, s.get('stock_code', '—'))
-            ws.cell(row, 4, s.get('consecutive_days', 0))
+            cell_days = ws.cell(row, 4, days)
+            if is_hot:
+                cell_days.font = hot_font_red
             ws.cell(row, 5, _round_safe(s.get('total_buy_amt_wan')))
             ws.cell(row, 6, s.get('description', '—'))
             row += 1

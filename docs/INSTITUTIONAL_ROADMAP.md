@@ -93,6 +93,30 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.66.0 — Section E 大砍 + F hot 標記 + Dashboard 簡潔原則
+
+**用戶要求**: 「Dashboard 簡潔但有力」— E 三 sub-section 中 consensus/accumulation 跟 Section 0/A/F 重複,只留 anomalies。
+
+**Section E 大改造** (`_build_section_alerts`):
+- **砍掉 🟡 共識** — 跟 Section 0 強共識買超 + Section A Q3 重複
+- **砍掉 🟢 連續加碼** — 跟 Section F 跨日連續囤貨 Top 30 是 subset 重複
+- **保留 🔴 異常 + 🆕 新標的, expand top 5 → top 10**
+- **修 new_stocks 沉底 bug** — 原 `sort key=z_score(0)` 讓 new_stocks 永遠排不到 top, 改用 `_anomaly_severity()` 統一權重 (volume_spike=|z|, new_stocks=2.5+count*0.2)
+- 標題改 「異常行為警報 (z>2σ 量爆 + 新標的進場)」, 5 col 簡化
+- 總 row 從 max 45 砍到 max 12 (header 2 + top 10 + footer 1)
+
+**Section F hot 標記** (`_build_section_accumulation`):
+- **連續 ≥10 天 → Master cell prefix 🔴 + 連續天數欄深紅粗體 (FFC62828)**
+- HOT_DAYS=10, 視覺立刻挑出囤超久的 master
+- 邏輯/排序/row 數量不變 (仍 top 30 by 連續天數)
+
+**驗證**:
+- 合成 12 anomalies (7 volume_spike + 5 new_stocks) → top 10 交錯出現,修了沉底 bug ✓
+- 合成 15 accumulations → ≥10 天 6 筆全標 🔴 紅字, <10 天 9 筆正常 ✓
+- syntax check pass
+
+---
+
 ### ✅ v3.65.0 — Section B/C 視覺優化 + ETF 全 Dashboard 排除 (用戶要求)
 
 **用戶要求**: 「Dashboard 最應該呈現的是只有個股,沒有 ETF」
