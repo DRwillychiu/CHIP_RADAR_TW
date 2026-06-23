@@ -1049,23 +1049,39 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row):
     row = start_row
     _section_header(ws, row, "▍ A. 規模統計"); row += 1
 
-    # 計算 6 個 KPI (v3.64.0 P0: 加賣出 + 淨買差 + 分點覆蓋率)
+    # v3.64.1 精準度三 bug 修復 (不動視覺, 只修數據):
+    #   Bug 1: total_sell double-count — 同檔同時在 buys[] 和 sells[] 時 sell_amt 算兩次
+    #   Bug 2: 分點覆蓋分母錯 — 81 是全市場, Dashboard 只追蹤 13 master / 38 unique branches
+    #   Bug 3: distinct_stocks 漏 sells — 只算 buys 漏算純賣個股
     total_buy = sum((s.get('buy_amt') or 0) for b in branches_data for s in (b.get('buys') or []))
-    total_sell = sum((s.get('sell_amt') or 0) for b in branches_data
-                      for s in (b.get('buys') or []) + (b.get('sells') or []))
+
+    # Bug 1 fix: dedup by (branch_code, stock_code) — 同 (branch,stock) pair sell_amt 只算一次
+    _seen_sell = set()
+    total_sell = 0
+    for _b in branches_data:
+        _bcode = _b.get('code', '')
+        for _s in (_b.get('buys') or []) + (_b.get('sells') or []):
+            _scode = _s.get('code')
+            _key = (_bcode, _scode)
+            if _key in _seen_sell:
+                continue
+            _seen_sell.add(_key)
+            total_sell += (_s.get('sell_amt') or 0)
+
     total_net = total_buy - total_sell
     total_master_active = len({b.get('master') for b in branches_data
                                 if (b.get('buys') or []) and b.get('master')})
+
+    # Bug 3 fix: 個股涉及 = buys ∪ sells 去重
     distinct_stocks = len({s.get('code') for b in branches_data
-                            for s in (b.get('buys') or []) if s.get('code')})
-    # 分點覆蓋率: 今天有 buys 的 branches / 全 WATCHED_BRANCHES
+                            for s in (b.get('buys') or []) + (b.get('sells') or [])
+                            if s.get('code')})
+
+    # Bug 2 fix: 分點覆蓋分母改用 MASTER_MAPPING 內 unique branch codes (Dashboard 追蹤池)
     active_branches = len({b.get('code') for b in branches_data
                             if (b.get('buys') or [])})
-    try:
-        from branches import WATCHED_BRANCHES
-        total_watched = len([b for b in WATCHED_BRANCHES if b.get('enabled', True)])
-    except Exception:
-        total_watched = 81
+    _tracked_codes = {code for m in MASTER_MAPPING for code, _name in m['branches']}
+    total_watched = len(_tracked_codes) or 38   # fallback 38
     coverage_pct = round(active_branches / total_watched * 100) if total_watched else 0
 
     # 2 row × 3 col 簡潔布局 (B/D/F 三組「label / value」並排)
