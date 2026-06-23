@@ -799,6 +799,50 @@ def _section_header(ws, row: int, title: str, span_cols: int = 9, color: str = '
     ws.row_dimensions[row].height = 22
 
 
+def _compute_consensus_count(branches_data):
+    """v3.64.3: 共用 helper — 算「強共識股」清單 (≥10 大戶 + ≥2 分點 + 排 ETF + net>0).
+
+    Returns: list of dict {code, name, master_count, branch_count, total_net_amt, masters}
+    與 Section 0 使用相同邏輯, 兩處共用避免 drift.
+    """
+    MIN_MASTER_COUNT = 10
+    stock_map = {}
+    for b in branches_data:
+        m = b.get('master')
+        if not m:
+            continue
+        b_code = b.get('code', '')
+        for s in (b.get('buys') or []) + (b.get('sells') or []):
+            code = s.get('code')
+            if not code or code.startswith('00'):
+                continue
+            net = (s.get('buy_amt') or 0) - (s.get('sell_amt') or 0)
+            if net <= 0:
+                continue
+            entry = stock_map.setdefault(code, {
+                'name': s.get('name', ''),
+                'branches': [],
+            })
+            if not entry['name'] and s.get('name'):
+                entry['name'] = s.get('name')
+            entry['branches'].append({'master': m, 'branch_code': b_code, 'net_amt': net})
+    out = []
+    for code, info in stock_map.items():
+        if len(info['branches']) < 2:
+            continue
+        masters = {br['master'] for br in info['branches']}
+        if len(masters) < MIN_MASTER_COUNT:
+            continue
+        out.append({
+            'code': code, 'name': info['name'],
+            'master_count': len(masters),
+            'branch_count': len(info['branches']),
+            'masters': masters,
+            'total_net_amt': sum(br['net_amt'] for br in info['branches']),
+        })
+    return out
+
+
 def _build_section_consensus(ws, branches_data, data_dir, start_row):
     """v3.63.2 ★ Section 0: 今日追蹤大戶共同買超 (置於 Dashboard 最前).
 
@@ -1038,93 +1082,104 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
     return row
 
 
-def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row):
-    """Section A: 規模統計 + Top 5 master + Top 5 個股 + 籌碼溫度.
-    Returns: next available row."""
+def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
+                            all_branches=None):
+    """Section A: 追蹤池摘要 (v3.64.3) — 10 秒判讀今天追蹤大戶在做什麼.
+
+    4 KPI 對應 4 個盤前 decision-making 問題:
+      Q1 活躍率      → 是否值得看細節?
+      Q2 淨買差      → 偏多/偏空 bias?
+      Q3 強共識股    → 是否有 conviction 還是散亂?
+      Q4 追蹤佔比    → vs 全市場誰更看多?
+
+    + Top 5 master + Top 5 個股 + 籌碼溫度 (後續 sections 保持不變).
+    """
     label_font = Font(name='Noto Sans TC', size=10, color='FF666666')
     val_font = Font(name='Noto Sans TC', size=14, bold=True)
     hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
     hdr_fill = _summary_fill('FFF0F0F0')
 
     row = start_row
-    _section_header(ws, row, "▍ A. 規模統計"); row += 1
+    _section_header(ws, row, "▍ A. 追蹤池摘要 (10 秒判讀今日 13 位大戶在做什麼)")
+    row += 1
 
-    # v3.64.1 精準度三 bug 修復 (不動視覺, 只修數據):
-    #   Bug 1: total_sell double-count — 同檔同時在 buys[] 和 sells[] 時 sell_amt 算兩次
-    #   Bug 2: 分點覆蓋分母錯 — 81 是全市場, Dashboard 只追蹤 13 master / 38 unique branches
-    #   Bug 3: distinct_stocks 漏 sells — 只算 buys 漏算純賣個股
-    total_buy = sum((s.get('buy_amt') or 0) for b in branches_data for s in (b.get('buys') or []))
+    # ── 共同計算: sell_amt dedup helper (v3.64.1 Bug 1 fix) ──
+    def _compute_buy_sell(blist):
+        buy = sum((s.get('buy_amt') or 0) for b in blist for s in (b.get('buys') or []))
+        seen = set()
+        sell = 0
+        for b in blist:
+            bcode = b.get('code', '')
+            for s in (b.get('buys') or []) + (b.get('sells') or []):
+                key = (bcode, s.get('code'))
+                if key in seen: continue
+                seen.add(key)
+                sell += (s.get('sell_amt') or 0)
+        return buy, sell
 
-    # Bug 1 fix: dedup by (branch_code, stock_code) — 同 (branch,stock) pair sell_amt 只算一次
-    _seen_sell = set()
-    total_sell = 0
-    for _b in branches_data:
-        _bcode = _b.get('code', '')
-        for _s in (_b.get('buys') or []) + (_b.get('sells') or []):
-            _scode = _s.get('code')
-            _key = (_bcode, _scode)
-            if _key in _seen_sell:
-                continue
-            _seen_sell.add(_key)
-            total_sell += (_s.get('sell_amt') or 0)
-
+    total_buy, total_sell = _compute_buy_sell(branches_data)
     total_net = total_buy - total_sell
-    total_master_active = len({b.get('master') for b in branches_data
-                                if (b.get('buys') or []) and b.get('master')})
-
-    # Bug 3 fix: 個股涉及 = buys ∪ sells 去重
-    distinct_stocks = len({s.get('code') for b in branches_data
-                            for s in (b.get('buys') or []) + (b.get('sells') or [])
-                            if s.get('code')})
-
-    # Bug 2 fix: 分點覆蓋分母改用 MASTER_MAPPING 內 unique branch codes (Dashboard 追蹤池)
-    active_branches = len({b.get('code') for b in branches_data
-                            if (b.get('buys') or [])})
-    _tracked_codes = {code for m in MASTER_MAPPING for code, _name in m['branches']}
-    total_watched = len(_tracked_codes) or 38   # fallback 38
-    coverage_pct = round(active_branches / total_watched * 100) if total_watched else 0
-
-    # v3.64.2 Step E: Excel-native cell types — 純數值 + number_format
-    # 取代 f-string 字串拼接, 改為 int/float cell + Excel 內建 number_format
-    # 好處: 可 sort/sum/copy, 數字本身是 native data 不是 display string
-    coverage_ratio = (active_branches / total_watched) if total_watched else 0
     net_billion = total_net / 100000   # 仟元 → 億元
 
-    # 動態組 coverage format — 字面附帶實際分子分母 (如 "0%" (36/38)")
-    coverage_fmt = f'0%" ({active_branches}/{total_watched})"'
+    # ── Q1: 活躍率 = 今天有 buys 的追蹤大戶 / 全追蹤大戶數 (13) ──
+    active_masters = {b.get('master') for b in branches_data
+                       if (b.get('buys') or []) and b.get('master')}
+    total_masters = len(TRACKED_MASTERS)
+    active_count = len(active_masters)
+    active_ratio = (active_count / total_masters) if total_masters else 0
 
-    # 淨買差 +/-/0 三段式 format (Excel custom)
-    # 注意: 千分位不加 (數字小, 加會跟 億 衝突), 但保留兩位小數
+    # ── Q3: 強共識股數 + 合計淨買 (Section 0 相同 logic, 集合查詢) ──
+    consensus_stocks = _compute_consensus_count(branches_data)
+    consensus_count = len(consensus_stocks)
+    consensus_net = sum(s['total_net_amt'] for s in consensus_stocks)
+    consensus_net_billion = consensus_net / 100000
+
+    # ── Q4: 追蹤佔比 vs 全市場 ──
+    if all_branches:
+        mkt_buy, mkt_sell = _compute_buy_sell(all_branches)
+        mkt_net_billion = (mkt_buy - mkt_sell) / 100000
+        track_share = (total_buy / mkt_buy) if mkt_buy else 0
+    else:
+        mkt_net_billion = 0
+        track_share = 0
+
+    # ── 動態 format strings (帶 dynamic literal text) ──
+    # 必須 escape number_format 中的特殊字符 (引號, 反斜線)
+    # 主要 concern: 億 + 數字, 數字小不加千分位
+    active_fmt = f'0%" ({active_count}/{total_masters})"'
     net_fmt = '+0.00" 億";-0.00" 億";0" 億"'
+    consensus_fmt = f'0" 檔 (淨買 {consensus_net_billion:+.0f} 億)"'
+    mkt_sign = '+' if mkt_net_billion >= 0 else ''
+    share_fmt = f'0.0%" (市場 {mkt_sign}{mkt_net_billion:.0f} 億)"'
 
-    # ── stats schema: (label_col, label, value_col, value, number_format, color) ──
-    stats_row1 = [
-        ('B', '活躍 Master', 'C', total_master_active, '0" 位"', None),
-        ('E', '個股涉及',    'F', distinct_stocks,      '0" 檔"', None),
-        ('H', '分點覆蓋',    'I', coverage_ratio,       coverage_fmt, None),
-    ]
-    stats_row2 = [
-        ('B', '總買進',  'C', total_buy / 100000,  '0.00" 億"', None),
-        ('E', '總賣出',  'F', total_sell / 100000, '0.00" 億"', None),
-        ('H', '淨買差',  'I', net_billion,         net_fmt,
+    # ── 4 KPI 2x2 layout (label + value 並排) ──
+    # Row 1: B 活躍率 | C-D merged value | F 淨買差 | G-I merged value
+    # Row 2: B 強共識股 | C-D merged value | F 追蹤佔比 | G-I merged value
+    stats = [
+        # (label_col, label_text, value_col, merge_to_col, value, fmt, font_color)
+        (row,     'B', 'Q1 活躍率',   'C', 'D', active_ratio,  active_fmt,    None),
+        (row,     'F', 'Q2 淨買差',   'G', 'I', net_billion,   net_fmt,
             'FFDC2626' if total_net >= 0 else 'FF059669'),
+        (row + 1, 'B', 'Q3 強共識股', 'C', 'D', consensus_count, consensus_fmt, None),
+        (row + 1, 'F', 'Q4 追蹤佔比', 'G', 'I', track_share,   share_fmt,
+            'FFDC2626' if mkt_net_billion >= 0 else 'FF059669'),
     ]
-
-    def _put_stats(row_n, stats):
-        for col_l, label, col_v, val, fmt, color in stats:
-            cl = ws[f'{col_l}{row_n}']
-            cl.value = label
-            cl.font = label_font
-            cl.alignment = Alignment(horizontal='right', vertical='center')
-            cv = ws[f'{col_v}{row_n}']
-            cv.value = val
-            cv.number_format = fmt
-            cv.alignment = Alignment(horizontal='left', vertical='center')
-            cv.font = (Font(name='Noto Sans TC', size=14, bold=True, color=color)
-                       if color else val_font)
-
-    _put_stats(row, stats_row1); row += 1
-    _put_stats(row, stats_row2); row += 2
+    for r, lcol, ltext, vcol_start, vcol_end, val, fmt, color in stats:
+        cl = ws[f'{lcol}{r}']
+        cl.value = ltext
+        cl.font = label_font
+        cl.alignment = Alignment(horizontal='right', vertical='center')
+        # value cell + merge
+        cv = ws[f'{vcol_start}{r}']
+        cv.value = val
+        cv.number_format = fmt
+        cv.alignment = Alignment(horizontal='left', vertical='center')
+        cv.font = (Font(name='Noto Sans TC', size=14, bold=True, color=color)
+                   if color else val_font)
+        if vcol_start != vcol_end:
+            ws.merge_cells(f'{vcol_start}{r}:{vcol_end}{r}')
+    row += 2
+    row += 1   # 空一行
 
     # Top master + Top stocks 並排
     ws.merge_cells(f'B{row}:E{row}')
@@ -1476,6 +1531,8 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     title_font = _summary_font_header()
 
     # v3.63.2: 嚴格只保留追蹤清單內的大戶 (MASTER_MAPPING)
+    # v3.64.3: 保留全市場 branches 供 Section A 計算「追蹤佔比 vs 全市場」
+    all_branches = branches_data
     branches_data = _filter_tracked_branches(branches_data)
 
     for col, w in [('A', 4), ('B', 22), ('C', 18), ('D', 22), ('E', 16),
@@ -1497,7 +1554,8 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     row = 4
     # v3.63.2: ★ Section 0 — 今日共同買超 (置於最前, 使用者最關注)
     row = _build_section_consensus(ws, branches_data, data_dir, row)
-    row = _build_section_summary(ws, branches_data, trade_date, data_dir, row)
+    row = _build_section_summary(ws, branches_data, trade_date, data_dir, row,
+                                   all_branches=all_branches)
     row = _build_section_alerts(ws, data_dir, row)
     row = _build_section_accumulation(ws, data_dir, row)
     row = _build_section_pivot(ws, branches_data, row)   # v3.63.0 E7 Pivot
