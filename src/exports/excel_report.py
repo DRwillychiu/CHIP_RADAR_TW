@@ -1205,11 +1205,12 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
             arrow, bg = '↕', 'FFE5E7EB'   # 淡灰
             color = 'FF374151'
 
-        # Cell value = confidence (numeric, comparable),
-        # format = full rich text suffix
-        # 例: 58.7 + fmt '"↑ 偏多 "0.0"% 信心 — P/C Ratio 主推 — 3 檔焦點"'
-        # → 顯示: "↑ 偏多 58.7% 信心 — P/C Ratio 主推 — 3 檔焦點"
-        q5_fmt = f'"{arrow} {direction} "0.0"% 信心 — {top_signal} 主推 — {focus_n} 檔焦點"'
+        # v3.64.6 解讀正確性修補: 加「明日預測」前綴
+        # 原因: signal_engine.infer_market_direction 註解明確「推 TAIEX 明日方向」
+        # 不加前綴用戶可能誤解為「今日市場偏多」, 實際是預測「明日 TAIEX 偏多」
+        # 例: 58.7 + fmt '"📅 明日預測 ↑ 偏多 "0.0"% — P/C Ratio 主推 — 3 檔焦點"'
+        # → 顯示: "📅 明日預測 ↑ 偏多 58.7% — P/C Ratio 主推 — 3 檔焦點"
+        q5_fmt = f'"📅 明日預測 {arrow} {direction} "0.0"% 信心 — {top_signal} 主推 — {focus_n} 檔焦點"'
 
         ws.merge_cells(f'B{row}:N{row}')
         c_q5 = ws[f'B{row}']

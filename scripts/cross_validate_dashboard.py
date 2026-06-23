@@ -250,6 +250,7 @@ else:
             arrow_map = {'偏多': '↑', '偏空': '↓', '中性': '↕'}
             expected_arrow = arrow_map.get(gt_direction, '↕')
             for expected_substr, label in [
+                ('明日預測', '解讀前綴'),   # v3.64.6: 明日預測 vs 今日市場
                 (expected_arrow, 'arrow'),
                 (gt_direction, 'direction'),
                 (gt_top_signal, 'top_signal'),
@@ -394,6 +395,40 @@ if b_start:
             if not ok_amt: err('B', gt_wan, amt_wan, f'#{i+1} amt')
             if not ok_pct: err('B', gt_pct_str, pct, f'#{i+1} pct')
 
+# v3.64.6 Section C: Top 5 熱門個股 strict assertions
+print(f"\n=== Section C: Top 5 熱門個股 strict ===")
+gt_stock_net = {}
+gt_stock_name = {}
+for b in filtered:
+    for s in b.get('buys', []):
+        c = s.get('code')
+        if not c: continue
+        gt_stock_net[c] = gt_stock_net.get(c, 0) + (s.get('buy_amt', 0) or 0) - (s.get('sell_amt', 0) or 0)
+        gt_stock_name[c] = s.get('name', '')
+gt_top_stocks = sorted(gt_stock_net.items(), key=lambda x: -x[1])[:5]
+print(f"  GT top 5 stocks (淨買 desc):")
+for i, (c, net) in enumerate(gt_top_stocks):
+    print(f"    #{i+1} {gt_stock_name.get(c, '?')}({c}) = {round(net/10)}萬")
+if b_start:
+    # Section C 在同一 row 但 cols F-I
+    for i in range(5):
+        r = b_start + i
+        actual_rank = cell(f'F{r}')
+        actual_name = cell(f'G{r}')
+        actual_code = cell(f'H{r}')
+        actual_amt = cell(f'I{r}')
+        if i < len(gt_top_stocks):
+            gt_c, gt_net = gt_top_stocks[i]
+            gt_wan = round(gt_net / 10, 0)
+            if actual_rank != i + 1:
+                err('C', i + 1, actual_rank, f'#{i+1} rank')
+            if actual_name != gt_stock_name.get(gt_c, ''):
+                err('C', gt_stock_name.get(gt_c, ''), actual_name, f'#{i+1} name')
+            if actual_code != gt_c:
+                err('C', gt_c, actual_code, f'#{i+1} code')
+            if actual_amt != gt_wan:
+                err('C', gt_wan, actual_amt, f'#{i+1} amt')
+
 # v3.63.7: ETF (00919) 即使 10 大戶買也應被剔除
 print(f"\n=== ETF 排除驗證 ===")
 # 直接掃 ws2 整張 sheet 內容找 00919 字串
@@ -440,92 +475,100 @@ for m in forbidden:
     else:
         print(f"  ✓ {m} 未出現")
 
-# Section E: anomaly first row 比對
-print(f"\n=== Section E: 異常警報資料正確性 ===")
+# Section E: anomalies — 驗證所有 tracked items (v3.64.6 加 strict 全列驗證)
+print(f"\n=== Section E.anomaly: 全部 tracked anomalies 驗證 ===")
 tracked_anom = [s for s in (signals.get('anomalies') or [])
                 if s.get('master') in TRACKED_MASTERS][:15]
-if tracked_anom:
-    first = tracked_anom[0]
-    expected_amt = _round_safe(first.get('today_buy_amt_wan'))
-    expected_desc = first.get('description', '—')
-    expected_sev = _severity_from_z(first.get('z_score'))
-    print(f"  GT first anomaly: master={first.get('master')}, today_buy_amt_wan={first.get('today_buy_amt_wan')} -> rounded={expected_amt}")
-    print(f"  GT severity from z={first.get('z_score')}: {expected_sev}")
-    # Find first 🔴 row
-    for r in range(4, ws2.max_row+1):
-        v = cell(f'B{r}')
-        if v == '🔴 異常':
-            actual_master = cell(f'C{r}')
-            actual_sev = cell(f'D{r}')
-            actual_desc = cell(f'E{r}')
-            actual_amt = cell(f'F{r}')
-            print(f"  Excel: master={actual_master}, sev={actual_sev}, desc={actual_desc[:60] if actual_desc else None}..., amt={actual_amt}")
-            if actual_master != first.get('master'):
-                err('E.anom', first.get('master'), actual_master, 'master')
-            if actual_sev != expected_sev:
-                err('E.anom', expected_sev, actual_sev, 'severity')
-            if actual_desc != expected_desc:
-                err('E.anom', expected_desc[:40], (actual_desc or '')[:40], 'description')
-            if actual_amt != expected_amt:
-                err('E.anom', expected_amt, actual_amt, 'amount')
-            break
+print(f"  GT tracked anomalies: {len(tracked_anom)} 筆")
+anom_rows = []
+for r in range(4, ws2.max_row+1):
+    if cell(f'B{r}') == '🔴 異常':
+        anom_rows.append(r)
+if len(anom_rows) != len(tracked_anom):
+    err('E.anom', len(tracked_anom), len(anom_rows), '異常筆數不符')
+for i, (r, gt_sig) in enumerate(zip(anom_rows, tracked_anom)):
+    expected_amt = _round_safe(gt_sig.get('today_buy_amt_wan'))
+    expected_desc = gt_sig.get('description', '—')
+    expected_sev = _severity_from_z(gt_sig.get('z_score'))
+    if cell(f'C{r}') != gt_sig.get('master'):
+        err('E.anom', gt_sig.get('master'), cell(f'C{r}'), f'#{i+1} master')
+    if cell(f'D{r}') != expected_sev:
+        err('E.anom', expected_sev, cell(f'D{r}'), f'#{i+1} severity')
+    if cell(f'E{r}') != expected_desc:
+        err('E.anom', expected_desc[:40], (cell(f'E{r}') or '')[:40], f'#{i+1} desc')
+    if cell(f'F{r}') != expected_amt:
+        err('E.anom', expected_amt, cell(f'F{r}'), f'#{i+1} amount')
 
-# Section E: accumulation 第一筆
+# Section E.consensus — 驗證所有 tracked consensus stocks
+print(f"\n=== Section E.consensus: 全部 tracked consensus 驗證 ===")
+consensus_filtered = []
+for s in (signals.get('consensus') or []):
+    members = s.get('faction_members') or []
+    tracked_in_faction = [m for m in members if m in TRACKED_MASTERS]
+    if tracked_in_faction:
+        consensus_filtered.append((s, tracked_in_faction))
+print(f"  GT consensus: {len(consensus_filtered)} 筆 (限 15)")
+consensus_filtered = consensus_filtered[:15]
+con_rows = []
+for r in range(4, ws2.max_row+1):
+    if cell(f'B{r}') == '🟡 共識':
+        con_rows.append(r)
+if len(con_rows) != len(consensus_filtered):
+    err('E.con', len(consensus_filtered), len(con_rows), '共識筆數不符')
+for i, (r, (gt_sig, tracked)) in enumerate(zip(con_rows, consensus_filtered)):
+    expected_code = gt_sig.get('stock_code', '—')
+    expected_amt = _round_safe(gt_sig.get('total_buy_amt_wan'))
+    if cell(f'C{r}') != expected_code:
+        err('E.con', expected_code, cell(f'C{r}'), f'#{i+1} stock_code')
+    if cell(f'F{r}') != expected_amt:
+        err('E.con', expected_amt, cell(f'F{r}'), f'#{i+1} amount')
+
+# Section E.accumulation — 驗證所有 tracked accumulations
+print(f"\n=== Section E.acc: 全部 tracked accumulations 驗證 ===")
 tracked_acc = [s for s in (signals.get('accumulations') or [])
                if s.get('master') in TRACKED_MASTERS][:15]
-if tracked_acc:
-    first = tracked_acc[0]
-    expected_master_stock = f"{first.get('master', '?')} → {first.get('stock_code', '?')}"
-    expected_amt = _round_safe(first.get('total_buy_amt_wan'))
-    expected_desc = first.get('description', '—')
-    print(f"\n  GT first accumulation: {expected_master_stock}, total_buy_amt_wan={first.get('total_buy_amt_wan')} -> {expected_amt}")
-    for r in range(4, ws2.max_row+1):
-        v = cell(f'B{r}')
-        if v == '🟢 連續加碼':
-            actual_pair = cell(f'C{r}')
-            actual_desc = cell(f'E{r}')
-            actual_amt = cell(f'F{r}')
-            print(f"  Excel: {actual_pair}, desc={actual_desc[:60] if actual_desc else None}..., amt={actual_amt}")
-            if actual_pair != expected_master_stock:
-                err('E.acc', expected_master_stock, actual_pair, 'master->stock')
-            if actual_amt != expected_amt:
-                err('E.acc', expected_amt, actual_amt, 'amount')
-            if actual_desc != expected_desc:
-                err('E.acc', expected_desc[:40], (actual_desc or '')[:40], 'description')
-            break
+print(f"  GT accumulations: {len(tracked_acc)} 筆")
+acc_rows = []
+for r in range(4, ws2.max_row+1):
+    if cell(f'B{r}') == '🟢 連續加碼':
+        acc_rows.append(r)
+if len(acc_rows) != len(tracked_acc):
+    err('E.acc', len(tracked_acc), len(acc_rows), '加碼筆數不符')
+for i, (r, gt_sig) in enumerate(zip(acc_rows, tracked_acc)):
+    expected_master_stock = f"{gt_sig.get('master', '?')} → {gt_sig.get('stock_code', '?')}"
+    expected_amt = _round_safe(gt_sig.get('total_buy_amt_wan'))
+    expected_desc = gt_sig.get('description', '—')
+    if cell(f'C{r}') != expected_master_stock:
+        err('E.acc', expected_master_stock, cell(f'C{r}'), f'#{i+1} master->stock')
+    if cell(f'F{r}') != expected_amt:
+        err('E.acc', expected_amt, cell(f'F{r}'), f'#{i+1} amount')
+    if cell(f'E{r}') != expected_desc:
+        err('E.acc', expected_desc[:40], (cell(f'E{r}') or '')[:40], f'#{i+1} desc')
 
-# Section F: 第一筆 accumulation (top 30 sorted by consecutive_days)
-print(f"\n=== Section F: 跨日連續囤貨資料正確性 ===")
+# Section F: 跨日連續囤貨 Top 30 — 驗證所有列 (v3.64.6)
+print(f"\n=== Section F: 跨日連續囤貨 全列驗證 ===")
 all_acc_sorted = sorted(
     [s for s in (signals.get('accumulations') or []) if s.get('master') in TRACKED_MASTERS],
     key=lambda x: -x.get('consecutive_days', 0)
-)
-if all_acc_sorted:
-    first = all_acc_sorted[0]
-    print(f"  GT #1: master={first.get('master')}, code={first.get('stock_code')}, "
-          f"days={first.get('consecutive_days')}, amt={_round_safe(first.get('total_buy_amt_wan'))}")
-    # Find Section F start
-    f_start = None
-    for r in range(4, ws2.max_row+1):
-        v = cell(f'B{r}')
-        if v and isinstance(v, str) and '跨日連續囤貨' in v:
-            f_start = r + 2  # +1 hdr +1 col-header
-            break
-    if f_start:
-        actual_master = cell(f'B{f_start}')
-        actual_code = cell(f'C{f_start}')
-        actual_days = cell(f'D{f_start}')
-        actual_amt = cell(f'E{f_start}')
-        actual_desc = cell(f'F{f_start}')
-        print(f"  Excel F top: master={actual_master}, code={actual_code}, days={actual_days}, amt={actual_amt}")
-        if actual_master != first.get('master'):
-            err('F', first.get('master'), actual_master, '#1 master')
-        if actual_code != first.get('stock_code'):
-            err('F', first.get('stock_code'), actual_code, '#1 stock_code')
-        if actual_days != first.get('consecutive_days'):
-            err('F', first.get('consecutive_days'), actual_days, '#1 days')
-        if actual_amt != _round_safe(first.get('total_buy_amt_wan')):
-            err('F', _round_safe(first.get('total_buy_amt_wan')), actual_amt, '#1 amt')
+)[:30]
+print(f"  GT Section F: {len(all_acc_sorted)} 筆 (top 30 by consecutive_days)")
+f_start = None
+for r in range(4, ws2.max_row+1):
+    v = cell(f'B{r}')
+    if v and isinstance(v, str) and '跨日連續囤貨' in v:
+        f_start = r + 2  # +1 hdr +1 col-header
+        break
+if f_start:
+    for i, gt_sig in enumerate(all_acc_sorted):
+        r = f_start + i
+        if cell(f'B{r}') != gt_sig.get('master'):
+            err('F', gt_sig.get('master'), cell(f'B{r}'), f'#{i+1} master')
+        if cell(f'C{r}') != gt_sig.get('stock_code'):
+            err('F', gt_sig.get('stock_code'), cell(f'C{r}'), f'#{i+1} stock_code')
+        if cell(f'D{r}') != gt_sig.get('consecutive_days'):
+            err('F', gt_sig.get('consecutive_days'), cell(f'D{r}'), f'#{i+1} days')
+        if cell(f'E{r}') != _round_safe(gt_sig.get('total_buy_amt_wan')):
+            err('F', _round_safe(gt_sig.get('total_buy_amt_wan')), cell(f'E{r}'), f'#{i+1} amt')
 
 # Section J: Master × Top 3
 print(f"\n=== Section J: Master × Top 3 cross-table 驗證 ===")
@@ -553,14 +596,28 @@ for r in range(4, ws2.max_row+1):
         j_start = r + 2
         break
 if j_start:
-    actual_master = cell(f'B{j_start}')
-    actual_total = cell(f'C{j_start}')
-    print(f"  Excel J #1: master={actual_master}, total={actual_total}萬")
-    if actual_master != gt_rows[0]['master']:
-        err('J', gt_rows[0]['master'], actual_master, '#1 master')
-    expected_total = round(gt_rows[0]['total']/10, 0)
-    if actual_total != expected_total:
-        err('J', expected_total, actual_total, '#1 total')
+    # v3.64.6: 驗證全部 rows + top 3 stocks 名稱與金額
+    for i, gt in enumerate(gt_rows[:30]):
+        r = j_start + i
+        actual_master = cell(f'B{r}')
+        actual_total = cell(f'C{r}')
+        expected_total = round(gt['total']/10, 0)
+        if actual_master != gt['master']:
+            err('J', gt['master'], actual_master, f'#{i+1} master')
+        if actual_total != expected_total:
+            err('J', expected_total, actual_total, f'#{i+1} total')
+        # Verify each top-3 stock + amount (cols D/E for #1, F/G for #2, H/I for #3)
+        for slot_idx, ((c, n), amt) in enumerate(gt['top']):
+            name_col = chr(ord('D') + slot_idx * 2)  # D F H
+            amt_col = chr(ord('E') + slot_idx * 2)   # E G I
+            expected_name_code = f"{n}({c})"
+            expected_amt = round(amt/10, 0)
+            if cell(f'{name_col}{r}') != expected_name_code:
+                err('J', expected_name_code, cell(f'{name_col}{r}'),
+                    f'#{i+1} top{slot_idx+1} name')
+            if cell(f'{amt_col}{r}') != expected_amt:
+                err('J', expected_amt, cell(f'{amt_col}{r}'),
+                    f'#{i+1} top{slot_idx+1} amt')
 
 # === Section 0: 共同買超 (≥2 分點) verify ===
 print(f"\n=== ★ Section 0: 共同買超 (≥2 分點) cross-validate ===")
