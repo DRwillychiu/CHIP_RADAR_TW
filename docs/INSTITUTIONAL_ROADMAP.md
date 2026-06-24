@@ -93,6 +93,25 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.66.3 — Section G empty state + H 借券 hot 標記 (Dashboard 簡潔收尾)
+
+**Section G 注意股** (`_build_section_risk`):
+- empty state 從 「今日無注意股」改 「✅ 今日無新增注意股 (市場無異常波動標的)」
+- 套綠色斜體 (FF10B981) 表「正常無壓力」, 跟 H/I 警報訊號區隔
+
+**Section H 借券賣出** (`_build_section_risk`):
+- `borrow_vs_short_ratio ≥1000x` 標 🔴 — 代號前 prefix + ratio 欄深紅粗體
+- ratio number_format `#,##0.0` 千分位 + 小數
+- 張數欄 (借券 / 融券) 加 `#,##0` 千分位
+- 用戶: 「Dashboard 簡潔但有力」, 1000x 是極端機構壓力門檻
+
+**驗證**:
+- 真實 daily short_lending.json top 15 → 1 筆達 1000x (00997A ratio=1243.2) 標紅 ✓
+- attention_map 空 → G 顯示綠色「✅ 今日無新增注意股」✓
+- syntax check pass
+
+---
+
 ### ✅ v3.66.2 — Section J 集中度 + Master 色塊 (Dashboard 簡潔原則)
 
 **Section J 改造** (`_build_section_pivot`):

@@ -1603,8 +1603,11 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
             ws.cell(row, 6, info.get('pe', '—'))
             row += 1
     else:
-        ws.cell(row, 2, '今日無注意股')
-        ws.merge_cells(f'B{row}:F{row}'); row += 1
+        # v3.66.3: empty state 加 emoji 友善訊息
+        ws.cell(row, 2, '✅ 今日無新增注意股 (市場無異常波動標的)')
+        ws.merge_cells(f'B{row}:F{row}')
+        ws.cell(row, 2).font = Font(name='Noto Sans TC', size=11, italic=True, color='FF10B981')
+        row += 1
 
     row += 1
 
@@ -1621,12 +1624,32 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
     row += 1
     top_borrow = ((short_lending or {}).get('top_borrow_sell') or [])
     if top_borrow:
+        # v3.66.3: ratio ≥1000x 標 🔴 (極端機構壓力), 紅字粗體
+        hot_font_red = Font(name='Noto Sans TC', size=11, bold=True, color='FFC62828')
+        RATIO_HOT = 1000.0
         for item in top_borrow[:15]:
-            ws.cell(row, 2, item.get('code', '—'))
+            ratio = item.get('borrow_vs_short_ratio')
+            try:
+                ratio_num = float(ratio) if ratio is not None else None
+            except (TypeError, ValueError):
+                ratio_num = None
+            is_hot = ratio_num is not None and ratio_num >= RATIO_HOT
+
+            code_label = item.get('code', '—')
+            if is_hot:
+                code_label = f'🔴 {code_label}'
+            c_code = ws.cell(row, 2, code_label)
+            if is_hot:
+                c_code.font = hot_font_red
+
             ws.cell(row, 3, item.get('name', '—'))
-            ws.cell(row, 4, item.get('borrow_sell_lot', 0))
-            ws.cell(row, 5, item.get('short_sell_lot', 0))
-            ws.cell(row, 6, item.get('borrow_vs_short_ratio', '—'))
+            ws.cell(row, 4, item.get('borrow_sell_lot', 0)).number_format = '#,##0'
+            ws.cell(row, 5, item.get('short_sell_lot', 0)).number_format = '#,##0'
+            c_ratio = ws.cell(row, 6, ratio_num if ratio_num is not None else '—')
+            if ratio_num is not None:
+                c_ratio.number_format = '#,##0.0'
+            if is_hot:
+                c_ratio.font = hot_font_red
             row += 1
     else:
         ws.cell(row, 2, '今日無借券資料')
