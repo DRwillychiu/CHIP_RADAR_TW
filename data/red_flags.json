@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T22:48:43.473515+08:00",
+  "generated_at": "2026-06-24T23:51:09.441490+08:00",
   "trade_date": "20260624",
   "pump_suspicion": [
     {
@@ -590,28 +590,12 @@
       "reasoning": "8563 買 108 張 vs 7000 賣 116 張 (匹配 93%)"
     }
   ],
-  "distribution": [
-    {
-      "stock_code": "2303",
-      "stock_name": "聯電",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 981,
-      "sell_amt_wan": 17456,
-      "avg_30d_sell_lot": 90.0,
-      "sell_vs_avg_x": 10.9,
-      "recent_5d_limit_up_count": 63,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 981 張 (30 天均 90 張 × 10.9) + 近 5 天漲停 63 次"
-    }
-  ],
+  "distribution": [],
   "summary": {
     "pump_count": 5,
     "wash_count": 30,
-    "distribution_count": 1,
-    "total": 36
+    "distribution_count": 0,
+    "total": 35
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
