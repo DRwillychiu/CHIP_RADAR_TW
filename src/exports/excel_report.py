@@ -1549,14 +1549,29 @@ def _build_section_pivot(ws, branches_data, start_row):
     return row
 
 
-def _build_section_risk(ws, data_dir, start_row):
-    """Section G+H+I: 注意股 + 借券 + 除權息. Returns next row."""
+def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = None):
+    """Section G+H+I: 注意股 + 借券 + 除權息. Returns next row.
+
+    v3.66.1 時間正確性修補:
+      - I 除權息過濾過期 ex_date (對 6/24 看 Excel 不該還顯示 6/23 已除權的股)
+      - G/H/I header 顯示 applicable_date / fetched_at, 用戶知道資料新鮮度
+      - trade_date 作為 "今天" 比對基準 (重生歷史 Excel 時亦正確)
+    """
     hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
     sub_font = Font(name='Noto Sans TC', size=11, bold=True)
 
+    # 「今天」基準: 用 trade_date (重生 6/18 時 = 20260618; 即時 dispatch = 當日)
+    today_yyyymmdd = trade_date or ''
+
     row = start_row + 1
-    _section_header(ws, row, "▍ G. 注意股", color='FFFB923C'); row += 1
+
+    # ── G 注意股 ──
     attention = _read_json_safely(data_dir / 'attention_map.json')
+    g_apply = (attention or {}).get('applicable_date') or '?'
+    g_stale_days = (attention or {}).get('stale_days')
+    g_stale_tag = f" / 距 trade_date {g_stale_days} 天" if g_stale_days else ""
+    _section_header(ws, row, f"▍ G. 注意股 (資料日 {g_apply}{g_stale_tag})",
+                     color='FFFB923C'); row += 1
     for h_col, h in [('B', '代號'), ('C', '名稱'), ('D', '累計次數'), ('E', '收盤價'), ('F', '本益比')]:
         cell = ws[f'{h_col}{row}']; cell.value = h; cell.font = hdr_font
         cell.fill = _summary_fill('FFFEF3C7')
@@ -1575,8 +1590,13 @@ def _build_section_risk(ws, data_dir, start_row):
         ws.merge_cells(f'B{row}:F{row}'); row += 1
 
     row += 1
-    _section_header(ws, row, "▍ H. 借券賣出 Top 15 (機構級反向力量)", color='FFDC2626'); row += 1
+
+    # ── H 借券 ──
     short_lending = _read_json_safely(data_dir / 'short_lending.json')
+    h_apply = (short_lending or {}).get('applicable_date') or '?'
+    _section_header(ws, row,
+                     f"▍ H. 借券賣出 Top 15 (機構級反向力量, 資料日 {h_apply})",
+                     color='FFDC2626'); row += 1
     for h_col, h in [('B', '代號'), ('C', '名稱'), ('D', '借券張數'), ('E', '融券張數'), ('F', 'ratio')]:
         cell = ws[f'{h_col}{row}']; cell.value = h; cell.font = hdr_font
         cell.fill = _summary_fill('FFFEE2E2')
@@ -1596,9 +1616,17 @@ def _build_section_risk(ws, data_dir, start_row):
         ws.merge_cells(f'B{row}:F{row}'); row += 1
 
     row += 1
+
+    # ── I 除權息 ──
+    # v3.66.1 修 time bug: 過濾過期 ex_date (≥ trade_date), 避免顯示已除權的股
     dividend = _read_json_safely(data_dir / 'dividend_calendar.json')
-    upcoming = (dividend or {}).get('upcoming_30d') or []
-    _section_header(ws, row, f"▍ I. 未來 30 天除權息 ({len(upcoming)} 檔)",
+    upcoming_raw = (dividend or {}).get('upcoming_30d') or []
+    if today_yyyymmdd:
+        upcoming = [i for i in upcoming_raw if (i.get('ex_date') or '') >= today_yyyymmdd]
+    else:
+        upcoming = upcoming_raw
+    _section_header(ws, row,
+                     f"▍ I. 未來 30 天除權息 (有效 {len(upcoming)} 檔, 已剔除過期)",
                      color='FFFBBF24'); row += 1
     for h_col, h in [('B', '除權息日'), ('C', '代號'), ('D', '名稱'), ('E', '類型'), ('F', '現金股利')]:
         cell = ws[f'{h_col}{row}']; cell.value = h; cell.font = hdr_font
@@ -1658,7 +1686,7 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     row = _build_section_alerts(ws, data_dir, row)
     row = _build_section_accumulation(ws, data_dir, row)
     row = _build_section_pivot(ws, branches_data, row)   # v3.63.0 E7 Pivot
-    row = _build_section_risk(ws, data_dir, row)
+    row = _build_section_risk(ws, data_dir, row, trade_date=trade_date)
 
     # v3.63.0 (E6): freeze pane — title row 不滾走
     ws.freeze_panes = 'A3'

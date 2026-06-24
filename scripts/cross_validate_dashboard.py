@@ -623,6 +623,109 @@ if j_start:
                 err('J', expected_amt, cell(f'{amt_col}{r}'),
                     f'#{i+1} top{slot_idx+1} amt')
 
+# === Section G/H/I 內容 + 時間正確性 (v3.66.1) ===
+print(f"\n=== Section G/H/I strict + 時間正確性 ===")
+TRADE_DATE = '20260618'   # test render uses this
+
+import json as _json
+from datetime import datetime as _dt
+
+def _load_json(p):
+    try:
+        with open(p, 'r', encoding='utf-8') as f:
+            return _json.load(f)
+    except Exception:
+        return None
+
+# ── G 注意股 ──
+am = _load_json(ROOT / 'data' / 'attention_map.json')
+if am:
+    gt_g_apply = am.get('applicable_date')
+    gt_g_by_code = am.get('by_code') or {}
+    gt_g_top15 = list(gt_g_by_code.items())[:15]
+    print(f"  G applicable_date: {gt_g_apply}, top 15 樣本")
+    # Find G section
+    g_start = None
+    for r in range(4, ws2.max_row + 1):
+        v = cell(f'B{r}')
+        if v and isinstance(v, str) and 'G. 注意股' in v:
+            # header 必須含 applicable_date
+            if gt_g_apply and gt_g_apply not in v:
+                err('G', f'header 含 {gt_g_apply}', v, 'G header 缺 applicable_date')
+            g_start = r + 2  # +1 hdr +1 col-header
+            break
+    if g_start:
+        for i, (gt_code, gt_info) in enumerate(gt_g_top15):
+            r = g_start + i
+            if cell(f'B{r}') != gt_code:
+                err('G', gt_code, cell(f'B{r}'), f'#{i+1} code')
+            if cell(f'C{r}') != gt_info.get('name', '—'):
+                err('G', gt_info.get('name', '—'), cell(f'C{r}'), f'#{i+1} name')
+            if cell(f'D{r}') != gt_info.get('cumulative_count', 0):
+                err('G', gt_info.get('cumulative_count', 0), cell(f'D{r}'), f'#{i+1} count')
+
+# ── H 借券 ──
+sl = _load_json(ROOT / 'data' / 'short_lending.json')
+if sl:
+    gt_h_apply = sl.get('applicable_date')
+    gt_h_top15 = (sl.get('top_borrow_sell') or [])[:15]
+    print(f"  H applicable_date: {gt_h_apply}, top 15 樣本")
+    h_start = None
+    for r in range(4, ws2.max_row + 1):
+        v = cell(f'B{r}')
+        if v and isinstance(v, str) and 'H. 借券' in v:
+            if gt_h_apply and gt_h_apply not in v:
+                err('H', f'header 含 {gt_h_apply}', v, 'H header 缺 applicable_date')
+            h_start = r + 2
+            break
+    if h_start:
+        for i, item in enumerate(gt_h_top15):
+            r = h_start + i
+            if cell(f'B{r}') != item.get('code', '—'):
+                err('H', item.get('code'), cell(f'B{r}'), f'#{i+1} code')
+            if cell(f'C{r}') != item.get('name', '—'):
+                err('H', item.get('name'), cell(f'C{r}'), f'#{i+1} name')
+            if cell(f'D{r}') != item.get('borrow_sell_lot', 0):
+                err('H', item.get('borrow_sell_lot', 0), cell(f'D{r}'), f'#{i+1} borrow_sell_lot')
+            if cell(f'E{r}') != item.get('short_sell_lot', 0):
+                err('H', item.get('short_sell_lot', 0), cell(f'E{r}'), f'#{i+1} short_sell_lot')
+            if cell(f'F{r}') != item.get('borrow_vs_short_ratio', '—'):
+                err('H', item.get('borrow_vs_short_ratio', '—'), cell(f'F{r}'), f'#{i+1} ratio')
+
+# ── I 除權息 (時間正確性: 必須過濾過期 ex_date) ──
+dc = _load_json(ROOT / 'data' / 'dividend_calendar.json')
+if dc:
+    gt_upcoming_raw = dc.get('upcoming_30d') or []
+    # v3.66.1: trade_date 後的才算 upcoming
+    gt_upcoming_valid = [i for i in gt_upcoming_raw
+                          if (i.get('ex_date') or '') >= TRADE_DATE]
+    gt_upcoming_top15 = gt_upcoming_valid[:15]
+    print(f"  I 原 upcoming_30d: {len(gt_upcoming_raw)}, 過濾過期 (ex_date >= {TRADE_DATE}) 後: {len(gt_upcoming_valid)}")
+    i_start = None
+    for r in range(4, ws2.max_row + 1):
+        v = cell(f'B{r}')
+        if v and isinstance(v, str) and 'I. 未來 30 天除權息' in v:
+            i_start = r + 2
+            break
+    if i_start:
+        for idx, item in enumerate(gt_upcoming_top15):
+            r = i_start + idx
+            ex = item.get('ex_date', '—')
+            if cell(f'B{r}') != ex:
+                err('I', ex, cell(f'B{r}'), f'#{idx+1} ex_date')
+            # 🔴 時間正確性: ex_date 不能 < trade_date
+            if ex and ex < TRADE_DATE:
+                err('I.time', f'>= {TRADE_DATE}', ex,
+                    f'#{idx+1} 過期 ex_date 不應出現在 Excel')
+            if cell(f'C{r}') != item.get('code', '—'):
+                err('I', item.get('code'), cell(f'C{r}'), f'#{idx+1} code')
+            if cell(f'D{r}') != item.get('name', '—'):
+                err('I', item.get('name'), cell(f'D{r}'), f'#{idx+1} name')
+            if cell(f'E{r}') != item.get('type', '—'):
+                err('I', item.get('type'), cell(f'E{r}'), f'#{idx+1} type')
+            if cell(f'F{r}') != item.get('cash_dividend', '—'):
+                err('I', item.get('cash_dividend'), cell(f'F{r}'), f'#{idx+1} cash_div')
+
 # === Section 0: 共同買超 (≥2 分點) verify ===
 print(f"\n=== ★ Section 0: 共同買超 (≥2 分點) cross-validate ===")
 # Ground truth: 從 filtered branches_data 獨立計算, 以分點為單位
