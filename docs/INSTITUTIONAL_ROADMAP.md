@@ -93,6 +93,35 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.66.2 — Section J 集中度 + Master 色塊 (Dashboard 簡潔原則)
+
+**Section J 改造** (`_build_section_pivot`):
+- **新增 col J「Top3 合計%」** — Top3 金額 / master 今日總買, 0.0% format
+- **Master cell 套 MASTER_BLOCK_COLORS body 色** — 跟 B/C 視覺一致
+- **集中度 ≥80% 標 🔥** — Master prefix 🔥 + Top3% 欄深紅粗體, 視覺立刻挑出押大注的 master
+- 金額千分位 #,##0 統一
+
+**驗證**:
+- 合成 3 master (押大注 90% / 散買 50% / 中度 65%) → 🔥 only on 90% ✓
+- Master 色塊跟 B/C 對齊 (Tradow 淡紅 / 大牌分析師 淡綠 / 巨人傑 淡紅) ✓
+- 0.0% format + 紅字粗體於 ≥80% ✓
+
+---
+
+### ✅ v3.66.1 — Section G/H/I 時間正確性修補 + strict assertions
+
+**P0 bug** (用戶 2026-06-24 發現):
+Section I「未來 30 天除權息」前 15 筆中 13 筆 ex_date=20260623 (已過期)。crawler 6/23 21:35 跑時把「6/23 後 30 天」存進 upcoming_30d, 6/24 用戶開 Excel 時 6/23 已是過去, Excel render 直接讀 upcoming_30d[:15] 沒過濾過期。
+
+**修補**:
+- Part 1 — I 過期過濾: `upcoming = [i for i in raw if ex_date >= trade_date]`, build_dashboard_sheet 把 trade_date 傳給 _build_section_risk
+- Part 2 — G/H/I header 加 applicable_date 顯示, 用戶知道資料新鮮度
+  - G: "▍ G. 注意股 (資料日 20260623)"
+  - H: "▍ H. 借券賣出 Top 15 (機構級反向力量, 資料日 20260623)"
+- Part 3 — cross_validate_dashboard.py 加 G/H/I strict assertion, header applicable_date 校對
+
+---
+
 ### ✅ v3.66.0 — Section E 大砍 + F hot 標記 + Dashboard 簡潔原則
 
 **用戶要求**: 「Dashboard 簡潔但有力」— E 三 sub-section 中 consensus/accumulation 跟 Section 0/A/F 重複,只留 anomalies。

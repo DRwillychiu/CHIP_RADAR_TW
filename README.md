@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.66.0(2026-06-23) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.66.2(2026-06-24) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,9 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.66.0** | 6/23 | **Dashboard 簡潔原則: E 大砍 + F hot 標記** — E 砍 consensus/accumulation 留 anomalies top 10 + 修 new_stocks 沉底 bug / F ≥10 天 🔴 紅字粗體 |
+| **v3.66.2** | 6/24 | **Section J 集中度 + Master 色塊** — 新增 Top3 合計% col / Master cell 套 MASTER_BLOCK_COLORS / ≥80% 標 🔥 + 紅字粗體 |
+| v3.66.1 | 6/24 | Section G/H/I 時間正確性 — I 過濾過期 ex_date + G/H/I header 加 applicable_date + cross_validate 加 strict assertion |
+| v3.66.0 | 6/23 | Dashboard 簡潔原則: E 大砍 + F hot 標記 — E 砍 consensus/accumulation 留 anomalies top 10 + 修 new_stocks 沉底 bug / F ≥10 天 🔴 紅字粗體 |
 | v3.65.0 | 6/23 | Section B/C 視覺優化 + ETF 全 Dashboard 排除 — B master 色塊延伸 / C 個股 `name(code)` 格式 + 漲跌% 紅綠 / 5 section ETF filter |
 | v3.64.0 | 6/22 | Excel Section A 擴增 + L 欄損益字色修 — 4→6 stat × 2 row,L 欄拿掉 ColorScaleRule 改深紅/深綠 font,master block 上高對比 |
 | v3.63.9 | 6/22 | Section 0 強共識排序優化 — 主排序改總金額 desc + ⚠️ 領頭佔 ≥50% 假共識警示 + cell comment 詳解 + 註腳 row |

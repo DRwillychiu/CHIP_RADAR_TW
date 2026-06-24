@@ -1493,11 +1493,12 @@ def _build_section_pivot(ws, branches_data, start_row):
     row = start_row + 1
     _section_header(ws, row, "▍ J. Master × Top 3 個股 cross-table (今日)",
                      color='FF6366F1'); row += 1
-    # headers
+    # v3.66.2: 加 col J「Top3 合計%」(集中度), Master cell 套 block color
     for h_col, h in [('B', 'Master'), ('C', '今日總買(萬)'),
                       ('D', 'Top1 個股'), ('E', 'Top1 金額'),
                       ('F', 'Top2 個股'), ('G', 'Top2 金額'),
-                      ('H', 'Top3 個股'), ('I', 'Top3 金額')]:
+                      ('H', 'Top3 個股'), ('I', 'Top3 金額'),
+                      ('J', 'Top3 合計%')]:
         cell = ws[f'{h_col}{row}']
         cell.value = h
         cell.font = hdr_font
@@ -1534,18 +1535,34 @@ def _build_section_pivot(ws, branches_data, start_row):
 
     start_data = row
     for d in rows_data[:30]:
-        ws.cell(row, 2, d['master'])
-        ws.cell(row, 2).font = Font(name='Noto Sans TC', size=11, bold=True)
-        ws.cell(row, 3, round(d['total'] / 10, 0))
+        # v3.66.2: Master cell 套 MASTER_BLOCK_COLORS body 色 (跟 B/C 一致)
+        colors = MASTER_BLOCK_COLORS.get(d['master']) or DEFAULT_MASTER_COLOR
+        top3_amt = sum(amt for _, amt in d['top'])
+        top3_pct = (top3_amt / d['total']) if d['total'] > 0 else 0
+
+        master_label = d['master']
+        if top3_pct >= 0.80:
+            master_label = f'🔥 {master_label}'   # 押大注集中
+        c_master = ws.cell(row, 2, master_label)
+        c_master.font = Font(name='Noto Sans TC', size=11, bold=True)
+        c_master.fill = PatternFill('solid', fgColor=colors['body'])
+
+        ws.cell(row, 3, round(d['total'] / 10, 0)).number_format = '#,##0'
         for i, ((code, name), amt) in enumerate(d['top']):
-            col_name = chr(ord('D') + i * 2)  # D, F, H
-            col_amt = chr(ord('E') + i * 2)   # E, G, I
+            col_name = chr(ord('D') + i * 2)
+            col_amt = chr(ord('E') + i * 2)
             ws.cell(row, ord(col_name) - 64, f"{name}({code})")
-            ws.cell(row, ord(col_amt) - 64, round(amt / 10, 0))
+            c_amt = ws.cell(row, ord(col_amt) - 64, round(amt / 10, 0))
+            c_amt.number_format = '#,##0'
+
+        c_pct = ws.cell(row, 10, top3_pct)   # col J
+        c_pct.number_format = '0.0%'
+        if top3_pct >= 0.80:
+            c_pct.font = Font(name='Noto Sans TC', size=11, bold=True, color='FFC62828')
         row += 1
     if row == start_data:
         ws.cell(row, 2, '今日無 master 有買進資料')
-        ws.merge_cells(f'B{row}:I{row}'); row += 1
+        ws.merge_cells(f'B{row}:J{row}'); row += 1
     return row
 
 
