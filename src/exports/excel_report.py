@@ -1576,7 +1576,11 @@ def _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_d
     # ── 計算 6 個 hot 指標 ──
     consensus_stocks = _compute_consensus_count(branches_data)
     c_count = len(consensus_stocks)
-    top3_consensus = consensus_stocks[:3]
+    # v3.66.5 bug fix: 用 Section 0 相同排序 (-total_net_amt, -master_count, -branch_count)
+    # 修前 unsorted dict order → top 3 跟 Section 0 顯示不一致
+    top3_consensus = sorted(consensus_stocks,
+                             key=lambda x: (-x['total_net_amt'], -x['master_count'],
+                                            -x['branch_count']))[:3]
 
     # Q5
     daily_signal = _read_json_safely(data_dir / 'daily_signal.json')
@@ -1648,10 +1652,13 @@ def _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_d
     else:
         action_buy = "進場關注: 今日無強共識"
 
-    if today_ex_str:
-        action_avoid = f"避開 (除權息): {today_ex_str}"
-    elif today_ex_list:
-        action_avoid = f"避開 (除權息): {len(today_ex_list)} 檔"
+    # v3.66.5 bug fix: 顯示真實檔數避免誤導
+    # 修前: 「避開 (除權息): 00907, 1104, 1326」假裝只 3 檔, 但實際 15 檔!
+    # 修後: 「避開 (除權息) 15 檔: 00907 / 1104 / 1326 ...」明示總數
+    if today_ex_list:
+        n_total = len(today_ex_list)
+        suffix = ' ...' if n_total > 3 else ''
+        action_avoid = f"避開 (除權息) {n_total} 檔: {today_ex_str}{suffix}"
     else:
         action_avoid = "避開: 今日無除權息"
 

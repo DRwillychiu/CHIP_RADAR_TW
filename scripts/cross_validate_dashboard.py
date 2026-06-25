@@ -141,6 +141,21 @@ else:
     for must_contain in ['💡', '進場關注', '避開', '訊號']:
         if must_contain not in act_v:
             errors.append(('ACT', f'含 {must_contain!r}', act_v, f'缺 {must_contain}'))
+    # v3.66.5: Action 進場關注 top 3 必須跟 Section 0 顯示相同排序
+    # Section 0 sort: -total_net_amt, -master_count, -branch_count
+    # 從 act_v 萃取 "進場關注 CODE1 / CODE2 / CODE3"
+    import re as _re_
+    m = _re_.search(r'進場關注\s+(\S+)\s+/\s+(\S+)\s+/\s+(\S+)', act_v)
+    if m:
+        act_top3 = [m.group(1), m.group(2), m.group(3)]
+        # 從 Excel Section 0 取 top 3 codes (假設 9 行起 col C)
+        excel_top3 = []
+        for r_ in range(9, 12):
+            c = ws2[f'C{r_}'].value
+            if c: excel_top3.append(str(c))
+        if act_top3 != excel_top3:
+            errors.append(('ACT', excel_top3, act_top3,
+                          '進場關注 top 3 跟 Section 0 不對齊'))
 
 
 # Helper: get cell value by addr
