@@ -18,8 +18,10 @@ if not password:
     print("❌ CHIP_RADAR_PASSWORD 環境變數沒設")
     sys.exit(1)
 
-target_date = '20260618'
+target_date = '20260624'   # 自動切到最新可用 (6/18 已歸檔)
 src_json = ROOT / 'data' / f'{target_date}.json'
+if not src_json.exists():
+    src_json = ROOT / 'data' / 'archive' / f'{target_date}.json'
 print(f"讀: {src_json}")
 
 with open(src_json, 'r', encoding='utf-8') as f:

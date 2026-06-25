@@ -1566,6 +1566,125 @@ def _build_section_pivot(ws, branches_data, start_row):
     return row
 
 
+def _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_dir):
+    """v3.66.4 Phase 2.1: TL;DR (Row 3) + Action (Row 4) 首屏摘要.
+
+    用戶設計 spec:
+      - 一句話 TL;DR (single-line summary): 共識/Q5/E/F/J/H 6 個 hot 指標
+      - Action card 含 進場關注 / 避開 / 訊號強度
+    """
+    # ── 計算 6 個 hot 指標 ──
+    consensus_stocks = _compute_consensus_count(branches_data)
+    c_count = len(consensus_stocks)
+    top3_consensus = consensus_stocks[:3]
+
+    # Q5
+    daily_signal = _read_json_safely(data_dir / 'daily_signal.json')
+    md = (daily_signal or {}).get('market_direction') or {}
+    direction = md.get('direction') or '?'
+    confidence = md.get('confidence_pct') or 0
+    arrow = '↑' if direction == '偏多' else ('↓' if direction == '偏空' else '↕')
+
+    # E anomaly (tracked, top 10)
+    signals = _read_json_safely(data_dir / 'daily_trading_signals.json')
+    e_count = len([a for a in ((signals or {}).get('anomalies') or [])
+                    if _is_tracked_master(a.get('master'))][:10])
+
+    # F hot (≥10 days, 非 ETF, tracked)
+    f_hot = sum(1 for a in ((signals or {}).get('accumulations') or [])
+                 if _is_tracked_master(a.get('master'))
+                 and not (a.get('stock_code') or '').startswith('00')
+                 and (a.get('consecutive_days', 0) or 0) >= 10)
+
+    # J hot (≥80% concentration)
+    j_master_stocks = {}
+    for b in branches_data:
+        m = b.get('master')
+        if not m: continue
+        for s in (b.get('buys') or []):
+            if _is_excluded_by_market_type(s): continue
+            code = s.get('code')
+            if not code: continue
+            j_master_stocks.setdefault(m, {})
+            k = (code, s.get('name', ''))
+            j_master_stocks[m][k] = j_master_stocks[m].get(k, 0) + (s.get('buy_amt') or 0)
+    j_hot = 0
+    for m, stocks in j_master_stocks.items():
+        total = sum(stocks.values())
+        if total <= 0: continue
+        top3 = sorted(stocks.values(), reverse=True)[:3]
+        if (sum(top3) / total) >= 0.80:
+            j_hot += 1
+
+    # H hot (≥1000x ratio)
+    short_lending = _read_json_safely(data_dir / 'short_lending.json')
+    h_hot = 0
+    for item in ((short_lending or {}).get('top_borrow_sell') or [])[:15]:
+        try:
+            r = float(item.get('borrow_vs_short_ratio'))
+            if r >= 1000:
+                h_hot += 1
+        except (TypeError, ValueError):
+            pass
+
+    # I 今日除權息 (避開用)
+    dividend = _read_json_safely(data_dir / 'dividend_calendar.json')
+    today_ex_list = [i for i in ((dividend or {}).get('upcoming_30d') or [])
+                      if i.get('ex_date') == trade_date]
+    today_ex_str = ', '.join(i.get('code', '') for i in today_ex_list[:3])
+
+    # ── TL;DR 一句話 ──
+    tldr = (f"🎯 {c_count} 強共識 / "
+            f"Q5 {arrow} {direction} {confidence}% / "
+            f"E {e_count} 異常 / "
+            f"F {f_hot} 長期 / "
+            f"J {j_hot} 集中 / "
+            f"H {h_hot} 借券壓力")
+
+    # ── Action 三段 ──
+    if c_count > 0 and top3_consensus:
+        codes = ' / '.join(s['code'] for s in top3_consensus)
+        action_buy = f"進場關注 {codes}"
+    else:
+        action_buy = "進場關注: 今日無強共識"
+
+    if today_ex_str:
+        action_avoid = f"避開 (除權息): {today_ex_str}"
+    elif today_ex_list:
+        action_avoid = f"避開 (除權息): {len(today_ex_list)} 檔"
+    else:
+        action_avoid = "避開: 今日無除權息"
+
+    # 訊號強度 (基於 Q5 confidence + E/F/J/H hot signals)
+    hot_total = e_count + f_hot + j_hot + h_hot
+    if (direction == '偏多' and confidence >= 60) or (direction == '偏空' and confidence <= 40):
+        sig_strength = f"訊號: 強{direction} (Q5 {confidence}%, hot={hot_total})"
+    elif hot_total >= 5:
+        sig_strength = f"訊號: 中性但 hot 多 ({hot_total} 個信號 — 留意)"
+    else:
+        sig_strength = f"訊號: 中性 (建議觀望)"
+
+    action = f"💡 {action_buy}  |  {action_avoid}  |  {sig_strength}"
+
+    # ── Render TL;DR (Row 3) ──
+    ws.merge_cells('B3:N3')
+    c_tldr = ws['B3']
+    c_tldr.value = tldr
+    c_tldr.font = Font(name='Noto Sans TC', size=12, bold=True, color='FF374151')
+    c_tldr.fill = PatternFill('solid', fgColor='FFFEF3C7')   # 淡黃
+    c_tldr.alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[3].height = 24
+
+    # ── Render Action (Row 4) ──
+    ws.merge_cells('B4:N4')
+    c_act = ws['B4']
+    c_act.value = action
+    c_act.font = Font(name='Noto Sans TC', size=11, italic=True, color='FF4B5563')
+    c_act.fill = PatternFill('solid', fgColor='FFF3F4F6')    # 淡灰
+    c_act.alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[4].height = 22
+
+
 def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = None):
     """Section G+H+I: 注意股 + 借券 + 除權息. Returns next row.
 
@@ -1707,7 +1826,7 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
         ws.column_dimensions[col].width = w
 
     # ── 大標題 ──
-    ws.merge_cells('B2:I2')
+    ws.merge_cells('B2:N2')
     c = ws['B2']
     c.value = (f"📋 Chip Radar 今日 Dashboard — "
                 f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]} "
@@ -1717,8 +1836,11 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     c.alignment = Alignment(horizontal='center', vertical='center')
     ws.row_dimensions[2].height = 30
 
+    # ── v3.66.4 Phase 2.1: TL;DR + Action card (首屏 5 秒決策摘要) ──
+    _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_dir)
+
     # ── 各 section ──
-    row = 4
+    row = 6   # v3.66.4: 從 row 4 → row 6 (讓 TL;DR + Action)
     # v3.63.2: ★ Section 0 — 今日共同買超 (置於最前, 使用者最關注)
     row = _build_section_consensus(ws, branches_data, data_dir, row)
     row = _build_section_summary(ws, branches_data, trade_date, data_dir, row,
@@ -1728,8 +1850,8 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     row = _build_section_pivot(ws, branches_data, row)   # v3.63.0 E7 Pivot
     row = _build_section_risk(ws, data_dir, row, trade_date=trade_date)
 
-    # v3.63.0 (E6): freeze pane — title row 不滾走
-    ws.freeze_panes = 'A3'
+    # v3.66.4: freeze pane 延伸到 row 5 (TL;DR + Action 永遠看得到)
+    ws.freeze_panes = 'A6'
 
 
 # v3.62.0 → v3.62.1 backward compat: 舊 builder name 保留但呼叫 dashboard

@@ -123,6 +123,26 @@ ws2 = wb2['Dashboard']
 
 print(f"Total rows rendered: {ws2.max_row}\n")
 
+# v3.66.4: TL;DR + Action card (Phase 2.1) verification
+print("=== TL;DR + Action card (v3.66.4) ===")
+tldr_v = ws2['B3'].value
+act_v = ws2['B4'].value
+print(f"  Row 3 TL;DR: {tldr_v!r}")
+print(f"  Row 4 Action: {act_v!r}")
+if not tldr_v or not isinstance(tldr_v, str):
+    errors.append(('TLDR', 'string', tldr_v, 'TL;DR cell missing'))
+else:
+    for must_contain in ['🎯', '強共識', 'Q5', 'E ', 'F ', 'J ', 'H ']:
+        if must_contain not in tldr_v:
+            errors.append(('TLDR', f'含 {must_contain!r}', tldr_v, f'缺 {must_contain}'))
+if not act_v or not isinstance(act_v, str):
+    errors.append(('ACT', 'string', act_v, 'Action cell missing'))
+else:
+    for must_contain in ['💡', '進場關注', '避開', '訊號']:
+        if must_contain not in act_v:
+            errors.append(('ACT', f'含 {must_contain!r}', act_v, f'缺 {must_contain}'))
+
+
 # Helper: get cell value by addr
 def cell(addr):
     v = ws2[addr].value
