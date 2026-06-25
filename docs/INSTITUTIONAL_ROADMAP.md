@@ -93,6 +93,85 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.67.3 — Q5 偏多預測校準 (Phase 2.4 自我揭穿後對策)
+
+Phase 2.4 (v3.66.8) sub-banner 揭穿偏多 hit 41% (比隨機 50% 還差)。本版修兩個根因:
+
+**Fix #1**: 中性閾值 0.05 → 0.10 (signal_engine.py)
+- 33 樣本中 23 個 net=+0.087 (單一 P/C signal) 全進偏多 → 弱信號被當強信號
+- 拉高閾值,單一 P/C 自動歸中性 (不下注)
+
+**Fix #2**: _compute_q5_hit_rate stale guard (excel_report.py)
+- 揭穿: 8 個 chg=0.0 全是 false-negative, next_day_close=None 證明缺資料
+- 6/2-6/8 TAIEX index=45070.94 連 7 天相同 (v3.43.0 兜底重複日 bug 歷史汙染殘留)
+- 修補: chg=0.0 AND close=None → skip
+
+**驗證 (33 樣本 replay)**:
+| 指標 | Before | After |
+|---|---|---|
+| 偏多 hit | 13/30 = 43.3% | 4/7 = **57.1%** (+13.8pp) |
+| 整體 hit | 14/31 = 45.2% | 5/8 = **62.5%** (+17.3pp) |
+| 預測量 | 31 筆 | 8 筆 (砍 74%) |
+| 中性 (不下注) | 0 | 15 |
+| Skip stale | 0 | 8 |
+
+「沒把握就閉嘴」原則: 預測量少 74% 但跨過 60% 信心門檻。
+
+---
+
+### ✅ v3.67.1 + v3.67.2 — Phase 2.7 手機摘要 sheet + 自動 Email 寄送
+
+**v3.67.1**: 📱 手機摘要 sheet (19 row 單欄 4 個決策問題: 明日預測 / 強共識 Top 5 / 今日避開 / 追蹤池方向)
+
+**v3.67.2**: GitHub Actions + Gmail SMTP, 主排程 21:17 TW + 兩兜底, 僅 data_changed=true 才寄, 純文字 body + latest.xlsx 附件
+
+---
+
+### ✅ v3.67.0 — Phase 2.6 Color Tokens + Zebra stripes
+
+COLORS dict 35+ semantic token 集中文件化, _zebra_stripes() helper apply 給 E/F/G/H/I 5 section, 奇數 row 淡灰底 (#F9FAFB) 自動跳過已有 fill 的 cell
+
+---
+
+### ✅ v3.66.9 — Phase 2.5 強共識股隔日 backtest sub-banner
+
+bootstrap_consensus_backtest.py 對歷史每天算 Section 0 強共識 + 查 stock_history 隔日 chg, 30d summary: 306 picks / 153 hits = **50.0%** / 中位 +0.03% / 平均 +0.89%, Section 0 加 sub-banner 揭穿真實 alpha (目前判定: 無顯著 alpha)
+
+---
+
+### ✅ v3.66.8 — Phase 2.4 Q5 預測 hit rate 累積 sub-banner
+
+_compute_q5_hit_rate() 讀 temp_history × infer_market_direction → tally hit, Section A Q5 banner 下方加 sub-banner: 偏多 X/Y / 偏空 / 整體 + 顏色 (≥60% ✅ / 40-60% 🟡 / <40% ⚠️). 6/24 production 揭穿: 偏多 11/27=**41%** (比隨機差!) → 觸發 v3.67.3 修補
+
+---
+
+### ✅ v3.66.7 — Phase 2.3 Section A 時間維度 (今/昨/5日均)
+
+timeseries.json 60 天滾動 cache, Q1-Q4 KPI sub-text 顯示「(昨X/5d Y)」, bootstrap_timeseries.py 掃 45 天歷史 daily JSON 解密計算
+
+---
+
+### ✅ v3.66.6 — Phase 2.2 Conditional Formatting Data Bars
+
+_try_add_data_bar() helper, 11 處 data bars (Section 0 大戶數+合計淨買 / B 買進 / C 淨買 / F 連續天數+累計 / J 總買+集中度 / G 累計次數 / H 借券張數), 一秒掃完誰最值得關注
+
+---
+
+### ✅ v3.66.5 — TL;DR + Action card bug fix
+
+Bug 1: Action 進場關注 top 3 沒跟 Section 0 對齊 (隨機 dict iteration 改用相同 sort key)
+Bug 2: 避開除權息誤導 (3 檔 → 「N 檔: top3 ...」明示總數)
+
+---
+
+### ✅ v3.66.4 — Phase 2.1 TL;DR + Action card (首屏 5 秒決策摘要)
+
+Row 3 TL;DR 一句話 (淡黃底 12pt bold) 6 個 hot 指標
+Row 4 Action card (淡灰底 11pt italic) 3 段: 進場關注 top 3 / 避開除權息 / 訊號強弱判定
+freeze_panes A3 → A6, TL;DR + Action 永遠看得到
+
+---
+
 ### ✅ v3.66.3 — Section G empty state + H 借券 hot 標記 (Dashboard 簡潔收尾)
 
 **Section G 注意股** (`_build_section_risk`):

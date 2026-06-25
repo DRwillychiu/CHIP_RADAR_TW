@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.66.3(2026-06-24) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.67.3(2026-06-25) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,17 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.66.3** | 6/24 | **G empty state + H 借券 hot 標記** — G 「✅ 今日無新增注意股」綠斜體 / H ratio≥1000x 🔴 紅粗體 / 千分位 format |
+| **v3.67.3** | 6/25 | **Q5 偏多預測校準** — hit rate 45%→62.5% / 中性閾值 0.05→0.10 / stale guard (chg=0+close=None skip) |
+| v3.67.2 | 6/25 | Phase 2.7 自動 Email 寄送 — GitHub Actions + Gmail SMTP, 主排程 21:17 + 2 兜底, 純文字 body + latest.xlsx 附件 |
+| v3.67.1 | 6/25 | Phase 2.7 📱 手機摘要 sheet — 19 row 單欄 4 決策問題 (明日預測/強共識/今日避開/追蹤池方向) |
+| v3.67.0 | 6/25 | Phase 2.6 Color Tokens + Zebra — 35+ semantic token / E F G H I 5 section 斑馬紋 |
+| v3.66.9 | 6/25 | Phase 2.5 強共識 backtest sub-banner — 30d 306 picks 50% hit / 中位+0.03% / 平均+0.89% |
+| v3.66.8 | 6/25 | Phase 2.4 Q5 hit rate sub-banner — 揭穿偏多預測 41% (比隨機差!) → 觸發 v3.67.3 修補 |
+| v3.66.7 | 6/25 | Phase 2.3 Section A 時間維度 — Q1-Q4 加「今/昨/5d均」(timeseries.json 60d 滾動 + 45d 歷史 bootstrap) |
+| v3.66.6 | 6/25 | Phase 2.2 Data Bars × 11 處 — Section 0/B/C/F/J/G/H 各個 col 加橫條, 一秒掃完誰大誰小 |
+| v3.66.5 | 6/25 | TL;DR Action bug fix — top 3 對齊 Section 0 sort key + 避開除權息明示總數 |
+| v3.66.4 | 6/25 | Phase 2.1 TL;DR + Action card — Row 3 一句話摘要 6 hot 指標 / Row 4 進場關注 top 3 + 訊號強弱 |
+| v3.66.3 | 6/24 | G empty state + H 借券 hot 標記 — G 「✅ 今日無新增注意股」綠斜體 / H ratio≥1000x 🔴 紅粗體 / 千分位 format |
 | v3.66.2 | 6/24 | Section J 集中度 + Master 色塊 — 新增 Top3 合計% col / Master cell 套 MASTER_BLOCK_COLORS / ≥80% 標 🔥 + 紅字粗體 |
 | v3.66.1 | 6/24 | Section G/H/I 時間正確性 — I 過濾過期 ex_date + G/H/I header 加 applicable_date + cross_validate 加 strict assertion |
 | v3.66.0 | 6/23 | Dashboard 簡潔原則: E 大砍 + F hot 標記 — E 砍 consensus/accumulation 留 anomalies top 10 + 修 new_stocks 沉底 bug / F ≥10 天 🔴 紅字粗體 |
