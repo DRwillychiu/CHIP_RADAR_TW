@@ -40,7 +40,7 @@ from pathlib import Path
 try:
     from openpyxl import Workbook, load_workbook
     from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-    from openpyxl.formatting.rule import ColorScaleRule, IconSetRule, CellIsRule
+    from openpyxl.formatting.rule import ColorScaleRule, IconSetRule, CellIsRule, DataBarRule
     from openpyxl.worksheet.worksheet import Worksheet
     OPENPYXL_AVAILABLE = True
 except ImportError:
@@ -1066,6 +1066,10 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         ws.merge_cells(f'B{row}:N{row}')
         row += 1
     else:
+        # v3.66.6 Phase 2.2: N 合計淨買加 data bar (深綠 = 越多越強)
+        _try_add_data_bar(ws, f'N{start_data}:N{row-1}', 'FF66BB6A')
+        # E 大戶數也加 (淡金, 最大 13 看跨度)
+        _try_add_data_bar(ws, f'E{start_data}:E{row-1}', 'FFFFC107')
         # v3.63.8: 把資料區包成 Excel Table → 原生 sort/filter 下拉
         try:
             from openpyxl.worksheet.table import Table, TableStyleInfo
@@ -1274,6 +1278,7 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
     row += 1
 
     total_all = sum(master_amt.values()) or 1
+    bc_data_start = row    # v3.66.6: 記下 B/C 資料開始 row 供 data bar
     for i in range(5):
         m_item = top_masters[i] if i < len(top_masters) else None
         s_item = top_stocks[i] if i < len(top_stocks) else None
@@ -1311,6 +1316,9 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
                 ws[f'I{row}'] = '—'
                 ws[f'I{row}'].font = Font(name='Noto Sans TC', size=10, color='FF888888')
         row += 1
+    # v3.66.6 Phase 2.2: B 買進金額 + C 淨買金額 加 data bar (深綠)
+    _try_add_data_bar(ws, f'D{bc_data_start}:D{bc_data_start+4}', 'FF66BB6A')
+    _try_add_data_bar(ws, f'H{bc_data_start}:H{bc_data_start+4}', 'FF66BB6A')
     row += 1
 
     # v3.64.4: 籌碼溫度 / 市場方向 已整合進 Section A Q5 banner (上方).
@@ -1478,7 +1486,27 @@ def _build_section_accumulation(ws, data_dir, start_row):
         ws.cell(row, 2, '尚無連續囤貨紀錄 (追蹤範圍內)')
         ws.merge_cells(f'B{row}:F{row}')
         row += 1
+    else:
+        # v3.66.6 Phase 2.2: D 連續天數加 data bar (橫條視覺化)
+        # 一秒掃出誰囤最久 — 不用讀數字
+        _try_add_data_bar(ws, f'D{start_data}:D{row-1}', 'FFEF5350')   # 紅 = hot
+        # E 累計買金額也加 data bar (深綠 = 越多越強)
+        _try_add_data_bar(ws, f'E{start_data}:E{row-1}', 'FF81C784')
     return row
+
+
+def _try_add_data_bar(ws, cell_range, color, show_value=True):
+    """v3.66.6: helper — 加 Excel data bar (橫條) 到 cell range. 失敗安全跳過."""
+    try:
+        from openpyxl.formatting.rule import DataBarRule
+        rule = DataBarRule(
+            start_type='min', end_type='max',
+            color=color, showValue=show_value,
+            minLength=5, maxLength=90,
+        )
+        ws.conditional_formatting.add(cell_range, rule)
+    except Exception:
+        pass
 
 
 def _build_section_pivot(ws, branches_data, start_row):
@@ -1563,6 +1591,12 @@ def _build_section_pivot(ws, branches_data, start_row):
     if row == start_data:
         ws.cell(row, 2, '今日無 master 有買進資料')
         ws.merge_cells(f'B{row}:J{row}'); row += 1
+    else:
+        # v3.66.6 Phase 2.2:
+        # C 今日總買 加 data bar (深綠 = 規模)
+        _try_add_data_bar(ws, f'C{start_data}:C{row-1}', 'FF66BB6A')
+        # J Top3 集中度 加 data bar (橘紅 = 集中越多越警示)
+        _try_add_data_bar(ws, f'J{start_data}:J{row-1}', 'FFFB923C')
     return row
 
 
@@ -1721,6 +1755,7 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
         cell.alignment = Alignment(horizontal='center')
     row += 1
     by_code = (attention or {}).get('by_code') or {}
+    g_data_start = row
     if by_code:
         for code, info in list(by_code.items())[:15]:
             ws.cell(row, 2, code); ws.cell(row, 3, info.get('name', '—'))
@@ -1728,6 +1763,8 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
             ws.cell(row, 5, info.get('close', '—'))
             ws.cell(row, 6, info.get('pe', '—'))
             row += 1
+        # v3.66.6 Phase 2.2: 累計次數加 data bar (金色)
+        _try_add_data_bar(ws, f'D{g_data_start}:D{row-1}', 'FFFFB300')
     else:
         # v3.66.3: empty state 加 emoji 友善訊息
         ws.cell(row, 2, '✅ 今日無新增注意股 (市場無異常波動標的)')
@@ -1749,6 +1786,7 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
         cell.alignment = Alignment(horizontal='center')
     row += 1
     top_borrow = ((short_lending or {}).get('top_borrow_sell') or [])
+    h_data_start = row
     if top_borrow:
         # v3.66.3: ratio ≥1000x 標 🔴 (極端機構壓力), 紅字粗體
         hot_font_red = Font(name='Noto Sans TC', size=11, bold=True, color='FFC62828')
@@ -1777,6 +1815,10 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
             if is_hot:
                 c_ratio.font = hot_font_red
             row += 1
+        # v3.66.6 Phase 2.2: 借券張數加 data bar (深紅 = 壓力)
+        _try_add_data_bar(ws, f'D{h_data_start}:D{row-1}', 'FFEF5350')
+        # ratio 也加 (橘紅) — 1000x hot 那筆會超出條 max 區
+        _try_add_data_bar(ws, f'F{h_data_start}:F{row-1}', 'FFFB923C')
     else:
         ws.cell(row, 2, '今日無借券資料')
         ws.merge_cells(f'B{row}:F{row}'); row += 1

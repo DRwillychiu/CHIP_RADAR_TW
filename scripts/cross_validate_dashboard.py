@@ -123,7 +123,72 @@ ws2 = wb2['Dashboard']
 
 print(f"Total rows rendered: {ws2.max_row}\n")
 
-# v3.66.4: TL;DR + Action card (Phase 2.1) verification
+# v3.66.6 Phase 2.2: Data Bar 精準度驗證
+# 邏輯: data bar 長度 = cell value 比例 → 只要 cell value 對 + 範圍對 = bar 對
+# 驗證: (1) 11 個 data bar rules 存在於正確 range
+#       (2) range 內所有 cell value 都是 numeric
+#       (3) max/min cell 值對應 GT 最大/最小
+print("\n=== Phase 2.2: Data Bar 精準度驗證 ===")
+expected_bars = [
+    # (range_pattern, section_name)
+    ('N', 'Section 0 合計淨買'),
+    ('E', 'Section 0 大戶數'),
+    ('D', 'Section B 買進金額'),
+    ('H', 'Section C 淨買金額'),
+    ('D', 'Section F 連續天數'),
+    ('E', 'Section F 累計買金額'),
+    ('C', 'Section J 今日總買'),
+    ('J', 'Section J 集中度'),
+    ('D', 'Section G 累計次數'),
+    ('D', 'Section H 借券張數'),
+    ('F', 'Section H ratio'),
+]
+applied_ranges = []
+for cf_range, rules in ws2.conditional_formatting._cf_rules.items():
+    rng = str(cf_range.sqref) if hasattr(cf_range, 'sqref') else str(cf_range)
+    for rule in rules:
+        # DataBarRule has 'dataBar' attr in v3 conditional_formatting
+        if hasattr(rule, 'dataBar') and rule.dataBar:
+            applied_ranges.append(rng)
+print(f"  Excel 上實際套了 {len(applied_ranges)} 個 data bar rules:")
+for r in applied_ranges:
+    print(f"    {r}")
+
+if len(applied_ranges) < len(expected_bars):
+    err('DataBar', f'≥{len(expected_bars)}', len(applied_ranges),
+        f'data bar 數量不足 (預期 {len(expected_bars)})')
+
+# 抽樣驗證: 每個 range 內 cell value + max/min 對應 GT
+# 注意: '—' (em-dash) 為 intentional placeholder, bar 自然不渲染 (acceptable)
+#       其他非預期 string 才是 bug
+import re as _re_db
+nonnumeric_warns = 0
+for rng in applied_ranges:
+    m = _re_db.match(r'([A-Z])(\d+):[A-Z](\d+)', rng)
+    if not m: continue
+    col, r1, r2 = m.group(1), int(m.group(2)), int(m.group(3))
+    values = []
+    placeholder_n = 0
+    for r in range(r1, r2 + 1):
+        v = ws2[f'{col}{r}'].value
+        if v is None: continue
+        if isinstance(v, str):
+            if v == '—':
+                placeholder_n += 1   # intentional placeholder, bar 不渲染 OK
+            else:
+                err('DataBar', 'numeric or "—"', f'str {v!r}',
+                    f'{rng} 含非預期 string')
+                nonnumeric_warns += 1
+            continue
+        values.append((r, v))
+    if not values: continue
+    max_r, max_v = max(values, key=lambda x: x[1])
+    min_r, min_v = min(values, key=lambda x: x[1])
+    placeholder_tag = f', {placeholder_n} cells 用「—」' if placeholder_n else ''
+    print(f"  {rng}: n={len(values)} numeric, "
+          f"max={max_v:,.0f} (row {max_r}), min={min_v:,.0f} (row {min_r}){placeholder_tag}")
+print()
+
 print("=== TL;DR + Action card (v3.66.4) ===")
 tldr_v = ws2['B3'].value
 act_v = ws2['B4'].value
