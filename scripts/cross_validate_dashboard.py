@@ -924,8 +924,13 @@ for r in range(4, ws2.max_row+1):
     v = cell(f'B{r}')
     # v3.63.6+: 標題含「強共識買超」或舊「共同買超」
     if v and isinstance(v, str) and ('強共識買超' in v or '共同買超' in v):
-        # v3.63.9: 多了註腳 row → +1 hdr, +1 note, +1 col-header = +3
-        sec0_start = r + 3
+        # v3.66.9+: 動態偵測 — 從 r+1 往下找 col-header (B='#')
+        for probe in range(r + 1, r + 10):
+            if cell(f'B{probe}') == '#':
+                sec0_start = probe + 1
+                break
+        else:
+            sec0_start = r + 3   # fallback
         break
 print(f"  Section 0 data starts at row {sec0_start}")
 if sec0_start and gt_consensus:

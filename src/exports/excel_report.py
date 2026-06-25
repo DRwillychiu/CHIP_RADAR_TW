@@ -870,6 +870,39 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
                      f"★ 0. 今日強共識買超 (≥{MIN_MASTER_COUNT} 位追蹤大戶共同淨買, 個股 only — 必看)",
                      color='FFDC2626'); row += 1
 
+    # v3.66.9 Phase 2.5: 強共識股隔日 backtest sub-banner
+    bt = _read_json_safely(data_dir / 'consensus_backtest.json')
+    if bt and bt.get('summary_30d'):
+        s = bt['summary_30d']
+        total = s.get('total', 0)
+        hits = s.get('hits', 0)
+        hit_rate = s.get('hit_rate', 0) * 100
+        median = s.get('median_change', 0)
+        mean = s.get('mean_change', 0)
+        # 顏色 by hit_rate + mean
+        if hit_rate >= 55 and mean > 0.3:
+            bt_color = 'FF059669'   # 綠 = 有 alpha
+            bt_icon = '✅'
+            bt_verdict = '有 alpha'
+        elif hit_rate >= 45 and mean > 0:
+            bt_color = 'FF666666'   # 灰 = 中性
+            bt_icon = '🟡'
+            bt_verdict = '中性'
+        else:
+            bt_color = 'FFDC2626'   # 紅 = 無 alpha
+            bt_icon = '⚠️'
+            bt_verdict = '無顯著 alpha'
+        bt_text = (f"{bt_icon} 強共識股過去 30 天隔日 backtest: "
+                   f"漲 {hits}/{total} ({hit_rate:.0f}%) | "
+                   f"中位數 {median:+.2f}% | 平均 {mean:+.2f}% | 判定: {bt_verdict}")
+        bt_cell = ws.cell(row, 2, bt_text)
+        ws.merge_cells(f'B{row}:N{row}')
+        bt_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color=bt_color)
+        bt_cell.fill = _summary_fill('FFF9FAFB')   # 極淡灰
+        bt_cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+        ws.row_dimensions[row].height = 18
+        row += 1
+
     # v3.63.9: 註腳說明 ⚠️ 標記意義 (用戶要求)
     note_cell = ws.cell(row, 2,
                          "ⓘ 排序: 合計淨買金額 ↓  |  ⚠️ 名稱前 = 領頭大戶獨佔 ≥50% (1 人獨大, 真共識訊號被稀釋, hover 名稱看詳細%)")
