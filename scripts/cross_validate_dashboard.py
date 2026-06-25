@@ -113,7 +113,7 @@ for idx, m in enumerate(MASTER_MAPPING[:10]):
 wb = Workbook()
 ws = wb.active
 ws.title = 'Dashboard'
-build_dashboard_sheet(ws, branches_data, '20260618', ROOT/'data')
+build_dashboard_sheet(ws, branches_data, '20260618', ROOT/'data', update_timeseries=False)
 
 # === Re-load for inspection ===
 out_path = ROOT/'data'/'reports'/'_xvalidate_dashboard.xlsx'

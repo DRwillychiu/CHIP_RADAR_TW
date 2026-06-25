@@ -944,7 +944,7 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
     # B=#, C=代號, D=名稱, E=大戶數, F=分點數, G=領頭大戶, H=領頭金額(萬),
     # I=#2 大戶, J=#2 金額, K=#3 大戶, L=#3 金額, M=+更多, N=合計淨買(萬)
     headers = [
-        ('B', '#', 5),    ('C', '代號', 9),    ('D', '名稱', 18),
+        ('B', '#', 5),    ('C', '代號', 40),   ('D', '名稱', 18),
         ('E', '大戶數', 9), ('F', '分點數', 9),
         ('G', '領頭大戶', 14),  ('H', '領頭金額(萬)', 13),
         ('I', '#2 大戶', 14),   ('J', '#2 金額(萬)', 13),
@@ -1086,8 +1086,70 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
     return row
 
 
+def _update_load_timeseries(data_dir, trade_date, kpis, update=True):
+    """v3.66.7 Phase 2.3: 時間維度 cache.
+
+    Schema (data/timeseries.json):
+      {dates: ["20260623","20260624"], q1_active_ratio: [...], q2_net_billion: [...],
+       q3_consensus_count: [...], q3_consensus_net_billion: [...],
+       q4_track_share: [...], q4_mkt_net_billion: [...]}
+
+    Args:
+      data_dir: Path
+      trade_date: YYYYMMDD
+      kpis: dict {q1_active_ratio, q2_net_billion, q3_consensus_count,
+                  q3_consensus_net_billion, q4_track_share, q4_mkt_net_billion}
+      update: True = 寫入 cache (production); False = 只讀 (test mode)
+
+    Returns:
+      {yesterday: {qN: val|None}, avg5: {qN: val|None}, days_history: int}
+    """
+    import json as _j
+    cache_path = data_dir / 'timeseries.json'
+    keys = ['q1_active_ratio', 'q2_net_billion', 'q3_consensus_count',
+            'q3_consensus_net_billion', 'q4_track_share', 'q4_mkt_net_billion']
+    try:
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            cache = _j.load(f)
+    except (FileNotFoundError, _j.JSONDecodeError):
+        cache = {'dates': []}
+    for k in keys:
+        cache.setdefault(k, [])
+
+    if update:
+        if trade_date in cache['dates']:
+            idx = cache['dates'].index(trade_date)
+            for k in keys:
+                if idx < len(cache[k]):
+                    cache[k][idx] = kpis.get(k, 0)
+        else:
+            cache['dates'].append(trade_date)
+            for k in keys:
+                cache[k].append(kpis.get(k, 0))
+        # Sort by date + cap 60 days
+        sorted_idx = sorted(range(len(cache['dates'])),
+                             key=lambda i: cache['dates'][i])
+        cache['dates'] = [cache['dates'][i] for i in sorted_idx][-60:]
+        for k in keys:
+            cache[k] = [cache[k][i] for i in sorted_idx if i < len(cache[k])][-60:]
+        try:
+            with open(cache_path, 'w', encoding='utf-8') as f:
+                _j.dump(cache, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+
+    # 計算 yesterday + 5-day avg (excluding today)
+    past_idx = [i for i, d in enumerate(cache['dates']) if d < trade_date]
+    yesterday, avg5 = {}, {}
+    for k in keys:
+        past_vals = [cache[k][i] for i in past_idx if i < len(cache[k])]
+        yesterday[k] = past_vals[-1] if past_vals else None
+        avg5[k] = (sum(past_vals[-5:]) / min(len(past_vals), 5)) if past_vals else None
+    return {'yesterday': yesterday, 'avg5': avg5, 'days_history': len(past_idx)}
+
+
 def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
-                            all_branches=None):
+                            all_branches=None, update_timeseries=True):
     """Section A: 追蹤池摘要 (v3.64.3) — 10 秒判讀今天追蹤大戶在做什麼.
 
     4 KPI 對應 4 個盤前 decision-making 問題:
@@ -1147,14 +1209,52 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         mkt_net_billion = 0
         track_share = 0
 
-    # ── 動態 format strings (帶 dynamic literal text) ──
-    # 必須 escape number_format 中的特殊字符 (引號, 反斜線)
-    # 主要 concern: 億 + 數字, 數字小不加千分位
-    active_fmt = f'0%" ({active_count}/{total_masters})"'
-    net_fmt = '+0.00" 億";-0.00" 億";0" 億"'
-    consensus_fmt = f'0" 檔 (淨買 {consensus_net_billion:+.0f} 億)"'
+    # ── v3.66.7 Phase 2.3: 時間維度 cache (今/昨/5日均) ──
+    ts = _update_load_timeseries(data_dir, trade_date, {
+        'q1_active_ratio': active_ratio,
+        'q2_net_billion': net_billion,
+        'q3_consensus_count': consensus_count,
+        'q3_consensus_net_billion': consensus_net_billion,
+        'q4_track_share': track_share,
+        'q4_mkt_net_billion': mkt_net_billion,
+    }, update=update_timeseries)
+    y, a = ts['yesterday'], ts['avg5']
+
+    # 累積中 (歷史不足) 顯示
+    has_history = ts['days_history'] >= 1
+
+    # ── v3.66.7 動態 format strings — 緊湊版避免 cell overflow ──
+    # 避免 ##### bug: 縮短 sub-text (去空格 / 去單位重複 / 縮 label)
     mkt_sign = '+' if mkt_net_billion >= 0 else ''
-    share_fmt = f'0.0%" (市場 {mkt_sign}{mkt_net_billion:.0f} 億)"'
+    if has_history:
+        # Q1: "100% (13/13 ・昨100/5d100)" — 去掉 % 重複, 用 ・ 緊湊分隔
+        y_q1 = (y['q1_active_ratio'] or 0) * 100
+        a_q1 = (a['q1_active_ratio'] or 0) * 100
+        active_fmt = (f'0%" ({active_count}/{total_masters} ・昨{y_q1:.0f}/5d{a_q1:.0f})"')
+
+        # Q2: "-204億 (昨-412/5d-188)" — 去小數點, 去空格
+        y_q2 = y['q2_net_billion'] or 0
+        a_q2 = a['q2_net_billion'] or 0
+        net_fmt = (f'+0" 億 (昨{y_q2:+.0f}/5d{a_q2:+.0f})";'
+                   f'-0" 億 (昨{y_q2:+.0f}/5d{a_q2:+.0f})";'
+                   f'0" 億"')
+
+        # Q3: "10檔 +185億 (昨14/5d11)" — 去 "淨買" 字
+        y_q3 = y['q3_consensus_count'] or 0
+        a_q3 = a['q3_consensus_count'] or 0
+        consensus_fmt = (f'0" 檔 {consensus_net_billion:+.0f}億 "'
+                         f'"(昨{y_q3:.0f}/5d{a_q3:.0f})"')
+
+        # Q4: "21.2% 市-2779億 (昨17/5d19)" — 縮短 "市場" → "市"
+        y_q4 = (y['q4_track_share'] or 0) * 100
+        a_q4 = (a['q4_track_share'] or 0) * 100
+        share_fmt = (f'0.0%" 市{mkt_sign}{mkt_net_billion:.0f}億 "'
+                     f'"(昨{y_q4:.0f}/5d{a_q4:.0f})"')
+    else:
+        active_fmt = f'0%" ({active_count}/{total_masters}, 累積中)"'
+        net_fmt = '+0.00" 億 (累積中)";-0.00" 億 (累積中)";0" 億"'
+        consensus_fmt = f'0" 檔 (淨買 {consensus_net_billion:+.0f} 億, 累積中)"'
+        share_fmt = f'0.0%" (市場 {mkt_sign}{mkt_net_billion:.0f} 億, 累積中)"'
 
     # ── 4 KPI 2x2 layout (label + value 並排) ──
     # Row 1: B 活躍率 | C-D merged value | F 淨買差 | G-I merged value
@@ -1168,6 +1268,8 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         (row + 1, 'F', 'Q4 追蹤佔比', 'G', 'I', track_share,   share_fmt,
             'FFDC2626' if mkt_net_billion >= 0 else 'FF059669'),
     ]
+    # v3.66.7+ font 恢復 14pt — 透過拉寬 C/D 欄解決 overflow (不縮字)
+    kpi_font_size = 12 if has_history else 14
     for r, lcol, ltext, vcol_start, vcol_end, val, fmt, color in stats:
         cl = ws[f'{lcol}{r}']
         cl.value = ltext
@@ -1177,11 +1279,15 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         cv = ws[f'{vcol_start}{r}']
         cv.value = val
         cv.number_format = fmt
-        cv.alignment = Alignment(horizontal='left', vertical='center')
-        cv.font = (Font(name='Noto Sans TC', size=14, bold=True, color=color)
-                   if color else val_font)
+        # v3.66.7: enable wrap_text 防止 overflow
+        cv.alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
+        cv.font = (Font(name='Noto Sans TC', size=kpi_font_size, bold=True, color=color)
+                   if color else Font(name='Noto Sans TC', size=kpi_font_size, bold=True))
         if vcol_start != vcol_end:
             ws.merge_cells(f'{vcol_start}{r}:{vcol_end}{r}')
+    # v3.66.7+ row 高恢復 28 (font 12pt 配 28px 行距正好)
+    ws.row_dimensions[row].height = 28
+    ws.row_dimensions[row + 1].height = 28
     row += 2
 
     # ── v3.64.4 Q5: 市場方向 banner (整合 Section D, 全寬, 紅/綠/灰底) ──
@@ -1856,7 +1962,8 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
 
 
 def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str,
-                            data_dir: Optional[Path] = None):
+                            data_dir: Optional[Path] = None,
+                            update_timeseries: bool = True):
     """v3.62.1: 把 E1-E4 4 個 section 全部寫到單一 sheet (用戶要求).
     順序: A 規模 → B Top master → C Top stocks → D 籌碼溫度
         → E 異常警報 → F 連續囤貨 → G 注意股 → H 借券 → I 除權息
@@ -1893,7 +2000,8 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     # v3.63.2: ★ Section 0 — 今日共同買超 (置於最前, 使用者最關注)
     row = _build_section_consensus(ws, branches_data, data_dir, row)
     row = _build_section_summary(ws, branches_data, trade_date, data_dir, row,
-                                   all_branches=all_branches)
+                                   all_branches=all_branches,
+                                   update_timeseries=update_timeseries)
     row = _build_section_alerts(ws, data_dir, row)
     row = _build_section_accumulation(ws, data_dir, row)
     row = _build_section_pivot(ws, branches_data, row)   # v3.63.0 E7 Pivot
