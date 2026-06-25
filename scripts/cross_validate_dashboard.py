@@ -600,20 +600,27 @@ for r in range(4, ws2.max_row+1):
         j_start = r + 2
         break
 if j_start:
-    # v3.64.6: 驗證全部 rows + top 3 stocks 名稱與金額
+    # v3.66.2: 新增 col J「Top3 合計%」(集中度) + ≥80% 標 🔥 + Master 色塊
+    J_HOT_PCT = 0.80
     for i, gt in enumerate(gt_rows[:30]):
         r = j_start + i
         actual_master = cell(f'B{r}')
         actual_total = cell(f'C{r}')
         expected_total = round(gt['total']/10, 0)
-        if actual_master != gt['master']:
-            err('J', gt['master'], actual_master, f'#{i+1} master')
+        # 集中度 = top3 sum / total
+        gt_top3_sum = sum(amt for _, amt in gt['top'])
+        gt_pct = (gt_top3_sum / gt['total']) if gt['total'] > 0 else 0
+        is_hot = gt_pct >= J_HOT_PCT
+        # v3.66.2: hot 集中度 master cell prefix '🔥 '
+        expected_master = f'🔥 {gt["master"]}' if is_hot else gt['master']
+        if actual_master != expected_master:
+            err('J', expected_master, actual_master, f'#{i+1} master (hot={is_hot})')
         if actual_total != expected_total:
             err('J', expected_total, actual_total, f'#{i+1} total')
         # Verify each top-3 stock + amount (cols D/E for #1, F/G for #2, H/I for #3)
         for slot_idx, ((c, n), amt) in enumerate(gt['top']):
-            name_col = chr(ord('D') + slot_idx * 2)  # D F H
-            amt_col = chr(ord('E') + slot_idx * 2)   # E G I
+            name_col = chr(ord('D') + slot_idx * 2)
+            amt_col = chr(ord('E') + slot_idx * 2)
             expected_name_code = f"{n}({c})"
             expected_amt = round(amt/10, 0)
             if cell(f'{name_col}{r}') != expected_name_code:
@@ -622,6 +629,11 @@ if j_start:
             if cell(f'{amt_col}{r}') != expected_amt:
                 err('J', expected_amt, cell(f'{amt_col}{r}'),
                     f'#{i+1} top{slot_idx+1} amt')
+        # v3.66.2: 驗 col J (10) Top3 合計% — float, tolerance 1e-4
+        actual_pct = cell(f'J{r}')
+        if isinstance(actual_pct, (int, float)):
+            if abs(float(actual_pct) - gt_pct) > 1e-4:
+                err('J', gt_pct, actual_pct, f'#{i+1} 集中度')
 
 # === Section G/H/I 內容 + 時間正確性 (v3.66.1) ===
 print(f"\n=== Section G/H/I strict + 時間正確性 ===")
@@ -679,18 +691,34 @@ if sl:
             h_start = r + 2
             break
     if h_start:
+        # v3.66.3: ratio ≥1000x 標 🔴 (代號前 prefix), ratio None 顯示 '—'
+        H_RATIO_HOT = 1000.0
         for i, item in enumerate(gt_h_top15):
             r = h_start + i
-            if cell(f'B{r}') != item.get('code', '—'):
-                err('H', item.get('code'), cell(f'B{r}'), f'#{i+1} code')
+            gt_code = item.get('code', '—')
+            try:
+                gt_ratio_num = float(item.get('borrow_vs_short_ratio')) if item.get('borrow_vs_short_ratio') is not None else None
+            except (TypeError, ValueError):
+                gt_ratio_num = None
+            is_hot = gt_ratio_num is not None and gt_ratio_num >= H_RATIO_HOT
+            expected_code = f'🔴 {gt_code}' if is_hot else gt_code
+            if cell(f'B{r}') != expected_code:
+                err('H', expected_code, cell(f'B{r}'), f'#{i+1} code (hot={is_hot})')
             if cell(f'C{r}') != item.get('name', '—'):
                 err('H', item.get('name'), cell(f'C{r}'), f'#{i+1} name')
             if cell(f'D{r}') != item.get('borrow_sell_lot', 0):
                 err('H', item.get('borrow_sell_lot', 0), cell(f'D{r}'), f'#{i+1} borrow_sell_lot')
             if cell(f'E{r}') != item.get('short_sell_lot', 0):
                 err('H', item.get('short_sell_lot', 0), cell(f'E{r}'), f'#{i+1} short_sell_lot')
-            if cell(f'F{r}') != item.get('borrow_vs_short_ratio', '—'):
-                err('H', item.get('borrow_vs_short_ratio', '—'), cell(f'F{r}'), f'#{i+1} ratio')
+            # v3.66.3: ratio None → '—' fallback (not raw None)
+            expected_ratio = gt_ratio_num if gt_ratio_num is not None else '—'
+            actual_ratio = cell(f'F{r}')
+            # ratio 是 float, 用 tolerance 比
+            if isinstance(expected_ratio, float) and isinstance(actual_ratio, (int, float)):
+                if abs(float(actual_ratio) - expected_ratio) > 0.05:
+                    err('H', expected_ratio, actual_ratio, f'#{i+1} ratio')
+            elif actual_ratio != expected_ratio:
+                err('H', expected_ratio, actual_ratio, f'#{i+1} ratio')
 
 # ── I 除權息 (時間正確性: 必須過濾過期 ex_date) ──
 dc = _load_json(ROOT / 'data' / 'dividend_calendar.json')
