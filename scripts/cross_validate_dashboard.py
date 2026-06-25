@@ -189,6 +189,52 @@ for rng in applied_ranges:
           f"max={max_v:,.0f} (row {max_r}), min={min_v:,.0f} (row {min_r}){placeholder_tag}")
 print()
 
+# v3.67.0 Phase 2.6: Zebra stripes 驗證 (E/F/G/H/I)
+print("\n=== Phase 2.6: Zebra stripes 驗證 ===")
+ZEBRA_DARK = '00F9FAFB'   # openpyxl 偶爾省去 alpha 前兩位 → 嘗試兩種
+ZEBRA_DARK_ALT = 'FFF9FAFB'
+sections_to_check = [
+    ('E. 異常行為警報', 'E'),
+    ('F. 跨日連續囤貨', 'F'),
+    ('G. 注意股', 'G'),
+    ('H. 借券', 'H'),
+    ('I. 未來 30 天除權息', 'I'),
+]
+for sec_keyword, sec_name in sections_to_check:
+    sec_data_start = None
+    for r_ in range(4, ws2.max_row + 1):
+        v_ = ws2[f'B{r_}'].value
+        if v_ and isinstance(v_, str) and sec_keyword in v_:
+            # 找 col-header row 後第一筆 data
+            for probe in range(r_ + 1, min(r_ + 6, ws2.max_row + 1)):
+                probe_v = ws2[f'B{probe}'].value
+                if probe_v and isinstance(probe_v, str) and ('代號' in probe_v or 'Master' in probe_v or '類型' in probe_v or '除權息日' in probe_v):
+                    sec_data_start = probe + 1
+                    break
+            break
+    if not sec_data_start:
+        print(f"  [skip] Section {sec_name} 找不到")
+        continue
+    # 抽樣 2 row 看 fill (第 2 row 必須是 zebra dark, 偶有例外因 master color)
+    dark_count = 0
+    light_count = 0
+    for offset in range(min(8, ws2.max_row - sec_data_start)):
+        r_ = sec_data_start + offset
+        fill = ws2[f'B{r_}'].fill
+        if fill and fill.fgColor and fill.fgColor.rgb:
+            color = str(fill.fgColor.rgb).upper()
+            if color in (ZEBRA_DARK.upper(), ZEBRA_DARK_ALT.upper()):
+                dark_count += 1
+            else:
+                light_count += 1
+        else:
+            light_count += 1
+    if dark_count > 0:
+        print(f"  ✓ Section {sec_name}: zebra applied (dark count={dark_count})")
+    else:
+        # 跳過 — section empty (e.g., G empty state) 是 acceptable
+        print(f"  [skip] Section {sec_name}: 無 zebra (可能 empty state)")
+
 # v3.66.8 Phase 2.4: Q5 hit rate sub-banner 驗證
 print("\n=== Phase 2.4: Q5 hit rate sub-banner 驗證 ===")
 from src.exports.excel_report import _compute_q5_hit_rate

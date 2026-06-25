@@ -283,6 +283,73 @@ MASTER_MAPPING: List[Dict] = [
 TRACKED_MASTERS: set = {m["name"] for m in MASTER_MAPPING}
 
 
+# ════════════════════════════════════════════════════════════════════
+# v3.67.0 Phase 2.6: Color Tokens + 視覺系統 (語義一致性)
+# ════════════════════════════════════════════════════════════════════
+# 設計原則: 顏色不是裝飾, 而是語義訊號. 同樣語義 (hot / 信號紅 / 損益) 應該
+# 用同樣顏色, 避免散落 random hex 導致 trader 無法快速 pattern match.
+COLORS = {
+    # 品牌
+    'brand_dark':      'FF1F2A48',   # Dashboard 大標題深藍底
+    # 訊號 (台股慣例: 紅=漲 綠=跌)
+    'signal_red':      'FFC62828',   # 漲停 / 正損益 / 多訊號 (Material 深紅)
+    'signal_green':    'FF2E7D32',   # 跌停 / 負損益 / 空訊號 (Material 深綠)
+    'tw_red':          'FFDC2626',   # 台股紅 (Section 0 標題 / 偏多 banner)
+    'tw_green':        'FF059669',   # 台股綠 (偏空 banner / Q5 hit ✅)
+    # Hot / 警示
+    'hot_red':         'FFEF5350',   # data bar 紅 (借券 / 量爆)
+    'hot_orange':      'FFFB923C',   # 橘紅 (J 集中度 / H ratio extremity)
+    'attention_gold':  'FFFFB300',   # 金 (G 注意股 / 0 大戶數)
+    'attention_amber': 'FFFFC107',   # 淡金 (Section 0 E 大戶數)
+    # 規模 / 累積
+    'scale_green':     'FF66BB6A',   # data bar 深綠 (買進規模)
+    'scale_light':     'FF81C784',   # data bar 淡綠 (累積買金額)
+    # Text / 弱化
+    'text_muted':      'FF666666',   # KPI label
+    'text_secondary':  'FF4B5563',   # Action card
+    'text_neutral':    'FF374151',   # 一般正文
+    'text_strong':     'FF000000',   # 強調黑字
+    # 背景 (淡色系)
+    'bg_tldr':         'FFFEF3C7',   # TL;DR 淡黃
+    'bg_action':       'FFF3F4F6',   # Action 淡灰
+    'bg_subhead':      'FFF9FAFB',   # 極淡灰 (sub-banner / zebra dark)
+    'bg_zebra_light':  'FFFFFFFF',   # 白 (zebra light)
+    'bg_zebra_dark':   'FFF9FAFB',   # 極淡灰 (zebra dark)
+    'bg_attention':    'FFFEF3C7',   # 淡金 (G 注意股 header)
+    'bg_danger':       'FFFEE2E2',   # 淡紅 (Section 0 / E header / 偏多 banner)
+    'bg_safe':         'FFD1FAE5',   # 淡綠 (偏空 banner)
+    'bg_warning':      'FFFFF7ED',   # 極淡橙 (Section 0 註腳)
+    'bg_neutral':      'FFE5E7EB',   # 淡灰 (中性 banner)
+    'bg_consensus':    'FFE8F5E9',   # 淡綠 (F 連續囤貨 header)
+    'bg_pivot':        'FFE0E7FF',   # 淡藍 (J 標頭)
+    'bg_top3_rank':    'FFFEF3C7',   # 金 (Section 0 top 3 rank highlight)
+}
+
+
+def _zebra_stripes(ws, data_start_row, data_end_row, col_start='B', col_end='N'):
+    """v3.67.0 Phase 2.6: 應用斑馬條紋 (zebra stripes) 給資料表格.
+    奇數 row (相對) → 淡灰底; 偶數 row → 白底 (空 fill).
+
+    用法: 在 section data 全部 render 完後呼叫一次.
+    注意: 跳過已有 master block color / data bar color 的 sections.
+    """
+    if data_end_row < data_start_row:
+        return
+    dark = PatternFill('solid', fgColor=COLORS['bg_zebra_dark'])
+    from openpyxl.utils import column_index_from_string, get_column_letter
+    c_start = column_index_from_string(col_start)
+    c_end = column_index_from_string(col_end)
+    for i, r in enumerate(range(data_start_row, data_end_row + 1)):
+        if i % 2 == 1:   # 第 2, 4, 6... row 套淡灰
+            for c_idx in range(c_start, c_end + 1):
+                cell_ = ws.cell(r, c_idx)
+                # 若已有 fill (master block color), 不覆蓋
+                if cell_.fill and cell_.fill.fgColor and \
+                   cell_.fill.fgColor.rgb and cell_.fill.fgColor.rgb != '00000000':
+                    continue
+                cell_.fill = dark
+
+
 def _is_tracked_master(name: Optional[str]) -> bool:
     """Dashboard filter: 該 master 是否在每日 Excel 追蹤清單內."""
     return bool(name) and name in TRACKED_MASTERS
@@ -1648,6 +1715,9 @@ def _build_section_alerts(ws, data_dir, start_row):
         ws.cell(row, 2, '✅ 今日無異常行為 (追蹤範圍內)')
         ws.merge_cells(f'B{row}:F{row}')
         row += 1
+    else:
+        # v3.67.0 Phase 2.6: E 套 zebra stripes (cols B-F)
+        _zebra_stripes(ws, start_data, row - 1, col_start='B', col_end='F')
     return row
 
 
@@ -1729,6 +1799,8 @@ def _build_section_accumulation(ws, data_dir, start_row):
         _try_add_data_bar(ws, f'D{start_data}:D{row-1}', 'FFEF5350')   # 紅 = hot
         # E 累計買金額也加 data bar (深綠 = 越多越強)
         _try_add_data_bar(ws, f'E{start_data}:E{row-1}', 'FF81C784')
+        # v3.67.0 Phase 2.6: F 套 zebra stripes (cols B-F)
+        _zebra_stripes(ws, start_data, row - 1, col_start='B', col_end='F')
     return row
 
 
@@ -2002,6 +2074,8 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
             row += 1
         # v3.66.6 Phase 2.2: 累計次數加 data bar (金色)
         _try_add_data_bar(ws, f'D{g_data_start}:D{row-1}', 'FFFFB300')
+        # v3.67.0 Phase 2.6: G 套 zebra stripes (cols B-F)
+        _zebra_stripes(ws, g_data_start, row - 1, col_start='B', col_end='F')
     else:
         # v3.66.3: empty state 加 emoji 友善訊息
         ws.cell(row, 2, '✅ 今日無新增注意股 (市場無異常波動標的)')
@@ -2056,6 +2130,8 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
         _try_add_data_bar(ws, f'D{h_data_start}:D{row-1}', 'FFEF5350')
         # ratio 也加 (橘紅) — 1000x hot 那筆會超出條 max 區
         _try_add_data_bar(ws, f'F{h_data_start}:F{row-1}', 'FFFB923C')
+        # v3.67.0 Phase 2.6: H 套 zebra stripes (cols B-F)
+        _zebra_stripes(ws, h_data_start, row - 1, col_start='B', col_end='F')
     else:
         ws.cell(row, 2, '今日無借券資料')
         ws.merge_cells(f'B{row}:F{row}'); row += 1
@@ -2079,6 +2155,7 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
         cell.alignment = Alignment(horizontal='center')
     row += 1
     if upcoming:
+        i_data_start = row
         for item in upcoming[:15]:
             ws.cell(row, 2, item.get('ex_date', '—'))
             ws.cell(row, 3, item.get('code', '—'))
@@ -2086,6 +2163,8 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
             ws.cell(row, 5, item.get('type', '—'))
             ws.cell(row, 6, item.get('cash_dividend', '—'))
             row += 1
+        # v3.67.0 Phase 2.6: I 套 zebra stripes (cols B-F)
+        _zebra_stripes(ws, i_data_start, row - 1, col_start='B', col_end='F')
     else:
         ws.cell(row, 2, '未來 30 天無除權息')
         ws.merge_cells(f'B{row}:F{row}'); row += 1
