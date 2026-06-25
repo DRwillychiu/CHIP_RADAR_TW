@@ -1086,6 +1086,71 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
     return row
 
 
+def _compute_q5_hit_rate(data_dir, window_days=30):
+    """v3.66.8 Phase 2.4: 計算 Q5 預測歷史命中率.
+
+    Logic:
+      - 對 temp_history.json 每筆 entry, 用 signals + infer_market_direction 算 predicted
+      - 對比 entry.next_day_change_pct (隔日 TAIEX 漲跌)
+      - direction='偏多' AND next_day > 0 → hit
+      - direction='偏空' AND next_day < 0 → hit
+      - direction='中性' OR next_day_change_pct is None → skip (no bet)
+
+    Returns:
+      {'bull': (hits, total), 'bear': (hits, total), 'overall': (hits, total)}
+    """
+    try:
+        import sys as _sys
+        _root = data_dir.parent if hasattr(data_dir, 'parent') else None
+        if _root and str(_root) not in _sys.path:
+            _sys.path.insert(0, str(_root))
+        from src.analyzers.signal_engine import infer_market_direction
+    except Exception:
+        return None
+
+    try:
+        with open(data_dir / 'temp_history.json', 'r', encoding='utf-8') as f:
+            th = __import__('json').load(f)
+    except Exception:
+        return None
+
+    history = th.get('history') or []
+    history = history[-window_days:] if window_days else history
+
+    bull_hits, bull_total = 0, 0
+    bear_hits, bear_total = 0, 0
+    for e in history:
+        nxt = e.get('next_day_change_pct')
+        if nxt is None:
+            continue
+        signals = e.get('signals') or []
+        if not signals:
+            continue
+        try:
+            md = infer_market_direction(signals)
+        except Exception:
+            continue
+        direction = md.get('direction')
+        if direction == '偏多':
+            bull_total += 1
+            if nxt > 0:
+                bull_hits += 1
+        elif direction == '偏空':
+            bear_total += 1
+            if nxt < 0:
+                bear_hits += 1
+        # 中性 → 不算
+
+    overall_total = bull_total + bear_total
+    overall_hits = bull_hits + bear_hits
+    return {
+        'bull': (bull_hits, bull_total),
+        'bear': (bear_hits, bear_total),
+        'overall': (overall_hits, overall_total),
+        'window_days': window_days,
+    }
+
+
 def _update_load_timeseries(data_dir, trade_date, kpis, update=True):
     """v3.66.7 Phase 2.3: 時間維度 cache.
 
@@ -1331,6 +1396,39 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         c_q5.fill = PatternFill(start_color=bg, end_color=bg, fill_type='solid')
         ws.row_dimensions[row].height = 22
         row += 1
+
+        # v3.66.8 Phase 2.4: Q5 hit rate 累積 sub-banner
+        hr = _compute_q5_hit_rate(data_dir, window_days=30)
+        if hr and hr['overall'][1] > 0:
+            bull_h, bull_t = hr['bull']
+            bear_h, bear_t = hr['bear']
+            ovr_h, ovr_t = hr['overall']
+            bull_pct = (bull_h / bull_t * 100) if bull_t else 0
+            bear_pct = (bear_h / bear_t * 100) if bear_t else 0
+            ovr_pct = (ovr_h / ovr_t * 100)
+            # 整體 hit rate 顏色: ≥60% 綠 / 40-60 灰 / <40 紅
+            if ovr_pct >= 60:
+                hr_color = 'FF059669'   # 綠
+                hr_icon = '✅'
+            elif ovr_pct >= 40:
+                hr_color = 'FF666666'   # 灰
+                hr_icon = '🟡'
+            else:
+                hr_color = 'FFDC2626'   # 紅
+                hr_icon = '⚠️'
+            hr_text = (f"{hr_icon} 過去 {hr['window_days']} 天 P/C 命中率: "
+                       f"偏多 {bull_h}/{bull_t} ({bull_pct:.0f}%) | "
+                       f"偏空 {bear_h}/{bear_t} ({bear_pct:.0f}%) | "
+                       f"整體 {ovr_h}/{ovr_t} ({ovr_pct:.0f}%)")
+            ws.merge_cells(f'B{row}:N{row}')
+            c_hr = ws[f'B{row}']
+            c_hr.value = hr_text
+            c_hr.alignment = Alignment(horizontal='center', vertical='center')
+            c_hr.font = Font(name='Noto Sans TC', size=10, italic=True, color=hr_color)
+            c_hr.fill = PatternFill(start_color='FFF9FAFB', end_color='FFF9FAFB',
+                                     fill_type='solid')   # 極淡灰
+            ws.row_dimensions[row].height = 18
+            row += 1
 
     row += 1   # 空一行
 

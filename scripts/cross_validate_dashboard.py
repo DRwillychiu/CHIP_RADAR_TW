@@ -189,6 +189,33 @@ for rng in applied_ranges:
           f"max={max_v:,.0f} (row {max_r}), min={min_v:,.0f} (row {min_r}){placeholder_tag}")
 print()
 
+# v3.66.8 Phase 2.4: Q5 hit rate sub-banner 驗證
+print("\n=== Phase 2.4: Q5 hit rate sub-banner 驗證 ===")
+from src.exports.excel_report import _compute_q5_hit_rate
+gt_hr = _compute_q5_hit_rate(ROOT / 'data', window_days=30)
+if gt_hr is None:
+    print("  [skip] temp_history.json 不可用")
+else:
+    print(f"  GT 偏多: {gt_hr['bull']}, 偏空: {gt_hr['bear']}, 整體: {gt_hr['overall']}")
+    hr_row = None
+    for r in range(4, ws2.max_row + 1):
+        v = ws2[f'B{r}'].value
+        if v and isinstance(v, str) and '命中率' in v:
+            hr_row = r
+            break
+    if hr_row is None:
+        print("  [skip] hit rate sub-banner 未渲染 (歷史不足或無 next_day 資料)")
+    else:
+        hr_text = ws2[f'B{hr_row}'].value
+        print(f"  Excel hit rate row {hr_row}: {hr_text!r}")
+        bull_h, bull_t = gt_hr['bull']
+        bear_h, bear_t = gt_hr['bear']
+        ovr_h, ovr_t = gt_hr['overall']
+        for must_contain in [f'偏多 {bull_h}/{bull_t}', f'偏空 {bear_h}/{bear_t}',
+                              f'整體 {ovr_h}/{ovr_t}']:
+            if must_contain not in hr_text:
+                errors.append(('Q5.HR', must_contain, hr_text, f'缺 {must_contain}'))
+
 print("=== TL;DR + Action card (v3.66.4) ===")
 tldr_v = ws2['B3'].value
 act_v = ws2['B4'].value
