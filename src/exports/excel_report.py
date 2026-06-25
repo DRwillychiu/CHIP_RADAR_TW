@@ -49,7 +49,8 @@ except ImportError:
 # v3.62.0 (Sprint 25 → v3.62.1): 用戶決定把 E1-E4 4 個 section 全合 1 sheet
 # 月檔結構: [📋 今日 Dashboard (含全 4 section)] + 日期 sheet desc
 DASHBOARD_SHEET_NAME = "📋 今日 Dashboard"
-ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME]
+MOBILE_SHEET_NAME = "📱 手機摘要"   # v3.67.1 Phase 2.7
+ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME]
 # 舊 sheet 名 (給 cleanup 移除舊月檔殘留)
 LEGACY_ENRICHMENT_NAMES = ["📋 今日摘要", "🚨 異常警報", "📦 連續囤貨", "⚠️ 風險警示"]
 
@@ -1186,6 +1187,136 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
     return row
 
 
+def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
+    """v3.67.1 Phase 2.7: 手機摘要 sheet.
+
+    設計原則 (使用者明確要求):
+      1. 精簡 — 每行 1 個資訊, 無複合句
+      2. 可讀性高 — 3 級字體階層 (14/12/10pt)
+      3. 視覺不雜亂 — 單欄, section 空 1 行, 無格線
+
+    內容 (4 個決策問題):
+      📅 明日預測 (Q5 direction)
+      🎯 強共識 Top 5 (買什麼)
+      🚫 今日避開 (除權息)
+      📊 追蹤池方向 (淨買差 + vs 昨/5d)
+    """
+    data_dir = data_dir or Path('data')
+    branches_data = _filter_tracked_branches(branches_data)
+
+    # 單欄佈局: B=2 留白, C=38 主內容, D=2 留白
+    ws.column_dimensions['B'].width = 2
+    ws.column_dimensions['C'].width = 38
+    ws.column_dimensions['D'].width = 2
+
+    title_font = Font(name='Noto Sans TC', size=14, bold=True,
+                      color=COLORS['brand_dark'])
+    sec_font = Font(name='Noto Sans TC', size=13, bold=True,
+                    color=COLORS['text_strong'])
+    val_font_big = Font(name='Noto Sans TC', size=16, bold=True)
+    val_font = Font(name='Noto Sans TC', size=12)
+    sub_font = Font(name='Noto Sans TC', size=10, italic=True,
+                    color=COLORS['text_muted'])
+
+    row = 2
+    # ── 主標題 ──
+    c = ws.cell(row, 3, f"📋 Chip Radar · "
+                f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:8]}")
+    c.font = title_font
+    c.alignment = Alignment(horizontal='left', vertical='center')
+    row += 2
+
+    # ── 📅 明日預測 ──
+    ws.cell(row, 3, "📅 明日預測").font = sec_font
+    row += 1
+    daily_signal = _read_json_safely(data_dir / 'daily_signal.json')
+    md = (daily_signal or {}).get('market_direction') or {}
+    direction = md.get('direction') or '—'
+    confidence = md.get('confidence_pct') or 0
+    if direction == '偏多':
+        arrow, q5_color = '↑', COLORS['tw_red']
+    elif direction == '偏空':
+        arrow, q5_color = '↓', COLORS['tw_green']
+    else:
+        arrow, q5_color = '↕', COLORS['text_neutral']
+    c_q5 = ws.cell(row, 3, f"{arrow} {direction} {confidence:.1f}%")
+    c_q5.font = Font(name='Noto Sans TC', size=16, bold=True, color=q5_color)
+    ws.row_dimensions[row].height = 24
+    row += 2
+
+    # ── 🎯 強共識買超 Top 5 ──
+    consensus = _compute_consensus_count(branches_data)
+    consensus.sort(key=lambda x: (-x['total_net_amt'], -x['master_count'],
+                                   -x['branch_count']))
+    ws.cell(row, 3, "🎯 強共識買超 Top 5").font = sec_font
+    row += 1
+    circle = ['①', '②', '③', '④', '⑤']
+    for i, c in enumerate(consensus[:5]):
+        ws.cell(row, 3,
+                f"{circle[i]} {c['name']} ({c['code']}) · {c['master_count']} 大戶").font = val_font
+        row += 1
+    if not consensus:
+        ws.cell(row, 3, "(今日無強共識)").font = sub_font
+        row += 1
+    row += 1
+
+    # ── 🚫 今日避開 ──
+    ws.cell(row, 3, "🚫 今日避開").font = sec_font
+    row += 1
+    dividend = _read_json_safely(data_dir / 'dividend_calendar.json')
+    today_ex = [i for i in ((dividend or {}).get('upcoming_30d') or [])
+                 if i.get('ex_date') == trade_date]
+    if today_ex:
+        codes_str = ' / '.join(i.get('code', '') for i in today_ex[:3])
+        suffix = ' ...' if len(today_ex) > 3 else ''
+        ws.cell(row, 3, f"除權息 {len(today_ex)} 檔 ({codes_str}{suffix})").font = val_font
+    else:
+        ws.cell(row, 3, "今日無除權息").font = sub_font
+    row += 2
+
+    # ── 📊 追蹤池方向 ──
+    ws.cell(row, 3, "📊 追蹤池方向").font = sec_font
+    row += 1
+    # 計算 Q2 淨買差
+    def _bs(blist):
+        buy = sum((s.get('buy_amt') or 0) for b in blist for s in (b.get('buys') or []))
+        seen = set(); sell = 0
+        for b in blist:
+            bcode = b.get('code', '')
+            for s in (b.get('buys') or []) + (b.get('sells') or []):
+                key = (bcode, s.get('code'))
+                if key in seen: continue
+                seen.add(key)
+                sell += (s.get('sell_amt') or 0)
+        return buy, sell
+    tb, ts_ = _bs(branches_data)
+    net_billion = (tb - ts_) / 100000
+    # 顏色 + 文字
+    net_color = COLORS['tw_red'] if net_billion >= 0 else COLORS['tw_green']
+    sign = '+' if net_billion >= 0 else ''
+    c_net = ws.cell(row, 3, f"{sign}{net_billion:.0f} 億 淨買")
+    c_net.font = Font(name='Noto Sans TC', size=14, bold=True, color=net_color)
+    ws.row_dimensions[row].height = 22
+    row += 1
+    # vs 昨 / 5d (從 timeseries 拿)
+    ts_data = _update_load_timeseries(data_dir, trade_date, {
+        'q1_active_ratio': 0, 'q2_net_billion': net_billion,
+        'q3_consensus_count': 0, 'q3_consensus_net_billion': 0,
+        'q4_track_share': 0, 'q4_mkt_net_billion': 0,
+    }, update=False)
+    y = ts_data['yesterday'].get('q2_net_billion')
+    a = ts_data['avg5'].get('q2_net_billion')
+    if y is not None and a is not None:
+        trend_y = '反彈' if net_billion > y else ('擴空' if net_billion < y else '持平')
+        trend_a = '偏弱' if net_billion < a else ('偏強' if net_billion > a else '持平')
+        ws.cell(row, 3, f"比昨 {y:+.0f} {trend_y} / 比 5d {a:+.0f} {trend_a}").font = sub_font
+    else:
+        ws.cell(row, 3, "(歷史資料累積中)").font = sub_font
+
+    # freeze 大標題置頂
+    ws.freeze_panes = 'A3'
+
+
 def _compute_q5_hit_rate(data_dir, window_days=30):
     """v3.66.8 Phase 2.4: 計算 Q5 預測歷史命中率.
 
@@ -2282,10 +2413,20 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     except Exception as _be:
         print(f"  [Excel] dashboard sheet build 失敗: {type(_be).__name__}: {_be}")
 
-    # 排序: dashboard 在前, 日期 sheets 按 desc
-    other_sheets = sorted([s for s in wb.sheetnames if s != DASHBOARD_SHEET_NAME],
+    # v3.67.1 Phase 2.7: 手機摘要 sheet (Dashboard 後第 2 個)
+    if MOBILE_SHEET_NAME in wb.sheetnames:
+        wb.remove(wb[MOBILE_SHEET_NAME])
+    mobile_ws = wb.create_sheet(title=MOBILE_SHEET_NAME)
+    try:
+        build_mobile_summary_sheet(mobile_ws, branches_data, trade_date, data_dir)
+    except Exception as _be:
+        print(f"  [Excel] mobile summary sheet build 失敗: {type(_be).__name__}: {_be}")
+
+    # 排序: dashboard → mobile → 日期 sheets desc
+    enrichment = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME]
+    other_sheets = sorted([s for s in wb.sheetnames if s not in enrichment],
                             reverse=True)
-    order = ([DASHBOARD_SHEET_NAME] if DASHBOARD_SHEET_NAME in wb.sheetnames else []) + other_sheets
+    order = [s for s in enrichment if s in wb.sheetnames] + other_sheets
     wb._sheets = [wb[name] for name in order]
 
     wb.save(str(monthly_path))
