@@ -1348,11 +1348,20 @@ def _compute_q5_hit_rate(data_dir, window_days=30):
     history = th.get('history') or []
     history = history[-window_days:] if window_days else history
 
+    # v3.67.3 Phase 2.4 Fix #3: stale guard
+    # 揭穿: 6/2-6/8 共 5 個 entry change_pct=0.0 全 false-negative
+    # 原因: 兜底排程未抓新 TAIEX, index 跟前一日相同, 但 change_pct=0.0 寫入 history
+    # 修補: change_pct=0.0 AND next_day_close=None (證據是 missing) → skip
     bull_hits, bull_total = 0, 0
     bear_hits, bear_total = 0, 0
+    skipped_stale = 0
     for e in history:
         nxt = e.get('next_day_change_pct')
         if nxt is None:
+            continue
+        # v3.67.3: stale = 0.0 + 缺 close 證據 → 視為 missing
+        if nxt == 0.0 and e.get('next_day_close') is None:
+            skipped_stale += 1
             continue
         signals = e.get('signals') or []
         if not signals:
