@@ -1,6 +1,7 @@
 # v3.51.0 機構級重整: 自動把 src/* 8 個子目錄加進 sys.path
 # 讓既有 `import attention_fetcher` / `from master_profile import x` 仍 work
 import src  # noqa: F401 — side effect only
+from data_dir import resolve_data_dir
 """
 分點籌碼觀察站 - 完整版爬蟲 (v3.6)
 功能：
@@ -403,8 +404,7 @@ def main():
         print(f"  （去重後 {len(unique_branches)} 個分點）")
     
     # ===== 載入股票分類器（規則 + API + 快取）=====
-    data_dir = Path(__file__).parent / "data"
-    data_dir.mkdir(exist_ok=True)
+    data_dir = resolve_data_dir()
     today_str = now_tw().strftime("%Y%m%d")
     classify_stock_fn, _ = get_classifier(data_dir, today_str)
     
@@ -1455,7 +1455,7 @@ def main_margin_only():
     stage_name = os.environ.get('CHIP_RADAR_STAGE', 'margin_only').strip()
     print(f"[{now_tw().strftime('%Y-%m-%d %H:%M:%S')}] 🔄 STAGE={stage_name} 融資融券補更新")
     
-    data_dir = Path(__file__).parent / "data"
+    data_dir = resolve_data_dir()
     latest_file = data_dir / "latest.json"
     
     if not latest_file.exists():

@@ -1,5 +1,6 @@
 # v3.51.0 機構級重整: sys.path 注入
 import src  # noqa: F401
+from data_dir import resolve_data_dir
 """
 ========================================================================
 Module: weekly_summary.py  (v3.41.0 Sprint 4)
@@ -148,11 +149,12 @@ def build_markdown(data_dir: str = 'data') -> str:
 
 
 def main():
-    md = build_markdown()
+    dd = resolve_data_dir()
+    md = build_markdown(str(dd))
     now = now_tw()
     iso = now.isocalendar()
     week_id = f"{iso[0]}_W{iso[1]:02d}"
-    out = Path('data/reports') / f'weekly_{week_id}.md'
+    out = dd / 'reports' / f'weekly_{week_id}.md'
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(md, encoding='utf-8')
     print(f"::notice title=Weekly Summary {week_id}::已產生 {out}")

@@ -1,5 +1,6 @@
 # v3.51.0 機構級重整: sys.path 注入
 import src  # noqa: F401
+from data_dir import resolve_data_dir
 """
 ========================================================================
 Module: pre_market_brief.py  (v3.41.0 Sprint 4)
@@ -137,7 +138,7 @@ def build_brief(data_dir: str = 'data'):
 
 
 def main():
-    brief = build_brief()
+    brief = build_brief(str(resolve_data_dir()))
     # GitHub Actions ::notice::
     movers_str = ', '.join(f"{m['name']}({m['total_buy_amt_wan']:,}萬)" for m in brief['master_movers_top3'][:3])
     disp = brief.get('new_disposals') or {}

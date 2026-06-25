@@ -1,5 +1,6 @@
 # v3.51.0 機構級重整: sys.path 注入
 import src  # noqa: F401
+from data_dir import resolve_data_dir
 """
 ========================================================================
 Module: intraday_settlement.py  (v3.41.0 Sprint 4)
@@ -89,7 +90,7 @@ def build_settlement(data_dir: str = 'data'):
 
 
 def main():
-    s = build_settlement()
+    s = build_settlement(str(resolve_data_dir()))
     if not s.get('institutional_summary_first_look'):
         print("::warning title=Intraday Settlement::TWSE BFI82U 抓取失敗 (盤後資料可能還未更新)")
         return 0   # 不視為錯誤, 排程仍 PASS
@@ -97,7 +98,7 @@ def main():
     print(f"::notice title=Intraday Settlement {s['date']}::"
           f"外資 {summary['foreign']:+,} 張 / 投信 {summary['trust']:+,} 張 / 自營 {summary['dealer']:+,} 張 "
           f"= 三大法人 {summary['total_inst']:+,} 張 ({s['verdict']})")
-    print(f"[Intraday Settlement] → {Path('data')/'intraday_settlement.json'}")
+    print(f"[Intraday Settlement] → {resolve_data_dir() / 'intraday_settlement.json'}")
     return 0
 
 

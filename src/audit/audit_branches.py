@@ -244,6 +244,8 @@ if __name__ == '__main__':
     result = audit_branches()
     
     # 儲存結果
-    with open('/tmp/audit_branches.json', 'w', encoding='utf-8') as f:
+    import tempfile
+    _out = Path(tempfile.gettempdir()) / 'audit_branches.json'
+    with open(_out, 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
-    print(f"\n  💾 結果儲存: /tmp/audit_branches.json")
+    print(f"\n  💾 結果儲存: {_out}")

@@ -324,7 +324,8 @@ if __name__ == '__main__':
     print("=" * 65)
     
     # 測試用暫存目錄
-    test_data_dir = Path('/tmp/test_industry')
+    import tempfile
+    test_data_dir = Path(tempfile.gettempdir()) / 'test_industry'
     test_data_dir.mkdir(exist_ok=True)
     
     mapping = get_industry_map(test_data_dir, force_refresh=True)

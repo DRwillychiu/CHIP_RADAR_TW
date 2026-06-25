@@ -218,6 +218,8 @@ if __name__ == '__main__':
     result = audit_three_legal(trade_date)
     
     # 儲存結果
-    with open(f'/tmp/audit_institutional_{trade_date}.json', 'w', encoding='utf-8') as f:
+    import tempfile
+    _out = Path(tempfile.gettempdir()) / f'audit_institutional_{trade_date}.json'
+    with open(_out, 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
-    print(f"\n  💾 結果儲存: /tmp/audit_institutional_{trade_date}.json")
+    print(f"\n  💾 結果儲存: {_out}")

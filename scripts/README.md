@@ -71,3 +71,101 @@ powershell -NoProfile -File scripts/check_ps1_syntax.ps1 -Path scripts/trigger_c
 # 2. dry-run (但不真的觸發 workflow)
 # 把 line `& gh workflow run daily-full.yml ...` 暫時註解掉, 跑一次, 確認 log 有寫
 ```
+
+---
+
+## Windows 本機執行
+
+除了透過 GitHub Actions 雲端跑之外，也可以在 Windows 本機直接跑 crawler。資料存在 `local_data/`（不會上傳 GitHub），可透過 Tailscale + Windows 共享資料夾讓其他設備讀取。
+
+### 前置安裝
+
+```powershell
+# 1. Python 3.11+
+winget install Python.Python.3.11
+
+# 2. 安裝 Python 依賴
+pip install -r requirements.txt
+```
+
+### 設定密碼（做一次就好）
+
+跟 GitHub Actions 的 Secrets 一樣的概念，在 Windows 上用系統環境變數存密碼：
+
+1. `Win + R` → 輸入 `sysdm.cpl` → Enter
+2. 「進階」分頁 → 「環境變數」
+3. 使用者變數 → 新增
+   - 變數名稱：`CHIP_RADAR_PASSWORD`
+   - 變數值：（填你在 GitHub Secrets 裡的密碼）
+
+或用 PowerShell 一行搞定：
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('CHIP_RADAR_PASSWORD', '你的密碼', 'User')
+```
+
+### run_local.ps1
+
+在本機跑完整 crawler，資料輸出到 `local_data/`。
+
+```powershell
+# 手動執行
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run_local.ps1
+```
+
+#### Task Scheduler 設定（自動排程）
+
+```
+General:
+  Name: Chip Radar Local (21:17)
+  Run whether user is logged in or not: ☑
+
+Triggers:
+  Daily, 21:17, recur every 1 day, Mon-Fri only
+
+Actions:
+  Program: powershell.exe
+  Arguments: -NoProfile -ExecutionPolicy Bypass -File "C:\path\to\repo\scripts\run_local.ps1"
+  Start in: C:\path\to\repo
+```
+
+### Tailscale 共享資料夾
+
+跑完後 `local_data/` 就有所有資料。透過 Windows 共享資料夾 + Tailscale 讓其他設備存取：
+
+1. 右鍵 `local_data/` → 內容 → 共用 → 選擇要共用的人員
+2. 其他設備透過 Tailscale 內網 IP 存取：`\\100.x.x.x\local_data\`
+
+### backup_gdrive.ps1
+
+每週壓縮 `local_data/` 上傳到 Google Drive，保留最近 2 份。
+
+#### 前置：安裝 rclone
+
+```powershell
+winget install Rclone.Rclone
+
+# 設定 Google Drive remote (照畫面操作一次)
+rclone config
+# → New remote → name: gdrive → Storage: Google Drive → 照提示授權
+
+# 驗證
+rclone lsd gdrive:
+```
+
+#### Task Scheduler 設定
+
+```
+General:
+  Name: Chip Radar Backup (Sun 18:00)
+
+Triggers:
+  Weekly, Sunday 18:00
+
+Actions:
+  Program: powershell.exe
+  Arguments: -NoProfile -ExecutionPolicy Bypass -File "C:\path\to\repo\scripts\backup_gdrive.ps1"
+  Start in: C:\path\to\repo
+```
+
+備份檔名格式：`chip_radar_backup_YYYYMMDD.zip`，自動刪除超過 2 份的舊備份。

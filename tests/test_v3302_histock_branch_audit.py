@@ -26,7 +26,8 @@ print("=" * 60)
 # ── 1. parser ──
 print("\n1. parse_histock_table 真實 HTML (2330)")
 try:
-    with open('/tmp/histock_2330_sample.html', encoding='utf-8') as f:
+    import tempfile
+    with open(Path(tempfile.gettempdir()) / 'histock_2330_sample.html', encoding='utf-8') as f:
         html = f.read()
     result = parse_histock_table(html, '2330')
     ok = (
