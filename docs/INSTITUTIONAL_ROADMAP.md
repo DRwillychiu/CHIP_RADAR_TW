@@ -93,6 +93,118 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.1 — Phase 3.4 mild_up 落地 — Section 0 sub-banner + ★ 標記 + R10/Mobile 整合
+
+**Section 0 升級** (`_compute_mild_up_picks` + `_build_section_consensus`):
+- 新 helper 識別「共識 ∩ Q5 偏多 ∩ 近 3 天累積 0-8% (溫和上行)」picks
+- 新 sub-banner (R9): 顯示 Phase 3.4 hit 60.0% [40.7–76.6% 95% CI] (n=25) +15.9pp
+- 名稱欄新增 ★ 標記 (mild_up only, 非 quad), ⭐ + ★ + ⚠️ 三層標記
+- 註腳更新含 ★ 說明
+
+**R10 quad banner 升級** — 整合 mild_up 狀態:
+- Quad 命中 + mild_up 額外命中 → 「⭐ N 檔 quad + ★ 另 M 檔 mild_up」
+- 無 quad 但 mild_up 命中 → 「★ quad 未啟動但 mild_up 命中 N 檔 (Q5 偏多 + 溫和上行 60% alpha)」(淡金底)
+- 都未啟動 → 「💤 無 alpha 訊號」
+
+**Mobile sheet 升級**:
+- 新 ★ Mild_up section 列在 ⭐ Quad section 後 / 共識 Top 5 前
+- mu_only_codes = mild_up - quad 避免重複
+- 強共識 Top 5 prefix 邏輯: ⭐ for quad / ★ for mild_up only / 否則 ①②③④⑤
+
+**設計原則**: Phase 3.2 quad 是強 alpha (78.9%), Phase 3.4 mild_up 是次等 alpha (60%, n=25 樣本待累積)。視覺區隔: ⭐ 雙星>★ 單星, 用戶一眼分強弱。
+
+---
+
+### ✅ v3.71.0 — Phase 3.4 combo backtest 8 個新 filter + manual dispatch workflow
+
+延續 Phase 3.1 (q5_bull 58.5%), 探索 baseline 提升空間 (純價格特徵, 不依賴 stock-level metadata).
+
+**8 個新 filter combo** (`bootstrap_combo_backtest.py`):
+- ex_chase / ex_falling_knife (排除追高 / 接刀)
+- mild_uptrend / pullback_buy (溫和上行 / 短線回檔)
+- fresh_breakout / near_low_rebound (突破 / 跌深反彈)
+- q5_bull_ex_chase / q5_bull_mild_up (Q5 疊加組合)
+
+**45 天 backtest 結果** (按 hit% sort, n≥20 才算 actionable):
+| Combo | n | hit% | vs baseline |
+|---|---|---|---|
+| ⭐ q5_bull_mild_up | 25 | **60.0%** | +15.9pp (達標) |
+| q5_bull | 82 | 58.5% | +14.4pp |
+| ⚠️ mild_uptrend | 111 | **34.2%** | -9.9pp (反向 trap!) |
+
+**關鍵發現**:
+1. mild_uptrend 反向 — 「共識 + 近 3 天溫和上行」是 trap (可能反映 end-of-trend)
+2. q5_bull_mild_up 60.0% — Q5 偏多後逆轉成 alpha
+3. 純價格 filter 上限約 55%, 真正 alpha 仍是「master vol_spike」(Phase 3.2 quad)
+
+**新增 manual dispatch workflow** (`phase34-combo-explore.yml`): user GitHub UI 一鍵跑探索
+
+---
+
+### ✅ v3.70.5 — ROLLBACK stale guard 2 + 全網數字 audit PASS
+
+TWSE STOCK_DAY 官方 API 驗證: 6/22 鴻海/台達電/華通 close 跟前一日相同是 LEGIT (intraday 有波動但收盤恰等於 psychological level), 非 stale data. ROLLBACK v3.70.4 加的 stale guard 2 (3 處), EXPECTED_HIT_RATE 0.857 (假) → 0.789 (真). 失效歸因 wording 改「flat close (真實現象)」. 新建 2 個 audit script 全 PASS.
+
+---
+
+### ✅ v3.70.4 — stale guard 2 + per-master vol_spike 可靠度分析 (隨後 ROLLBACK)
+
+P0 hotfix: TWSE 個股 stale 誤判 (鴻海/台達電/華通 6/22 案例) → 加 per-stock stale guard. 之後 v3.70.5 經 TWSE 驗證為 LEGIT, ROLLBACK.
+
+---
+
+### ✅ v3.70.3 — Phase 3.2 失效歸因 sheet (Excel 4th enrichment)
+
+`build_quad_failure_sheet` 第 4 個 enrichment sheet, 從 miss 學習. 每個 quad pick 加 attribution: leader_pct / excess_return / failure_reasons. 7 類歸因 (資料異常 / TAIEX 整盤跌 / 假共識 / 個股弱勢 / Q5 borderline / TAIEX 資料缺 / alpha noise).
+
+---
+
+### ✅ v3.70.2 — Phase 3.2 alpha 持續性追蹤 3 強化
+
+- **P1-E**: 📈 Quad 實戰追蹤 sheet (Excel 3rd enrichment) — 逐 trigger day 列日期/隔日/Q5/vol_spike masters/picks/hits/命中率/mean%/picks 預覽
+- **P1-F**: Alpha 失效 alarm — 30d hit <50% AND n>=20 → 紅警告「alpha 可能失效, 建議暫停使用」
+- **P1-G**: Wilson 95% CI 顯示 — sub-banner 顯示 "hit 78.9% [63.7-88.9% 95% CI]", 用戶才知道不是精確數字
+
+---
+
+### ✅ v3.70.1 — Phase 3.2 滾動 backtest + quad 實戰 hit log
+
+- `daily_rolling_update.py` — daily-full.yml 在 crawler 後執行: re-bootstrap phase32_backtest.json (每日新樣本) + update quad_hit_log.json + regen Excel
+- `quad_hit_log.json` — 逐 trigger day 記錄 q5_direction / vol_spike_masters / picks list / hits / hit_rate / mean / rolling_30d / rolling_all / vs_expected
+- Excel sub-banner 加「30d 實戰: X/Y = Z%」
+
+---
+
+### ✅ v3.70.0 — Phase 3.2 alpha 落地 — quad 命中股每日識別
+
+`_compute_quad_picks()` 三訊號齊聚判定. 三介面落地: Section 0 (quad 狀態 banner + 名稱欄 ⭐ 標記 + 註腳) / Action card (🎯 quad 進場 (78.9% alpha)) / Mobile sheet (新 ⭐ Quad 命中 section 列在共識前).
+
+---
+
+### ✅ v3.69.0 — Phase 3.2 三訊號疊加真 alpha 78.9% hit (+34.8pp)
+
+**DISCOVERY**: 共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike → **78.9% hit rate (n=38)**
+- vs random 50%: p=0.00018 (~3σ)
+- vs baseline 44.1%: p=0.00001
+- vs Q5 偏多 only 58.5%: p=0.00533
+- mean +4.37% next-day return
+
+5 層驗證 PASS (verify_phase32_e_anomaly.py). Phase 3.3 quad_AAAA (+ hot5 streak) 82.1% hit (n=28) 但 vs Phase 3.2 p=0.339 → hot5 過濾沒顯著加值.
+
+---
+
+### ✅ v3.68.0 — Phase 3.1 訊號組合 backtest (+14.4pp alpha)
+
+6 個組合 backtest 探索 (`bootstrap_combo_backtest.py`):
+- baseline (全部共識) 44.1%
+- ⭐ q5_bull (Q5 偏多) 58.5% +14.4pp **alpha**
+- combo_AAA (Q5 偏多 ∩ 真共識) 57.4%
+- high_conv / extra_breadth / q5_bear 都 <50%
+
+Section 0 加 sub-banner: 「Phase 3.1 真 alpha: Q5 偏多 ∩ 共識 hit 58.5%」
+
+---
+
 ### ✅ v3.67.3 — Q5 偏多預測校準 (Phase 2.4 自我揭穿後對策)
 
 Phase 2.4 (v3.66.8) sub-banner 揭穿偏多 hit 41% (比隨機 50% 還差)。本版修兩個根因:

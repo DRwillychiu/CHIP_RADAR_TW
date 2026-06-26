@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.67.3(2026-06-25) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.71.1(2026-06-26) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,17 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.67.3** | 6/25 | **Q5 偏多預測校準** — hit rate 45%→62.5% / 中性閾值 0.05→0.10 / stale guard (chg=0+close=None skip) |
+| **v3.71.1** | 6/26 | **Phase 3.4 mild_up 落地** — Section 0 sub-banner / 名稱欄 ★ 標記 / R10 banner + Mobile sheet 整合 |
+| v3.71.0 | 6/26 | Phase 3.4 combo backtest 探索 — 8 個新 filter + workflow_dispatch / q5_bull_mild_up 60.0% hit |
+| v3.70.5 | 6/26 | ROLLBACK stale guard 2 + 全網數字 audit PASS — TWSE 驗證 flat close 是 LEGIT, 回復 78.9% 真值 |
+| v3.70.4 | 6/26 | stale guard 2 + per-master vol_spike 分析 (隨後 ROLLBACK) |
+| v3.70.3 | 6/26 | Phase 3.2 失效歸因 sheet (Excel 4th enrichment) — 7 類歸因 |
+| v3.70.2 | 6/26 | Phase 3.2 alpha 持續性 3 強化 — Quad 追蹤 sheet / 失效 alarm / Wilson 95% CI |
+| v3.70.1 | 6/26 | Phase 3.2 滾動 backtest + quad 實戰 hit log — daily_rolling_update.py + quad_hit_log.json |
+| v3.70.0 | 6/26 | Phase 3.2 alpha 落地 — quad 命中股每日識別 + 三介面 (Section 0/Action/Mobile) ⭐ 標記 |
+| v3.69.0 | 6/26 | **Phase 3.2 三訊號疊加真 alpha 78.9% hit (+34.8pp)** — 共識 ∩ Q5 偏多 ∩ master 量爆, n=38, p<0.001 |
+| v3.68.0 | 6/26 | Phase 3.1 訊號組合 backtest (+14.4pp) — q5_bull 58.5% / 6 combos / Section 0 sub-banner |
+| v3.67.3 | 6/25 | Q5 偏多預測校準 — hit rate 45%→62.5% / 中性閾值 0.05→0.10 / stale guard (chg=0+close=None skip) |
 | v3.67.2 | 6/25 | Phase 2.7 自動 Email 寄送 — GitHub Actions + Gmail SMTP, 主排程 21:17 + 2 兜底, 純文字 body + latest.xlsx 附件 |
 | v3.67.1 | 6/25 | Phase 2.7 📱 手機摘要 sheet — 19 row 單欄 4 決策問題 (明日預測/強共識/今日避開/追蹤池方向) |
 | v3.67.0 | 6/25 | Phase 2.6 Color Tokens + Zebra — 35+ semantic token / E F G H I 5 section 斑馬紋 |

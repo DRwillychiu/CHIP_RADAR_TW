@@ -935,6 +935,75 @@ def _compute_consensus_count(branches_data):
     return out
 
 
+def _compute_mild_up_picks(consensus_picks, data_dir, trade_date=None):
+    """v3.71.0 Phase 3.4: 識別共識 ∩ Q5 偏多 ∩ 近 3 天累積 0-8% (溫和上行) picks.
+
+    Phase 3.4 backtest 揭穿: 此組合 hit 60.0% (n=25) vs baseline 44.1% (+15.9pp).
+    比 Phase 3.2 quad (78.9%) 弱, 但相對 baseline 仍是有效中等訊號.
+    用於 quad day 沒啟動但 Q5 偏多時的「次等 alpha」備案.
+
+    三條件:
+      1. 共識: stock 在 consensus_picks
+      2. Q5 偏多: daily_signal.json market_direction.direction == '偏多'
+      3. 近 3 天累積 0-8%: today_close / 3d_ago_close - 1 在 [0, 0.08]
+
+    Returns:
+      {
+        'is_mild_up_day': bool (Q5 偏多 + 有 mild_up 命中),
+        'q5_direction': str,
+        'mild_up_codes': set,
+        'mild_up_picks': list,
+      }
+    """
+    result = {
+        'is_mild_up_day': False,
+        'q5_direction': None,
+        'mild_up_codes': set(),
+        'mild_up_picks': [],
+    }
+    ds = _read_json_safely(data_dir / 'daily_signal.json')
+    if ds:
+        md = ds.get('market_direction') or {}
+        result['q5_direction'] = md.get('direction')
+
+    if result['q5_direction'] != '偏多':
+        return result
+
+    sh = _read_json_safely(data_dir / 'stock_history.json')
+    if not sh:
+        return result
+    sh_stocks = sh.get('stocks', {})
+    sh_dates = sh.get('dates', [])
+    if not sh_dates:
+        return result
+
+    # 「今日」基準 — 用 trade_date 或 sh_dates 最後一筆
+    today = trade_date if (trade_date and trade_date in sh_dates) else sh_dates[-1]
+    try:
+        today_idx = sh_dates.index(today)
+    except ValueError:
+        return result
+    if today_idx < 3:
+        return result
+
+    for c in consensus_picks:
+        code = c.get('code')
+        if not code:
+            continue
+        s_data = sh_stocks.get(code, {}).get('daily', {})
+        today_close = (s_data.get(today) or {}).get('close')
+        d3_close = (s_data.get(sh_dates[today_idx - 3]) or {}).get('close')
+        if today_close is None or d3_close is None or d3_close <= 0:
+            continue
+        chg_3d = (today_close / d3_close - 1) * 100
+        if 0 <= chg_3d <= 8.0:
+            result['mild_up_codes'].add(code)
+            result['mild_up_picks'].append(c)
+
+    result['is_mild_up_day'] = bool(result['mild_up_picks'])
+    return result
+
+
 def _compute_quad_picks(consensus_picks, data_dir):
     """v3.70.0 Phase 3.2 落地: 識別今日符合三訊號疊加的 quad picks.
 
@@ -985,7 +1054,7 @@ def _compute_quad_picks(consensus_picks, data_dir):
     return result
 
 
-def _build_section_consensus(ws, branches_data, data_dir, start_row):
+def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=None):
     """v3.63.2 ★ Section 0: 今日追蹤大戶共同買超 (置於 Dashboard 最前).
 
     定義: ≥2 個追蹤清單內「分點」淨買 > 0 同一檔股票即視為共識.
@@ -1102,10 +1171,53 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         ws.row_dimensions[row].height = 18
         row += 1
 
+    # v3.71.0 Phase 3.4: q5_bull_mild_up sub-banner (中等 alpha 訊號)
+    # 共識 ∩ Q5 偏多 ∩ 近 3 天累積 0-8% = 60.0% hit (vs 44.1% baseline, +15.9pp)
+    cb = _read_json_safely(data_dir / 'combo_backtest.json')
+    if cb and cb.get('summary'):
+        cb_summary = cb['summary']
+        mu = cb_summary.get('q5_bull_mild_up', {})
+        cb_baseline = cb_summary.get('baseline', {})
+        mu_n = mu.get('n', 0)
+        mu_hits = mu.get('hits', 0)
+        mu_hr = mu.get('hit_rate', 0) * 100
+        bl_hr = cb_baseline.get('hit_rate', 0) * 100
+        if mu_n >= 5:
+            mu_improvement = mu_hr - bl_hr
+            ci_lo, ci_hi = _wilson_ci(mu_hits, mu_n, z=1.96)
+            ci_str = f" [{ci_lo*100:.1f}–{ci_hi*100:.1f}% 95% CI]"
+            # verdict (n=25 樣本小, 即使 60% 也僅標「中等 alpha 訊號 (樣本待累積)」)
+            if mu_n >= 40 and mu_hr >= 60:
+                mu_color = 'FF059669'; mu_icon = '★'
+                mu_verdict = '中等 alpha 訊號'
+            elif mu_n >= 20 and mu_hr >= 55:
+                mu_color = 'FF666666'; mu_icon = '🟡'
+                mu_verdict = '中等 alpha 訊號 (樣本待累積)'
+            elif mu_n >= 10:
+                mu_color = 'FF666666'; mu_icon = '🟡'
+                mu_verdict = '訊號弱'
+            else:
+                mu_color = 'FF888888'; mu_icon = '⚪'
+                mu_verdict = '樣本不足'
+            mu_text = (f"{mu_icon} Phase 3.4 次等 alpha (溫和上行): 共識 ∩ Q5 偏多 ∩ 近 3 天累積 0-8% "
+                       f"hit {mu_hr:.1f}%{ci_str} (n={mu_n}) "
+                       f"vs baseline {bl_hr:.1f}% = {mu_improvement:+.1f}pp — {mu_verdict}")
+            mu_cell = ws.cell(row, 2, mu_text)
+            ws.merge_cells(f'B{row}:N{row}')
+            mu_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color=mu_color)
+            mu_cell.fill = _summary_fill('FFF9FAFB')
+            mu_cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+            ws.row_dimensions[row].height = 18
+            row += 1
+
     # v3.70.0 Phase 3.2 落地: 今日 quad 狀態 banner
     # (此時 consensus_list 還沒 build, 先用 _compute_consensus_count helper 預算)
     pre_consensus = _compute_consensus_count(branches_data)
     quad_info = _compute_quad_picks(pre_consensus, data_dir)
+    # v3.71.0 Phase 3.4: 同步計算 mild_up picks (在 quad 之外的次等 alpha)
+    mild_up_info = _compute_mild_up_picks(pre_consensus, data_dir, trade_date=trade_date)
+    # v3.71.0: Phase 3.4 mild_up picks 整合進 banner (作為 quad 未啟動時的次等備案)
+    mu_n_today = len(mild_up_info['mild_up_picks'])
     if quad_info['is_quad_day'] and quad_info['quad_picks']:
         quad_names = [(p['code'], p['name']) for p in quad_info['quad_picks'][:5]]
         names_str = ', '.join([f"{n}({c})" for c, n in quad_names])
@@ -1113,16 +1225,31 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
             names_str += f' +{len(quad_info["quad_picks"])-5} 檔'
         q_text = (f"🎯 今日 quad 命中 {len(quad_info['quad_picks'])} 檔 (alpha 啟動): "
                   f"{names_str}  |  Q5 偏多 + {len(quad_info['vol_spike_masters'])} 位 master 量爆")
+        # mild_up 額外命中 (不含 quad codes)
+        mu_extra = [p for p in mild_up_info['mild_up_picks']
+                     if p['code'] not in quad_info['quad_codes']]
+        if mu_extra:
+            mu_names = ', '.join([f"{p['name']}({p['code']})" for p in mu_extra[:3]])
+            q_text += f"  |  ★ 另 {len(mu_extra)} 檔 mild_up: {mu_names}"
         q_color = 'FF059669'    # 綠
         q_fill = 'FFD1FAE5'      # 淡綠
+    elif quad_info['q5_direction'] == '偏多' and not quad_info['vol_spike_masters'] and mu_n_today > 0:
+        # v3.71.0: 無 master 量爆但 mild_up 有命中 → 次等 alpha 備案
+        mu_names = ', '.join([f"{p['name']}({p['code']})" for p in mild_up_info['mild_up_picks'][:5]])
+        if mu_n_today > 5:
+            mu_names += f' +{mu_n_today - 5} 檔'
+        q_text = (f"★ 今日 quad 未啟動 (無 master 量爆), 但 mild_up 命中 {mu_n_today} 檔 "
+                  f"(Q5 偏多 + 溫和上行 60% alpha): {mu_names}")
+        q_color = 'FF666666'    # 灰 (次等)
+        q_fill = 'FFFEF3C7'      # 淡金
     elif quad_info['q5_direction'] == '偏多' and not quad_info['vol_spike_masters']:
-        q_text = (f"💤 今日 Q5 偏多但無 master 量爆 — quad 三訊號未齊聚 (一般共識可參考但無 alpha 加持)")
+        q_text = (f"💤 今日 Q5 偏多但無 master 量爆 + mild_up 無命中 — alpha 訊號全未啟動 (一般共識可參考但無 alpha 加持)")
         q_color = 'FF666666'; q_fill = 'FFF3F4F6'
     elif quad_info['vol_spike_masters'] and quad_info['q5_direction'] != '偏多':
         q_text = (f"💤 今日有 {len(quad_info['vol_spike_masters'])} 位 master 量爆但 Q5 {quad_info['q5_direction'] or '無'} — quad 未啟動")
         q_color = 'FF666666'; q_fill = 'FFF3F4F6'
     else:
-        q_text = f"💤 今日無 quad 訊號 (Q5={quad_info['q5_direction'] or '無'}, 無 master 量爆)"
+        q_text = f"💤 今日無 alpha 訊號 (Q5={quad_info['q5_direction'] or '無'}, 無 master 量爆, mild_up 未啟動)"
         q_color = 'FF888888'; q_fill = 'FFF9FAFB'
     q_cell = ws.cell(row, 2, q_text)
     ws.merge_cells(f'B{row}:N{row}')
@@ -1132,9 +1259,9 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
     ws.row_dimensions[row].height = 18
     row += 1
 
-    # v3.63.9: 註腳說明 ⚠️ 標記意義 (用戶要求) + v3.70.0 ⭐ 標記
+    # v3.63.9: 註腳說明 ⚠️ 標記意義 (用戶要求) + v3.70.0 ⭐ + v3.71.0 ★ 標記
     note_cell = ws.cell(row, 2,
-                         "ⓘ 排序: 合計淨買金額 ↓  |  ⭐ 名稱前 = quad 命中 (Phase 3.2 三訊號齊聚, 預期 78.9% alpha)  |  ⚠️ = 領頭大戶獨佔 ≥50% (假共識防呆)")
+                         "ⓘ 排序: 合計淨買金額 ↓  |  ⭐ = quad 命中 (Phase 3.2 三訊號, 78.9% alpha)  |  ★ = mild_up 命中 (Phase 3.4 次等 alpha, 60%)  |  ⚠️ = 領頭大戶獨佔 ≥50%")
     ws.merge_cells(f'B{row}:N{row}')
     note_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color='FF7C2D12')
     note_cell.fill = _summary_fill('FFFFF7ED')   # 極淡橙底
@@ -1251,12 +1378,18 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         leader_pct = leader_amt / total_net if total_net > 0 else 0
         is_outlier = leader_pct >= 0.5
         # v3.70.0 Phase 3.2 落地: ⭐ 標記 quad 命中股 (在 ⚠️ 之前, 因 alpha > 警示)
+        # v3.71.0 Phase 3.4: ★ 標記 mild_up only (非 quad) — 次等 alpha 區隔
         is_quad = item['code'] in quad_info['quad_codes']
+        is_mild_up_only = (not is_quad) and (item['code'] in mild_up_info['mild_up_codes'])
         display_name = item['name'] or '—'
         if is_quad and is_outlier:
             display_name = f"⭐⚠️ {display_name}"
         elif is_quad:
             display_name = f"⭐ {display_name}"
+        elif is_mild_up_only and is_outlier:
+            display_name = f"★⚠️ {display_name}"
+        elif is_mild_up_only:
+            display_name = f"★ {display_name}"
         elif is_outlier:
             display_name = f"⚠️ {display_name}"
         c_name = ws.cell(row, 4, display_name)
@@ -1421,6 +1554,9 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
                                    -x['branch_count']))
     # v3.70.0 Phase 3.2 落地: quad picks 識別
     mobile_quad = _compute_quad_picks(consensus, data_dir)
+    # v3.71.0 Phase 3.4: mild_up picks 識別 (次等 alpha)
+    mobile_mu = _compute_mild_up_picks(consensus, data_dir, trade_date=trade_date)
+    mu_only_codes = mobile_mu['mild_up_codes'] - mobile_quad['quad_codes']
 
     # ── ⭐ Phase 3.2 quad 命中 (alpha 啟動 — 列在共識上方, 最 actionable) ──
     if mobile_quad['quad_picks']:
@@ -1435,11 +1571,33 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
             row += 1
         row += 1
 
+    # v3.71.0: ── ★ Phase 3.4 mild_up 命中 (次等 alpha, 60%) ──
+    # 只列 quad 沒涵蓋的, 避免重複
+    mu_only_picks = [c for c in mobile_mu['mild_up_picks']
+                      if c['code'] in mu_only_codes]
+    if mu_only_picks:
+        ws.cell(row, 3, "★ Mild_up 命中 (60% 次等 alpha)").font = Font(
+            name='Noto Sans TC', size=13, bold=True, color='FF666666')
+        row += 1
+        for c in mu_only_picks[:5]:
+            cell = ws.cell(row, 3,
+                f"★ {c['name']} ({c['code']}) · {c['master_count']} 大戶")
+            cell.font = Font(name='Noto Sans TC', size=12, bold=True,
+                             color='FF666666')
+            row += 1
+        row += 1
+
     ws.cell(row, 3, "🎯 強共識買超 Top 5").font = sec_font
     row += 1
     circle = ['①', '②', '③', '④', '⑤']
     for i, c in enumerate(consensus[:5]):
-        prefix = '⭐' if c['code'] in mobile_quad['quad_codes'] else circle[i]
+        # v3.71.0: ⭐ for quad, ★ for mild_up only
+        if c['code'] in mobile_quad['quad_codes']:
+            prefix = '⭐'
+        elif c['code'] in mu_only_codes:
+            prefix = '★'
+        else:
+            prefix = circle[i]
         ws.cell(row, 3,
                 f"{prefix} {c['name']} ({c['code']}) · {c['master_count']} 大戶").font = val_font
         row += 1
@@ -2930,7 +3088,7 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     # ── 各 section ──
     row = 6   # v3.66.4: 從 row 4 → row 6 (讓 TL;DR + Action)
     # v3.63.2: ★ Section 0 — 今日共同買超 (置於最前, 使用者最關注)
-    row = _build_section_consensus(ws, branches_data, data_dir, row)
+    row = _build_section_consensus(ws, branches_data, data_dir, row, trade_date=trade_date)
     row = _build_section_summary(ws, branches_data, trade_date, data_dir, row,
                                    all_branches=all_branches,
                                    update_timeseries=update_timeseries)
