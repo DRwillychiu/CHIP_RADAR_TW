@@ -46,8 +46,8 @@ from src.analyzers.signal_engine import infer_market_direction
 
 ANOMALY_SIGMA = 2.0
 MIN_HISTORY_DAYS = 5
-# v3.70.4: 78.9% → 85.7% (stale guard 2 移除 3 個 stale picks 後 — 真實 alpha)
-EXPECTED_HIT_RATE = 0.857
+# v3.70.5 真實值: 78.9% (n=38) — TWSE 證實 6/22 flat close 是 legit, 非 stale
+EXPECTED_HIT_RATE = 0.789
 
 password = os.environ.get('CHIP_RADAR_PASSWORD', '')
 if not password:
@@ -208,23 +208,21 @@ for date_idx, date in enumerate(sorted_dates):
         nxt_close = nd.get('close')
         nxt_chg = nd.get('change_pct')
         if nxt_chg is None or nxt_close is None: continue   # stale guard
-        # v3.70.4 stale guard 2: TWSE API stale (next_close == today_close, change=0)
-        today_close = sh_stocks.get(code, {}).get('daily', {}).get(date, {}).get('close')
-        if (abs(nxt_chg) < 0.005 and today_close is not None
-                and abs(nxt_close - today_close) < 0.001):
-            continue   # stale: skip from hit log entirely
+        # v3.70.5 ROLLBACK stale guard 2 — TWSE 證實 6/22 flat close 是真的
         # v3.70.3 歸因: leader_pct + excess_return + failure_reasons
         master_amts = stock_master_amt.get(code, {})
         total_amt = sum(master_amts.values()) or 1
         leader_amt = max(master_amts.values()) if master_amts else 0
         leader_pct = round(leader_amt / total_amt, 3)
         excess_return = round(nxt_chg - taifex_change, 2) if taifex_change is not None else None
-        # 失效歸因 (miss 才填) — v3.70.3 嚴格分類
+        # 失效歸因 (miss 才填) — v3.70.5 嚴格分類
+        # 註: v3.70.4 stale guard 2 經 TWSE 驗證為錯誤假設, 已 rollback.
+        #     0.00% flat close 是 LEGIT 現象 (intraday 波動但恰好同前一交易日)
         failure_reasons = []
         if nxt_chg <= 0:
-            # 1. 資料異常 — next_close 與 today_close 完全相同 (極可能停牌/資料 stale)
-            if abs(nxt_chg) < 0.005:   # ~0.0%
-                failure_reasons.append('資料異常 (next_close 未變動, 可能停牌/未交易)')
+            # 1. flat close (TWSE 證實 legit, 非 stale; intraday 波動但收 = 前一日)
+            if abs(nxt_chg) < 0.005:
+                failure_reasons.append('flat close (隔日收 = 今日收, 真實現象)')
             # 2. TAIEX 整盤跌 (≥ -0.5% 大盤跌)
             if taifex_change is not None and taifex_change <= -0.5:
                 failure_reasons.append('TAIEX 整盤跌')

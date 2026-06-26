@@ -203,12 +203,8 @@ for date in sorted_dates:
         nxt_close = nd.get('close')
         nxt_chg = nd.get('change_pct')
         if nxt_chg is None or nxt_close is None: continue
-        # v3.70.4 stale guard 2: TWSE API 偶爾 stale (個股) →
-        # next_close == today's close AND change=0.0 視為 stale, skip
-        today_close = s_data.get('daily', {}).get(date, {}).get('close')
-        if (abs(nxt_chg) < 0.005 and today_close is not None
-                and abs(nxt_close - today_close) < 0.001):
-            continue
+        # v3.70.5 ROLLBACK stale guard 2 — TWSE 證實 6/22 鴻海/台達電/華通 close 真的 flat
+        # (intraday 有波動但收盤剛好同 6/18). 之前 stale guard 2 是錯誤假設.
         picks_valid += 1
         cmasters = stock_branches.get(code, set())
         is_e_vol = bool(cmasters & vol_spike)

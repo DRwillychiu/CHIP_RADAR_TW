@@ -483,6 +483,22 @@
           "failure_reasons": []
         },
         {
+          "code": "2317",
+          "name": "鴻海",
+          "matched_masters": [
+            "張濬安(航海王)",
+            "強森",
+            "蔣承翰"
+          ],
+          "next_change_pct": 0.0,
+          "hit": false,
+          "leader_pct": 0.395,
+          "excess_return": null,
+          "failure_reasons": [
+            "flat close (隔日收 = 今日收, 真實現象)"
+          ]
+        },
+        {
           "code": "2492",
           "name": "華新科",
           "matched_masters": [
@@ -510,6 +526,21 @@
           "failure_reasons": []
         },
         {
+          "code": "2308",
+          "name": "台達電",
+          "matched_masters": [
+            "張濬安(航海王)",
+            "強森"
+          ],
+          "next_change_pct": 0.0,
+          "hit": false,
+          "leader_pct": 0.392,
+          "excess_return": null,
+          "failure_reasons": [
+            "flat close (隔日收 = 今日收, 真實現象)"
+          ]
+        },
+        {
           "code": "6116",
           "name": "彩晶",
           "matched_masters": [
@@ -522,6 +553,22 @@
           "leader_pct": 0.187,
           "excess_return": null,
           "failure_reasons": []
+        },
+        {
+          "code": "2313",
+          "name": "華通",
+          "matched_masters": [
+            "張濬安(航海王)",
+            "強森",
+            "蔣承翰"
+          ],
+          "next_change_pct": 0.0,
+          "hit": false,
+          "leader_pct": 0.167,
+          "excess_return": null,
+          "failure_reasons": [
+            "flat close (隔日收 = 今日收, 真實現象)"
+          ]
         },
         {
           "code": "3037",
@@ -537,30 +584,30 @@
           "failure_reasons": []
         }
       ],
-      "n": 6,
+      "n": 9,
       "hits": 6,
-      "hit_rate": 1.0,
-      "mean_change": 4.04
+      "hit_rate": 0.6667,
+      "mean_change": 2.69
     }
   ],
   "rolling_30d": {
     "trigger_days": 2,
-    "n": 14,
+    "n": 17,
     "hits": 11,
-    "hit_rate": 0.7857,
-    "mean_change": 3.92
+    "hit_rate": 0.6471,
+    "mean_change": 3.23
   },
   "rolling_all": {
     "trigger_days": 5,
-    "n": 35,
+    "n": 38,
     "hits": 30,
-    "hit_rate": 0.8571,
-    "mean_change": 4.75
+    "hit_rate": 0.7895,
+    "mean_change": 4.37
   },
   "vs_expected": {
-    "expected_hit_rate": 0.857,
-    "actual_hit_rate": 0.8571,
+    "expected_hit_rate": 0.789,
+    "actual_hit_rate": 0.7895,
     "delta_pp": 0.0
   },
-  "updated_at": "2026-06-26T13:33:13.653312"
+  "updated_at": "2026-06-26T14:03:37.281060"
 }

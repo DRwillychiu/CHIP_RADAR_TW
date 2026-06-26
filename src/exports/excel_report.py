@@ -1679,7 +1679,7 @@ def build_quad_track_sheet(ws, data_dir):
     row += 1
     note = (f"註: trigger day = Q5 預測偏多 AND ≥1 master 量爆 (>2σ).\n"
             f"     picks = 該日所有共識股 ∩ ≥1 vol_spike master.\n"
-            f"     命中率 = 隔日漲幅 > 0 的比例. 預期 85.7% (Phase 3.2 backtest + stale guard 2).\n"
+            f"     命中率 = 隔日漲幅 > 0 的比例. 預期 78.9% (Phase 3.2 backtest).\n"
             f"     Per-master 命中率 < 整體 → 該 master 訊號偏弱; > 整體 → 訊號偏強.\n"
             f"     注意樣本小 (trigger days < 5) 時, 命中率 noise 偏大.")
     c_note = ws.cell(row, 2, note)
@@ -1866,7 +1866,7 @@ def build_quad_failure_sheet(ws, data_dir):
     row += 2
     note = (
         f"歸因分類: "
-        f"資料異常 = next_close 未變動 (停牌/未交易).  "
+        f"flat close = 隔日收盤恰等於今日 (intraday 有波動, TWSE 證實 legit, 非 stale).  "
         f"TAIEX 整盤跌 = 隔日大盤 ≤-0.5%.  "
         f"假共識 = 領頭佔比 ≥50%.  "
         f"個股弱勢 = 跑輸大盤 >2pp.  "
