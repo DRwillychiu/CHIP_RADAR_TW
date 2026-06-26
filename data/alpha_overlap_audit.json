@@ -1,32 +1,32 @@
 {
-  "updated_at": "2026-06-26T09:31:08.399437",
+  "updated_at": "2026-06-26T09:33:42.292152",
   "days_analyzed": 9,
   "summary": {
-    "mild_only_pct": 100.0,
-    "both_overlap_pct_of_quad": 0,
-    "verdict": "雙層獨立 — mild_up 大部分非 quad subset, 維持雙層 sub-banner 合理"
+    "mild_only_pct": 48.0,
+    "both_overlap_pct_of_quad": 35.13513513513514,
+    "verdict": "部分獨立 — mild_up 大部分非 quad subset, 雙層仍有獨立信息"
   },
   "buckets": {
     "quad_only": {
-      "n": 0,
-      "hits": 0,
-      "hit_rate": 0,
-      "mean_change": 0,
-      "median_change": 0
+      "n": 24,
+      "hits": 19,
+      "hit_rate": 0.7916666666666666,
+      "mean_change": 4.192916666666666,
+      "median_change": 3.075
     },
     "both": {
-      "n": 0,
-      "hits": 0,
-      "hit_rate": 0,
-      "mean_change": 0,
-      "median_change": 0
+      "n": 13,
+      "hits": 10,
+      "hit_rate": 0.7692307692307693,
+      "mean_change": 4.2784615384615385,
+      "median_change": 2.81
     },
     "mild_up_only": {
-      "n": 25,
-      "hits": 15,
-      "hit_rate": 0.6,
-      "mean_change": 1.8780000000000001,
-      "median_change": 0.9
+      "n": 12,
+      "hits": 5,
+      "hit_rate": 0.4166666666666667,
+      "mean_change": -0.7225,
+      "median_change": -1.4500000000000002
     }
   },
   "per_day": [
@@ -51,29 +51,29 @@
     {
       "date": "20260520",
       "next_date": "20260521",
-      "quad_n": 0,
+      "quad_n": 9,
       "mild_n": 2,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 2
+      "intersection": 2,
+      "quad_only": 7,
+      "mild_only": 0
     },
     {
       "date": "20260521",
       "next_date": "20260522",
-      "quad_n": 0,
+      "quad_n": 6,
       "mild_n": 1,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 1
+      "intersection": 1,
+      "quad_only": 5,
+      "mild_only": 0
     },
     {
       "date": "20260522",
       "next_date": "20260525",
-      "quad_n": 0,
+      "quad_n": 6,
       "mild_n": 2,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 2
+      "intersection": 2,
+      "quad_only": 4,
+      "mild_only": 0
     },
     {
       "date": "20260615",
@@ -87,11 +87,11 @@
     {
       "date": "20260616",
       "next_date": "20260617",
-      "quad_n": 0,
+      "quad_n": 7,
       "mild_n": 4,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 4
+      "intersection": 4,
+      "quad_only": 3,
+      "mild_only": 0
     },
     {
       "date": "20260617",
@@ -105,11 +105,11 @@
     {
       "date": "20260618",
       "next_date": "20260622",
-      "quad_n": 0,
+      "quad_n": 9,
       "mild_n": 4,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 4
+      "intersection": 4,
+      "quad_only": 5,
+      "mild_only": 0
     }
   ]
 }
