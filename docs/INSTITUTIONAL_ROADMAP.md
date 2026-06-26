@@ -93,6 +93,32 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.6 — Phase 3.2 失效 SOP 文件化
+
+v3.70.2 P1-F alarm 偵測機制已建 (30d hit <50% AND n≥20 → 紅警告), 但「暫停使用」具體怎麼做沒寫. 本版補文件化.
+
+**新增 `docs/PHASE32_ALPHA_FAILURE_SOP.md`** (8 章節):
+1. 觸發條件 (alarm 邏輯 + 當前實戰數字)
+2. 立即行動 (24h 內 3 step 診斷)
+3. 短期應對 (1-3 天, 按診斷結果分流)
+4. 中期決策 (5-10 trigger days 後 4 個 option)
+   - A. recall PREMIUM_MASTERS (重跑 analyzer)
+   - B. 砍 Phase 3.2 sub-banner (暫停 quad, algo_params QUAD_DISABLED flag)
+   - C. 提升 quad 嚴格度 (master_count ≥12 / leader_pct <50%)
+   - D. 切換 mild_up_only 反向 (n=12 hit 41.7% trap → short 期望 59%)
+5. Recall 條件 (自動: 30d ≥65% n≥20 / 手動: 用戶觀察)
+6. 通訊 (alarm 觸發時 Email body 變化)
+7. 記錄追蹤 (建議建 PHASE32_ALPHA_INCIDENTS.md incident log)
+8. 教訓 (不要 panic / 不要 over-react / 保留 premium / 記錄是 alpha)
+
+**設計原則**:
+- 系統提供資訊 + 警示, 不替用戶決定買賣
+- Email 提示 > 砍訊號 (用戶有自主權)
+- n<20 觸發的 alarm 大多噪音, 先檢查歸因再決定
+- 每個 incident 是 alpha 演化的 data point, 比新增 feature 更值錢
+
+---
+
 ### ✅ v3.71.5 — Phase 3.2 Premium Master Tier (per-master vol_spike 可靠度落地)
 
 `analyze_master_vol_spike_reliability.py` 揭穿 13 位 master 內僅 7 位曾觸發 vol_spike, 各自 hit rate 差距大:
