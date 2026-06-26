@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.71.1(2026-06-26) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.71.2(2026-06-26) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.71.1** | 6/26 | **Phase 3.4 mild_up 落地** — Section 0 sub-banner / 名稱欄 ★ 標記 / R10 banner + Mobile sheet 整合 |
+| **v3.71.2** | 6/26 | **Phase 3.4 ROLLBACK + alpha overlap audit** — mild_up_only n=12 hit 41.7% mean -0.72% (trap!), 砍 sub-banner/★/Mobile section, 回 pure quad |
+| v3.71.1 | 6/26 | Phase 3.4 mild_up 落地 (已 ROLLBACK in v3.71.2) — Section 0 sub-banner / ★ 標記 / R10 + Mobile 整合 |
 | v3.71.0 | 6/26 | Phase 3.4 combo backtest 探索 — 8 個新 filter + workflow_dispatch / q5_bull_mild_up 60.0% hit |
 | v3.70.5 | 6/26 | ROLLBACK stale guard 2 + 全網數字 audit PASS — TWSE 驗證 flat close 是 LEGIT, 回復 78.9% 真值 |
 | v3.70.4 | 6/26 | stale guard 2 + per-master vol_spike 分析 (隨後 ROLLBACK) |

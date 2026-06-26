@@ -93,7 +93,31 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
-### ✅ v3.71.1 — Phase 3.4 mild_up 落地 — Section 0 sub-banner + ★ 標記 + R10/Mobile 整合
+### ✅ v3.71.2 — Phase 3.4 ROLLBACK + alpha overlap audit 揭穿 mild_up_only trap
+
+**新建 audit**: `scripts/audit_alpha_overlap.py` + `phase34-alpha-overlap.yml`
+對 9 個 Q5 偏多歷史日跑 quad vs mild_up 3-bucket 分析:
+
+| Bucket | n | hit% | mean% |
+|---|---|---|---|
+| ⭐ quad_only (quad - mild_up) | 24 | **79.2%** | **+4.19%** |
+| ⭐⭐ both (quad ∩ mild_up) | 13 | 76.9% | +4.28% |
+| ★ **mild_up_only** (mild_up - quad) | 12 | **41.7%** | **-0.72%** |
+
+**揭穿**: alpha 100% 來自 master vol_spike。純 mild_up_only (沒 vol_spike) 是 end-of-trend trap, 平均虧 0.72%。原 v3.71.0 backtest 「q5_bull_mild_up 60% n=25」混淆了 both 的 quad alpha。
+
+**ROLLBACK 3 處**:
+- Section 0 砍掉 Phase 3.4 sub-banner
+- 名稱欄 ★ 標記砍掉, 註腳改回純 ⭐/⚠️
+- Mobile sheet 砍 ★ Mild_up section, prefix 邏輯回到 ⭐ only
+- R10 banner 回到純 quad 邏輯 (v3.70.0)
+- `_compute_mild_up_picks` 加 DEPRECATED 註解, 保留供未來研究 (e.g. vol_spike+mild_up 是否強化 quad)
+
+**教訓**: backtest 結果若有 overlap, 必須做 set difference analysis (quad_only / both / mild_up_only) 否則被「混合 alpha」誤導.
+
+---
+
+### ⚠️ v3.71.1 — Phase 3.4 mild_up 落地 (已 ROLLBACK in v3.71.2)
 
 **Section 0 升級** (`_compute_mild_up_picks` + `_build_section_consensus`):
 - 新 helper 識別「共識 ∩ Q5 偏多 ∩ 近 3 天累積 0-8% (溫和上行)」picks
