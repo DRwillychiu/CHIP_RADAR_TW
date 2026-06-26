@@ -324,6 +324,9 @@ COLORS = {
     'bg_consensus':    'FFE8F5E9',   # 淡綠 (F 連續囤貨 header)
     'bg_pivot':        'FFE0E7FF',   # 淡藍 (J 標頭)
     'bg_top3_rank':    'FFFEF3C7',   # 金 (Section 0 top 3 rank highlight)
+    # v3.70.0 Phase 3.2 落地: quad alpha 視覺 token
+    'alpha_gold':      'FFD97706',   # 金/橘 (quad 命中股 — alpha 啟動)
+    'bg_alpha_light':  'FFFEF3C7',   # 淡金底 (quad 命中股名稱底)
 }
 
 
@@ -911,6 +914,56 @@ def _compute_consensus_count(branches_data):
     return out
 
 
+def _compute_quad_picks(consensus_picks, data_dir):
+    """v3.70.0 Phase 3.2 落地: 識別今日符合三訊號疊加的 quad picks.
+
+    三訊號定義 (與 phase32_backtest.py 完全一致):
+      1. 共識: stock 在 consensus_picks (>=10 大戶 + >=2 分點)
+      2. Q5 偏多: daily_signal.json market_direction.direction == '偏多'
+      3. master 量爆: stock 至少 1 位 contributing master 在
+                     daily_trading_signals.anomalies (type=volume_spike)
+
+    Returns:
+      {
+        'is_quad_day': bool (Q5 偏多 + ≥1 vol_spike master 存在),
+        'q5_direction': str,
+        'vol_spike_masters': set,
+        'quad_codes': set of stock codes,
+        'quad_picks': list of pick dict (subset of consensus_picks),
+      }
+    """
+    result = {
+        'is_quad_day': False,
+        'q5_direction': None,
+        'vol_spike_masters': set(),
+        'quad_codes': set(),
+        'quad_picks': [],
+    }
+    # 1. Q5 direction
+    ds = _read_json_safely(data_dir / 'daily_signal.json')
+    if ds:
+        md = ds.get('market_direction') or {}
+        result['q5_direction'] = md.get('direction')
+    # 2. vol_spike masters (from daily_trading_signals)
+    dts = _read_json_safely(data_dir / 'daily_trading_signals.json')
+    if dts:
+        for a in (dts.get('anomalies') or []):
+            if a.get('type') == 'volume_spike' and _is_tracked_master(a.get('master')):
+                result['vol_spike_masters'].add(a.get('master'))
+    # 3. 是否「quad day」 (Q5 偏多 + 有 vol_spike master)
+    is_q5_bull = (result['q5_direction'] == '偏多')
+    has_vol_spike = bool(result['vol_spike_masters'])
+    result['is_quad_day'] = is_q5_bull and has_vol_spike
+    # 4. 識別 quad picks (要 quad day + master 交集)
+    if result['is_quad_day']:
+        for c in consensus_picks:
+            masters = c.get('masters') or set()
+            if masters & result['vol_spike_masters']:
+                result['quad_codes'].add(c['code'])
+                result['quad_picks'].append(c)
+    return result
+
+
 def _build_section_consensus(ws, branches_data, data_dir, start_row):
     """v3.63.2 ★ Section 0: 今日追蹤大戶共同買超 (置於 Dashboard 最前).
 
@@ -1003,9 +1056,39 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         ws.row_dimensions[row].height = 18
         row += 1
 
-    # v3.63.9: 註腳說明 ⚠️ 標記意義 (用戶要求)
+    # v3.70.0 Phase 3.2 落地: 今日 quad 狀態 banner
+    # (此時 consensus_list 還沒 build, 先用 _compute_consensus_count helper 預算)
+    pre_consensus = _compute_consensus_count(branches_data)
+    quad_info = _compute_quad_picks(pre_consensus, data_dir)
+    if quad_info['is_quad_day'] and quad_info['quad_picks']:
+        quad_names = [(p['code'], p['name']) for p in quad_info['quad_picks'][:5]]
+        names_str = ', '.join([f"{n}({c})" for c, n in quad_names])
+        if len(quad_info['quad_picks']) > 5:
+            names_str += f' +{len(quad_info["quad_picks"])-5} 檔'
+        q_text = (f"🎯 今日 quad 命中 {len(quad_info['quad_picks'])} 檔 (alpha 啟動): "
+                  f"{names_str}  |  Q5 偏多 + {len(quad_info['vol_spike_masters'])} 位 master 量爆")
+        q_color = 'FF059669'    # 綠
+        q_fill = 'FFD1FAE5'      # 淡綠
+    elif quad_info['q5_direction'] == '偏多' and not quad_info['vol_spike_masters']:
+        q_text = (f"💤 今日 Q5 偏多但無 master 量爆 — quad 三訊號未齊聚 (一般共識可參考但無 alpha 加持)")
+        q_color = 'FF666666'; q_fill = 'FFF3F4F6'
+    elif quad_info['vol_spike_masters'] and quad_info['q5_direction'] != '偏多':
+        q_text = (f"💤 今日有 {len(quad_info['vol_spike_masters'])} 位 master 量爆但 Q5 {quad_info['q5_direction'] or '無'} — quad 未啟動")
+        q_color = 'FF666666'; q_fill = 'FFF3F4F6'
+    else:
+        q_text = f"💤 今日無 quad 訊號 (Q5={quad_info['q5_direction'] or '無'}, 無 master 量爆)"
+        q_color = 'FF888888'; q_fill = 'FFF9FAFB'
+    q_cell = ws.cell(row, 2, q_text)
+    ws.merge_cells(f'B{row}:N{row}')
+    q_cell.font = Font(name='Noto Sans TC', size=10, bold=True, color=q_color)
+    q_cell.fill = _summary_fill(q_fill)
+    q_cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+    ws.row_dimensions[row].height = 18
+    row += 1
+
+    # v3.63.9: 註腳說明 ⚠️ 標記意義 (用戶要求) + v3.70.0 ⭐ 標記
     note_cell = ws.cell(row, 2,
-                         "ⓘ 排序: 合計淨買金額 ↓  |  ⚠️ 名稱前 = 領頭大戶獨佔 ≥50% (1 人獨大, 真共識訊號被稀釋, hover 名稱看詳細%)")
+                         "ⓘ 排序: 合計淨買金額 ↓  |  ⭐ 名稱前 = quad 命中 (Phase 3.2 三訊號齊聚, 預期 78.9% alpha)  |  ⚠️ = 領頭大戶獨佔 ≥50% (假共識防呆)")
     ws.merge_cells(f'B{row}:N{row}')
     note_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color='FF7C2D12')
     note_cell.fill = _summary_fill('FFFFF7ED')   # 極淡橙底
@@ -1121,12 +1204,22 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         total_net = item['total_net_amt']
         leader_pct = leader_amt / total_net if total_net > 0 else 0
         is_outlier = leader_pct >= 0.5
+        # v3.70.0 Phase 3.2 落地: ⭐ 標記 quad 命中股 (在 ⚠️ 之前, 因 alpha > 警示)
+        is_quad = item['code'] in quad_info['quad_codes']
         display_name = item['name'] or '—'
-        if is_outlier:
+        if is_quad and is_outlier:
+            display_name = f"⭐⚠️ {display_name}"
+        elif is_quad:
+            display_name = f"⭐ {display_name}"
+        elif is_outlier:
             display_name = f"⚠️ {display_name}"
         c_name = ws.cell(row, 4, display_name)
+        if is_quad and not is_outlier:
+            # quad 但非 outlier → 名稱 cell 淡金底 + 綠字 (alpha 啟動視覺)
+            c_name.fill = _summary_fill('FFFEF3C7')   # 淡金
+            c_name.font = Font(name='Noto Sans TC', size=11, bold=True, color='FF059669')
         if is_outlier:
-            # 領頭佔比高 → 名稱 cell 淡橙底警示
+            # 領頭佔比高 → 名稱 cell 淡橙底警示 (即使 quad, outlier 警示仍生效)
             c_name.fill = _summary_fill('FFFED7AA')   # 淡橙
             c_name.font = Font(name='Noto Sans TC', size=11, bold=True, color='FF7C2D12')
             # v3.63.9: hover comment 顯示詳細%
@@ -1280,12 +1373,29 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     consensus = _compute_consensus_count(branches_data)
     consensus.sort(key=lambda x: (-x['total_net_amt'], -x['master_count'],
                                    -x['branch_count']))
+    # v3.70.0 Phase 3.2 落地: quad picks 識別
+    mobile_quad = _compute_quad_picks(consensus, data_dir)
+
+    # ── ⭐ Phase 3.2 quad 命中 (alpha 啟動 — 列在共識上方, 最 actionable) ──
+    if mobile_quad['quad_picks']:
+        ws.cell(row, 3, "⭐ Quad 命中 (78.9% alpha)").font = Font(
+            name='Noto Sans TC', size=13, bold=True, color='FF059669')
+        row += 1
+        for c in mobile_quad['quad_picks'][:5]:
+            cell = ws.cell(row, 3,
+                f"🎯 {c['name']} ({c['code']}) · {c['master_count']} 大戶")
+            cell.font = Font(name='Noto Sans TC', size=12, bold=True,
+                             color=COLORS.get('alpha_gold', 'FF059669'))
+            row += 1
+        row += 1
+
     ws.cell(row, 3, "🎯 強共識買超 Top 5").font = sec_font
     row += 1
     circle = ['①', '②', '③', '④', '⑤']
     for i, c in enumerate(consensus[:5]):
+        prefix = '⭐' if c['code'] in mobile_quad['quad_codes'] else circle[i]
         ws.cell(row, 3,
-                f"{circle[i]} {c['name']} ({c['code']}) · {c['master_count']} 大戶").font = val_font
+                f"{prefix} {c['name']} ({c['code']}) · {c['master_count']} 大戶").font = val_font
         row += 1
     if not consensus:
         ws.cell(row, 3, "(今日無強共識)").font = sub_font
@@ -2160,10 +2270,28 @@ def _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_d
             f"J {j_hot} 集中 / "
             f"H {h_hot} 借券壓力")
 
-    # ── Action 三段 ──
-    if c_count > 0 and top3_consensus:
+    # ── v3.70.0 Phase 3.2 落地: Action 進場分級 ──
+    # quad 命中股 (Phase 3.2 三訊號齊聚, 預期 78.9% alpha) 優先, 其次一般共識.
+    quad_info = _compute_quad_picks(consensus_stocks, data_dir)
+    if quad_info['quad_picks']:
+        # quad 優先 — 最多列前 3 quad picks
+        quad_codes = ' / '.join(p['code'] for p in quad_info['quad_picks'][:3])
+        action_buy = f"🎯 quad 進場 (78.9% alpha): {quad_codes}"
+        if len(quad_info['quad_picks']) > 3:
+            action_buy += f" +{len(quad_info['quad_picks'])-3}"
+        # 其他共識 (非 quad) 列為「📌 一般共識」(top 3 by net_amt 內排除 quad)
+        non_quad_top = [s for s in top3_consensus
+                        if s['code'] not in quad_info['quad_codes']][:3]
+        if non_quad_top:
+            other_codes = ' / '.join(s['code'] for s in non_quad_top)
+            action_buy += f"  |  📌 一般共識: {other_codes}"
+    elif c_count > 0 and top3_consensus:
+        # 無 quad → 退回原邏輯但加分級警示
         codes = ' / '.join(s['code'] for s in top3_consensus)
-        action_buy = f"進場關注 {codes}"
+        if quad_info['q5_direction'] == '偏多':
+            action_buy = f"📌 一般共識 {codes} (Q5 偏多但無 master 量爆 — alpha 未啟動)"
+        else:
+            action_buy = f"📌 一般共識 {codes} (Q5 {quad_info['q5_direction'] or '無'}, 中性信號)"
     else:
         action_buy = "進場關注: 今日無強共識"
 

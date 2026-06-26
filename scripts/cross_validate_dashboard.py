@@ -276,24 +276,38 @@ else:
 if not act_v or not isinstance(act_v, str):
     errors.append(('ACT', 'string', act_v, 'Action cell missing'))
 else:
-    for must_contain in ['💡', '進場關注', '避開', '訊號']:
+    # v3.70.0 Phase 3.2 落地: Action 三分支
+    #   🎯 quad 進場 (quad 命中時) — 「進場關注」改用 🎯 圖示
+    #   📌 一般共識 (Q5 中性 / 無 vol_spike master 時)
+    #   進場關注 (無共識)
+    # 必含: 💡 表頭 + 「避開」+ 「訊號」
+    for must_contain in ['💡', '避開', '訊號']:
         if must_contain not in act_v:
             errors.append(('ACT', f'含 {must_contain!r}', act_v, f'缺 {must_contain}'))
-    # v3.66.5: Action 進場關注 top 3 必須跟 Section 0 顯示相同排序
-    # Section 0 sort: -total_net_amt, -master_count, -branch_count
-    # 從 act_v 萃取 "進場關注 CODE1 / CODE2 / CODE3"
+    # 共識 picks 必須在三種狀態之一: quad / 一般共識 / 進場關注 (無共識)
+    if not any(x in act_v for x in ['🎯 quad 進場', '📌 一般共識', '進場關注']):
+        errors.append(('ACT', 'quad/一般共識/進場關注 之一', act_v,
+                      '缺進場分級標籤'))
+    # Section 0 top 3 對齊驗證
     import re as _re_
-    m = _re_.search(r'進場關注\s+(\S+)\s+/\s+(\S+)\s+/\s+(\S+)', act_v)
+    # quad 命中時的 codes 在 "📌 一般共識:" 之後; 一般共識時在 "📌 一般共識" 之後
+    # 無共識時是 "進場關注: 今日無強共識" — 略過 codes 對齊
+    m = (_re_.search(r'📌 一般共識:?\s+(\S+)\s+/\s+(\S+)\s+/\s+(\S+)', act_v)
+         or _re_.search(r'🎯 quad 進場.*?\s+(\S+)\s+/\s+(\S+)\s+/\s+(\S+)', act_v))
     if m:
         act_top3 = [m.group(1), m.group(2), m.group(3)]
-        # 從 Excel Section 0 取 top 3 codes (假設 9 行起 col C)
         excel_top3 = []
-        for r_ in range(9, 12):
+        for r_ in range(9, 16):
             c = ws2[f'C{r_}'].value
-            if c: excel_top3.append(str(c))
-        if act_top3 != excel_top3:
-            errors.append(('ACT', excel_top3, act_top3,
-                          '進場關注 top 3 跟 Section 0 不對齊'))
+            if c and not isinstance(c, str) is False and len(str(c)) == 4:
+                excel_top3.append(str(c))
+            if len(excel_top3) >= 3: break
+        # 若 quad 命中, top 3 順序可能 != Section 0 純 net_amt 排序 (quad 優先)
+        # 只在「📌 一般共識」純模式下做嚴格對齊驗證
+        if '🎯 quad 進場' not in act_v:
+            if act_top3 != excel_top3:
+                errors.append(('ACT', excel_top3, act_top3,
+                              '一般共識 top 3 跟 Section 0 不對齊'))
 
 
 # Helper: get cell value by addr
