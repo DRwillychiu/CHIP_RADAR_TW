@@ -964,29 +964,37 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         ws.row_dimensions[row].height = 18
         row += 1
 
-    # v3.68.0 Phase 3.1: combo backtest alpha sub-banner (Q5 偏多 ∩ 共識)
-    cb = _read_json_safely(data_dir / 'combo_backtest.json')
-    if cb and cb.get('summary'):
-        cb_summary = cb['summary']
-        baseline = cb_summary.get('baseline', {})
-        q5_bull = cb_summary.get('q5_bull', {})
+    # v3.69.0 Phase 3.2: 三訊號疊加 alpha sub-banner
+    # 共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike = 78.9% hit (vs 44.1% baseline)
+    # p<0.001, 5 層驗證 PASS — 取代 Phase 3.1 的 q5_bull-only 58.5%
+    pb = _read_json_safely(data_dir / 'phase32_backtest.json')
+    if pb and pb.get('summary'):
+        pb_summary = pb['summary']
+        baseline = pb_summary.get('baseline', {})
+        triple = pb_summary.get('e_vol_spike_q5_bull', {})
         bl_hr = baseline.get('hit_rate', 0) * 100
-        bull_hr = q5_bull.get('hit_rate', 0) * 100
-        bull_n = q5_bull.get('n', 0)
-        bull_mean = q5_bull.get('mean_change', 0)
-        improvement = bull_hr - bl_hr
-        if bull_n >= 30 and bull_hr >= 55:
+        tr_hr = triple.get('hit_rate', 0) * 100
+        tr_n = triple.get('n', 0)
+        tr_mean = triple.get('mean_change', 0)
+        improvement = tr_hr - bl_hr
+        if tr_n >= 30 and tr_hr >= 70:
+            cc_color = 'FF059669'; cc_icon = '⭐'
+            verdict = '強 alpha (p<0.001)'
+        elif tr_n >= 30 and tr_hr >= 60:
             cc_color = 'FF059669'; cc_icon = '⭐'
             verdict = '強 alpha 訊號'
-        elif bull_n >= 30 and bull_hr >= 50:
+        elif tr_n >= 20 and tr_hr >= 60:
+            cc_color = 'FF666666'; cc_icon = '🟡'
+            verdict = 'alpha 訊號 (樣本待累積)'
+        elif tr_n >= 10 and tr_hr >= 50:
             cc_color = 'FF666666'; cc_icon = '🟡'
             verdict = '弱 alpha'
         else:
             cc_color = 'FFDC2626'; cc_icon = '⚠️'
             verdict = '樣本不足'
-        cc_text = (f"{cc_icon} Phase 3.1 真 alpha: Q5 偏多 ∩ 共識 hit {bull_hr:.1f}% "
-                   f"(n={bull_n}, mean {bull_mean:+.2f}%) vs baseline {bl_hr:.1f}% "
-                   f"= {improvement:+.1f}pp — {verdict}")
+        cc_text = (f"{cc_icon} Phase 3.2 真 alpha (三訊號): 共識 ∩ Q5 偏多 ∩ master 量爆 "
+                   f"hit {tr_hr:.1f}% (n={tr_n}, mean {tr_mean:+.2f}%) "
+                   f"vs baseline {bl_hr:.1f}% = {improvement:+.1f}pp — {verdict}")
         cc_cell = ws.cell(row, 2, cc_text)
         ws.merge_cells(f'B{row}:N{row}')
         cc_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color=cc_color)
