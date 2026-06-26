@@ -50,7 +50,8 @@ except ImportError:
 # 月檔結構: [📋 今日 Dashboard (含全 4 section)] + 日期 sheet desc
 DASHBOARD_SHEET_NAME = "📋 今日 Dashboard"
 MOBILE_SHEET_NAME = "📱 手機摘要"   # v3.67.1 Phase 2.7
-ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME]
+QUAD_TRACK_SHEET_NAME = "📈 Quad 實戰追蹤"   # v3.70.2 Phase 3.2 持續性追蹤
+ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME, QUAD_TRACK_SHEET_NAME]
 # 舊 sheet 名 (給 cleanup 移除舊月檔殘留)
 LEGACY_ENRICHMENT_NAMES = ["📋 今日摘要", "🚨 異常警報", "📦 連續囤貨", "⚠️ 風險警示"]
 
@@ -856,6 +857,24 @@ def _summary_fill(color: str) -> "PatternFill":
     return PatternFill('solid', fgColor=color)
 
 
+def _wilson_ci(hits: int, n: int, z: float = 1.96) -> tuple:
+    """v3.70.2 Wilson binomial confidence interval.
+
+    比 Normal approx 在小樣本 / 極端 p (近 0 或 1) 更穩.
+    用 z=1.96 (95% CI), z=2.576 (99% CI).
+
+    Returns: (lo, hi) — both in [0, 1].
+    """
+    import math
+    if n <= 0:
+        return (0.0, 0.0)
+    p = hits / n
+    denom = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / denom
+    margin = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return (max(0.0, centre - margin), min(1.0, centre + margin))
+
+
 def _section_header(ws, row: int, title: str, span_cols: int = 9, color: str = 'FFD4AF37'):
     """共用 section header row."""
     section_font = Font(name='Noto Sans TC', size=12, bold=True, color='FF000000')
@@ -1019,7 +1038,7 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
 
     # v3.69.0 Phase 3.2: 三訊號疊加 alpha sub-banner
     # 共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike = 78.9% hit (vs 44.1% baseline)
-    # p<0.001, 5 層驗證 PASS — 取代 Phase 3.1 的 q5_bull-only 58.5%
+    # v3.70.2: +Wilson 95% CI + alpha 失效 alarm
     pb = _read_json_safely(data_dir / 'phase32_backtest.json')
     if pb and pb.get('summary'):
         pb_summary = pb['summary']
@@ -1028,9 +1047,34 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         bl_hr = baseline.get('hit_rate', 0) * 100
         tr_hr = triple.get('hit_rate', 0) * 100
         tr_n = triple.get('n', 0)
+        tr_hits = triple.get('hits', 0)
         tr_mean = triple.get('mean_change', 0)
         improvement = tr_hr - bl_hr
-        if tr_n >= 30 and tr_hr >= 70:
+        # v3.70.2 P1-G: Wilson 95% CI (binomial 真實精度區間)
+        ci_str = ''
+        if tr_n >= 5:
+            ci_lo, ci_hi = _wilson_ci(tr_hits, tr_n, z=1.96)
+            ci_str = f" [{ci_lo*100:.1f}–{ci_hi*100:.1f}% 95% CI]"
+        # v3.70.0 落地: 接 quad_hit_log.json 顯示實戰 hit rate
+        qhl = _read_json_safely(data_dir / 'quad_hit_log.json')
+        live_str = ''
+        # v3.70.2 P1-F: alpha 失效 alarm 偵測
+        decay_alarm = False
+        if qhl and qhl.get('rolling_30d'):
+            r30 = qhl['rolling_30d']
+            r30_n = r30.get('n', 0)
+            r30_hits = r30.get('hits', 0)
+            if r30_n > 0:
+                r30_hr = r30['hit_rate'] * 100
+                live_str = f" | 30d 實戰: {r30_hits}/{r30_n} = {r30_hr:.1f}%"
+                # 失效檢測: 30d hit <50% AND n>=20 → 警示
+                if r30_n >= 20 and r30_hr < 50:
+                    decay_alarm = True
+        # verdict (v3.70.2: decay 優先)
+        if decay_alarm:
+            cc_color = 'FFDC2626'; cc_icon = '⚠️'
+            verdict = 'alpha 可能失效 (30d 實戰 <50%) — 建議暫停使用直至改善'
+        elif tr_n >= 30 and tr_hr >= 70:
             cc_color = 'FF059669'; cc_icon = '⭐'
             verdict = '強 alpha (p<0.001)'
         elif tr_n >= 30 and tr_hr >= 60:
@@ -1045,18 +1089,8 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         else:
             cc_color = 'FFDC2626'; cc_icon = '⚠️'
             verdict = '樣本不足'
-        # v3.70.0 Phase 3.2 落地: 接 quad_hit_log.json 顯示實戰 hit rate
-        qhl = _read_json_safely(data_dir / 'quad_hit_log.json')
-        live_str = ''
-        if qhl and qhl.get('rolling_30d'):
-            r30 = qhl['rolling_30d']
-            r30_n = r30.get('n', 0)
-            r30_hits = r30.get('hits', 0)
-            if r30_n > 0:
-                r30_hr = r30['hit_rate'] * 100
-                live_str = f" | 30d 實戰: {r30_hits}/{r30_n} = {r30_hr:.1f}%"
         cc_text = (f"{cc_icon} Phase 3.2 真 alpha (三訊號): 共識 ∩ Q5 偏多 ∩ master 量爆 "
-                   f"hit {tr_hr:.1f}% (n={tr_n}, mean {tr_mean:+.2f}%){live_str} "
+                   f"hit {tr_hr:.1f}%{ci_str} (n={tr_n}, mean {tr_mean:+.2f}%){live_str} "
                    f"vs baseline {bl_hr:.1f}% = {improvement:+.1f}pp — {verdict}")
         cc_cell = ws.cell(row, 2, cc_text)
         ws.merge_cells(f'B{row}:N{row}')
@@ -1467,6 +1501,132 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
 
     # freeze 大標題置頂
     ws.freeze_panes = 'A3'
+
+
+def build_quad_track_sheet(ws, data_dir):
+    """v3.70.2 Phase 3.2 持續性追蹤 — 逐 trigger day inspect 用.
+
+    讀 data/quad_hit_log.json, 列出每個 trigger day:
+      日期 | 隔日 | Q5 | vol_spike masters | picks | hits | 命中率 | mean%
+
+    用戶逐筆檢視可建立對 alpha 的 trust + 學習失敗 pattern.
+    """
+    qhl = _read_json_safely(data_dir / 'quad_hit_log.json')
+    title_font = Font(name='Noto Sans TC', size=14, bold=True,
+                      color=COLORS['brand_dark'])
+    hdr_font = Font(name='Noto Sans TC', size=11, bold=True)
+    hdr_fill = _summary_fill('FFFEF3C7')   # 淡金 (alpha)
+    sub_font = Font(name='Noto Sans TC', size=10, italic=True,
+                    color=COLORS['text_muted'])
+    val_font = Font(name='Noto Sans TC', size=11)
+    bold_font = Font(name='Noto Sans TC', size=11, bold=True)
+    num_fmt = '0.00"%"'
+
+    # 欄寬
+    widths = {'B': 12, 'C': 10, 'D': 6, 'E': 18, 'F': 10, 'G': 8,
+              'H': 10, 'I': 10, 'J': 40}
+    for col_l, w in widths.items():
+        ws.column_dimensions[col_l].width = w
+
+    row = 2
+    c_title = ws.cell(row, 2, "📈 Quad 實戰追蹤 (Phase 3.2 三訊號)")
+    c_title.font = title_font
+    ws.row_dimensions[row].height = 22
+    row += 1
+
+    if not qhl or not qhl.get('trigger_days'):
+        ws.cell(row, 2, "尚無 trigger day 資料 (Q5 偏多 + vol_spike master 尚未齊聚)").font = sub_font
+        return
+
+    # ── 累積 + 30d 統計 ──
+    ra = qhl.get('rolling_all', {})
+    r30 = qhl.get('rolling_30d', {})
+    vs_exp = qhl.get('vs_expected', {})
+
+    sum_text = (f"累積: {ra.get('hits',0)}/{ra.get('n',0)} = {ra.get('hit_rate',0)*100:.1f}% "
+                f"(mean {ra.get('mean_change',0):+.2f}%) "
+                f"  |  30d: {r30.get('hits',0)}/{r30.get('n',0)} = {r30.get('hit_rate',0)*100:.1f}%"
+                f"  |  預期 {vs_exp.get('expected_hit_rate',0)*100:.1f}% "
+                f"(delta {vs_exp.get('delta_pp',0):+.1f}pp)")
+    c_sum = ws.cell(row, 2, sum_text)
+    c_sum.font = Font(name='Noto Sans TC', size=10, bold=True,
+                      color=COLORS['tw_green'])
+    ws.merge_cells(f'B{row}:J{row}')
+    c_sum.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+    ws.row_dimensions[row].height = 18
+    row += 2
+
+    # ── 表頭 ──
+    headers = ['日期', '隔日', 'Q5', 'Vol_spike masters', 'picks', 'hits',
+               '命中率', 'mean%', '備註 (前 3 picks)']
+    for i, h in enumerate(headers):
+        c = ws.cell(row, 2 + i, h)
+        c.font = hdr_font
+        c.fill = hdr_fill
+        c.alignment = Alignment(horizontal='center')
+    ws.row_dimensions[row].height = 22
+    row += 1
+
+    # ── 逐 trigger day (倒序 — 最新在前) ──
+    trigger_days = sorted(qhl['trigger_days'], key=lambda x: x['date'], reverse=True)
+    for td in trigger_days:
+        date = td['date']
+        d_fmt = f"{date[:4]}/{date[4:6]}/{date[6:8]}"
+        nxt = td['next_date']
+        nxt_fmt = f"{nxt[4:6]}/{nxt[6:8]}"
+        ws.cell(row, 2, d_fmt).font = val_font
+        ws.cell(row, 3, nxt_fmt).font = val_font
+        # Q5
+        c_q5 = ws.cell(row, 4, td['q5_direction'])
+        c_q5.font = Font(name='Noto Sans TC', size=11, bold=True,
+                         color=COLORS['tw_red'])
+        c_q5.alignment = Alignment(horizontal='center')
+        # vol_spike masters
+        vs_str = ', '.join(td.get('vol_spike_masters') or [])
+        ws.cell(row, 5, vs_str[:18]).font = sub_font
+        # picks / hits
+        n = td['n']; hits = td['hits']
+        ws.cell(row, 6, n).font = val_font
+        c_hits = ws.cell(row, 7, hits)
+        # hit rate color
+        hr = td['hit_rate']
+        if hr >= 0.7: hr_color = COLORS['tw_green']
+        elif hr >= 0.5: hr_color = 'FF666666'
+        else: hr_color = COLORS['tw_red']
+        c_hr = ws.cell(row, 8, hr * 100)
+        c_hr.number_format = num_fmt
+        c_hr.font = Font(name='Noto Sans TC', size=11, bold=True, color=hr_color)
+        c_hr.alignment = Alignment(horizontal='center')
+        c_hits.font = Font(name='Noto Sans TC', size=11, bold=True, color=hr_color)
+        # mean
+        c_mean = ws.cell(row, 9, td.get('mean_change', 0))
+        c_mean.number_format = '+0.00"%";-0.00"%";0"%"'
+        mean_color = COLORS['tw_red'] if td.get('mean_change', 0) > 0 else COLORS['tw_green']
+        c_mean.font = Font(name='Noto Sans TC', size=11, bold=True, color=mean_color)
+        c_mean.alignment = Alignment(horizontal='right')
+        # picks preview (front 3 with change%)
+        picks = td.get('quad_picks') or []
+        preview = ' / '.join(
+            f"{p['name']}({p['code']}) {p['next_change_pct']:+.1f}%"
+            for p in picks[:3]
+        )
+        if len(picks) > 3:
+            preview += f" +{len(picks)-3}"
+        ws.cell(row, 10, preview).font = sub_font
+        row += 1
+
+    # ── 註腳 ──
+    row += 1
+    note = (f"註: trigger day = Q5 預測偏多 AND ≥1 master 量爆 (>2σ).\n"
+            f"     picks = 該日所有共識股 ∩ ≥1 vol_spike master.\n"
+            f"     命中率 = 隔日漲幅 > 0 的比例. 預期 78.9% (Phase 3.2 backtest).")
+    c_note = ws.cell(row, 2, note)
+    c_note.font = sub_font
+    c_note.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+    ws.merge_cells(f'B{row}:J{row+2}')
+    ws.row_dimensions[row].height = 45
+
+    ws.freeze_panes = 'A6'
 
 
 def _compute_q5_hit_rate(data_dir, window_days=30):
@@ -2601,8 +2761,17 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     except Exception as _be:
         print(f"  [Excel] mobile summary sheet build 失敗: {type(_be).__name__}: {_be}")
 
-    # 排序: dashboard → mobile → 日期 sheets desc
-    enrichment = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME]
+    # v3.70.2 Phase 3.2 持續性追蹤: Quad 實戰追蹤 sheet (Dashboard 後第 3 個)
+    if QUAD_TRACK_SHEET_NAME in wb.sheetnames:
+        wb.remove(wb[QUAD_TRACK_SHEET_NAME])
+    quad_ws = wb.create_sheet(title=QUAD_TRACK_SHEET_NAME)
+    try:
+        build_quad_track_sheet(quad_ws, data_dir)
+    except Exception as _be:
+        print(f"  [Excel] quad track sheet build 失敗: {type(_be).__name__}: {_be}")
+
+    # 排序: dashboard → mobile → quad track → 日期 sheets desc
+    enrichment = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME, QUAD_TRACK_SHEET_NAME]
     other_sheets = sorted([s for s in wb.sheetnames if s not in enrichment],
                             reverse=True)
     order = [s for s in enrichment if s in wb.sheetnames] + other_sheets
