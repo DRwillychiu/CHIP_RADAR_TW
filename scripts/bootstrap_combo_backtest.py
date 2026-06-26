@@ -59,6 +59,8 @@ daily_files = sorted(
 )
 
 # 組合定義 (filter functions take pick dict + q5_direction)
+# v3.71.0: 加 8 個 price-based filter 探索 baseline 提升空間
+#   pick dict 加 today_chg / chg_3d / chg_5d / pct_from_high20 / pct_from_low20
 COMBOS = {
     'baseline': {
         'desc': '全部共識股 (對照)',
@@ -83,6 +85,40 @@ COMBOS = {
     'combo_AAA': {
         'desc': '共識 ∩ Q5 偏多 ∩ 真共識',
         'filter': lambda p, q5: q5 == '偏多' and p['leader_pct'] < 0.5,
+    },
+    # v3.71.0 — Price-based filters (single)
+    'ex_chase': {
+        'desc': '排除追高 (今日漲 ≤+3%)',
+        'filter': lambda p, q5: (p.get('today_chg') or 0) <= 3.0,
+    },
+    'ex_falling_knife': {
+        'desc': '排除接刀 (今日跌 ≥-3%)',
+        'filter': lambda p, q5: (p.get('today_chg') or 0) >= -3.0,
+    },
+    'mild_uptrend': {
+        'desc': '近 3 天累積 0-8% (溫和上行)',
+        'filter': lambda p, q5: 0 <= (p.get('chg_3d') or 0) <= 8.0,
+    },
+    'pullback_buy': {
+        'desc': '近 3 天累積 -5 ~ -1% (短線回檔)',
+        'filter': lambda p, q5: -5.0 <= (p.get('chg_3d') or 0) <= -1.0,
+    },
+    'fresh_breakout': {
+        'desc': '今日 close 距 20d high 5% 內 + 今日漲 >1%',
+        'filter': lambda p, q5: (p.get('pct_from_high20') or -1) >= -0.05 and (p.get('today_chg') or 0) > 1.0,
+    },
+    'near_low_rebound': {
+        'desc': '今日 close 距 20d low 5% 內 + 今日漲 >0',
+        'filter': lambda p, q5: (p.get('pct_from_low20') or 1) <= 0.05 and (p.get('today_chg') or 0) > 0,
+    },
+    # v3.71.0 — Combo filters (疊加 q5_bull)
+    'q5_bull_ex_chase': {
+        'desc': 'Q5 偏多 ∩ 排除追高',
+        'filter': lambda p, q5: q5 == '偏多' and (p.get('today_chg') or 0) <= 3.0,
+    },
+    'q5_bull_mild_up': {
+        'desc': 'Q5 偏多 ∩ 近 3 天溫和上行',
+        'filter': lambda p, q5: q5 == '偏多' and 0 <= (p.get('chg_3d') or 0) <= 8.0,
     },
 }
 
@@ -121,8 +157,42 @@ for p in daily_files:
             if net <= 0: continue
             stock_branches.setdefault(code, []).append({'master': m, 'net_amt': net})
 
-    # Enrich consensus with leader_pct
+    # v3.71.0: pre-compute today/3d/5d/20d 價格特徵 (給 price-based filter 用)
+    # 找到 date 在 sh_dates 中的 index, 拿 N 天前的 close
+    def _price_features(code, today_idx):
+        s_data = sh_stocks.get(code, {}).get('daily', {})
+        today = s_data.get(sh_dates[today_idx], {})
+        today_close = today.get('close')
+        today_chg = today.get('change_pct')
+        if today_close is None:
+            return {}
+        def _close_at(k):
+            if today_idx - k < 0: return None
+            return (s_data.get(sh_dates[today_idx - k], {}) or {}).get('close')
+        c3 = _close_at(3)
+        c5 = _close_at(5)
+        chg_3d = ((today_close / c3 - 1) * 100) if c3 else None
+        chg_5d = ((today_close / c5 - 1) * 100) if c5 else None
+        # 20-day high/low (含今日)
+        window_lo = max(0, today_idx - 19)
+        closes_20 = [(s_data.get(sh_dates[i], {}) or {}).get('close')
+                     for i in range(window_lo, today_idx + 1)]
+        closes_20 = [c for c in closes_20 if c is not None]
+        high20 = max(closes_20) if closes_20 else None
+        low20 = min(closes_20) if closes_20 else None
+        pct_from_high = (today_close / high20 - 1) if high20 else None
+        pct_from_low = (today_close / low20 - 1) if low20 else None
+        return {
+            'today_chg': today_chg,
+            'chg_3d': chg_3d,
+            'chg_5d': chg_5d,
+            'pct_from_high20': pct_from_high,
+            'pct_from_low20': pct_from_low,
+        }
+
+    # Enrich consensus with leader_pct + price features
     enriched = []
+    today_idx = idx
     for c in consensus:
         brs = stock_branches.get(c['code'], [])
         master_total = {}
@@ -131,6 +201,7 @@ for p in daily_files:
         leader_amt = max(master_total.values()) if master_total else 0
         total = c['total_net_amt']
         leader_pct = (leader_amt / total) if total > 0 else 0
+        price_feats = _price_features(c['code'], today_idx)
         enriched.append({
             'code': c['code'],
             'name': c['name'],
@@ -138,6 +209,7 @@ for p in daily_files:
             'branch_count': c['branch_count'],
             'total_net_amt': total,
             'leader_pct': leader_pct,
+            **price_feats,
         })
 
     # Q5 direction on this date
