@@ -79,6 +79,16 @@ jobs:
           python crawler.py
         continue-on-error: true
       
+      # v3.70.0 Phase 3.2 落地: rolling backtest + Excel regen
+      # 在 crawler 結束後重 bootstrap phase32_backtest.json + 重 regen Excel
+      # 這樣今日 Dashboard 的 alpha sub-banner 抓到含今日的新滾動數字
+      - name: Update Phase 3.2 rolling backtest + regen Excel
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+        run: |
+          python scripts/daily_rolling_update.py
+        continue-on-error: true
+
       # v3.31.14: 上傳更新後的 DB (GitHub Artifact, 90 天保留)
       # DB 不進 git (.gitignore) 但透過 artifact 在 workflow 間傳遞累積
       - name: Upload DB artifact

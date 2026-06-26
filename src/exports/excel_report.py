@@ -1045,8 +1045,18 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         else:
             cc_color = 'FFDC2626'; cc_icon = '⚠️'
             verdict = '樣本不足'
+        # v3.70.0 Phase 3.2 落地: 接 quad_hit_log.json 顯示實戰 hit rate
+        qhl = _read_json_safely(data_dir / 'quad_hit_log.json')
+        live_str = ''
+        if qhl and qhl.get('rolling_30d'):
+            r30 = qhl['rolling_30d']
+            r30_n = r30.get('n', 0)
+            r30_hits = r30.get('hits', 0)
+            if r30_n > 0:
+                r30_hr = r30['hit_rate'] * 100
+                live_str = f" | 30d 實戰: {r30_hits}/{r30_n} = {r30_hr:.1f}%"
         cc_text = (f"{cc_icon} Phase 3.2 真 alpha (三訊號): 共識 ∩ Q5 偏多 ∩ master 量爆 "
-                   f"hit {tr_hr:.1f}% (n={tr_n}, mean {tr_mean:+.2f}%) "
+                   f"hit {tr_hr:.1f}% (n={tr_n}, mean {tr_mean:+.2f}%){live_str} "
                    f"vs baseline {bl_hr:.1f}% = {improvement:+.1f}pp — {verdict}")
         cc_cell = ws.cell(row, 2, cc_text)
         ws.merge_cells(f'B{row}:N{row}')
