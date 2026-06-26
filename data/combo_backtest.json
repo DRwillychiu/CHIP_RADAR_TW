@@ -1,0 +1,61 @@
+{
+  "summary": {
+    "baseline": {
+      "n": 399,
+      "hits": 176,
+      "hit_rate": 0.44110275689223055,
+      "mean_change": 0.8491729323308265,
+      "median_change": 0,
+      "days": 45,
+      "desc": "全部共識股 (對照)"
+    },
+    "q5_bull": {
+      "n": 82,
+      "hits": 48,
+      "hit_rate": 0.5853658536585366,
+      "mean_change": 1.9878048780487811,
+      "median_change": 1.05,
+      "days": 9,
+      "desc": "共識 ∩ Q5 偏多"
+    },
+    "q5_bear": {
+      "n": 14,
+      "hits": 5,
+      "hit_rate": 0.35714285714285715,
+      "mean_change": -0.3878571428571429,
+      "median_change": -0.79,
+      "days": 1,
+      "desc": "共識 ∩ Q5 偏空"
+    },
+    "high_conv": {
+      "n": 336,
+      "hits": 144,
+      "hit_rate": 0.42857142857142855,
+      "mean_change": 0.5297321428571434,
+      "median_change": 0,
+      "days": 45,
+      "desc": "共識 ∩ 領頭佔比 <50% (真共識)"
+    },
+    "extra_breadth": {
+      "n": 116,
+      "hits": 54,
+      "hit_rate": 0.46551724137931033,
+      "mean_change": 1.5054310344827595,
+      "median_change": 0.0,
+      "days": 38,
+      "desc": "共識 ∩ 大戶數 ≥12"
+    },
+    "combo_AAA": {
+      "n": 68,
+      "hits": 39,
+      "hit_rate": 0.5735294117647058,
+      "mean_change": 1.8723529411764712,
+      "median_change": 0.95,
+      "days": 9,
+      "desc": "共識 ∩ Q5 偏多 ∩ 真共識"
+    }
+  },
+  "best": [],
+  "updated_at": "2026-06-26T08:49:42.732126",
+  "window_days": 45
+}

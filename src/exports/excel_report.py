@@ -947,27 +947,51 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row):
         hit_rate = s.get('hit_rate', 0) * 100
         median = s.get('median_change', 0)
         mean = s.get('mean_change', 0)
-        # 顏色 by hit_rate + mean
         if hit_rate >= 55 and mean > 0.3:
-            bt_color = 'FF059669'   # 綠 = 有 alpha
-            bt_icon = '✅'
-            bt_verdict = '有 alpha'
+            bt_color = 'FF059669'; bt_icon = '✅'; bt_verdict = '有 alpha'
         elif hit_rate >= 45 and mean > 0:
-            bt_color = 'FF666666'   # 灰 = 中性
-            bt_icon = '🟡'
-            bt_verdict = '中性'
+            bt_color = 'FF666666'; bt_icon = '🟡'; bt_verdict = '中性'
         else:
-            bt_color = 'FFDC2626'   # 紅 = 無 alpha
-            bt_icon = '⚠️'
-            bt_verdict = '無顯著 alpha'
-        bt_text = (f"{bt_icon} 強共識股過去 30 天隔日 backtest: "
+            bt_color = 'FFDC2626'; bt_icon = '⚠️'; bt_verdict = '無顯著 alpha'
+        bt_text = (f"{bt_icon} baseline 30 天 backtest: "
                    f"漲 {hits}/{total} ({hit_rate:.0f}%) | "
-                   f"中位數 {median:+.2f}% | 平均 {mean:+.2f}% | 判定: {bt_verdict}")
+                   f"平均 {mean:+.2f}% | 判定: {bt_verdict}")
         bt_cell = ws.cell(row, 2, bt_text)
         ws.merge_cells(f'B{row}:N{row}')
         bt_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color=bt_color)
-        bt_cell.fill = _summary_fill('FFF9FAFB')   # 極淡灰
+        bt_cell.fill = _summary_fill('FFF9FAFB')
         bt_cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+        ws.row_dimensions[row].height = 18
+        row += 1
+
+    # v3.68.0 Phase 3.1: combo backtest alpha sub-banner (Q5 偏多 ∩ 共識)
+    cb = _read_json_safely(data_dir / 'combo_backtest.json')
+    if cb and cb.get('summary'):
+        cb_summary = cb['summary']
+        baseline = cb_summary.get('baseline', {})
+        q5_bull = cb_summary.get('q5_bull', {})
+        bl_hr = baseline.get('hit_rate', 0) * 100
+        bull_hr = q5_bull.get('hit_rate', 0) * 100
+        bull_n = q5_bull.get('n', 0)
+        bull_mean = q5_bull.get('mean_change', 0)
+        improvement = bull_hr - bl_hr
+        if bull_n >= 30 and bull_hr >= 55:
+            cc_color = 'FF059669'; cc_icon = '⭐'
+            verdict = '強 alpha 訊號'
+        elif bull_n >= 30 and bull_hr >= 50:
+            cc_color = 'FF666666'; cc_icon = '🟡'
+            verdict = '弱 alpha'
+        else:
+            cc_color = 'FFDC2626'; cc_icon = '⚠️'
+            verdict = '樣本不足'
+        cc_text = (f"{cc_icon} Phase 3.1 真 alpha: Q5 偏多 ∩ 共識 hit {bull_hr:.1f}% "
+                   f"(n={bull_n}, mean {bull_mean:+.2f}%) vs baseline {bl_hr:.1f}% "
+                   f"= {improvement:+.1f}pp — {verdict}")
+        cc_cell = ws.cell(row, 2, cc_text)
+        ws.merge_cells(f'B{row}:N{row}')
+        cc_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color=cc_color)
+        cc_cell.fill = _summary_fill('FFF9FAFB')
+        cc_cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
         ws.row_dimensions[row].height = 18
         row += 1
 

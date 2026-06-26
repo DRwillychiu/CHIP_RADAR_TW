@@ -444,17 +444,18 @@ else:
                 print(f"  [L2 PASS] 公式 50 + {gt_net}*100 = {expected_conf:.1f} ≈ {gt_confidence}")
 
             # 2b: direction 由 net thresholds 決定
-            if gt_net > 0.05:
+            # v3.67.3: 閾值校準 ±0.05 → ±0.10 (signal_engine 修補)
+            if gt_net > 0.10:
                 expected_dir = '偏多'
-            elif gt_net < -0.05:
+            elif gt_net < -0.10:
                 expected_dir = '偏空'
             else:
                 expected_dir = '中性'
             if gt_direction != expected_dir:
                 err('Q5.L2', expected_dir, gt_direction,
-                    f'direction threshold (net={gt_net}, ±0.05)')
+                    f'direction threshold (net={gt_net}, ±0.10)')
             else:
-                print(f"  [L2 PASS] direction '{gt_direction}' 對應 net {gt_net} 之 ±0.05 threshold")
+                print(f"  [L2 PASS] direction '{gt_direction}' 對應 net {gt_net} 之 ±0.10 threshold (v3.67.3)")
 
             # 2c: net = sum of contributing weights
             recompute_net = sum(c.get('weight', 0) for c in gt_contributing)
