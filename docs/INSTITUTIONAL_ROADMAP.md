@@ -93,6 +93,33 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.4 — P0 TAIEX 歷史汙染 backfill — Q5 真實 hit rate 70.0%
+
+v3.67.3 揭穿 6/2-6/8 「兜底重複日」汙染殘留. 本版完整 backfill:
+
+**發現 17 個汙染日** (chg=0 + index 跟前一日相同):
+4/24, 4/27-4/30, 5/4-5/7, 5/12, 5/25, 5/27, 6/2-6/5, 6/8
+
+**新建 `scripts/backfill_taiex_history.py`**:
+- 從 TWSE `rwd/zh/afterTrading/MI_INDEX` 歷史 endpoint 抓 17 日真實 TAIEX (close + chg)
+- 一個 bug 修補: TWSE row[4] 已含 sign, 不能再重判 (上一輪 sign flip 後 git restore)
+- 更新 stock_history.market[d] + 同步 temp_history.next_day_change_pct (9 筆)
+
+**真實 Q5 hit rate 揭曉**:
+| Window | Before (v3.67.3 stale skip) | After backfill | Δ |
+|---|---|---|---|
+| 偏多 | 4/7 = 57.1% | **6/9 = 66.7%** | +9.6pp |
+| 整體 | 5/8 = 62.5% | **7/10 = 70.0%** | +7.5pp |
+
+stale guard skip 8 個 → 真實 chg 重算, 8 個中多數正 (5-6 月台股大漲), 偏多預測命中提升. n 從 8 → 10 (CI 更窄). Q5 v3.67.3 校準後實際 alpha 70%, 跨過「強 alpha」門檻.
+
+**下游影響** (待重跑):
+- phase32_backtest.json baseline (44.1%) 跟 quad (78.9%) 應更新
+- combo_backtest.json q5_bull (58.5%) 也應更新
+- 建議手動觸發 phase34-combo-explore workflow 重算
+
+---
+
 ### ✅ v3.71.3 — Mobile sheet ⚠️ Mild_up watch (反向參考, 用戶要求)
 
 v3.71.2 ROLLBACK Phase 3.4 ★ alpha 標記後, 用戶仍要看歷史 mild_up_only 命中股作「反向參考 / 觀察清單」.
