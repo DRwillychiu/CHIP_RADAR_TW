@@ -287,6 +287,22 @@ MASTER_MAPPING: List[Dict] = [
 TRACKED_MASTERS: set = {m["name"] for m in MASTER_MAPPING}
 
 
+# v3.71.5 Phase 3.2 Premium Tier: master vol_spike 可靠度 (snapshot 2026-06-26)
+# source: scripts/analyze_master_vol_spike_reliability.py
+# 過去 33 picks / 9 trigger days backtest:
+#   竹科主力分點   9 picks  88.9% hit  +4.65% mean
+#   陳族元         6 picks  83.3% hit  +5.22% mean
+#   陳律師        18 picks  77.8% hit  +4.90% mean (主力 trigger, 3 days)
+#   其他 4 位 ≤75% hit
+# 門檻: ≥77% hit AND n ≥ 5 → premium tier (quad alpha 信心高)
+# ⚠️ 樣本仍小, 季度 review (next: 2026-09-30 後 60 天累積 → n→80+)
+PREMIUM_MASTERS: set = {
+    '陳律師',
+    '竹科主力分點',
+    '陳族元',
+}
+
+
 # ════════════════════════════════════════════════════════════════════
 # v3.67.0 Phase 2.6: Color Tokens + 視覺系統 (語義一致性)
 # ════════════════════════════════════════════════════════════════════
@@ -1033,7 +1049,9 @@ def _compute_quad_picks(consensus_picks, data_dir):
         'is_quad_day': False,
         'q5_direction': None,
         'vol_spike_masters': set(),
+        'premium_vol_spike_masters': set(),   # v3.71.5: subset of vol_spike, premium tier
         'quad_codes': set(),
+        'premium_codes': set(),                # v3.71.5: quad picks 有 premium master 配對
         'quad_picks': [],
     }
     # 1. Q5 direction
@@ -1047,6 +1065,8 @@ def _compute_quad_picks(consensus_picks, data_dir):
         for a in (dts.get('anomalies') or []):
             if a.get('type') == 'volume_spike' and _is_tracked_master(a.get('master')):
                 result['vol_spike_masters'].add(a.get('master'))
+    # v3.71.5: 抽出 premium tier
+    result['premium_vol_spike_masters'] = result['vol_spike_masters'] & PREMIUM_MASTERS
     # 3. 是否「quad day」 (Q5 偏多 + 有 vol_spike master)
     is_q5_bull = (result['q5_direction'] == '偏多')
     has_vol_spike = bool(result['vol_spike_masters'])
@@ -1057,6 +1077,9 @@ def _compute_quad_picks(consensus_picks, data_dir):
             masters = c.get('masters') or set()
             if masters & result['vol_spike_masters']:
                 result['quad_codes'].add(c['code'])
+                # v3.71.5: 若交集含 premium master → 標 premium
+                if masters & result['premium_vol_spike_masters']:
+                    result['premium_codes'].add(c['code'])
                 result['quad_picks'].append(c)
     return result
 
@@ -1190,11 +1213,24 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
     pre_consensus = _compute_consensus_count(branches_data)
     quad_info = _compute_quad_picks(pre_consensus, data_dir)
     if quad_info['is_quad_day'] and quad_info['quad_picks']:
-        quad_names = [(p['code'], p['name']) for p in quad_info['quad_picks'][:5]]
-        names_str = ', '.join([f"{n}({c})" for c, n in quad_names])
+        # v3.71.5: premium count + names 優先列前面
+        premium_picks = [p for p in quad_info['quad_picks']
+                          if p['code'] in quad_info.get('premium_codes', set())]
+        std_picks = [p for p in quad_info['quad_picks']
+                      if p['code'] not in quad_info.get('premium_codes', set())]
+        n_prem = len(premium_picks)
+        n_std = len(std_picks)
+        # 顯示 premium 在前, 一般在後
+        ordered = premium_picks + std_picks
+        quad_names = [(p['code'], p['name'], p['code'] in quad_info.get('premium_codes', set()))
+                       for p in ordered[:5]]
+        names_str = ', '.join(
+            [f"{'⭐⭐' if prem else ''}{n}({c})" for c, n, prem in quad_names]
+        )
         if len(quad_info['quad_picks']) > 5:
             names_str += f' +{len(quad_info["quad_picks"])-5} 檔'
-        q_text = (f"🎯 今日 quad 命中 {len(quad_info['quad_picks'])} 檔 (alpha 啟動): "
+        tier_str = f"⭐⭐ {n_prem} premium + ⭐ {n_std} 一般" if n_prem else f"⭐ {n_std} 一般 quad"
+        q_text = (f"🎯 今日 quad 命中 {len(quad_info['quad_picks'])} 檔 ({tier_str}): "
                   f"{names_str}  |  Q5 偏多 + {len(quad_info['vol_spike_masters'])} 位 master 量爆")
         q_color = 'FF059669'    # 綠
         q_fill = 'FFD1FAE5'      # 淡綠
@@ -1215,9 +1251,9 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
     ws.row_dimensions[row].height = 18
     row += 1
 
-    # v3.63.9 + v3.70.0 註腳 (v3.71.2 砍 ★ — Phase 3.4 ROLLBACK)
+    # v3.71.5 註腳 (加 ⭐⭐ premium tier)
     note_cell = ws.cell(row, 2,
-                         "ⓘ 排序: 合計淨買金額 ↓  |  ⭐ 名稱前 = quad 命中 (Phase 3.2 三訊號齊聚, 預期 78.9% alpha)  |  ⚠️ = 領頭大戶獨佔 ≥50% (假共識防呆)")
+                         "ⓘ 排序: 合計淨買金額 ↓  |  ⭐⭐ = premium quad (≥1 高信心 master: 陳律師/竹科主力/陳族元, 歷史 ≥77% hit)  |  ⭐ = 一般 quad (78.9% hit)  |  ⚠️ = 領頭大戶獨佔 ≥50%")
     ws.merge_cells(f'B{row}:N{row}')
     note_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color='FF7C2D12')
     note_cell.fill = _summary_fill('FFFFF7ED')   # 極淡橙底
@@ -1334,10 +1370,16 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
         leader_pct = leader_amt / total_net if total_net > 0 else 0
         is_outlier = leader_pct >= 0.5
         # v3.70.0 Phase 3.2 落地: ⭐ 標記 quad 命中股 (在 ⚠️ 之前, 因 alpha > 警示)
-        # v3.71.2 Phase 3.4 ROLLBACK: ★ mild_up 標記砍掉 (audit 揭穿 mild_up_only 41.7% trap)
+        # v3.71.2 Phase 3.4 ROLLBACK: ★ mild_up 標記砍掉 (audit 揭穿 trap)
+        # v3.71.5 Phase 3.2 premium tier: ⭐⭐ for premium master (≥77% hit) 配對
         is_quad = item['code'] in quad_info['quad_codes']
+        is_premium = item['code'] in quad_info.get('premium_codes', set())
         display_name = item['name'] or '—'
-        if is_quad and is_outlier:
+        if is_premium and is_outlier:
+            display_name = f"⭐⭐⚠️ {display_name}"
+        elif is_premium:
+            display_name = f"⭐⭐ {display_name}"
+        elif is_quad and is_outlier:
             display_name = f"⭐⚠️ {display_name}"
         elif is_quad:
             display_name = f"⭐ {display_name}"
@@ -1508,13 +1550,19 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     mobile_quad = _compute_quad_picks(consensus, data_dir)
 
     # ── ⭐ Phase 3.2 quad 命中 (alpha 啟動 — 列在共識上方, 最 actionable) ──
+    # v3.71.5: premium 在前, 一般在後
+    premium_codes = mobile_quad.get('premium_codes', set())
     if mobile_quad['quad_picks']:
         ws.cell(row, 3, "⭐ Quad 命中 (78.9% alpha)").font = Font(
             name='Noto Sans TC', size=13, bold=True, color='FF059669')
         row += 1
-        for c in mobile_quad['quad_picks'][:5]:
+        # premium picks 優先列前
+        ordered = sorted(mobile_quad['quad_picks'],
+                          key=lambda c: 0 if c['code'] in premium_codes else 1)
+        for c in ordered[:5]:
+            prefix = '⭐⭐' if c['code'] in premium_codes else '🎯'
             cell = ws.cell(row, 3,
-                f"🎯 {c['name']} ({c['code']}) · {c['master_count']} 大戶")
+                f"{prefix} {c['name']} ({c['code']}) · {c['master_count']} 大戶")
             cell.font = Font(name='Noto Sans TC', size=12, bold=True,
                              color=COLORS.get('alpha_gold', 'FF059669'))
             row += 1
@@ -1524,7 +1572,12 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     row += 1
     circle = ['①', '②', '③', '④', '⑤']
     for i, c in enumerate(consensus[:5]):
-        prefix = '⭐' if c['code'] in mobile_quad['quad_codes'] else circle[i]
+        if c['code'] in premium_codes:
+            prefix = '⭐⭐'
+        elif c['code'] in mobile_quad['quad_codes']:
+            prefix = '⭐'
+        else:
+            prefix = circle[i]
         ws.cell(row, 3,
                 f"{prefix} {c['name']} ({c['code']}) · {c['master_count']} 大戶").font = val_font
         row += 1

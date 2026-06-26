@@ -93,6 +93,33 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.5 — Phase 3.2 Premium Master Tier (per-master vol_spike 可靠度落地)
+
+`analyze_master_vol_spike_reliability.py` 揭穿 13 位 master 內僅 7 位曾觸發 vol_spike, 各自 hit rate 差距大:
+
+| Master | trigger | picks | hit% | mean% |
+|---|---|---|---|---|
+| 竹科主力分點 | 1 | 9 | **88.9%** | +4.65% |
+| 陳族元 | 1 | 6 | **83.3%** | +5.22% |
+| 陳律師 | 3 | 18 | **77.8%** | +4.90% |
+| 蔣承翰 / Tradow / 張濬安 | — | — | 66-75% | — |
+| 強森 | 2 | 16 | 62.5% | +3.30% (拖後腿) |
+
+**新增 PREMIUM_MASTERS 集合** (excel_report.py module level, snapshot 2026-06-26):
+- 陳律師 / 竹科主力分點 / 陳族元 (≥77% hit AND n ≥ 5 門檻)
+- 季度 review (next: 2026-09-30 後 n→80+)
+
+**三介面 ⭐⭐ tier 標記**:
+- `_compute_quad_picks` 新加 `premium_codes` set + `premium_vol_spike_masters`
+- Section 0 名稱欄: ⭐⭐ (premium) > ⭐ (一般 quad) > ⚠️ (假共識)
+- R10 banner: `🎯 quad 命中 N 檔 (⭐⭐ X premium + ⭐ Y 一般)`,picks 顯示 premium 在前
+- Mobile sheet: premium picks 排前面 + ⭐⭐ prefix,共識 Top 5 同 tier 判定
+- 註腳更新
+
+設計原則: 不同 hit rate 給不同視覺權重, 用戶優先跟單高信心 master 配對的 picks. 樣本 ≥5 才入 premium (避免 1 picks 的噪音).
+
+---
+
 ### ✅ v3.71.4 — P0 TAIEX 歷史汙染 backfill — Q5 真實 hit rate 70.0%
 
 v3.67.3 揭穿 6/2-6/8 「兜底重複日」汙染殘留. 本版完整 backfill:
