@@ -1201,6 +1201,46 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
         ws.row_dimensions[row].height = 18
         row += 1
 
+    # v3.71.7: 跟單實際淨報酬 sub-banner (扣台股交易成本)
+    # 揭穿 alpha 是真實淨利還是被成本吃光 — 從 quad_hit_log 算淨報酬
+    # 成本: 0.585% (手續費 0.1425% × 2 + 證交稅 0.3%, 無折扣保守估)
+    qhl_for_roi = _read_json_safely(data_dir / 'quad_hit_log.json')
+    if qhl_for_roi and qhl_for_roi.get('trigger_days'):
+        TX_COST_PCT = 0.585    # 保守 (無折扣 + 一般證交稅)
+        all_picks_for_roi = []
+        for td in qhl_for_roi['trigger_days']:
+            for p in td.get('quad_picks', []):
+                if p.get('next_change_pct') is not None:
+                    all_picks_for_roi.append(p['next_change_pct'])
+        n_roi = len(all_picks_for_roi)
+        if n_roi >= 5:
+            net_chgs = [c - TX_COST_PCT for c in all_picks_for_roi]
+            net_hits = sum(1 for x in net_chgs if x > 0)
+            net_mean = sum(net_chgs) / n_roi
+            sorted_nc = sorted(net_chgs)
+            net_median = sorted_nc[n_roi // 2] if n_roi % 2 else (sorted_nc[n_roi//2-1] + sorted_nc[n_roi//2]) / 2
+            cum = sum(net_chgs)
+            if net_mean >= 1.0:
+                roi_color = 'FF059669'; roi_icon = '💰'
+                roi_verdict = '淨利 alpha 確認'
+            elif net_mean >= 0:
+                roi_color = 'FF666666'; roi_icon = '🟡'
+                roi_verdict = '勉強損益兩平'
+            else:
+                roi_color = 'FFDC2626'; roi_icon = '⚠️'
+                roi_verdict = 'alpha 被成本吃光'
+            roi_text = (f"{roi_icon} 跟單實際淨報酬 (扣 {TX_COST_PCT}% 成本): "
+                        f"淨 hit {net_hits}/{n_roi} = {net_hits/n_roi*100:.0f}% | "
+                        f"平均 {net_mean:+.2f}% | 中位 {net_median:+.2f}% | "
+                        f"累積 {cum:+.0f}% — {roi_verdict}")
+            roi_cell = ws.cell(row, 2, roi_text)
+            ws.merge_cells(f'B{row}:N{row}')
+            roi_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color=roi_color)
+            roi_cell.fill = _summary_fill('FFF9FAFB')
+            roi_cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+            ws.row_dimensions[row].height = 18
+            row += 1
+
     # v3.71.2 Phase 3.4 ROLLBACK: alpha overlap audit 揭穿 mild_up_only 是 trap
     # quad_only n=24 hit 79.2% mean +4.19% (強 alpha)
     # both     n=13 hit 76.9% mean +4.28% (強 alpha)
@@ -1618,7 +1658,26 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
         ws.cell(row, 3, f"除權息 {len(today_ex)} 檔 ({codes_str}{suffix})").font = val_font
     else:
         ws.cell(row, 3, "今日無除權息").font = sub_font
-    row += 2
+    row += 1
+    # v3.71.7: 處置股 (attstock.tw API)
+    disp = _read_json_safely(data_dir / 'disposal_attstock.json')
+    if disp:
+        n_in = disp.get('count_in_disposal', 0)
+        n_pending = disp.get('count_pending_1d', 0)
+        if n_in > 0:
+            codes = disp.get('codes_in_disposal') or []
+            codes_str = ' / '.join(codes[:3]) + (' ...' if len(codes) > 3 else '')
+            ws.cell(row, 3, f"處置中 {n_in} 檔 ({codes_str})").font = val_font
+            row += 1
+        if n_pending > 0:
+            codes = disp.get('codes_pending_1d') or []
+            codes_str = ' / '.join(codes[:3]) + (' ...' if len(codes) > 3 else '')
+            ws.cell(row, 3, f"明日恐處置 {n_pending} 檔 ({codes_str})").font = val_font
+            row += 1
+        if n_in == 0 and n_pending == 0:
+            ws.cell(row, 3, "今日無處置股").font = sub_font
+            row += 1
+    row += 1
 
     # ── 📊 追蹤池方向 ──
     ws.cell(row, 3, "📊 追蹤池方向").font = sec_font
@@ -2876,14 +2935,28 @@ def _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_d
         action_buy = "進場關注: 今日無強共識"
 
     # v3.66.5 bug fix: 顯示真實檔數避免誤導
-    # 修前: 「避開 (除權息): 00907, 1104, 1326」假裝只 3 檔, 但實際 15 檔!
-    # 修後: 「避開 (除權息) 15 檔: 00907 / 1104 / 1326 ...」明示總數
+    # v3.71.7: 整合處置股 (attstock.tw API) — 兩段提示
+    avoid_parts = []
     if today_ex_list:
         n_total = len(today_ex_list)
         suffix = ' ...' if n_total > 3 else ''
-        action_avoid = f"避開 (除權息) {n_total} 檔: {today_ex_str}{suffix}"
+        avoid_parts.append(f"除權息 {n_total} 檔: {today_ex_str}{suffix}")
+    disp_data = _read_json_safely(data_dir / 'disposal_attstock.json')
+    if disp_data:
+        n_in = disp_data.get('count_in_disposal', 0)
+        n_pending = disp_data.get('count_pending_1d', 0)
+        if n_in > 0:
+            codes_in = disp_data.get('codes_in_disposal') or []
+            codes_str = '/'.join(codes_in[:3]) + ('...' if len(codes_in) > 3 else '')
+            avoid_parts.append(f"處置中 {n_in} 檔: {codes_str}")
+        if n_pending > 0:
+            codes_p = disp_data.get('codes_pending_1d') or []
+            codes_str = '/'.join(codes_p[:3]) + ('...' if len(codes_p) > 3 else '')
+            avoid_parts.append(f"明日恐處置 {n_pending} 檔: {codes_str}")
+    if avoid_parts:
+        action_avoid = "避開 — " + " | ".join(avoid_parts)
     else:
-        action_avoid = "避開: 今日無除權息"
+        action_avoid = "避開: 今日無除權息+處置股"
 
     # 訊號強度 (基於 Q5 confidence + E/F/J/H hot signals)
     hot_total = e_count + f_hot + j_hot + h_hot

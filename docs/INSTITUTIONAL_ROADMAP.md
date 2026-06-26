@@ -93,6 +93,36 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.7 — 跟單實際淨報酬 + 處置股整合 (實戰實用性導向)
+
+A. **Quad 跟單實際淨報酬 backtest** (Section 0 sub-banner #3):
+- 用既有 quad_hit_log.json 38 picks 算扣台股成本後淨報酬
+- 成本場景 (最保守 0.585% = 手續費 0.1425% × 2 + 證交稅 0.3%):
+  - 淨 hit: **28/38 = 73.7%** (即使扣成本仍有 alpha)
+  - 平均淨報酬: **+3.79%**
+  - 中位數淨報酬: +2.49%
+  - 累積 (38 筆等額): **+144%**
+- 不同成本場景:
+  - 6 折手續費 (0.471%): 76.3% hit, +3.90% mean, +148% cum
+  - 隔日沖+6折 (0.321%): 76.3% hit, +4.05% mean, +154% cum
+- Premium (n=28) +4.39% mean +123% cum > Standard (n=10) +3.10% +31%
+- Section 0 R9 新 sub-banner: 💰 淨利 alpha 確認 / 勉強損益兩平 / alpha 被成本吃光
+- 結論: quad alpha 是真的, 不被成本吃光
+
+B. **處置股整合 Chip Radar avoidance** (跨 attstock.tw API):
+- 新建 `scripts/refresh_attstock_disposal.py`:
+  - 抓 `attstock.tw/api/stocks/risk` (279 風險股)
+  - 篩「正在處置」(disposal_start_date 內) + 「明日恐處置」 (minDaysToDisposal=1)
+  - 寫 data/disposal_attstock.json (codes / count / sample)
+- `daily-full.yml` 加 `Refresh attstock disposal` step (在 rolling update 後)
+- Mobile sheet 「🚫 今日避開」 加 「處置中 N 檔」 + 「明日恐處置 N 檔」 兩行
+- Action card 「避開」 segment 加處置股 (e.g. 「除權息 22 檔 | 明日恐處置 10 檔」)
+- Email body 自動帶入 (extract script 讀 mobile sheet)
+
+兩個落地的共同主題: **實戰實用** — A 揭穿 alpha 是真錢 (不只是漂亮數字), B 把已有 attstock 資料整合到 daily workflow (不用每天看兩封信).
+
+---
+
 ### ✅ v3.71.6 — Phase 3.2 失效 SOP 文件化
 
 v3.70.2 P1-F alarm 偵測機制已建 (30d hit <50% AND n≥20 → 紅警告), 但「暫停使用」具體怎麼做沒寫. 本版補文件化.

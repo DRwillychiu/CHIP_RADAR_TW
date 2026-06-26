@@ -89,6 +89,12 @@ jobs:
           python scripts/daily_rolling_update.py
         continue-on-error: true
 
+      # v3.71.7: 抓 attstock.tw 處置股清單 (整合到「今日避開」)
+      - name: Refresh attstock disposal
+        run: |
+          python scripts/refresh_attstock_disposal.py
+        continue-on-error: true
+
       # v3.31.14: 上傳更新後的 DB (GitHub Artifact, 90 天保留)
       # DB 不進 git (.gitignore) 但透過 artifact 在 workflow 間傳遞累積
       - name: Upload DB artifact
