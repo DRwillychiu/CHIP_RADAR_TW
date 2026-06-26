@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-27T00:44:46.553327+08:00",
+  "generated_at": "2026-06-27T01:35:41.927695+08:00",
   "trade_date": "20260626",
   "pump_suspicion": [],
   "wash_trade": [
@@ -529,13 +529,28 @@
       "rule": "C_distribution",
       "severity": "medium",
       "reasoning": "當日賣 1,072 張 (30 天均 166 張 × 6.4) + 近 5 天漲停 68 次"
+    },
+    {
+      "stock_code": "8105",
+      "stock_name": "凌巨",
+      "branch_code": "9A9g",
+      "branch_name": "永豐金-內湖",
+      "master": "陳族元",
+      "sell_lot": 512,
+      "sell_amt_wan": 1160,
+      "avg_30d_sell_lot": 66.0,
+      "sell_vs_avg_x": 7.8,
+      "recent_5d_limit_up_count": 17,
+      "rule": "C_distribution",
+      "severity": "medium",
+      "reasoning": "當日賣 512 張 (30 天均 66 張 × 7.8) + 近 5 天漲停 17 次"
     }
   ],
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 1,
-    "total": 31
+    "distribution_count": 2,
+    "total": 32
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
