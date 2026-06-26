@@ -1617,16 +1617,76 @@ def build_quad_track_sheet(ws, data_dir):
         ws.cell(row, 10, preview).font = sub_font
         row += 1
 
+    # ── v3.70.4 P1 研究: per-master vol_spike 可靠度 leaderboard ──
+    row += 1
+    ws.cell(row, 2, "Per-Master Vol_Spike 可靠度 (排序 by 命中率)").font = Font(
+        name='Noto Sans TC', size=12, bold=True, color=COLORS['brand_dark'])
+    row += 1
+    pm_headers = ['Master', 'trigger days', 'all picks', 'hits', '命中率', 'mean%']
+    for i, h in enumerate(pm_headers):
+        c = ws.cell(row, 2 + i, h)
+        c.font = hdr_font
+        c.fill = hdr_fill
+        c.alignment = Alignment(horizontal='center')
+    row += 1
+
+    # 計算 per-master stats
+    from collections import defaultdict
+    master_picks = defaultdict(list)
+    master_triggers = defaultdict(set)
+    for td in qhl['trigger_days']:
+        for m in (td.get('vol_spike_masters') or []):
+            master_triggers[m].add(td['date'])
+        for p in td['quad_picks']:
+            for m in (p.get('matched_masters') or []):
+                master_picks[m].append({'change': p['next_change_pct'],
+                                         'hit': p['hit']})
+
+    pm_rows = []
+    for m, picks in master_picks.items():
+        if not picks: continue
+        n = len(picks)
+        hits = sum(1 for p in picks if p['hit'])
+        hr = hits / n
+        mean = sum(p['change'] for p in picks) / n
+        pm_rows.append((m, len(master_triggers[m]), n, hits, hr, mean))
+    pm_rows.sort(key=lambda x: -x[4])   # by hit rate desc
+
+    for pm in pm_rows:
+        master_name, td_n, n_picks, n_hits, hit_rate, mean_chg = pm
+        ws.cell(row, 2, master_name).font = val_font
+        ws.cell(row, 3, td_n).alignment = Alignment(horizontal='center')
+        ws.cell(row, 3, td_n).font = val_font
+        ws.cell(row, 4, n_picks).alignment = Alignment(horizontal='center')
+        ws.cell(row, 4, n_picks).font = val_font
+        ws.cell(row, 5, n_hits).alignment = Alignment(horizontal='center')
+        ws.cell(row, 5, n_hits).font = val_font
+        c_hr = ws.cell(row, 6, hit_rate * 100)
+        c_hr.number_format = '0.0"%"'
+        hr_color = (COLORS['tw_green'] if hit_rate >= 0.8
+                    else 'FF666666' if hit_rate >= 0.6
+                    else COLORS['tw_red'])
+        c_hr.font = Font(name='Noto Sans TC', size=11, bold=True, color=hr_color)
+        c_hr.alignment = Alignment(horizontal='center')
+        c_mn = ws.cell(row, 7, mean_chg)
+        c_mn.number_format = '+0.00"%";-0.00"%";0"%"'
+        c_mn.font = Font(name='Noto Sans TC', size=11, bold=True,
+                         color=COLORS['tw_red'] if mean_chg > 0 else COLORS['tw_green'])
+        c_mn.alignment = Alignment(horizontal='right')
+        row += 1
+
     # ── 註腳 ──
     row += 1
     note = (f"註: trigger day = Q5 預測偏多 AND ≥1 master 量爆 (>2σ).\n"
             f"     picks = 該日所有共識股 ∩ ≥1 vol_spike master.\n"
-            f"     命中率 = 隔日漲幅 > 0 的比例. 預期 78.9% (Phase 3.2 backtest).")
+            f"     命中率 = 隔日漲幅 > 0 的比例. 預期 85.7% (Phase 3.2 backtest + stale guard 2).\n"
+            f"     Per-master 命中率 < 整體 → 該 master 訊號偏弱; > 整體 → 訊號偏強.\n"
+            f"     注意樣本小 (trigger days < 5) 時, 命中率 noise 偏大.")
     c_note = ws.cell(row, 2, note)
     c_note.font = sub_font
     c_note.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
-    ws.merge_cells(f'B{row}:J{row+2}')
-    ws.row_dimensions[row].height = 45
+    ws.merge_cells(f'B{row}:J{row+3}')
+    ws.row_dimensions[row].height = 70
 
     ws.freeze_panes = 'A6'
 
@@ -1697,10 +1757,14 @@ def build_quad_failure_sheet(ws, data_dir):
     total_hits = ra.get('hits', 0)
     total_misses = total_picks - total_hits
 
-    # 摘要 banner
-    sum_text = (f"miss {total_misses}/{total_picks} ({total_misses/max(total_picks,1)*100:.1f}%) "
-                f"| 預期 miss rate {(1 - 0.789)*100:.1f}% "
-                f"| 差異 {(total_misses/max(total_picks,1) - (1-0.789))*100:+.1f}pp")
+    # 摘要 banner — 預期值動態從 vs_expected 讀 (v3.70.4)
+    vs_exp = qhl.get('vs_expected', {})
+    expected_hr = vs_exp.get('expected_hit_rate', 0.857)
+    expected_miss_rate = (1 - expected_hr) * 100
+    actual_miss_rate = total_misses / max(total_picks, 1) * 100
+    sum_text = (f"miss {total_misses}/{total_picks} ({actual_miss_rate:.1f}%) "
+                f"| 預期 miss rate {expected_miss_rate:.1f}% "
+                f"| 差異 {actual_miss_rate - expected_miss_rate:+.1f}pp")
     c_sum = ws.cell(row, 2, sum_text)
     c_sum.font = Font(name='Noto Sans TC', size=10, bold=True,
                       color=COLORS['tw_red'])

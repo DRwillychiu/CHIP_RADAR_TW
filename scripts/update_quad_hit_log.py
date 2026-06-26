@@ -46,7 +46,8 @@ from src.analyzers.signal_engine import infer_market_direction
 
 ANOMALY_SIGMA = 2.0
 MIN_HISTORY_DAYS = 5
-EXPECTED_HIT_RATE = 0.789
+# v3.70.4: 78.9% → 85.7% (stale guard 2 移除 3 個 stale picks 後 — 真實 alpha)
+EXPECTED_HIT_RATE = 0.857
 
 password = os.environ.get('CHIP_RADAR_PASSWORD', '')
 if not password:
@@ -207,6 +208,11 @@ for date_idx, date in enumerate(sorted_dates):
         nxt_close = nd.get('close')
         nxt_chg = nd.get('change_pct')
         if nxt_chg is None or nxt_close is None: continue   # stale guard
+        # v3.70.4 stale guard 2: TWSE API stale (next_close == today_close, change=0)
+        today_close = sh_stocks.get(code, {}).get('daily', {}).get(date, {}).get('close')
+        if (abs(nxt_chg) < 0.005 and today_close is not None
+                and abs(nxt_close - today_close) < 0.001):
+            continue   # stale: skip from hit log entirely
         # v3.70.3 歸因: leader_pct + excess_return + failure_reasons
         master_amts = stock_master_amt.get(code, {})
         total_amt = sum(master_amts.values()) or 1

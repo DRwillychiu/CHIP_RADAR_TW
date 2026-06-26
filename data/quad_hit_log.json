@@ -483,22 +483,6 @@
           "failure_reasons": []
         },
         {
-          "code": "2317",
-          "name": "鴻海",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": 0.0,
-          "hit": false,
-          "leader_pct": 0.395,
-          "excess_return": null,
-          "failure_reasons": [
-            "資料異常 (next_close 未變動, 可能停牌/未交易)"
-          ]
-        },
-        {
           "code": "2492",
           "name": "華新科",
           "matched_masters": [
@@ -526,21 +510,6 @@
           "failure_reasons": []
         },
         {
-          "code": "2308",
-          "name": "台達電",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "強森"
-          ],
-          "next_change_pct": 0.0,
-          "hit": false,
-          "leader_pct": 0.392,
-          "excess_return": null,
-          "failure_reasons": [
-            "資料異常 (next_close 未變動, 可能停牌/未交易)"
-          ]
-        },
-        {
           "code": "6116",
           "name": "彩晶",
           "matched_masters": [
@@ -553,22 +522,6 @@
           "leader_pct": 0.187,
           "excess_return": null,
           "failure_reasons": []
-        },
-        {
-          "code": "2313",
-          "name": "華通",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": 0.0,
-          "hit": false,
-          "leader_pct": 0.167,
-          "excess_return": null,
-          "failure_reasons": [
-            "資料異常 (next_close 未變動, 可能停牌/未交易)"
-          ]
         },
         {
           "code": "3037",
@@ -584,30 +537,30 @@
           "failure_reasons": []
         }
       ],
-      "n": 9,
+      "n": 6,
       "hits": 6,
-      "hit_rate": 0.6667,
-      "mean_change": 2.69
+      "hit_rate": 1.0,
+      "mean_change": 4.04
     }
   ],
   "rolling_30d": {
     "trigger_days": 2,
-    "n": 17,
+    "n": 14,
     "hits": 11,
-    "hit_rate": 0.6471,
-    "mean_change": 3.23
+    "hit_rate": 0.7857,
+    "mean_change": 3.92
   },
   "rolling_all": {
     "trigger_days": 5,
-    "n": 38,
+    "n": 35,
     "hits": 30,
-    "hit_rate": 0.7895,
-    "mean_change": 4.37
+    "hit_rate": 0.8571,
+    "mean_change": 4.75
   },
   "vs_expected": {
-    "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.7895,
+    "expected_hit_rate": 0.857,
+    "actual_hit_rate": 0.8571,
     "delta_pp": 0.0
   },
-  "updated_at": "2026-06-26T13:17:32.314111"
+  "updated_at": "2026-06-26T13:33:13.653312"
 }

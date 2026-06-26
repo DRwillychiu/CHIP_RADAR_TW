@@ -245,14 +245,34 @@ def update_history(
                     name_map[code] = name
     
     # 2. 更新每檔個股的當日資料
+    # v3.70.4: 加 per-stock stale guard (與 v3.45.0 大盤 stale guard 同邏輯)
+    #   trigger: 今日 close 跟最近前一筆 close 完全相同 AND API 回 change_pct == 0
+    #   原因: TWSE STOCK_DAY_ALL 偶爾 publish 昨日舊資料 (跟 MI_INDEX 同症狀)
+    #   後果: backtest hit rate 計算受污染 (鴻海/台達電/華通 6/22 案例)
     stock2ind = industry_map.get("stock_industry", {})
     added_stocks = 0
+    stale_skipped = 0
     for code, quote in daily_quotes_map.items():
         close = quote.get("close", 0)
         change_pct = quote.get("change_pct", 0)
         if not close:
             continue
-        
+
+        # v3.70.4 stale 偵測: 今日 close 跟最近一筆歷史完全同 + change=0 → 不寫入
+        if code in history["stocks"]:
+            past_dates = sorted(
+                d for d in history["stocks"][code].get("daily", {})
+                if d < trade_date
+            )
+            if past_dates:
+                prev = history["stocks"][code]["daily"][past_dates[-1]]
+                prev_close = prev.get("close")
+                if (prev_close is not None
+                        and abs(prev_close - close) < 0.001
+                        and abs(change_pct) < 0.005):
+                    stale_skipped += 1
+                    continue
+
         if code not in history["stocks"]:
             history["stocks"][code] = {
                 "name": name_map.get(code, ""),
@@ -260,18 +280,21 @@ def update_history(
                 "daily": {},
             }
             added_stocks += 1
-        
+
         # 補名稱(若之前沒有但這次有)
         if not history["stocks"][code].get("name") and name_map.get(code):
             history["stocks"][code]["name"] = name_map[code]
         # 補產業(若之前沒有但這次有)
         if not history["stocks"][code].get("industry") and stock2ind.get(code):
             history["stocks"][code]["industry"] = stock2ind[code]
-        
+
         history["stocks"][code]["daily"][trade_date] = {
             "close": round(close, 2),
             "change_pct": round(change_pct, 2),
         }
+    if stale_skipped:
+        print(f"  ⚠️ [v3.70.4 stale guard] 跳過 {stale_skipped} 檔個股 "
+              f"(close 跟前一筆完全同, 嫌疑 TWSE API stale)")
     
     print(f"  ✓ 累積 {len(daily_quotes_map)} 檔個股 ({added_stocks} 檔新增)")
     
