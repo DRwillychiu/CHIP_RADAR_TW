@@ -3,6 +3,9 @@
 對歷史每天計算 quad picks vs mild_up picks 重疊比例.
 驗證雙層 alpha 是否獨立 — 若 mild_up 大部分是 quad subset, 雙層 sub-banner 該砍.
 
+v3.71.2-fix: vol_spike masters 從歷史自算 (跟 bootstrap_phase32 邏輯一致),
+            不再從 daily JSON 抓 daily_trading_signals (該結構不存在).
+
 對每個歷史交易日:
   1. 計算 consensus picks (≥10 大戶共識)
   2. 計算 quad picks (共識 ∩ Q5 偏多 ∩ master vol_spike)
@@ -23,7 +26,8 @@ verdict:
   - 若 mild_up_only / mild_up_total < 30% → mild_up 是 quad subset, 雙層 redundant
   - 介於 30-60% → 部分獨立, 雙層仍有價值
 """
-import json, sys, os, gzip
+import json, sys, os, gzip, statistics
+from collections import defaultdict
 from pathlib import Path
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +39,9 @@ from src.exports.excel_report import (
     _is_tracked_master,
 )
 from src.analyzers.signal_engine import infer_market_direction
+
+ANOMALY_SIGMA = 2.0
+MIN_HISTORY_DAYS = 5
 
 password = os.environ.get('CHIP_RADAR_PASSWORD', '')
 if not password:
@@ -81,6 +88,54 @@ daily_files = sorted(
     key=lambda p: p.name[:8]
 )
 
+# v3.71.2-fix: pre-load all daily data (need history for vol_spike z-score)
+print(f"Loading {len(daily_files)} daily files (decrypt)...")
+all_data = {}    # date -> branches
+for p in daily_files:
+    date = p.name[:8]
+    data = _read_daily(p)
+    if data and data.get('branches'):
+        all_data[date] = data['branches']
+print(f"  loaded {len(all_data)} days")
+
+# Pre-compute per-master daily totals (跟 phase32 同邏輯)
+master_daily = defaultdict(lambda: {})   # master -> date -> {total, stocks set}
+for date, branches in all_data.items():
+    filt = _filter_tracked_branches(branches)
+    for br in filt:
+        m = br.get('master')
+        if not m: continue
+        slot = master_daily[m].setdefault(date, {'total': 0, 'stocks': set()})
+        for s in (br.get('buys') or []):
+            code = s.get('code')
+            amt = s.get('buy_amt', 0) or 0
+            if code and not code.startswith('00') and amt > 0:
+                slot['total'] += amt
+                slot['stocks'].add(code)
+
+sorted_all_dates = sorted(all_data.keys())
+
+def anomalous_masters_for(date):
+    """回傳當日 vol_spike master set (z>2σ on 過去 >=5 天 total)."""
+    if date not in sorted_all_dates: return set()
+    idx = sorted_all_dates.index(date)
+    if idx < MIN_HISTORY_DAYS: return set()
+    past_dates = sorted_all_dates[:idx]
+    vol_spike = set()
+    for m, by_date in master_daily.items():
+        today_amt = by_date.get(date, {}).get('total', 0)
+        if today_amt == 0: continue
+        past_amts = [by_date[d]['total'] for d in past_dates
+                     if d in by_date and by_date[d]['total'] > 0]
+        if len(past_amts) < MIN_HISTORY_DAYS: continue
+        avg = statistics.mean(past_amts)
+        std = statistics.stdev(past_amts) if len(past_amts) > 1 else avg * 0.3
+        if std == 0: std = avg * 0.1
+        z = (today_amt - avg) / std
+        if z > ANOMALY_SIGMA:
+            vol_spike.add(m)
+    return vol_spike
+
 # Per-bucket tracker
 buckets = {
     'quad_only':    {'picks': [], 'desc': 'quad ∩ NOT mild_up (master 量爆但 3d chg 不在 0-8%)'},
@@ -89,18 +144,13 @@ buckets = {
 }
 per_day = []
 
-for p in daily_files:
-    date = p.name[:8]
+for date in sorted(all_data.keys()):
     if date not in sh_dates: continue
     idx = sh_dates.index(date)
     if idx + 1 >= len(sh_dates): continue
     next_date = sh_dates[idx + 1]
 
-    data = _read_daily(p)
-    if not data: continue
-    branches = data.get('branches', [])
-    if not branches: continue
-
+    branches = all_data[date]
     filtered = _filter_tracked_branches(branches)
     consensus = _compute_consensus_count(filtered)
     if not consensus: continue
@@ -115,15 +165,10 @@ for p in daily_files:
         except Exception:
             pass
     if q5_dir != '偏多':
-        # Phase 3.2/3.4 都 require Q5 偏多 → 跳過非偏多日
         continue
 
-    # Master vol_spike (from daily_trading_signals)
-    dts = data.get('daily_trading_signals') or {}
-    vol_spike_masters = set()
-    for a in (dts.get('anomalies') or []):
-        if a.get('type') == 'volume_spike' and _is_tracked_master(a.get('master')):
-            vol_spike_masters.add(a.get('master'))
+    # v3.71.2-fix: 從歷史自算 vol_spike masters (跟 phase32 同邏輯)
+    vol_spike_masters = anomalous_masters_for(date)
 
     # 重建 stock-level master ownership
     stock_masters = {}
