@@ -93,6 +93,23 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.3 — Mobile sheet ⚠️ Mild_up watch (反向參考, 用戶要求)
+
+v3.71.2 ROLLBACK Phase 3.4 ★ alpha 標記後, 用戶仍要看歷史 mild_up_only 命中股作「反向參考 / 觀察清單」.
+
+Mobile sheet 新增 ⚠️ Mild_up watch section (列在共識 Top 5 後):
+- 標題: "⚠️ Mild_up watch (反向參考)"
+- 副標: "(歷史 41.7% hit, 平均 -0.72% — 別追)"
+- 琥珀色 (FFB45309) 區隔正面 alpha (⭐ quad 綠色), 視覺立刻 disambiguate
+- 命中股 prefix ⚠️ 而非 ★ (避免誤判為 alpha 訊號)
+- Email body 自動含此 section (extract_mobile_summary_text.py 直接讀 mobile sheet)
+- Q5 偏多時才會出現 (Q5 中性 / 偏空 自動 skip)
+
+Section 0 / 名稱欄維持 v3.71.2 ROLLBACK 狀態 (只顯示 ⭐ quad + ⚠️ outlier),
+mild_up 訊號只在 Mobile sheet / Email body 露出, 作純觀察用.
+
+---
+
 ### ✅ v3.71.2 — Phase 3.4 ROLLBACK + alpha overlap audit 揭穿 mild_up_only trap
 
 **新建 audit**: `scripts/audit_alpha_overlap.py` + `phase34-alpha-overlap.yml`

@@ -1528,6 +1528,26 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
         ws.cell(row, 3,
                 f"{prefix} {c['name']} ({c['code']}) · {c['master_count']} 大戶").font = val_font
         row += 1
+
+    # v3.71.3 用戶要求: Mild_up watch section (反向參考, 非 alpha 推薦)
+    # 揭穿: mild_up_only 歷史 hit 41.7% mean -0.72% (n=12) = trap
+    # 用戶仍要看 → 顯示為「⚠️ 反向參考」, 不用 ★ (避免誤判為 alpha 訊號)
+    mobile_mu = _compute_mild_up_picks(consensus, data_dir, trade_date=trade_date)
+    mu_only_codes = mobile_mu['mild_up_codes'] - mobile_quad['quad_codes']
+    mu_only_picks = [c for c in mobile_mu['mild_up_picks']
+                      if c['code'] in mu_only_codes]
+    if mu_only_picks:
+        row += 1
+        ws.cell(row, 3, "⚠️ Mild_up watch (反向參考)").font = Font(
+            name='Noto Sans TC', size=13, bold=True, color='FFB45309')   # 琥珀色
+        row += 1
+        ws.cell(row, 3, "(歷史 41.7% hit, 平均 -0.72% — 別追)").font = sub_font
+        row += 1
+        for c in mu_only_picks[:5]:
+            ws.cell(row, 3,
+                f"⚠️ {c['name']} ({c['code']}) · {c['master_count']} 大戶").font = Font(
+                    name='Noto Sans TC', size=12, color='FFB45309')
+            row += 1
     if not consensus:
         ws.cell(row, 3, "(今日無強共識)").font = sub_font
         row += 1
