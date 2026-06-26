@@ -51,7 +51,9 @@ except ImportError:
 DASHBOARD_SHEET_NAME = "📋 今日 Dashboard"
 MOBILE_SHEET_NAME = "📱 手機摘要"   # v3.67.1 Phase 2.7
 QUAD_TRACK_SHEET_NAME = "📈 Quad 實戰追蹤"   # v3.70.2 Phase 3.2 持續性追蹤
-ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME, QUAD_TRACK_SHEET_NAME]
+QUAD_FAIL_SHEET_NAME = "📉 Quad 失效歸因"   # v3.70.3 Phase 3.2 失效學習
+ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME,
+                     QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME]
 # 舊 sheet 名 (給 cleanup 移除舊月檔殘留)
 LEGACY_ENRICHMENT_NAMES = ["📋 今日摘要", "🚨 異常警報", "📦 連續囤貨", "⚠️ 風險警示"]
 
@@ -1629,6 +1631,192 @@ def build_quad_track_sheet(ws, data_dir):
     ws.freeze_panes = 'A6'
 
 
+def build_quad_failure_sheet(ws, data_dir):
+    """v3.70.3 Phase 3.2 失效歸因 — 從 miss 學習失敗 pattern.
+
+    讀 data/quad_hit_log.json, 列出所有 quad miss (next_change <= 0) + 歸因:
+      日期 | 隔日 | 股票 | 漲跌 | TAIEX | 超額 | 領頭% | Q5信心 | 觸發 master | 歸因
+
+    歸因類別:
+      1. 資料異常 (next_close 未變動)
+      2. TAIEX 整盤跌 (≤ -0.5%)
+      3. 假共識 (領頭 ≥50%)
+      4. 個股弱勢 (跑輸大盤 >2pp)
+      5. Q5 borderline (<55%)
+      6. TAIEX 資料缺
+      7. alpha noise (無系統性原因)
+
+    用戶從 pattern 學: 若多次同類失效 → 該類訊號要 down-weight.
+    """
+    qhl = _read_json_safely(data_dir / 'quad_hit_log.json')
+    title_font = Font(name='Noto Sans TC', size=14, bold=True,
+                      color=COLORS['brand_dark'])
+    hdr_font = Font(name='Noto Sans TC', size=11, bold=True)
+    hdr_fill = _summary_fill('FFFEE2E2')   # 淡紅 (warning)
+    sub_font = Font(name='Noto Sans TC', size=10, italic=True,
+                    color=COLORS['text_muted'])
+    val_font = Font(name='Noto Sans TC', size=11)
+    num_fmt = '+0.00"%";-0.00"%";0"%"'
+
+    widths = {'B': 12, 'C': 10, 'D': 16, 'E': 10, 'F': 10,
+              'G': 10, 'H': 8, 'I': 9, 'J': 18, 'K': 32}
+    for col_l, w in widths.items():
+        ws.column_dimensions[col_l].width = w
+
+    row = 2
+    c_title = ws.cell(row, 2, "📉 Quad 失效歸因 (從失敗學習)")
+    c_title.font = title_font
+    ws.row_dimensions[row].height = 22
+    row += 1
+
+    if not qhl or not qhl.get('trigger_days'):
+        ws.cell(row, 2, "尚無資料").font = sub_font
+        return
+
+    # 收集所有 misses
+    misses = []
+    for td in qhl['trigger_days']:
+        for p in td['quad_picks']:
+            if not p.get('hit'):
+                misses.append({
+                    'date': td['date'], 'next_date': td['next_date'],
+                    'q5_conf': td.get('q5_confidence'),
+                    'taifex_change': td.get('taifex_change'),
+                    **p,
+                })
+
+    # 統計 by 歸因類別
+    from collections import Counter
+    reason_counts = Counter()
+    for m in misses:
+        for r in (m.get('failure_reasons') or ['未分類']):
+            reason_counts[r] += 1
+
+    ra = qhl.get('rolling_all', {})
+    total_picks = ra.get('n', 0)
+    total_hits = ra.get('hits', 0)
+    total_misses = total_picks - total_hits
+
+    # 摘要 banner
+    sum_text = (f"miss {total_misses}/{total_picks} ({total_misses/max(total_picks,1)*100:.1f}%) "
+                f"| 預期 miss rate {(1 - 0.789)*100:.1f}% "
+                f"| 差異 {(total_misses/max(total_picks,1) - (1-0.789))*100:+.1f}pp")
+    c_sum = ws.cell(row, 2, sum_text)
+    c_sum.font = Font(name='Noto Sans TC', size=10, bold=True,
+                      color=COLORS['tw_red'])
+    ws.merge_cells(f'B{row}:K{row}')
+    c_sum.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+    ws.row_dimensions[row].height = 18
+    row += 1
+
+    # 歸因分布 1 行 summary
+    if reason_counts:
+        sorted_reasons = sorted(reason_counts.items(), key=lambda x: -x[1])
+        dist_str = ' | '.join(f"{r}: {c}" for r, c in sorted_reasons[:6])
+        c_dist = ws.cell(row, 2, f"歸因分布: {dist_str}")
+        c_dist.font = Font(name='Noto Sans TC', size=10, italic=True,
+                           color=COLORS['text_secondary'])
+        ws.merge_cells(f'B{row}:K{row}')
+        c_dist.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+        ws.row_dimensions[row].height = 18
+        row += 2
+    else:
+        row += 1
+
+    # 表頭
+    headers = ['日期', '隔日', '股票', '漲跌', 'TAIEX', '超額',
+               '領頭%', 'Q5%', '觸發 master', '歸因']
+    for i, h in enumerate(headers):
+        c = ws.cell(row, 2 + i, h)
+        c.font = hdr_font
+        c.fill = hdr_fill
+        c.alignment = Alignment(horizontal='center')
+    ws.row_dimensions[row].height = 22
+    row += 1
+
+    # 逐 miss 列 (倒序 — 最近在前)
+    misses_sorted = sorted(misses, key=lambda x: x['date'], reverse=True)
+    for m in misses_sorted:
+        date = m['date']
+        d_fmt = f"{date[:4]}/{date[4:6]}/{date[6:8]}"
+        nxt_fmt = f"{m['next_date'][4:6]}/{m['next_date'][6:8]}"
+        ws.cell(row, 2, d_fmt).font = val_font
+        ws.cell(row, 3, nxt_fmt).font = val_font
+        # 股票
+        stk = f"{m['name']}({m['code']})"
+        ws.cell(row, 4, stk).font = val_font
+        # 漲跌
+        c_chg = ws.cell(row, 5, m.get('next_change_pct', 0))
+        c_chg.number_format = num_fmt
+        c_chg.font = Font(name='Noto Sans TC', size=11, bold=True,
+                          color=COLORS['tw_green'])
+        c_chg.alignment = Alignment(horizontal='right')
+        # TAIEX
+        taifex = m.get('taifex_change')
+        if taifex is not None:
+            c_t = ws.cell(row, 6, taifex)
+            c_t.number_format = num_fmt
+            c_t.alignment = Alignment(horizontal='right')
+        else:
+            ws.cell(row, 6, 'N/A').font = sub_font
+        # 超額
+        excess = m.get('excess_return')
+        if excess is not None:
+            c_e = ws.cell(row, 7, excess)
+            c_e.number_format = num_fmt
+            c_e.font = Font(name='Noto Sans TC', size=11,
+                            color=COLORS['tw_green'] if excess <= 0 else COLORS['tw_red'])
+            c_e.alignment = Alignment(horizontal='right')
+        else:
+            ws.cell(row, 7, 'N/A').font = sub_font
+        # 領頭%
+        lp = m.get('leader_pct', 0) * 100
+        c_lp = ws.cell(row, 8, lp)
+        c_lp.number_format = '0"%"'
+        c_lp.font = (Font(name='Noto Sans TC', size=11, bold=True,
+                          color=COLORS['tw_red'])
+                     if lp >= 50 else Font(name='Noto Sans TC', size=11))
+        c_lp.alignment = Alignment(horizontal='center')
+        # Q5 信心
+        qc = m.get('q5_conf', 0)
+        c_qc = ws.cell(row, 9, qc)
+        c_qc.number_format = '0.0"%"'
+        c_qc.font = (Font(name='Noto Sans TC', size=11, bold=True,
+                          color=COLORS['hot_orange'])
+                     if qc < 55 else Font(name='Noto Sans TC', size=11))
+        c_qc.alignment = Alignment(horizontal='center')
+        # 觸發 master
+        master_str = ', '.join(m.get('matched_masters') or [])[:16]
+        ws.cell(row, 10, master_str).font = sub_font
+        # 歸因
+        reasons = ' | '.join(m.get('failure_reasons') or [])
+        ws.cell(row, 11, reasons).font = Font(name='Noto Sans TC', size=10,
+                                              color=COLORS['signal_red'])
+        row += 1
+
+    if not misses:
+        ws.cell(row, 2, "✅ 目前無 quad miss — 全 hit").font = Font(
+            name='Noto Sans TC', size=11, bold=True, color=COLORS['tw_green'])
+
+    # 註腳
+    row += 2
+    note = (
+        f"歸因分類: "
+        f"資料異常 = next_close 未變動 (停牌/未交易).  "
+        f"TAIEX 整盤跌 = 隔日大盤 ≤-0.5%.  "
+        f"假共識 = 領頭佔比 ≥50%.  "
+        f"個股弱勢 = 跑輸大盤 >2pp.  "
+        f"Q5 borderline = 預測信心 <55%.  "
+        f"alpha noise = 無系統性原因 (真 alpha 命中率本就 ~79%, 隨機 ~21% miss).")
+    c_note = ws.cell(row, 2, note)
+    c_note.font = sub_font
+    c_note.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+    ws.merge_cells(f'B{row}:K{row+3}')
+    ws.row_dimensions[row].height = 60
+
+    ws.freeze_panes = 'A7'
+
+
 def _compute_q5_hit_rate(data_dir, window_days=30):
     """v3.66.8 Phase 2.4: 計算 Q5 預測歷史命中率.
 
@@ -2770,8 +2958,18 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     except Exception as _be:
         print(f"  [Excel] quad track sheet build 失敗: {type(_be).__name__}: {_be}")
 
-    # 排序: dashboard → mobile → quad track → 日期 sheets desc
-    enrichment = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME, QUAD_TRACK_SHEET_NAME]
+    # v3.70.3 Phase 3.2 失效歸因: Quad 失效歸因 sheet (Dashboard 後第 4 個)
+    if QUAD_FAIL_SHEET_NAME in wb.sheetnames:
+        wb.remove(wb[QUAD_FAIL_SHEET_NAME])
+    fail_ws = wb.create_sheet(title=QUAD_FAIL_SHEET_NAME)
+    try:
+        build_quad_failure_sheet(fail_ws, data_dir)
+    except Exception as _be:
+        print(f"  [Excel] quad failure sheet build 失敗: {type(_be).__name__}: {_be}")
+
+    # 排序: dashboard → mobile → quad track → quad fail → 日期 sheets desc
+    enrichment = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME,
+                  QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME]
     other_sheets = sorted([s for s in wb.sheetnames if s not in enrichment],
                             reverse=True)
     order = [s for s in enrichment if s in wb.sheetnames] + other_sheets

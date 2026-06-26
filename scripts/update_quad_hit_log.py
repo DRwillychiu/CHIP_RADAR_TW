@@ -8,10 +8,16 @@
       {
         "date": "20260520", "next_date": "20260521",
         "q5_direction": "偏多",
+        "q5_confidence": 65.3,                # v3.70.3: 歸因用
+        "taifex_change": -0.39,               # v3.70.3: 隔日 TAIEX 漲跌
         "vol_spike_masters": ["民哥"],
         "quad_picks": [
           {"code": "2330", "name": "台積電", "next_change_pct": 9.91, "hit": true,
-           "matched_masters": ["民哥"]},
+           "matched_masters": ["民哥"],
+           "leader_pct": 0.32,                 # v3.70.3: 領頭佔比 (>=0.5 = 假共識)
+           "excess_return": 10.30,             # v3.70.3: 個股 - TAIEX (alpha)
+           "failure_reasons": []               # v3.70.3: miss 才有
+          },
           ...
         ],
         "n": 5, "hits": 5, "hit_rate": 1.0, "mean_change": 4.5
@@ -153,21 +159,41 @@ for date_idx, date in enumerate(sorted_dates):
     vs = vol_spike_masters(date_idx)
     if not vs: continue
 
+    # v3.70.3: Q5 confidence + TAIEX next-day change (歸因用)
+    q5_confidence = 0.0
+    try:
+        md = infer_market_direction(th_entry.get('signals') or [])
+        q5_confidence = md.get('confidence_pct') or 0.0
+    except Exception:
+        pass
+    # TAIEX next-day from temp_history (taiex_index)
+    taifex_change = None
+    nxt_th = th_by_date.get(next_date)
+    if nxt_th and th_entry and th_entry.get('taiex_index') and nxt_th.get('taiex_index'):
+        t0 = th_entry['taiex_index']
+        t1 = nxt_th['taiex_index']
+        if t0 and t1 and t0 > 0 and t0 != t1:   # 防 stale
+            taifex_change = round((t1 - t0) / t0 * 100, 2)
+
     # We have a quad trigger day. Compute consensus + quad picks
     branches = all_data[date]
     consensus = _compute_consensus_count(branches)
     if not consensus: continue
 
-    # Build stock -> contributing masters
+    # Build stock -> contributing masters + per-master amount (for leader_pct)
     stock_masters = {}
+    stock_master_amt = {}   # {code: {master: net_amt}}
     for b in branches:
         m = b.get('master')
         if not m: continue
         for s in (b.get('buys') or []):
             code = s.get('code')
             if not code or code.startswith('00'): continue
-            if (s.get('buy_amt') or 0) <= 0: continue
+            amt = s.get('buy_amt', 0) or 0
+            if amt <= 0: continue
             stock_masters.setdefault(code, set()).add(m)
+            sm = stock_master_amt.setdefault(code, {})
+            sm[m] = sm.get(m, 0) + amt
 
     # Identify quad picks (consensus stocks with ≥1 vol_spike master)
     quad_picks = []
@@ -181,12 +207,45 @@ for date_idx, date in enumerate(sorted_dates):
         nxt_close = nd.get('close')
         nxt_chg = nd.get('change_pct')
         if nxt_chg is None or nxt_close is None: continue   # stale guard
+        # v3.70.3 歸因: leader_pct + excess_return + failure_reasons
+        master_amts = stock_master_amt.get(code, {})
+        total_amt = sum(master_amts.values()) or 1
+        leader_amt = max(master_amts.values()) if master_amts else 0
+        leader_pct = round(leader_amt / total_amt, 3)
+        excess_return = round(nxt_chg - taifex_change, 2) if taifex_change is not None else None
+        # 失效歸因 (miss 才填) — v3.70.3 嚴格分類
+        failure_reasons = []
+        if nxt_chg <= 0:
+            # 1. 資料異常 — next_close 與 today_close 完全相同 (極可能停牌/資料 stale)
+            if abs(nxt_chg) < 0.005:   # ~0.0%
+                failure_reasons.append('資料異常 (next_close 未變動, 可能停牌/未交易)')
+            # 2. TAIEX 整盤跌 (≥ -0.5% 大盤跌)
+            if taifex_change is not None and taifex_change <= -0.5:
+                failure_reasons.append('TAIEX 整盤跌')
+            # 3. 假共識 (領頭佔比 ≥50%, 訊號被稀釋)
+            if leader_pct >= 0.5:
+                failure_reasons.append('假共識 (領頭獨佔 ≥50%)')
+            # 4. 個股弱勢 (跑輸大盤 >2pp 顯著)
+            if excess_return is not None and excess_return <= -2.0:
+                failure_reasons.append('個股弱勢 (跑輸大盤 >2pp)')
+            # 5. Q5 borderline (信心 <55% 預測弱)
+            if q5_confidence > 0 and q5_confidence < 55:
+                failure_reasons.append(f'Q5 borderline ({q5_confidence:.0f}%)')
+            # 6. TAIEX 資料缺 (歸因不全)
+            if taifex_change is None and not failure_reasons:
+                failure_reasons.append('TAIEX 資料缺, 歸因不全')
+            # 7. 其他 (沒有明確原因 → alpha noise)
+            if not failure_reasons:
+                failure_reasons.append('alpha noise (個股無系統性原因)')
         quad_picks.append({
             'code': code,
             'name': c['name'],
             'matched_masters': sorted(matched),
             'next_change_pct': round(nxt_chg, 2),
             'hit': nxt_chg > 0,
+            'leader_pct': leader_pct,
+            'excess_return': excess_return,
+            'failure_reasons': failure_reasons,
         })
 
     if not quad_picks: continue
@@ -198,6 +257,8 @@ for date_idx, date in enumerate(sorted_dates):
         'date': date,
         'next_date': next_date,
         'q5_direction': q5_dir,
+        'q5_confidence': round(q5_confidence, 1),
+        'taifex_change': taifex_change,
         'vol_spike_masters': sorted(vs),
         'quad_picks': quad_picks,
         'n': n, 'hits': hits,
