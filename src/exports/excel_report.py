@@ -1027,6 +1027,38 @@ def _compute_mild_up_picks(consensus_picks, data_dir, trade_date=None):
     return result
 
 
+def _get_recent_quad_codes(data_dir, days=7, today=None):
+    """v3.71.11 C7: 過去 N 天 trigger 的 quad picks codes set (跨日 dedup 用).
+
+    用途: 若 today picks 包含過去 7 天已 trigger 的 codes,
+    user 可能已跟單,Excel 標 🔁 重複提示。
+
+    Returns: set of stock codes
+    """
+    qhl = _read_json_safely(data_dir / 'quad_hit_log.json')
+    if not qhl: return set()
+    if today is None:
+        from datetime import datetime
+        today = datetime.now().strftime('%Y%m%d')
+    recent_codes = set()
+    for td in qhl.get('trigger_days', []):
+        date = td.get('date', '')
+        if not date or len(date) != 8: continue
+        # date 在過去 N 天內 (不含今日)
+        try:
+            from datetime import datetime, timedelta
+            d = datetime.strptime(date, '%Y%m%d')
+            t = datetime.strptime(today, '%Y%m%d')
+            delta = (t - d).days
+            if 0 < delta <= days:
+                for p in (td.get('quad_picks') or []):
+                    c = p.get('code')
+                    if c: recent_codes.add(c)
+        except ValueError:
+            continue
+    return recent_codes
+
+
 def _compute_quad_picks(consensus_picks, data_dir):
     """v3.70.0 Phase 3.2 落地: 識別今日符合三訊號疊加的 quad picks.
 
@@ -1289,6 +1321,8 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
     # v3.70.0 Phase 3.2 落地: 今日 quad 狀態 banner
     pre_consensus = _compute_consensus_count(branches_data)
     quad_info = _compute_quad_picks(pre_consensus, data_dir)
+    # v3.71.11 C7: 過去 7 天 trigger codes (跨日 dedup, 提示 user 可能已跟單)
+    recent_quad_codes = _get_recent_quad_codes(data_dir, days=7, today=trade_date)
     if quad_info['is_quad_day'] and quad_info['quad_picks']:
         # v3.71.5: premium count + names 優先列前面
         premium_picks = [p for p in quad_info['quad_picks']
@@ -1328,9 +1362,9 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
     ws.row_dimensions[row].height = 18
     row += 1
 
-    # v3.71.5 註腳 (加 ⭐⭐ premium tier)
+    # v3.71.11 註腳 (加 🔁 重複標記)
     note_cell = ws.cell(row, 2,
-                         "ⓘ 排序: 合計淨買金額 ↓  |  ⭐⭐ = premium quad (≥1 高信心 master: 陳律師/竹科主力/陳族元, 歷史 ≥77% hit)  |  ⭐ = 一般 quad (78.9% hit)  |  ⚠️ = 領頭大戶獨佔 ≥50%")
+                         "ⓘ 排序: 合計淨買金額 ↓  |  ⭐⭐ = premium quad (陳律師/竹科主力/陳族元, ≥77% hit)  |  ⭐ = 一般 quad (78.9%)  |  ⚠️ = 領頭獨佔 ≥50%  |  🔁 = 過去 7 天 quad 重複 (可能已跟單)")
     ws.merge_cells(f'B{row}:N{row}')
     note_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color='FF7C2D12')
     note_cell.fill = _summary_fill('FFFFF7ED')   # 極淡橙底
@@ -1449,8 +1483,10 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
         # v3.70.0 Phase 3.2 落地: ⭐ 標記 quad 命中股 (在 ⚠️ 之前, 因 alpha > 警示)
         # v3.71.2 Phase 3.4 ROLLBACK: ★ mild_up 標記砍掉 (audit 揭穿 trap)
         # v3.71.5 Phase 3.2 premium tier: ⭐⭐ for premium master (≥77% hit) 配對
+        # v3.71.11 C7: 🔁 for 過去 7 天 trigger 重複 (user 可能已跟單)
         is_quad = item['code'] in quad_info['quad_codes']
         is_premium = item['code'] in quad_info.get('premium_codes', set())
+        is_repeat = item['code'] in recent_quad_codes
         display_name = item['name'] or '—'
         if is_premium and is_outlier:
             display_name = f"⭐⭐⚠️ {display_name}"
@@ -1462,6 +1498,8 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
             display_name = f"⭐ {display_name}"
         elif is_outlier:
             display_name = f"⚠️ {display_name}"
+        if is_repeat:
+            display_name = f"🔁 {display_name}"
         c_name = ws.cell(row, 4, display_name)
         if is_quad and not is_outlier:
             # quad 但非 outlier → 名稱 cell 淡金底 + 綠字 (alpha 啟動視覺)

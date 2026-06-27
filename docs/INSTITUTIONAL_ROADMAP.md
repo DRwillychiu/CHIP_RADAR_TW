@@ -93,6 +93,39 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.11 — 內容 C1 + C7 (Master 月度 SOP + 跨日 dedup)
+
+**C7 跨日 quad 重複標記**:
+- 新 helper `_get_recent_quad_codes(data_dir, days=7, today)`:
+  讀 quad_hit_log 過去 7 天 trigger 的 picks codes set
+- Section 0 名稱欄: 過去 7 天已 trigger → 加 **🔁** prefix (在 ⭐⭐/⭐/⚠️ 之外的最外層)
+- 註腳更新: 加 「🔁 = 過去 7 天 quad 重複 (可能已跟單)」
+- 用戶價值: 若 7 天內同 pick 已跟單, 看到第二次不應重複進場
+
+**C1 Master 月度評估 SOP**:
+- 新增 `docs/MASTER_REVIEW_SOP.md` 6 step 月度流程
+- 觸發: 每月第一個交易日
+- 步驟: 跑 analyzer → 對比上月 → PREMIUM 升降決策 → 從未觸發 master 評估 (6 位) → 新 master 招募 → 文件化
+- 加入 / 踢出 premium 條件數字化 (hit ≥77% AND n≥5 進 / drop <70% 連 2 個月 出)
+- 防呆: 不根據 1 個月 n<5 升降 / 不全砍從未觸發 master / commit message 必含數字
+- 加 MASTER_TIER_HISTORY snapshot table (每月 append)
+
+**C2 跟單追蹤** ⏸ deferred:
+- 真實 actionable 需要 user 行為改變 (每天 CLI / form 輸入)
+- 重複 Trading Journal 專案範疇 (memory 已標)
+- v3.71.7 「跟單實際淨報酬」已用 「全跟單 simulation」回答 80% 訊號
+
+**C5 短線 short alpha** ⏸ deferred:
+- mild_up_only 41.7% trap 隱含 58.3% short 期望
+- 但台股 short 機制不友善 (借券成本 + 風險), production 不適合
+
+**C3 / C4 / C6** ⏸ 等樣本累積:
+- quad n=38 → 60+ 需 2-3 週
+- multiday OOS n=6 太小
+- fresh_breakout n=15 → 30+
+
+---
+
 ### ✅ v3.71.10 — 前端優化 B6 + B7 + B2/B4 audit (確認已 well-covered)
 
 **B6 release notes** (前端用戶看不到更新, 終於補上):
