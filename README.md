@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.71.9(2026-06-27) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.71.10(2026-06-27) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.71.9** | 6/27 | **後端優化 4 件** — A1 rename typo / A4 scripts 分類 README / A5 pytest collect 修復 + run_all.py (43/44 pass) / A6 requirements audit |
+| **v3.71.10** | 6/27 | **前端 B6+B7** — 📋 更新 modal (近 10 版) / 忘記密碼說明 / B2 B4 audit 確認 well-covered |
+| v3.71.9 | 6/27 | 後端優化 4 件 — A1 rename typo / A4 scripts 分類 README / A5 pytest collect 修復 + run_all.py (43/44 pass) / A6 requirements audit |
 | v3.71.8 | 6/26 | Phase 3.5 多日 alpha 落地 (Loop Iteration 1) — R10 sub-banner / peak_5d 86.8% / premium cum_3d 92.9% / 觀察期 n=38 |
 | v3.71.7 | 6/26 | 跟單實際淨報酬 + 處置股整合 — Section 0 R9 💰 sub-banner (扣 0.585% 後 74% 淨 hit / 累積 +144%) / Mobile + Action 加處置股 avoidance |
 | v3.71.6 | 6/26 | Phase 3.2 失效 SOP doc — `docs/PHASE32_ALPHA_FAILURE_SOP.md` 8 章節 (觸發/診斷/應對/recall/通訊/記錄) |

@@ -197,6 +197,26 @@ body {
   display: none;
 }
 .login-error.show { display: block; }
+.login-forgot {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-3);
+  text-align: center;
+}
+.login-forgot summary {
+  cursor: pointer;
+  color: var(--text-2);
+  user-select: none;
+  padding: 4px;
+}
+.login-forgot summary:hover { color: var(--gold); }
+.login-forgot p {
+  margin: 8px 4px 0;
+  text-align: left;
+  line-height: 1.5;
+}
+.login-forgot a { color: var(--gold); text-decoration: none; }
+.login-forgot a:hover { text-decoration: underline; }
 .login-info {
   margin-top: 24px;
   padding-top: 20px;
@@ -3803,6 +3823,11 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
       🛡️ 資料以 AES-256 加密<br>
       每次關閉視窗都需重新輸入密碼
     </div>
+    <details class="login-forgot">
+      <summary>忘記密碼?</summary>
+      <p>本網站採客戶端解密 (zero-knowledge): 密碼僅存於你瀏覽器, 伺服器無法重設.</p>
+      <p>若忘記, 請聯絡 <a href="mailto:willychiu77761@gmail.com">willychiu77761@gmail.com</a> 重發.</p>
+    </details>
   </div>
 </div>
 
@@ -3813,13 +3838,14 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en">Chip Radar v3</div>
+      <div class="logo-en" title="點 📋 更新看版本歷史">Chip Radar v3.71.9</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
     <div class="header-actions">
       <button class="btn" onclick="reloadData()">🔄 重新載入</button>
       <button class="btn" onclick="toggleHelp()">❓ 說明</button>
+      <button class="btn" onclick="toggleChangelog()" title="更新日誌">📋 更新</button>
       <button class="btn danger" onclick="lockApp()">🔒 鎖定</button>
     </div>
   </div>
@@ -9151,6 +9177,63 @@ function toggleHelp() {
     document.querySelector('.tab[data-tab="overview"]').classList.add('active');
     document.getElementById('panel-overview').classList.add('active');
   }
+}
+
+// v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
+const CHANGELOG_ENTRIES = [
+  { v: 'v3.71.9', date: '6/27', title: '後端優化 4 件', desc: 'rename typo / scripts 分類 README / pytest collect 修復 + run_all.py (43/44 pass) / requirements audit' },
+  { v: 'v3.71.8', date: '6/26', title: 'Phase 3.5 多日 alpha 落地 (Loop Iter 1)', desc: 'R10 sub-banner / peak_5d 86.8% / premium cum_3d 92.9% / 觀察期 n=38' },
+  { v: 'v3.71.7', date: '6/26', title: '跟單實際淨報酬 + 處置股整合', desc: '💰 sub-banner (扣 0.585% 後 74% 淨 hit / 累積 +144%) / Mobile + Action 加處置股 avoidance' },
+  { v: 'v3.71.6', date: '6/26', title: 'Phase 3.2 失效 SOP doc', desc: '8 章節 (觸發/診斷/應對/recall/通訊/記錄)' },
+  { v: 'v3.71.5', date: '6/26', title: 'Premium Master Tier 落地', desc: '陳律師/竹科主力/陳族元 ≥77% hit / ⭐⭐ 三介面標記' },
+  { v: 'v3.71.4', date: '6/26', title: 'P0 TAIEX 歷史汙染 backfill', desc: '17 日真實 TAIEX / Q5 真實 hit 62.5%→70.0%' },
+  { v: 'v3.71.3', date: '6/26', title: 'Mobile ⚠️ Mild_up watch', desc: '反向參考 watch list, Email body 自動帶入' },
+  { v: 'v3.71.2', date: '6/26', title: 'ROLLBACK + alpha overlap audit', desc: 'mild_up_only n=12 hit 41.7% mean -0.72% (trap), 砍雙層回 pure quad' },
+  { v: 'v3.71.0', date: '6/26', title: 'Phase 3.4 combo backtest 探索', desc: '8 個新 filter + workflow_dispatch / q5_bull_mild_up 60.0%' },
+  { v: 'v3.70.x', date: '6/26', title: 'Phase 3.2 alpha 落地 + 持續性追蹤', desc: 'quad 78.9% 三介面 (Section 0/Action/Mobile) ⭐ 標記 / 4 enrichment sheet / Wilson CI + 失效 alarm' },
+];
+
+function toggleChangelog() {
+  const existing = document.getElementById('changelogModal');
+  if (existing) { existing.remove(); return; }
+  const modal = document.createElement('div');
+  modal.id = 'changelogModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);';
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+  const card = document.createElement('div');
+  card.style.cssText = 'background:linear-gradient(135deg,#1f2a48 0%,#0f1525 100%);border:1px solid rgba(212,175,55,0.35);border-radius:12px;max-width:720px;max-height:85vh;overflow-y:auto;padding:24px;box-shadow:0 12px 48px rgba(0,0,0,0.5);';
+
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;';
+  const title = document.createElement('div');
+  title.style.cssText = 'display:flex;align-items:center;gap:10px;';
+  title.innerHTML = '<span style="font-size:24px;">📋</span><div><div style="font-size:18px;font-weight:700;color:#d4af37;">更新日誌 (近 10 版)</div><div style="font-size:12px;color:#999;margin-top:2px;">完整紀錄見 docs/INSTITUTIONAL_ROADMAP.md</div></div>';
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕';
+  closeBtn.style.cssText = 'background:transparent;border:none;color:#999;font-size:24px;cursor:pointer;padding:0 8px;line-height:1;';
+  closeBtn.onclick = () => modal.remove();
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  card.appendChild(header);
+
+  CHANGELOG_ENTRIES.forEach(e => {
+    const row = document.createElement('div');
+    row.style.cssText = 'border-left:3px solid rgba(212,175,55,0.5);padding:8px 12px;margin-bottom:10px;background:rgba(255,255,255,0.03);border-radius:0 6px 6px 0;';
+    // textContent for safe value, only static labels via inner spans
+    const head = document.createElement('div');
+    head.style.cssText = 'font-weight:700;color:#d4af37;font-size:14px;margin-bottom:4px;';
+    head.textContent = `${e.v}  ·  ${e.date}  ·  ${e.title}`;
+    const desc = document.createElement('div');
+    desc.style.cssText = 'font-size:12px;color:#ccc;line-height:1.5;';
+    desc.textContent = e.desc;
+    row.appendChild(head);
+    row.appendChild(desc);
+    card.appendChild(row);
+  });
+
+  modal.appendChild(card);
+  document.body.appendChild(modal);
 }
 
 // v3.21: 資料準確度 modal
