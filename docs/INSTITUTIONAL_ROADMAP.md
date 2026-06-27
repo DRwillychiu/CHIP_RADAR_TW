@@ -93,6 +93,29 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.12 — 流程 D1 + D4 + D6 (production 監控 + LOOP 自動化)
+
+**D4 Email 寄送 failure alert** (silent failure 修補):
+- daily-full.yml `Send daily summary email` step 加 `id: send_email`
+- 新增 `if: failure() && data_changed` step 用 `actions/github-script@v8`
+- 失敗時自動 `github.rest.issues.create` 開 issue (title/labels/body + SOP)
+- GitHub 預設 email notification → 等於 fallback channel
+
+**D6 LOOP 自動化** (新 `weekly-loop-audit.yml`):
+- cron `0 14 * * 0` 每週日 22:00 TW 自動 trigger
+- 4 個 audit 連跑: Phase 3.4 combo / Phase 3.5 multiday / alpha overlap / per-master vol_spike
+- 結果 commit + push, 樣本累積 → LOOP iteration 自動推進
+
+**D1 Workflows health monitor** (新 `workflow-health.yml`):
+- 每週日 22:30 TW 統計 12 workflows 過去 7 天成功率
+- 用 `actions/github-script` 呼叫 GitHub API listWorkflowRuns
+- 寫 `docs/WORKFLOW_HEALTH.md` markdown (🔴 ≥30% fail)
+- 失敗率 > 30% AND runs ≥ 3 → 自動 issue alert
+
+**D2 ✅ 已有 / D5 ✅ healthy / D3 backup defer** (GitHub Artifact 90 天保留已夠)
+
+---
+
 ### ✅ v3.71.11 — 內容 C1 + C7 (Master 月度 SOP + 跨日 dedup)
 
 **C7 跨日 quad 重複標記**:

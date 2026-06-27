@@ -161,6 +161,7 @@ jobs:
           } >> $GITHUB_OUTPUT
 
       - name: Send daily summary email
+        id: send_email
         if: steps.commit.outputs.data_changed == 'true'
         uses: dawidd6/action-send-mail@v6
         with:
@@ -174,3 +175,38 @@ jobs:
           to: willychiu77761@gmail.com
           from: Chip Radar Bot <willychiu77761@gmail.com>
           attachments: data/reports/latest.xlsx
+
+      # v3.71.12 D4: Email 寄送失敗 → 開 GitHub Issue alert
+      # GitHub 預設會 email notification 你, 等於 fallback channel
+      - name: Email failure alert (GitHub Issue)
+        if: failure() && steps.commit.outputs.data_changed == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const date = '${{ steps.summary.outputs.trade_date }}' || new Date().toISOString().slice(0,10);
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Daily email 寄送失敗 ${date}`,
+              labels: ['email-failure', 'production-alert'],
+              body: [
+                '## Daily summary email 寄送失敗',
+                '',
+                `**日期**: ${date}`,
+                `**Workflow run**: ${runUrl}`,
+                '',
+                '### 可能原因',
+                '- GMAIL_APP_PASSWORD secret 過期 (Google 帳號改密碼會 invalidate)',
+                '- SMTP 連線問題 (smtp.gmail.com:465 短暫 fail)',
+                '- latest.xlsx 不存在 / 過大 (attachment fail)',
+                '',
+                '### 處置 SOP',
+                '1. 看 workflow log 確認 fail 步驟',
+                '2. 若 password 問題: 到 Google 帳戶 → App passwords 重發 → 更新 GitHub secret',
+                '3. 若 SMTP 暫時性: 等下次主排程 (22:37 兜底 / 23:47 兜底)',
+                '4. 修好後手動 trigger: `gh workflow run daily-full.yml`',
+                '',
+                '解決後 close 此 issue.'
+              ].join('\n'),
+            });

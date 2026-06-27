@@ -1,0 +1,94 @@
+name: Weekly LOOP Audit (Phase 3.4 + 3.5)
+
+# v3.71.12 D6: LOOP_FRAMEWORK 自動觸發 — 每週日 22:00 TW 累積樣本後重跑
+# Phase 3.4 combo backtest + Phase 3.5 multiday + alpha overlap audit.
+# 結果 commit 後 user 可手動看 data/*backtest*.json / alpha_overlap_audit.json.
+#
+# Loop spec: .claude/loops/CANDIDATES.md
+# Iteration state: .claude/loops/state/
+
+on:
+  schedule:
+    - cron: '0 14 * * 0'   # 週日 14:00 UTC = 22:00 TW
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install requests cryptography openpyxl pyyaml
+
+      - name: Phase 3.4 combo backtest re-run
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+        run: |
+          echo "🔬 Phase 3.4 combo backtest 重跑 (累積新樣本)"
+          python scripts/bootstrap_combo_backtest.py
+        continue-on-error: true
+
+      - name: Phase 3.5 multiday backtest re-run
+        run: |
+          echo "🔬 Phase 3.5 t+1~t+5 multiday backtest 重跑"
+          python scripts/bootstrap_multiday_backtest.py
+        continue-on-error: true
+
+      - name: Phase 3.4 alpha overlap audit re-run
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+        run: |
+          echo "🔬 alpha overlap audit (quad vs mild_up 三 bucket)"
+          python scripts/audit_alpha_overlap.py
+        continue-on-error: true
+
+      - name: Per-master vol_spike 可靠度 re-run
+        run: |
+          echo "🔬 per-master vol_spike 可靠度 (Premium tier 動態 review)"
+          python scripts/analyze_master_vol_spike_reliability.py
+        continue-on-error: true
+
+      - name: Commit results
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add data/combo_backtest.json data/multiday_backtest.json data/alpha_overlap_audit.json
+          if git diff --staged --quiet; then
+            echo "::notice::no change in audit results"
+          else
+            git commit -m "data: weekly LOOP audit refresh $(TZ=Asia/Taipei date +%Y-%m-%d)"
+            for i in 1 2 3; do
+              if git push; then break; fi
+              git pull --rebase --strategy-option=theirs origin main
+              sleep 2
+            done
+          fi
+
+      - name: Summary
+        run: |
+          echo "=== LOOP audit summary ==="
+          if [ -f data/multiday_backtest.json ]; then
+            python -c "
+            import json
+            d = json.load(open('data/multiday_backtest.json','r',encoding='utf-8'))
+            n = d.get('n_total', 0)
+            allq = d.get('combos', {}).get('all_quad', {}).get('all', {})
+            peak = allq.get('peak_5d', {})
+            print(f'Multiday n_total={n}, peak_5d hit={peak.get(\"hit_rate\",0)*100:.1f}%')
+            "
+          fi
