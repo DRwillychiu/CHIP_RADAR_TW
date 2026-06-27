@@ -1027,6 +1027,31 @@ def _compute_mild_up_picks(consensus_picks, data_dir, trade_date=None):
     return result
 
 
+def _compute_sector_distribution(picks, data_dir, top_n=3):
+    """v3.71.15 N2: 對 picks 統計 industry 分佈, 返 top N 族群.
+
+    Args:
+      picks: list of dict (含 'code' 或 直接是 code)
+      data_dir: Path
+      top_n: 取前 N 大族群
+
+    Returns: list of (industry_name, count, pct), sorted by count desc
+    """
+    sh = _read_json_safely(data_dir / 'stock_history.json')
+    if not sh: return []
+    sh_stocks = sh.get('stocks', {})
+    counts = {}
+    for p in picks:
+        code = p.get('code') if isinstance(p, dict) else p
+        if not code: continue
+        ind = (sh_stocks.get(code, {}) or {}).get('industry') or '其他'
+        counts[ind] = counts.get(ind, 0) + 1
+    total = sum(counts.values())
+    if total == 0: return []
+    sorted_ind = sorted(counts.items(), key=lambda kv: -kv[1])
+    return [(ind, n, n / total * 100) for ind, n in sorted_ind[:top_n]]
+
+
 def _get_recent_quad_codes(data_dir, days=7, today=None):
     """v3.71.11 C7: 過去 N 天 trigger 的 quad picks codes set (跨日 dedup 用).
 
@@ -1364,6 +1389,21 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
     ws.row_dimensions[row].height = 18
     row += 1
 
+    # v3.71.15 N2: sector rotation sub-banner (在註腳前)
+    # 統計 today 共識股 industry 分佈, 看主力買哪些族群
+    if pre_consensus:
+        sector_dist = _compute_sector_distribution(pre_consensus, data_dir, top_n=3)
+        if sector_dist:
+            parts = [f"{ind} {n} ({pct:.0f}%)" for ind, n, pct in sector_dist]
+            sec_text = f"📊 今日共識集中產業 (top {len(parts)}): " + '  |  '.join(parts)
+            sec_cell = ws.cell(row, 2, sec_text)
+            ws.merge_cells(f'B{row}:N{row}')
+            sec_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color='FF6366F1')
+            sec_cell.fill = _summary_fill('FFEEF2FF')   # 極淡靛
+            sec_cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+            ws.row_dimensions[row].height = 18
+            row += 1
+
     # v3.71.11 註腳 (加 🔁 重複標記)
     note_cell = ws.cell(row, 2,
                          "ⓘ 排序: 合計淨買金額 ↓  |  ⭐⭐ = premium quad (陳律師/竹科主力/陳族元, ≥77% hit)  |  ⭐ = 一般 quad (78.9%)  |  ⚠️ = 領頭獨佔 ≥50%  |  🔁 = 過去 7 天 quad 重複 (可能已跟單)")
@@ -1698,6 +1738,17 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
         ws.cell(row, 3,
                 f"{prefix} {c['name']} ({c['code']}) · {c['master_count']} 大戶").font = val_font
         row += 1
+
+    # v3.71.15 N2: 共識集中產業 (Mobile section, 列在共識 Top 5 後)
+    if consensus:
+        sec_dist = _compute_sector_distribution(consensus, data_dir, top_n=3)
+        if sec_dist:
+            row += 1
+            ws.cell(row, 3, "📊 共識集中產業").font = sec_font
+            row += 1
+            for ind, n, pct in sec_dist:
+                ws.cell(row, 3, f"{ind} · {n} 檔 ({pct:.0f}%)").font = val_font
+                row += 1
 
     # v3.71.3 用戶要求: Mild_up watch section (反向參考, 非 alpha 推薦)
     # 揭穿: mild_up_only 歷史 hit 41.7% mean -0.72% (n=12) = trap
