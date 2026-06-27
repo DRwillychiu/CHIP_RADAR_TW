@@ -651,6 +651,8 @@ if 'next_day_flipper' in declared and '短打型' not in labels:
 > **v3.36.2 D 方案 — 處置持倉「不上標籤」**:資料保留在 profile.disposal_holdings
 > + tab14「⛓️ 處置股持倉風險」面板。等 disposal_history 快照滿 30 天後(~7/4)
 > 重評是否開啟標籤。詳見 §4.9。
+>
+> **v3.71.17 N6 提前 audit (2026-06-27, 21 snapshot)**: 第一天 (6/5) 占比 99/276 = **35.9%** (中度 clip), 仍維持 D 方案不開標籤. weekly cron 跑 `audit_disposal_history_maturity.py` 追蹤,直到 oldest_pct < 20% 才開. 預計 7/4 後再 audit.
 
 ---
 

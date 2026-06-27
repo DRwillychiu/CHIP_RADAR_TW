@@ -69,6 +69,12 @@ jobs:
           python scripts/analyze_master_contribution.py
         continue-on-error: true
 
+      - name: Disposal history maturity audit
+        run: |
+          echo "🔬 disposal_history 成熟度 (N6 處置玩家標籤 GO/NO-GO)"
+          python scripts/audit_disposal_history_maturity.py
+        continue-on-error: true
+
       - name: Commit results
         run: |
           git config --local user.email "actions@github.com"
