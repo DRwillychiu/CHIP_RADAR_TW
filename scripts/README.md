@@ -2,6 +2,63 @@
 
 入庫的維運腳本。歷史上這類腳本住在 Desktop（個人化路徑），v3.49.0 (運1) 移進此目錄以受 git 管控。
 
+## 📋 28 scripts 分類索引 (v3.71.9, flat structure)
+
+> 為避免 break workflow yml path + internal subprocess reference, 保持 flat. 命名前綴規範分類用途.
+
+### 🔬 Backtest / Alpha Research
+重跑歷史 backtest, 計算 alpha 指標.
+
+- `bootstrap_combo_backtest.py` — Phase 3.4 訊號組合 backtest (14 combos)
+- `bootstrap_phase32_e_anomaly.py` — Phase 3.2 三訊號 quad backtest (78.9% hit)
+- `bootstrap_phase33_f_hot.py` — Phase 3.3 quad + hot5 streak 探索
+- `bootstrap_consensus_backtest.py` — Phase 2.5 baseline 共識股 backtest
+- `bootstrap_multiday_backtest.py` — Phase 3.5 t+1~t+5 多日 alpha (Loop Iter 1)
+- `bootstrap_timeseries.py` — Section A Q1-Q4 KPI 時序 cache (60 天滾動)
+- `analyze_master_vol_spike_reliability.py` — per-master 可靠度 → PREMIUM_MASTERS 來源
+
+### ✅ Audit / Verify
+對齊 ground truth, cross_validate Excel 數字.
+
+- `audit_alpha_overlap.py` — Phase 3.4 alpha overlap (quad vs mild_up) audit
+- `audit_phase32_sheets.py` — 4 個 Phase 3.2 enrichment sheet 數字 cross-check
+- `audit_data_bars_real.py` — Excel data bars 視覺正確性
+- `audit_stock_close_vs_twse.py` — stock_history close 對齊 TWSE 官方
+- `cross_validate_dashboard.py` — Dashboard 所有 section 數字 GT 比對 (主 audit)
+- `verify_combo_backtest.py` — Phase 3.1 q5_bull 5 層驗證
+- `verify_phase32_e_anomaly.py` — Phase 3.2 quad 5 層驗證
+- `verify_phase33_quad.py` — Phase 3.3 quad_AAAA 5 層驗證
+- `verify_consensus_vs_website.py` — Section 0 共識 vs 前端對齊
+- `verify_pcr_vs_taifex.py` — P/C ratio 對齊 TAIFEX 官方
+- `sanity_check_618.py` — 6/18 trigger day 個股逐筆 spot check
+
+### 🔧 Maintenance / Refresh
+每日 / 週期執行, 更新 production data.
+
+- `daily_rolling_update.py` — daily-full.yml 在 crawler 後 (re-bootstrap phase32 + update hit_log + regen Excel)
+- `update_quad_hit_log.py` — 被 daily_rolling_update 呼叫
+- `refresh_attstock_disposal.py` — daily-full.yml (抓 attstock 處置股 → Mobile sheet 避開)
+- `extract_mobile_summary_text.py` — daily-full.yml 最後 step (Mobile sheet → email body)
+- `backfill_taiex_history.py` — 一次性 (v3.71.4 修 6/2-6/8 兜底重複日汙染殘留)
+- `regen_excel_618.py` — 一次性 (6/18 Excel 重生 audit 用)
+- `inspect_section_a_618.py` — 一次性 debug
+
+### 🛠️ Tools
+- `check_ps1_syntax.ps1` — PowerShell script syntax validator (memory: M4)
+- `trigger_chip_radar.ps1` — 本機手動觸發 GitHub Actions (見下節說明)
+
+---
+
+### 加新 script 規則
+
+1. **命名前綴對齊類別** (bootstrap_/audit_/verify_/refresh_/update_/backfill_/extract_/check_)
+2. 加新 script 後**必更新本 README** (5min 紀律)
+3. Production 用 script 必含 try/except + 0 exit code (給 GitHub Actions `continue-on-error`)
+
+---
+
+
+
 ## trigger_chip_radar.ps1
 
 每日 21:17 + 22:37 兜底由 Windows Task Scheduler 觸發，做：

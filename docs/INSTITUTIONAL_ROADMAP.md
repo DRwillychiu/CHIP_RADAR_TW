@@ -93,6 +93,28 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.9 — 後端優化 4 件 (A1 / A4 / A5 / A6 audit)
+
+A1. **rename typo**: `audit_institutional,py` → `audit_institutional.py` (整檔本來不能 import)
+
+A4. **scripts/ 分類**: 寫 `scripts/README.md` 28 個檔分類索引 (Backtest / Audit / Maintenance / Tools)
+    - 不 move file (避免 break 6 個 workflow yml path reference)
+    - 加新 script 命名前綴規範 + 必更 README 紀律
+
+A5. **tests/ pytest collection abort 修補**:
+    - 44 個 test 用 home-grown print runner + module-level sys.exit() → pytest collect 中 abort
+    - `tests/conftest.py` 加 `collect_ignore_glob = ['test_*.py']` 跳過
+    - 新 `tests/run_all.py` subprocess 順跑全套, 自動補 PYTHONIOENCODING=utf-8 解 Windows cp950
+    - **驗證**: 43/44 pass (test_v3460_tier2 是 known date-dependent fail, 已記錄)
+    - 全改 pytest assert style 是大工程 (~1.5h × 44 檔), 留 follow-up
+
+A6. **requirements.txt audit**: 確認 4 個釘版 (requests/cryptography/openpyxl/pyyaml) 涵蓋所有實際依賴 ✓
+
+跳過 A2 (excel_report 3501 行拆) / A3 (crawler 1619 行拆) — 高風險 大重構, production stable 不動。
+跳過 A7 (type hints) — 8h 大工程, incremental 比較好。
+
+---
+
 ### ✅ v3.71.8 — Phase 3.5 多日 alpha 落地 (Loop Iteration 1)
 
 第一個正式 LOOP_FRAMEWORK 落地. 詳見:
