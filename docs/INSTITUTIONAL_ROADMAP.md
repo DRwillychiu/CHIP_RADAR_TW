@@ -93,6 +93,32 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.13 — 文檔 E3 + E4 + E5 (新對話 onboarding + 標記同步 + docs 索引)
+
+**E5 docs/ 索引** (`docs/README.md` 新建):
+- 12 個檔分 5 類: 必讀 / 架構 / 資料合規 / Production SOP / Auto-generated
+- 加新文件規則 (檔名 + index 更新紀律)
+- 新進場找文件 5 秒搞定 (vs 之前要逐個檔看)
+
+**E3 CONTINUATION_GUIDE** (`docs/CONTINUATION_GUIDE.md` 新建, 1-pager):
+- Claude 新對話接手必讀 (5 分鐘)
+- 包含: 系統現況 (Alpha 體系) / 常用 path / 重要規範 (8 條) / Production 監控 / 重要 SOP / 接手後第一步 / 不要做的事
+- 解決「重讀全 history」浪費
+
+**E4 LABELS_DEFINITION §5** (Excel 視覺標記 audit, 跟 §1-§4 master 標籤分開):
+- 加 5.1 名稱欄 prefix: ⭐⭐ / ⭐ / 🔁 / ⚠️
+- 加 5.2 sub-banner icon: 🟡 / ⭐ / 💰 / 🔬 / ⚠️ / 🎯 / 💤
+- 加 5.3 Mobile sheet header: 📅 / ⭐ / 🎯 / 🚫 / ⚠️ / 📊
+- 加 5.4 anomaly icon: 🔴 (vol_spike) / 🆕 (new_stocks)
+- 加 5.5 顏色語義 (Hex + 用途, 跟 COLORS dict 同步)
+- 明確分割: §1-§4 = master_profile 標籤 / §5 = Excel Dashboard 視覺
+
+**E1 archive 老 entry** ⏸ skip: docs/README.md 已導讀新進場直接看 ✓ 最新 entry, archive ROI 不夠
+**E2 README slim** ⏸ skip: 24KB README 沒到 must-fix, 編輯風險中
+**E6 Email body polish** ⏸ wait user feedback
+
+---
+
 ### ✅ v3.71.12 — 流程 D1 + D4 + D6 (production 監控 + LOOP 自動化)
 
 **D4 Email 寄送 failure alert** (silent failure 修補):
