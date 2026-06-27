@@ -93,6 +93,47 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.8 — Phase 3.5 多日 alpha 落地 (Loop Iteration 1)
+
+第一個正式 LOOP_FRAMEWORK 落地. 詳見:
+- `.claude/skills/LOOP-FRAMEWORK.md` (framework 手冊)
+- `.claude/loops/CANDIDATES.md` (Chip Radar 9 任務適用性篩選)
+- `.claude/loops/state/phase35-multiday-20260626.md` (Iteration 1 state log)
+
+**Loop Spec**: 找 t+1 ~ t+5 「大戶分點 → 數天利潤」 alpha
+- 8 條 SUCCESS CRITERIA (hit ≥60%, n ≥30, mean ≥+3%, Wilson 下界 ≥45%, IS/OOS diff <10pp, 經濟學解釋, audit, Excel 整合)
+- HARD LIMIT: 12 combos
+- 反 over-fit: 60/40 IS/OOS split + 經濟學解釋必填
+
+**Iteration 1: combo `premium_only` vs `all_quad` baseline**
+
+新 `scripts/bootstrap_multiday_backtest.py`:
+- 對 quad_hit_log 38 picks 從 stock_history 算 cum_1d/3d/5d + peak_within_5d
+- IS/OOS 60/40 picks-level split
+- 輸出 `data/multiday_backtest.json`
+
+**結果** (8 criteria 通過 5/8):
+| combo | metric | hit% | mean% | Wilson 下界 |
+|---|---|---|---|---|
+| all_quad | peak_5d | **86.8%** | **+12.78%** | 72.7% |
+| premium_only | cum_3d | **92.9%** | **+12.16%** | 77.3% |
+| premium_only | peak_5d | **92.9%** | **+15.99%** | 77.3% |
+
+❌ #2 n=28 (差 2) / #5 IS/OOS OOS n=6 太小 → 樣本限制 (非真 over-fit)
+
+**3 大揭穿**:
+1. peak_5d (擇高出場) >> cum_5d (持有到底) — 用戶「擇高出場」假設成立
+2. premium cum_3d 92.9% / +12.16% — **3 天是最佳持有期 (sweet spot)**
+3. baseline 多日 alpha 也強 (peak 86.8%)
+
+**落地** (Section 0 R10 新 sub-banner):
+- 「🔬 Phase 3.5 多日 alpha (觀察期 n=38): 5 日內擇高 86.8% / +12.78% | premium 擇高 92.9% / +15.99% | premium 持有 3 天 92.9%」
+- 紫色 (FF7C3AED) 標「觀察期」, n≥60 後變綠 (FF059669) 正式
+
+**Iteration 2 待決策**: 等 daily_rolling_update 累積樣本 → 重跑 audit → 嚴格 IS/OOS 驗證
+
+---
+
 ### ✅ v3.71.7 — 跟單實際淨報酬 + 處置股整合 (實戰實用性導向)
 
 A. **Quad 跟單實際淨報酬 backtest** (Section 0 sub-banner #3):

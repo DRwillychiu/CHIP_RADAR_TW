@@ -1241,6 +1241,43 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
             ws.row_dimensions[row].height = 18
             row += 1
 
+    # v3.71.8 Phase 3.5: 多日 alpha (擇高出場 / 持有 3 天) sub-banner
+    # Iteration 1 揭穿: peak_5d hit 86.8% +12.78% / premium cum_3d 92.9% +12.16%
+    # 樣本 n=38 觀察期, 樣本 ≥60 後 Iteration 2 re-audit
+    mb = _read_json_safely(data_dir / 'multiday_backtest.json')
+    if mb and mb.get('combos'):
+        n_total = mb.get('n_total', 0)
+        all_quad = (mb['combos'].get('all_quad') or {}).get('all') or {}
+        premium = (mb['combos'].get('premium_only') or {}).get('all') or {}
+        peak_q = all_quad.get('peak_5d')
+        cum3_q = all_quad.get('cum_3d')
+        peak_p = premium.get('peak_5d')
+        cum3_p = premium.get('cum_3d')
+        if peak_q and cum3_q and n_total >= 20:
+            md_color = 'FF7C3AED' if n_total < 60 else 'FF059669'   # 紫 (觀察期) / 綠 (正式)
+            md_icon = '🚀' if n_total >= 60 else '🔬'
+            md_tag = '正式' if n_total >= 60 else f'觀察期 n={n_total}'
+            parts = [
+                f"{md_icon} Phase 3.5 多日 alpha ({md_tag}):",
+                f"5 日內擇高 {peak_q['hit_rate']*100:.1f}% / {peak_q['mean']:+.2f}%",
+            ]
+            if peak_p and peak_p.get('n', 0) >= 10:
+                parts.append(
+                    f"premium 擇高 {peak_p['hit_rate']*100:.1f}% / {peak_p['mean']:+.2f}% (n={peak_p['n']})"
+                )
+            if cum3_p and cum3_p.get('n', 0) >= 10:
+                parts.append(
+                    f"premium 持有 3 天 {cum3_p['hit_rate']*100:.1f}% / {cum3_p['mean']:+.2f}%"
+                )
+            md_text = '  |  '.join(parts) + '  — 來源: quad_hit_log × stock_history t+1~t+5'
+            md_cell = ws.cell(row, 2, md_text)
+            ws.merge_cells(f'B{row}:N{row}')
+            md_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color=md_color)
+            md_cell.fill = _summary_fill('FFF9FAFB')
+            md_cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+            ws.row_dimensions[row].height = 18
+            row += 1
+
     # v3.71.2 Phase 3.4 ROLLBACK: alpha overlap audit 揭穿 mild_up_only 是 trap
     # quad_only n=24 hit 79.2% mean +4.19% (強 alpha)
     # both     n=13 hit 76.9% mean +4.28% (強 alpha)
