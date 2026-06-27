@@ -1289,8 +1289,8 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
             md_color = 'FF7C3AED' if n_total < 60 else 'FF059669'   # 紫 (觀察期) / 綠 (正式)
             md_icon = '🚀' if n_total >= 60 else '🔬'
             md_tag = '正式' if n_total >= 60 else f'觀察期 n={n_total}'
+            # v3.71.14 fix: prefix 不入 join, 避免 ':  |  ' 醜空格
             parts = [
-                f"{md_icon} Phase 3.5 多日 alpha ({md_tag}):",
                 f"5 日內擇高 {peak_q['hit_rate']*100:.1f}% / {peak_q['mean']:+.2f}%",
             ]
             if peak_p and peak_p.get('n', 0) >= 10:
@@ -1301,7 +1301,9 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
                 parts.append(
                     f"premium 持有 3 天 {cum3_p['hit_rate']*100:.1f}% / {cum3_p['mean']:+.2f}%"
                 )
-            md_text = '  |  '.join(parts) + '  — 來源: quad_hit_log × stock_history t+1~t+5'
+            md_text = (f"{md_icon} Phase 3.5 多日 alpha ({md_tag}): "
+                       + '  |  '.join(parts)
+                       + '  — 來源: quad_hit_log × stock_history t+1~t+5')
             md_cell = ws.cell(row, 2, md_text)
             ws.merge_cells(f'B{row}:N{row}')
             md_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color=md_color)

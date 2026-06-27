@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.71.13(2026-06-27) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.71.14(2026-06-27) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.71.13** | 6/27 | **文檔 E3+E4+E5** — docs/README.md 索引 / CONTINUATION_GUIDE 接手 1-pager / LABELS §5 Excel 視覺標記 audit |
+| **v3.71.14** | 6/27 | **6/26 production 全 validation + R10 wording bug fix** — 9 項 PASS (Phase 3.2/3.5/處置股/Mobile/Email) / R10 sub-banner ': |' 醜空格修補 |
+| v3.71.13 | 6/27 | 文檔 E3+E4+E5 — docs/README.md 索引 / CONTINUATION_GUIDE 接手 1-pager / LABELS §5 Excel 視覺標記 audit |
 | v3.71.12 | 6/27 | 流程 D1+D4+D6 — Email fail alert (GitHub Issue) / weekly LOOP audit cron / workflows health monitor + 自動 alert |
 | v3.71.11 | 6/27 | 內容 C1+C7 — 🔁 跨日 quad 重複標記 (過去 7 天 dedup) / Master 月度評估 SOP 6 step / C2/C5 deferred |
 | v3.71.10 | 6/27 | 前端 B6+B7 — 📋 更新 modal (近 10 版) / 忘記密碼說明 / B2 B4 audit 確認 well-covered |

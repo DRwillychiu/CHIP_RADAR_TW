@@ -93,6 +93,29 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.14 — 6/26 production 全功能 validation + R10 wording bug fix
+
+**6/26 production 全功能 validation** (週六無交易 → 用 v3.71.13 code + 真實 backtest data 合成 branches 重 build):
+
+PASS 項目:
+| 位置 | 驗證內容 | 結果 |
+|---|---|---|
+| R3 TL;DR | 「🎯 0 強共識 / Q5 ↑ 偏多 65% / E 3 異常 / F 0 長期 / J 3 集中 / H 4 借券壓力」 | ✅ |
+| R4 Action card | 「避開 — 除權息 7 檔 \| **明日恐處置 10 檔** 1435/2233/2302」 | ✅ v3.71.7 處置股整合 |
+| R8 Phase 3.2 quad | 78.9% / 30d 64.7% / 強 alpha (p<0.001) | ✅ |
+| R9 跟單實際淨報酬 | 74% 淨 hit / +3.79% mean / 累積 +144% | ✅ v3.71.7 |
+| R10 Phase 3.5 multiday | peak_5d 86.8% / premium 92.9% | ⚠️ wording bug (fix in v3.71.14) |
+| R12 註腳 | ⭐⭐ / ⭐ / ⚠️ / **🔁** 四標記說明 | ✅ v3.71.11 dedup |
+| Mobile R5 | 「↑ 偏多 65.0%」 | ✅ |
+| Mobile R12 | 「**明日恐處置 10 檔**」 | ✅ |
+| Email body | 5 section 完整 (明日預測 / 強共識 / 避開含處置 / 追蹤池方向) | ✅ |
+
+**R10 wording bug fix**:
+原邏輯 `'  |  '.join([prefix:, content_1, content_2])` → 「Phase 3.5 多日 alpha (觀察期 n=38): | 5 日內擇高...」醜空格.
+修補: prefix 不入 join, 直接 `f"{prefix}: " + join(...)` → 「Phase 3.5 多日 alpha (觀察期 n=38): 5 日內擇高... | premium 擇高... | premium 持有 3 天...」
+
+---
+
 ### ✅ v3.71.13 — 文檔 E3 + E4 + E5 (新對話 onboarding + 標記同步 + docs 索引)
 
 **E5 docs/ 索引** (`docs/README.md` 新建):
