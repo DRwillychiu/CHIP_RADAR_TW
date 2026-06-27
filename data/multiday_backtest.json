@@ -1,0 +1,177 @@
+{
+  "combos": {
+    "all_quad": {
+      "description": "全部 quad picks (baseline, 含所有 master)",
+      "all": {
+        "cum_1d": {
+          "n": 38,
+          "hits": 30,
+          "hit_rate": 0.7895,
+          "mean": 4.373,
+          "median": 3.077,
+          "cum": 166.2,
+          "ci_lo": 0.6365,
+          "ci_hi": 0.8893
+        },
+        "cum_3d": {
+          "n": 38,
+          "hits": 29,
+          "hit_rate": 0.7632,
+          "mean": 8.68,
+          "median": 6.265,
+          "cum": 329.8,
+          "ci_lo": 0.6079,
+          "ci_hi": 0.8701
+        },
+        "cum_5d": {
+          "n": 38,
+          "hits": 24,
+          "hit_rate": 0.6316,
+          "mean": 7.719,
+          "median": 4.178,
+          "cum": 293.3,
+          "ci_lo": 0.4728,
+          "ci_hi": 0.7662
+        },
+        "peak_5d": {
+          "n": 38,
+          "hits": 33,
+          "hit_rate": 0.8684,
+          "mean": 12.782,
+          "median": 10.289,
+          "cum": 485.7,
+          "ci_lo": 0.7267,
+          "ci_hi": 0.9425
+        }
+      },
+      "is": {
+        "n": 22,
+        "hits": 19,
+        "hit_rate": 0.8636,
+        "mean": 13.972,
+        "median": 11.088,
+        "cum": 307.4,
+        "ci_lo": 0.6666,
+        "ci_hi": 0.9525
+      },
+      "oos": {
+        "n": 16,
+        "hits": 5,
+        "hit_rate": 0.3125,
+        "mean": -0.878,
+        "median": -3.334,
+        "cum": -14.0,
+        "ci_lo": 0.1416,
+        "ci_hi": 0.556
+      },
+      "peak_is": {
+        "n": 22,
+        "hits": 21,
+        "hit_rate": 0.9545,
+        "mean": 16.708,
+        "median": 13.757,
+        "cum": 367.6,
+        "ci_lo": 0.782,
+        "ci_hi": 0.9919
+      },
+      "peak_oos": {
+        "n": 16,
+        "hits": 12,
+        "hit_rate": 0.75,
+        "mean": 7.383,
+        "median": 3.668,
+        "cum": 118.1,
+        "ci_lo": 0.505,
+        "ci_hi": 0.8982
+      }
+    },
+    "premium_only": {
+      "description": "Premium master (≥77% t+1 hit) 配對的 quad picks. 經濟學: 大戶質量篩選 — 精準 master 訊號應在多日持續 outperform.",
+      "all": {
+        "cum_1d": {
+          "n": 28,
+          "hits": 23,
+          "hit_rate": 0.8214,
+          "mean": 4.715,
+          "median": 3.335,
+          "cum": 132.0,
+          "ci_lo": 0.6441,
+          "ci_hi": 0.9212
+        },
+        "cum_3d": {
+          "n": 28,
+          "hits": 26,
+          "hit_rate": 0.9286,
+          "mean": 12.159,
+          "median": 12.268,
+          "cum": 340.4,
+          "ci_lo": 0.7735,
+          "ci_hi": 0.9802
+        },
+        "cum_5d": {
+          "n": 28,
+          "hits": 23,
+          "hit_rate": 0.8214,
+          "mean": 13.026,
+          "median": 11.088,
+          "cum": 364.7,
+          "ci_lo": 0.6441,
+          "ci_hi": 0.9212
+        },
+        "peak_5d": {
+          "n": 28,
+          "hits": 26,
+          "hit_rate": 0.9286,
+          "mean": 15.988,
+          "median": 13.757,
+          "cum": 447.7,
+          "ci_lo": 0.7735,
+          "ci_hi": 0.9802
+        }
+      },
+      "is": {
+        "n": 22,
+        "hits": 19,
+        "hit_rate": 0.8636,
+        "mean": 13.972,
+        "median": 11.088,
+        "cum": 307.4,
+        "ci_lo": 0.6666,
+        "ci_hi": 0.9525
+      },
+      "oos": {
+        "n": 6,
+        "hits": 4,
+        "hit_rate": 0.6667,
+        "mean": 9.555,
+        "median": 7.956,
+        "cum": 57.3,
+        "ci_lo": 0.3,
+        "ci_hi": 0.9032
+      },
+      "peak_is": {
+        "n": 22,
+        "hits": 21,
+        "hit_rate": 0.9545,
+        "mean": 16.708,
+        "median": 13.757,
+        "cum": 367.6,
+        "ci_lo": 0.782,
+        "ci_hi": 0.9919
+      },
+      "peak_oos": {
+        "n": 6,
+        "hits": 5,
+        "hit_rate": 0.8333,
+        "mean": 13.348,
+        "median": 12.368,
+        "cum": 80.1,
+        "ci_lo": 0.4365,
+        "ci_hi": 0.9699
+      }
+    }
+  },
+  "n_total": 38,
+  "is_cutoff_date": "20260616",
+  "split": "60/40"
+}
