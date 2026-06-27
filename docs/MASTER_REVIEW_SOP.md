@@ -7,13 +7,28 @@
 
 ## 步驟
 
-### 1. 跑 `analyze_master_vol_spike_reliability.py`
+### 1. 跑兩個 analyzer (per-master 雙維度)
 
 ```bash
 python scripts/analyze_master_vol_spike_reliability.py
+python scripts/analyze_master_contribution.py
 ```
 
-輸出按 hit% 排序的 master tier:
+- **analyzer #1** = per-master 自己配對的 picks hit% (vol_spike reliability)
+- **analyzer #2** = LOO 對比「沒此 master 後整體 quad pool」 (contribution / 拖後腿判定)
+
+兩個維度互補 — 高 hit% 不等於高 contribution (e.g. 陳律師 77.8% hit 但 LOO 差 -2.2pp = 「中性, 不增益」).
+
+v3.71.16 snapshot (2026-06-26, n=38 quad pool):
+- 核心 alpha (contrib ≥30% + Δpp >0): 無
+- 輔助 (Δpp >+5pp): 竹科主力分點 (+13pp) / 陳族元 (+5.2pp)
+- 中性 (|Δpp| ≤5): 陳律師 / 蔣承翰
+- **拖後腿 (Δpp <-5pp)**: 強森 (-28.4pp ⚠️) / 張濬安(航海王) (-16.1) / Tradow (-13.3)
+- 未貢獻 (n_with=0): 大牌分析師 / 巨人傑 / 布哥 / 林滄海 / 民哥 / 迷你哥(松山哥)
+
+**注意**: 樣本 n=38 還小, Wilson CI 很寬, 不要因單月分析就 production 變動 (n≥80 後才 actionable).
+
+第一個 analyzer 輸出按 hit% 排序的 master tier:
 
 ```
 Master              trigger | picks | hit% | mean%

@@ -63,11 +63,17 @@ jobs:
           python scripts/analyze_master_vol_spike_reliability.py
         continue-on-error: true
 
+      - name: Per-master contribution (LOO) re-run
+        run: |
+          echo "🔬 per-master contribution LOO (拖後腿 / 核心 alpha 判定)"
+          python scripts/analyze_master_contribution.py
+        continue-on-error: true
+
       - name: Commit results
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions Bot"
-          git add data/combo_backtest.json data/multiday_backtest.json data/alpha_overlap_audit.json
+          git add data/combo_backtest.json data/multiday_backtest.json data/alpha_overlap_audit.json data/master_contribution.json
           if git diff --staged --quiet; then
             echo "::notice::no change in audit results"
           else

@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.71.15(2026-06-27) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.71.16(2026-06-27) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.71.15** | 6/27 | **N2 Sector rotation** — Dashboard R12 + Mobile 「📊 共識集中產業 top 3」 (半導體業 X 檔, etc) |
+| **v3.71.16** | 6/27 | **N1 Master 貢獻度 LOO** — 揭穿強森 -28.4pp 拖後腿 / 竹科+陳族元 真輔助 / weekly cron 自動 re-run |
+| v3.71.15 | 6/27 | N2 Sector rotation — Dashboard R12 + Mobile 「📊 共識集中產業 top 3」 (半導體業 X 檔, etc) |
 | v3.71.14 | 6/27 | 6/26 production 全 validation + R10 wording bug fix — 9 項 PASS / R10 sub-banner ': |' 醜空格修補 |
 | v3.71.13 | 6/27 | 文檔 E3+E4+E5 — docs/README.md 索引 / CONTINUATION_GUIDE 接手 1-pager / LABELS §5 Excel 視覺標記 audit |
 | v3.71.12 | 6/27 | 流程 D1+D4+D6 — Email fail alert (GitHub Issue) / weekly LOOP audit cron / workflows health monitor + 自動 alert |

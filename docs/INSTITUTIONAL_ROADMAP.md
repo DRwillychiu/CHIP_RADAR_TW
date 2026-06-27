@@ -93,6 +93,34 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.16 — N1 Master 貢獻度 LOO 分析 (per-master 雙維度)
+
+新 `scripts/analyze_master_contribution.py` Leave-One-Out 簡化版:
+- 對每 master M, 算 「with_M」 vs 「without_M」 quad pool hit rate
+- 判定 5 類: 核心 alpha / 輔助 / 中性 / 拖後腿 / 未貢獻
+- 寫 `data/master_contribution.json`
+
+**v3.71.16 snapshot (2026-06-26, quad pool n=38, hit 78.9%)** — 揭穿:
+
+| Master | 貢獻% | hit(with M) | hit(without M) | Δpp | Verdict |
+|---|---|---|---|---|---|
+| 陳律師 ⭐⭐ | 47.4% | 78% | 80% | -2.2 | 中性 |
+| **強森** | 42.1% | 62% | **91%** | **-28.4** | **⚠️ 拖後腿** |
+| 張濬安(航海王) | 23.7% | 67% | 83% | -16.1 | ⚠️ 拖後腿 |
+| 竹科主力分點 ⭐⭐ | 23.7% | 89% | 76% | +13.0 | ✅ 輔助 |
+| 蔣承翰 | 21.1% | 75% | 80% | -5.0 | 中性 |
+| 陳族元 ⭐⭐ | 15.8% | 83% | 78% | +5.2 | ✅ 輔助 |
+| Tradow | 7.9% | 67% | 80% | -13.3 | ⚠️ 拖後腿 |
+| 6 位未貢獻 | 0% | — | — | — | 未貢獻 |
+
+**極關鍵發現**: 強森配對 quad picks 拉低整體 alpha **-28.4pp** (沒他 quad hit 變 91%, 有他 62%). 但 n=16 還小, 等樣本累積才能 production action.
+
+整合:
+- `weekly-loop-audit.yml` 加 Step 跑 analyzer (週日 22:00 TW 自動 re-run + commit)
+- `docs/MASTER_REVIEW_SOP.md` 加雙維度分析 + 警告「n=38 還小, n≥80 才 actionable」
+
+---
+
 ### ✅ v3.71.15 — N2 Sector rotation 落地 (族群輪動分析)
 
 新 helper `_compute_sector_distribution(picks, data_dir, top_n=3)`:
