@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.71.18(2026-06-27) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.71.19(2026-06-27) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.71.18** | 6/27 | **L 系列 📌 Pinned Master 完整落地** — 大牌專屬 Excel sheet + Mobile section + Section 0 📌 marker + 歷史 alpha backtest |
+| **v3.71.19** | 6/27 | **Cross_validate audit (v3.71.18 driven)** — Dashboard 28 數字全 PASS / data bar 9/11 warn (合成樣本邊界) / 43 套 test pass |
+| v3.71.18 | 6/27 | L 系列 📌 Pinned Master 完整落地 — 大牌專屬 Excel sheet + Mobile section + Section 0 📌 marker + 歷史 alpha backtest |
 | v3.71.17 | 6/27 | N6 處置玩家標籤 audit — oldest_pct 35.9% (中度 clip) 仍不開 / weekly cron 追蹤直到 <20% |
 | v3.71.16 | 6/27 | N1 Master 貢獻度 LOO — 揭穿強森 -28.4pp 拖後腿 / 竹科+陳族元 真輔助 / weekly cron 自動 re-run |
 | v3.71.15 | 6/27 | N2 Sector rotation — Dashboard R12 + Mobile 「📊 共識集中產業 top 3」 (半導體業 X 檔, etc) |

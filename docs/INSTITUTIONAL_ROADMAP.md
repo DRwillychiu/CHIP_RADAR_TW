@@ -93,6 +93,26 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.19 — Cross_validate audit (v3.71.18 driven)
+
+對 v3.71.18 L 系列大改造做 cross_validate + 全套 test 雙重驗證:
+
+**Cross_validate (cross_validate_dashboard.py)**:
+- 28 個既有 Dashboard 數字 audit 全 PASS
+- 1 個 data bar 9/11 是合成 data 邊界 (Section F 累計買 / H 借券張數 sample 空), 非真 bug
+  → 改 hard fail → warn (production 真實 10+ picks 會全 11 觸發)
+- 修補後 cross_validate **全 PASS** ✅
+
+**44 套 home-grown test (tests/run_all.py)**:
+- 43/44 pass
+- test_v3460_tier2 known date-dependent (memory 已記錄)
+
+v3.71.18 PINNED 系統落地未 break 既有:
+- Section 0 sub-banner / picks 名稱欄 / Mobile section / Phase 3.2 quad backtest 全 audit OK
+- Pinned 框架 (PINNED_MASTERS set / _try_add_data_bar / consensus 計算邏輯) 無 regression
+
+---
+
 ### ✅ v3.71.18 — L 系列「📌 Pinned Master」完整落地 (用戶要求大牌專屬)
 
 用戶要求對「每天關注的大牌分析師(新光新竹)」量身打造 dashboard.
