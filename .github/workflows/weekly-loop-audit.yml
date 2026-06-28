@@ -75,11 +75,19 @@ jobs:
           python scripts/audit_disposal_history_maturity.py
         continue-on-error: true
 
+      - name: Pinned master alpha (L1/L5/L6) re-run
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+        run: |
+          echo "🔬 pinned master 多維度 alpha (大牌分析師 + 未來其他 pinned)"
+          python scripts/analyze_pinned_master_alpha.py
+        continue-on-error: true
+
       - name: Commit results
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions Bot"
-          git add data/combo_backtest.json data/multiday_backtest.json data/alpha_overlap_audit.json data/master_contribution.json
+          git add data/combo_backtest.json data/multiday_backtest.json data/alpha_overlap_audit.json data/master_contribution.json data/pinned_master_stats.json
           if git diff --staged --quiet; then
             echo "::notice::no change in audit results"
           else

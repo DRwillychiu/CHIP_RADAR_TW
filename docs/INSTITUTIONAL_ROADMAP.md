@@ -93,6 +93,33 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.18 — L 系列「📌 Pinned Master」完整落地 (用戶要求大牌專屬)
+
+用戶要求對「每天關注的大牌分析師(新光新竹)」量身打造 dashboard.
+盤點發現: quad alpha 不適用 (47/47 active 高頻短打型, 不爆量 → 永不觸發 vol_spike).
+N1 LOO 顯示「未貢獻」 但對用戶 actionable, 需 master-specific spotlight.
+
+8 個 L 系列全完成 (L7 Telegram defer):
+
+L4 ✅ Section 0 名稱欄 📌 marker (在 ⭐⭐/⭐/⚠️/🔁 之外最外層)
+L3 ✅ Mobile sheet 「📌 大牌 今日 Top 3」 (含 ★共識 sub-tag, Email body 自動帶入)
+L1 ✅ 大牌歷史 alpha backtest (analyze_pinned_master_alpha.py 三維度: 全 picks / 新標的 / 連續加碼)
+L5 ✅ 新標的 alpha (含在 L1 script)
+L6 ✅ 連續加碼 alpha (含在 L1 script)
+L2 ✅ Pinned Master 追蹤 sheet (Excel 第 5 enrichment, header + narrative + L1/L5/L6 stats + 今日 Top 10 + 連續囤貨 table)
+L8 ✅ Pinned 系統 generalize (PINNED_MASTERS set + 全 helper 支援多 master, 未來加 N 位只需改 set)
+L7 ⏸ Telegram bot defer (需 user 配 token)
+
+架構:
+- `PINNED_MASTERS = {'大牌分析師'}` (excel_report.py module level)
+- helper `_compute_sector_distribution` 重用 + 新建 `build_pinned_track_sheet`
+- weekly-loop-audit.yml 加 Step 5 (analyze_pinned_master_alpha.py 自動跑) + commit pinned_master_stats.json
+- 註腳同步含 「📌 = 你關注的 master (X / Y / Z) 參與」 (動態)
+
+未來擴展: PINNED_MASTERS 改成 user 可設 (e.g. config/pinned_masters.yaml), 不需動 code.
+
+---
+
 ### ✅ v3.71.17 — N6 處置玩家標籤提前 audit (用戶 override, 結論不開)
 
 用戶 override v3.36.2「等 7/4 滿 30 天」規範, 提前 review 21 snapshot:

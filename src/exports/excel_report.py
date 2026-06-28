@@ -51,9 +51,11 @@ except ImportError:
 DASHBOARD_SHEET_NAME = "📋 今日 Dashboard"
 MOBILE_SHEET_NAME = "📱 手機摘要"   # v3.67.1 Phase 2.7
 QUAD_TRACK_SHEET_NAME = "📈 Quad 實戰追蹤"   # v3.70.2 Phase 3.2 持續性追蹤
+PINNED_TRACK_SHEET_NAME = "📌 Pinned Master 追蹤"   # v3.71.18 L2
 QUAD_FAIL_SHEET_NAME = "📉 Quad 失效歸因"   # v3.70.3 Phase 3.2 失效學習
 ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME,
-                     QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME]
+                     QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME,
+                     PINNED_TRACK_SHEET_NAME]
 # 舊 sheet 名 (給 cleanup 移除舊月檔殘留)
 LEGACY_ENRICHMENT_NAMES = ["📋 今日摘要", "🚨 異常警報", "📦 連續囤貨", "⚠️ 風險警示"]
 
@@ -300,6 +302,15 @@ PREMIUM_MASTERS: set = {
     '陳律師',
     '竹科主力分點',
     '陳族元',
+}
+
+# v3.71.18 L 系列: PINNED_MASTERS — user 自定「常駐關注」 master
+# 跟 PREMIUM 不同:
+#   PREMIUM = 高 hit rate 自動篩選 (backtest 結果)
+#   PINNED  = 用戶手動設定「我每天都要看」 (個人偏好)
+# 觸發: 名稱欄 📌 marker / Mobile 專區 / Enrichment sheet
+PINNED_MASTERS: set = {
+    '大牌分析師',   # v3.71.18 user 要求, 47/47 active 高頻短打型, quad 不適用
 }
 
 
@@ -1404,9 +1415,35 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
             ws.row_dimensions[row].height = 18
             row += 1
 
-    # v3.71.11 註腳 (加 🔁 重複標記)
+    # v3.71.18 L1: pinned master stats sub-banner (大牌歷史 hit rate)
+    pms = _read_json_safely(data_dir / 'pinned_master_stats.json')
+    if pms and pms.get('pinned_masters'):
+        for m_name, m_stats in pms['pinned_masters'].items():
+            if m_stats.get('status') != 'ok': continue
+            ap = m_stats.get('all_picks') or {}
+            new_s = m_stats.get('new_stocks') or {}
+            acc_s = m_stats.get('accumulation') or {}
+            parts = []
+            if ap.get('n', 0) >= 5:
+                parts.append(f"全 picks n={ap['n']} hit_1d={ap.get('hit_1d',0)*100:.0f}% / hit_3d={ap.get('hit_3d',0)*100:.0f}%")
+            if new_s.get('n', 0) >= 3:
+                parts.append(f"新標 n={new_s['n']} hit_3d={new_s.get('hit_3d',0)*100:.0f}% mean={new_s.get('mean_3d',0):+.2f}%")
+            if acc_s.get('n', 0) >= 2:
+                parts.append(f"連加 n={acc_s['n']} hit_5d={acc_s.get('hit_5d',0)*100:.0f}% mean={acc_s.get('mean_5d',0):+.2f}%")
+            if parts:
+                pm_text = f"📌 {m_name} 歷史 alpha: " + '  |  '.join(parts)
+                pm_cell = ws.cell(row, 2, pm_text)
+                ws.merge_cells(f'B{row}:N{row}')
+                pm_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color='FFB45309')
+                pm_cell.fill = _summary_fill('FFFEF3C7')   # 淡金
+                pm_cell.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+                ws.row_dimensions[row].height = 18
+                row += 1
+
+    # v3.71.18 註腳 (加 📌 pinned 標記)
+    pinned_str = ' / '.join(sorted(PINNED_MASTERS)) if PINNED_MASTERS else '無'
     note_cell = ws.cell(row, 2,
-                         "ⓘ 排序: 合計淨買金額 ↓  |  ⭐⭐ = premium quad (陳律師/竹科主力/陳族元, ≥77% hit)  |  ⭐ = 一般 quad (78.9%)  |  ⚠️ = 領頭獨佔 ≥50%  |  🔁 = 過去 7 天 quad 重複 (可能已跟單)")
+                         f"ⓘ 排序: 合計淨買金額 ↓  |  ⭐⭐ = premium quad (陳律師/竹科主力/陳族元, ≥77% hit)  |  ⭐ = 一般 quad (78.9%)  |  ⚠️ = 領頭獨佔 ≥50%  |  🔁 = 過去 7 天 quad 重複  |  📌 = 你關注的 master ({pinned_str}) 參與")
     ws.merge_cells(f'B{row}:N{row}')
     note_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color='FF7C2D12')
     note_cell.fill = _summary_fill('FFFFF7ED')   # 極淡橙底
@@ -1526,9 +1563,13 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
         # v3.71.2 Phase 3.4 ROLLBACK: ★ mild_up 標記砍掉 (audit 揭穿 trap)
         # v3.71.5 Phase 3.2 premium tier: ⭐⭐ for premium master (≥77% hit) 配對
         # v3.71.11 C7: 🔁 for 過去 7 天 trigger 重複 (user 可能已跟單)
+        # v3.71.18 L4: 📌 for pinned master 參與 (user 自定常駐關注)
         is_quad = item['code'] in quad_info['quad_codes']
         is_premium = item['code'] in quad_info.get('premium_codes', set())
         is_repeat = item['code'] in recent_quad_codes
+        # pinned: 該股 buyers 含 PINNED_MASTERS
+        master_set = set(b.get('master') for b in item.get('branches', []) if b.get('master'))
+        is_pinned = bool(master_set & PINNED_MASTERS)
         display_name = item['name'] or '—'
         if is_premium and is_outlier:
             display_name = f"⭐⭐⚠️ {display_name}"
@@ -1542,6 +1583,8 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
             display_name = f"⚠️ {display_name}"
         if is_repeat:
             display_name = f"🔁 {display_name}"
+        if is_pinned:
+            display_name = f"📌 {display_name}"
         c_name = ws.cell(row, 4, display_name)
         if is_quad and not is_outlier:
             # quad 但非 outlier → 名稱 cell 淡金底 + 綠字 (alpha 啟動視覺)
@@ -1748,6 +1791,40 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
             row += 1
             for ind, n, pct in sec_dist:
                 ws.cell(row, 3, f"{ind} · {n} 檔 ({pct:.0f}%)").font = val_font
+                row += 1
+
+    # v3.71.18 L3: 📌 pinned master 今日動態 (大牌專區)
+    # 列出每個 pinned master 今日 top 3 buys + 共識重疊
+    for pinned_master in sorted(PINNED_MASTERS):
+        master_buys = []
+        for b in branches_data:
+            if b.get('master') == pinned_master:
+                for s in (b.get('buys') or []):
+                    code = s.get('code')
+                    if not code or code.startswith('00'): continue
+                    master_buys.append({
+                        'code': code, 'name': s.get('name', '—'),
+                        'amt': s.get('buy_amt') or 0,
+                    })
+        # 同 master 跨分點同股 dedup + 合計
+        agg = {}
+        for b in master_buys:
+            key = b['code']
+            if key in agg:
+                agg[key]['amt'] += b['amt']
+            else:
+                agg[key] = b
+        top_buys = sorted(agg.values(), key=lambda x: -x['amt'])[:3]
+        if top_buys:
+            row += 1
+            ws.cell(row, 3, f"📌 {pinned_master} 今日 Top 3").font = sec_font
+            row += 1
+            consensus_codes = {c['code'] for c in consensus}
+            for b in top_buys:
+                tag = ' (★共識)' if b['code'] in consensus_codes else ''
+                amt_wan = round(b['amt'] / 10)
+                ws.cell(row, 3,
+                        f"{b['name']} ({b['code']}) · {amt_wan:,} 萬{tag}").font = val_font
                 row += 1
 
     # v3.71.3 用戶要求: Mild_up watch section (反向參考, 非 alpha 推薦)
@@ -2034,6 +2111,153 @@ def build_quad_track_sheet(ws, data_dir):
     ws.row_dimensions[row].height = 70
 
     ws.freeze_panes = 'A6'
+
+
+def build_pinned_track_sheet(ws, branches_data, data_dir):
+    """v3.71.18 L2: pinned master 專屬追蹤 sheet.
+
+    對 PINNED_MASTERS 內每位 master 顯示:
+      [Header] master 名 + master_profile narrative + L1/L5/L6 stats
+      [Table 1] 今日 top buys (top 10, dedup 跨分點同股 + 合計)
+      [Table 2] 過去 30 天 連續加碼 stocks (從 master_profiles.consecutive_accumulation)
+    """
+    hdr_font = Font(name='Noto Sans TC', size=14, bold=True, color='FFB45309')
+    sub_font = Font(name='Noto Sans TC', size=10, color='FF666666')
+    val_font = Font(name='Noto Sans TC', size=11)
+    th_font = Font(name='Noto Sans TC', size=10, bold=True)
+    th_fill = PatternFill('solid', fgColor='FFFEF3C7')
+
+    # column widths
+    for col, w in [('A', 3), ('B', 22), ('C', 18), ('D', 14), ('E', 14),
+                    ('F', 14), ('G', 14), ('H', 18)]:
+        ws.column_dimensions[col].width = w
+
+    pms = _read_json_safely(data_dir / 'pinned_master_stats.json') or {}
+    mp = _read_json_safely(data_dir / 'master_profiles.json') or {}
+    mp_masters = mp.get('individual_masters') or {}
+    if not mp_masters and isinstance(mp.get('masters'), dict):
+        mp_masters = mp['masters']
+
+    row = 2
+    for m_name in sorted(PINNED_MASTERS):
+        # Header
+        c = ws.cell(row, 2, f"📌 {m_name}")
+        c.font = hdr_font
+        row += 1
+
+        # Narrative
+        prof = mp_masters.get(m_name, {})
+        narr = prof.get('narrative', '')
+        if narr:
+            c = ws.cell(row, 2, narr[:400])
+            c.font = sub_font
+            ws.merge_cells(f'B{row}:H{row+1}')
+            c.alignment = Alignment(wrap_text=True, vertical='top')
+            ws.row_dimensions[row].height = 28
+            ws.row_dimensions[row+1].height = 28
+            row += 2
+        row += 1
+
+        # L1/L5/L6 stats
+        m_stats = (pms.get('pinned_masters') or {}).get(m_name, {})
+        if m_stats.get('status') == 'ok':
+            for label, key in [('全部 picks', 'all_picks'),
+                                ('新標的', 'new_stocks'),
+                                ('連續加碼', 'accumulation')]:
+                s = m_stats.get(key) or {}
+                if not s.get('n'): continue
+                txt = (f"{label}: n={s['n']}  hit_1d={s.get('hit_1d',0)*100:.0f}%  "
+                       f"mean_1d={s.get('mean_1d',0):+.2f}%  hit_3d={s.get('hit_3d',0)*100:.0f}%  "
+                       f"mean_3d={s.get('mean_3d',0):+.2f}%  hit_5d={s.get('hit_5d',0)*100:.0f}%  "
+                       f"mean_5d={s.get('mean_5d',0):+.2f}%")
+                c = ws.cell(row, 2, txt)
+                c.font = Font(name='Noto Sans TC', size=10, color='FFB45309')
+                ws.merge_cells(f'B{row}:H{row}')
+                row += 1
+        else:
+            c = ws.cell(row, 2, "(歷史 alpha stats 待 weekly cron 跑 analyze_pinned_master_alpha.py)")
+            c.font = sub_font
+            row += 1
+        row += 1
+
+        # Table 1: 今日 top buys
+        ws.cell(row, 2, f"📊 {m_name} 今日 Top 10 買進 (跨分點同股合計)").font = th_font
+        row += 1
+        for col_i, header in enumerate(['#', '代號', '股名', '買金額(萬)', '買張', '漲跌%']):
+            c = ws.cell(row, 2 + col_i, header)
+            c.font = th_font; c.fill = th_fill
+            c.alignment = Alignment(horizontal='center')
+        row += 1
+
+        master_buys = []
+        for b in branches_data:
+            if b.get('master') == m_name:
+                for s in (b.get('buys') or []):
+                    code = s.get('code')
+                    if not code or code.startswith('00'): continue
+                    master_buys.append({
+                        'code': code, 'name': s.get('name', '—'),
+                        'amt': s.get('buy_amt') or 0,
+                        'volume': s.get('volume') or 0,
+                        'change_pct': s.get('change_pct'),
+                    })
+        agg = {}
+        for b in master_buys:
+            key = b['code']
+            if key in agg:
+                agg[key]['amt'] += b['amt']
+                agg[key]['volume'] += b['volume']
+            else:
+                agg[key] = b
+        top_buys = sorted(agg.values(), key=lambda x: -x['amt'])[:10]
+        if top_buys:
+            for i, b in enumerate(top_buys, 1):
+                ws.cell(row, 2, i)
+                ws.cell(row, 3, b['code'])
+                ws.cell(row, 4, b['name'])
+                ws.cell(row, 5, round(b['amt'] / 10)).number_format = '#,##0'
+                ws.cell(row, 6, b['volume']).number_format = '#,##0'
+                chg = b.get('change_pct')
+                if chg is not None:
+                    c_chg = ws.cell(row, 7, chg / 100)
+                    c_chg.number_format = '0.00%;[Color10]-0.00%'
+                    if chg >= 0.01:
+                        c_chg.font = Font(name='Noto Sans TC', size=11, bold=True, color='FFC62828')
+                    elif chg <= -0.01:
+                        c_chg.font = Font(name='Noto Sans TC', size=11, bold=True, color='FF2E7D32')
+                row += 1
+        else:
+            ws.cell(row, 2, "今日無買進資料").font = sub_font
+            row += 1
+        row += 2
+
+        # Table 2: 連續加碼 (從 master_profile)
+        ws.cell(row, 2, f"📦 {m_name} 連續囤貨 (active)").font = th_font
+        row += 1
+        for col_i, header in enumerate(['#', '代號', '股名', '連續天數', '累計金額(萬)']):
+            c = ws.cell(row, 2 + col_i, header)
+            c.font = th_font; c.fill = th_fill
+            c.alignment = Alignment(horizontal='center')
+        row += 1
+
+        op = prof.get('operation_metrics', {}) if prof else {}
+        cons = op.get('consecutive_accumulation') or op.get('consecutive_active') or []
+        if isinstance(cons, list) and cons:
+            for i, item in enumerate(cons[:10], 1):
+                ws.cell(row, 2, i)
+                ws.cell(row, 3, item.get('code', '—'))
+                ws.cell(row, 4, item.get('name', '—'))
+                ws.cell(row, 5, item.get('days') or item.get('streak', '—'))
+                amt = item.get('total_amt') or item.get('cumulative_amt')
+                if amt:
+                    ws.cell(row, 5 if 'days' in item else 6, round(amt / 10)).number_format = '#,##0'
+                row += 1
+        else:
+            ws.cell(row, 2, "無連續囤貨資料 (待 master_profile 更新)").font = sub_font
+            row += 1
+        row += 3
+
+    ws.freeze_panes = 'A2'
 
 
 def build_quad_failure_sheet(ws, data_dir):
@@ -3390,9 +3614,19 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     except Exception as _be:
         print(f"  [Excel] quad failure sheet build 失敗: {type(_be).__name__}: {_be}")
 
-    # 排序: dashboard → mobile → quad track → quad fail → 日期 sheets desc
+    # v3.71.18 L2: Pinned master 追蹤 sheet (Dashboard 後第 5 個)
+    if PINNED_TRACK_SHEET_NAME in wb.sheetnames:
+        wb.remove(wb[PINNED_TRACK_SHEET_NAME])
+    pinned_ws = wb.create_sheet(title=PINNED_TRACK_SHEET_NAME)
+    try:
+        build_pinned_track_sheet(pinned_ws, branches_data, data_dir)
+    except Exception as _be:
+        print(f"  [Excel] pinned track sheet build 失敗: {type(_be).__name__}: {_be}")
+
+    # 排序: dashboard → mobile → quad track → quad fail → pinned → 日期 sheets desc
     enrichment = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME,
-                  QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME]
+                  QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME,
+                  PINNED_TRACK_SHEET_NAME]
     other_sheets = sorted([s for s in wb.sheetnames if s not in enrichment],
                             reverse=True)
     order = [s for s in enrichment if s in wb.sheetnames] + other_sheets
