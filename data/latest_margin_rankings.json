@@ -1,6 +1,6 @@
 {
  "trade_date": "20260630",
- "updated_at": "2026-06-30T22:51:37.707243+08:00",
+ "updated_at": "2026-06-30T23:57:24.666709+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -5011,57 +5011,39 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1158,
-   "watch": 84,
-   "high_risk": 4,
+   "healthy": 1170,
+   "watch": 75,
+   "high_risk": 2,
    "margin_call": 1,
-   "insufficient_data": 942
+   "insufficient_data": 941
   },
   "high_risk_stocks": [
    {
     "code": "00715L",
     "name": "期街口布蘭特正2",
-    "ratio": 111.0,
+    "ratio": 113.3,
     "risk_level": "margin_call",
     "margin_balance": 12842,
     "today_close": 33.78,
-    "estimated_cost": 50.71
+    "estimated_cost": 49.69
    },
    {
     "code": "3363",
     "name": "上詮",
-    "ratio": 125.3,
+    "ratio": 126.6,
     "risk_level": "high_risk",
     "margin_balance": 5720,
     "today_close": 578.0,
-    "estimated_cost": 768.6
+    "estimated_cost": 761.06
    },
    {
     "code": "7717",
     "name": "萊德光電-KY",
-    "ratio": 126.0,
+    "ratio": 127.5,
     "risk_level": "high_risk",
     "margin_balance": 419,
     "today_close": 440.0,
-    "estimated_cost": 581.78
-   },
-   {
-    "code": "6588",
-    "name": "東典光電",
-    "ratio": 128.2,
-    "risk_level": "high_risk",
-    "margin_balance": 2067,
-    "today_close": 88.2,
-    "estimated_cost": 114.65
-   },
-   {
-    "code": "3581",
-    "name": "博磊",
-    "ratio": 128.4,
-    "risk_level": "high_risk",
-    "margin_balance": 1975,
-    "today_close": 141.5,
-    "estimated_cost": 183.62
+    "estimated_cost": 574.95
    }
   ],
   "thresholds": {
