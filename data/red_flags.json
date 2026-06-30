@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T23:54:54.586509+08:00",
+  "generated_at": "2026-07-01T01:41:27.040935+08:00",
   "trade_date": "20260630",
   "pump_suspicion": [
     {
@@ -358,40 +358,6 @@
     {
       "stock_code": "2408",
       "stock_name": "南亞科",
-      "buy_branch_code": "9A9g",
-      "buy_master": "陳族元",
-      "sell_branch_code": "9309",
-      "sell_master": "林滄海",
-      "buy_lot": 87,
-      "sell_lot": 90,
-      "buy_amt_wan": 3940,
-      "sell_amt_wan": 3988,
-      "lot_match_ratio": 0.97,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9A9g 買 87 張 vs 9309 賣 90 張 (匹配 97%)"
-    },
-    {
-      "stock_code": "2408",
-      "stock_name": "南亞科",
-      "buy_branch_code": "9A9g",
-      "buy_master": "陳族元",
-      "sell_branch_code": "8960",
-      "sell_master": "匯豐 HSBC",
-      "buy_lot": 87,
-      "sell_lot": 65,
-      "buy_amt_wan": 3940,
-      "sell_amt_wan": 2939,
-      "lot_match_ratio": 0.75,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9A9g 買 87 張 vs 8960 賣 65 張 (匹配 75%)"
-    },
-    {
-      "stock_code": "2408",
-      "stock_name": "南亞科",
       "buy_branch_code": "700c",
       "buy_master": "陳律師",
       "sell_branch_code": "1360",
@@ -558,6 +524,40 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "989N 買 158 張 vs 9B2a 賣 152 張 (匹配 96%)"
+    },
+    {
+      "stock_code": "2408",
+      "stock_name": "南亞科",
+      "buy_branch_code": "989N",
+      "buy_master": "強森",
+      "sell_branch_code": "980K",
+      "sell_master": "竹科強勢地緣",
+      "buy_lot": 158,
+      "sell_lot": 151,
+      "buy_amt_wan": 7144,
+      "sell_amt_wan": 6835,
+      "lot_match_ratio": 0.96,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "989N 買 158 張 vs 980K 賣 151 張 (匹配 96%)"
+    },
+    {
+      "stock_code": "2408",
+      "stock_name": "南亞科",
+      "buy_branch_code": "9215",
+      "buy_master": "強森",
+      "sell_branch_code": "9309",
+      "sell_master": "林滄海",
+      "buy_lot": 117,
+      "sell_lot": 90,
+      "buy_amt_wan": 5299,
+      "sell_amt_wan": 3988,
+      "lot_match_ratio": 0.77,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9215 買 117 張 vs 9309 賣 90 張 (匹配 77%)"
     }
   ],
   "distribution": [
