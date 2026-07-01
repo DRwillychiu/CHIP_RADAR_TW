@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.71.21(2026-06-28) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.71.22(2026-06-28) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.71.21** | 6/28 | **L1 續 (信號 2/3/4 官方對照)** — PCR ✅ perfect / 外資期貨 0.84% off (MXF/4 可解釋) / 分點漲停 naming 誤導 / 融資熱度 5 待 daily JSON audit |
+| **v3.71.22** | 6/28 | **L2 threshold audit 揭穿 4/5 崩盤** — 分點漲停現閾值 8 vs 實際 min 13 / 外資期貨 100% extreme-bear / PCR 75% extreme-bull / 建議新閾值 待 60d 樣本 |
+| v3.71.21 | 6/28 | L1 續 (信號 2/3/4 官方對照) — PCR ✅ perfect / 外資期貨 0.84% off (MXF/4 可解釋) / 分點漲停 naming 誤導 / 融資熱度 5 待 daily JSON audit |
 | v3.71.20 | 6/28 | L1 溫度計 audit + systemic bug 修 — 35 天連續 3 signal value=0 揭穿, key mismatch (net_lot vs foreign_net_lot) 修補信號 1 + 6 |
 | v3.71.19 | 6/27 | Cross_validate audit (v3.71.18 driven) — Dashboard 28 數字全 PASS / data bar 9/11 warn (合成樣本邊界) / 43 套 test pass |
 | v3.71.18 | 6/27 | L 系列 📌 Pinned Master 完整落地 — 大牌專屬 Excel sheet + Mobile section + Section 0 📌 marker + 歷史 alpha backtest |

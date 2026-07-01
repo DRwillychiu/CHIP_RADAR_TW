@@ -13,7 +13,7 @@
 #
 # ⚠️ 改值前必跑: pytest test_v3380_settlement_tz.py test_v3370_margin_maintenance.py test_v3371_tdcc_holdings.py
 
-algo_version: "3.71.21"
+algo_version: "3.71.22"
 frozen_date: "2026-06-19"
 frozen_by: "DRwillychiu via institutional roadmap Sprint 3 + C2 Phase B"
 
@@ -92,6 +92,16 @@ tdcc_holdings:
 chip_temperature:
   status: "pending_calibration"        # 標記未校準
   calibration_target_date: "2026-09-01"  # Q3 結束前完成
+  # v3.71.22 L2 audit (36-day window) 揭穿 4/5 signal 崩盤:
+  #   外資現貨 100% neutral (v3.71.20 修 key mismatch bug 後 待驗證)
+  #   外資期貨 100% extreme-bear (現閾值對長期空頭市場失效)
+  #   P/C Ratio 75% extreme-bull (現閾值 1.3 低於實際 median 1.418)
+  #   分點漲停 100% extreme-bull (現閾值 8 vs 實際 min 13, 差 10 倍量級)
+  #   融資熱度 100% neutral (v3.71.20 修 key mismatch 待驗證)
+  # 建議新閾值 (P20/P40/P60/P80, 需累積 60+ 天樣本後 recalibrate):
+  #   外資期貨: [-51000, -60000, -66000, -70000]
+  #   P/C Ratio: [1.68, 1.56, 1.35, 1.28]
+  #   分點漲停: [80, 58, 39, 30]
   signals:
     foreign_cash:        [50000, 10000, -10000, -50000]
     foreign_futures_eq:  [30000, 10000, -10000, -30000]

@@ -93,6 +93,34 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.22 — L2 threshold 分位合理性 audit (揭穿 4/5 崩盤)
+
+新 `scripts/audit_temp_thresholds.py` 對 temp_history 36 個 entry 統計每 signal tier 分布:
+
+| Signal | 現閾值 | Tier 分布 | 判定 |
+|---|---|---|---|
+| 外資現貨 | (50k, 10k, -10k, -50k) | 100% neutral | 🔴 崩盤 (v3.71.20 bug) |
+| 外資期貨 | (30k, 10k, -10k, -30k) | 100% extreme-bear | 🔴 崩盤 (現閾值對長期空頭失效) |
+| **P/C Ratio** | (1.3, 1.0, 0.8, 0.6) | 75% extreme-bull | ⚠️ 偏誤 (閾值太低) |
+| 分點漲停 | (8, 4, 1, 0) | 100% extreme-bull | 🔴 崩盤 (閾值差 10 倍量級) |
+| 融資熱度 | (30, 10, -10, -30) | 100% neutral | 🔴 崩盤 (v3.71.20 bug) |
+
+**建議新閾值 (基於 P20/P40/P60/P80)**:
+- 外資期貨: [-51k, -60k, -66k, -70k] (全負)
+- P/C Ratio: [1.68, 1.56, 1.35, 1.28]
+- 分點漲停: [80, 58, 39, 30]
+
+**Confirmed 已知 backtest 現象**: `signal_engine.KILLED_SIGNALS` 早已標「外資期貨等效大台淨 OI: 96% 樣本歸到偏空/極空, 反指標假設失效, hit 40.8%/41.4%」→ L2 用 36 天樣本確認這是市場結構性長期空頭, 不是短期 outlier.
+
+**沒 recalibrate 直接改閾值** — 因為:
+1. 信號 1/5/6 bug 剛修 (v3.71.20), 需等 production 累積新資料
+2. 36 天樣本太小, P20/P40 分位不穩定
+3. 建議等 60+ 天後 (~7 月底) recalibrate
+
+`config/algo_params.yaml` `chip_temperature` section 加 audit 註釋 (現閾值保留, 待 recalibration).
+
+---
+
 ### ✅ v3.71.21 — L1 續 (信號 2/3/4 官方對照完成)
 
 新 `scripts/verify_futures_officials.py` 補完 4 signal dedicated verify:
