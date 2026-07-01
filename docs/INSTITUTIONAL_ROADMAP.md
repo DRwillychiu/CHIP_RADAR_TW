@@ -93,6 +93,43 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.23 — L3 per-signal Q5 LOO 揭穿「5/7 signal 對 Q5 完全 dead weight」
+
+新 `scripts/audit_signal_contribution_loo.py` 對 temp_history 36 entry 做 LOO:
+移除每個 signal 後看 Q5 hit rate 變化.
+
+**結果**:
+| Signal | LOO 後 | Δ pp | Verdict |
+|---|---|---|---|
+| 外資現貨 | 70.0% | 0.0 | ⚪ Dead weight (weight=0) |
+| 外資期貨 | 70.0% | 0.0 | ⚪ Dead weight (KILLED, weight=0) |
+| **P/C Ratio** | **66.7%** | **-3.3** | **✅ 唯一實質貢獻** |
+| 分點漲停 | 70.0% | 0.0 | ⚪ Dead weight |
+| 融資熱度 | 70.0% | 0.0 | ⚪ Dead weight |
+| 法人共識 | 70.0% | 0.0 | ⚪ Dead weight |
+| 結算日壓力 | 100.0% | +30 | ⚠️ (n=1 太小, 不可信) |
+
+**Baseline (全 7 signal)**: 7/10 = 70.0%
+
+**揭穿**: Q5 幾乎完全靠 P/C Ratio 撐, 其他 5 個 signal 對預測完全無影響 (Δ 0.0pp).
+
+**修 L1 讓 value 變非 0 但沒用**: 因為 `signal_engine.SIGNAL_WEIGHTS` 只有 P/C Ratio + settlement 有 weight, 其他 5 signal weight=0 → 值有了也不會影響 Q5 淨權重.
+
+**三層 audit 聯合結論** (v3.71.20-22-23):
+- L1 修 key mismatch (value 變非 0) ✅
+- L2 揭穿 threshold 崩盤 (需 recalibrate) ⏸ 等 60d 樣本
+- L3 揭穿 signal_engine 只用 P/C ⏸ 需 Phase B backtest 補 weight
+
+**Q5 提升路徑**:
+1. ✅ v3.71.20 修 key mismatch
+2. ⏸ 等 60d 累積乾淨 signal history
+3. ⏸ L2 recalibrate threshold
+4. ⏸ Phase B backtest 為 5 signal 產 weight
+5. ⏸ SIGNAL_WEIGHTS 補 weight
+6. ⏸ 預期 Q5 hit rate 70% → 75-80%
+
+---
+
 ### ✅ v3.71.22 — L2 threshold 分位合理性 audit (揭穿 4/5 崩盤)
 
 新 `scripts/audit_temp_thresholds.py` 對 temp_history 36 個 entry 統計每 signal tier 分布:
