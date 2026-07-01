@@ -1,0 +1,33 @@
+{
+  "futures_officials": {
+    "audited_at": "2026-07-01T21:28:41.456102",
+    "results": [
+      {
+        "signal": "foreign_futures_eq",
+        "our": -82367,
+        "official_txf": -83063,
+        "diff": 696,
+        "match": false,
+        "note": "TXF only; 大台等效 = TXF + MXF/4 (未算)"
+      },
+      {
+        "signal": "pc_ratio_oi",
+        "our": 1.3493,
+        "official": 1.3493,
+        "diff": 0.0,
+        "match": true
+      },
+      {
+        "signal": "limit_up_count",
+        "our": 79,
+        "error": "Expecting value: line 1 column 1 (char 0)"
+      },
+      {
+        "signal": "margin_top5_yi",
+        "our": 0.0,
+        "suspect_bug": true,
+        "need_daily_json": true
+      }
+    ]
+  }
+}
