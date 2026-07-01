@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-02T00:09:29.535720+08:00",
+  "generated_at": "2026-07-02T01:08:27.370893+08:00",
   "trade_date": "20260701",
   "pump_suspicion": [],
   "wash_trade": [
@@ -333,32 +333,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "9B2a",
       "sell_master": "Tradow",
-      "buy_lot": 57,
+      "buy_lot": 53,
       "sell_lot": 74,
-      "buy_amt_wan": 3419,
+      "buy_amt_wan": 3188,
       "sell_amt_wan": 4482,
-      "lot_match_ratio": 0.77,
+      "lot_match_ratio": 0.72,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9g 買 57 張 vs 9B2a 賣 74 張 (匹配 77%)"
-    },
-    {
-      "stock_code": "4958",
-      "stock_name": "臻鼎-KY",
-      "buy_branch_code": "9A9g",
-      "buy_master": "陳族元",
-      "sell_branch_code": "9692",
-      "sell_master": "嘉義幫",
-      "buy_lot": 57,
-      "sell_lot": 80,
-      "buy_amt_wan": 3419,
-      "sell_amt_wan": 4798,
-      "lot_match_ratio": 0.71,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9A9g 買 57 張 vs 9692 賣 80 張 (匹配 71%)"
+      "reasoning": "9A9g 買 53 張 vs 9B2a 賣 74 張 (匹配 72%)"
     },
     {
       "stock_code": "4958",
@@ -512,6 +495,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9B2D 買 82 張 vs 9B2a 賣 74 張 (匹配 90%)"
+    },
+    {
+      "stock_code": "4958",
+      "stock_name": "臻鼎-KY",
+      "buy_branch_code": "9B2D",
+      "buy_master": "強森",
+      "sell_branch_code": "9692",
+      "sell_master": "嘉義幫",
+      "buy_lot": 82,
+      "sell_lot": 80,
+      "buy_amt_wan": 4972,
+      "sell_amt_wan": 4798,
+      "lot_match_ratio": 0.98,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9B2D 買 82 張 vs 9692 賣 80 張 (匹配 98%)"
     }
   ],
   "distribution": [
@@ -529,28 +529,13 @@
       "rule": "C_distribution",
       "severity": "medium",
       "reasoning": "當日賣 316 張 (30 天均 62 張 × 5.1) + 近 5 天漲停 139 次"
-    },
-    {
-      "stock_code": "8021",
-      "stock_name": "尖點",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 52,
-      "sell_amt_wan": 2927,
-      "avg_30d_sell_lot": 10.0,
-      "sell_vs_avg_x": 5.2,
-      "recent_5d_limit_up_count": 7,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 52 張 (30 天均 10 張 × 5.2) + 近 5 天漲停 7 次"
     }
   ],
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 2,
-    "total": 32
+    "distribution_count": 1,
+    "total": 31
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
