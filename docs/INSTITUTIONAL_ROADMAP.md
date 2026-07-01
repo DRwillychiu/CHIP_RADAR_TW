@@ -93,6 +93,36 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.20 — L1 溫度計 audit 揭穿 systemic bug (信號 1 + 6 修補)
+
+用戶要求「嚴格驗證溫度計」. L1 audit 揭穿 3 個 signal 過去 **35 天連續 100% value=0**:
+- 外資現貨 (信號 1)
+- 融資熱度 (信號 5) — 待 production 確認 fetcher 是否有輸出
+- 法人共識 (信號 6)
+
+**Root cause (信號 1 + 6)**: crawler.py line 826 產出 key = `net_lot`, 但 crawler_pipeline.py 讀 `foreign_net_lot` / `trust_net_lot` → 永遠 None → `sum()` = 0.
+
+**修補** (`src/pipelines/crawler_pipeline.py`):
+- 信號 1 外資現貨: `foreign_net_lot` → `net_lot`
+- 信號 6 法人共識: `foreign_net_lot` / `trust_net_lot` → `net_lot`
+
+**歷史影響**:
+- Bug 至少從 v3.27 (信號 6 建立) 起存在, 可能更早
+- daily_signal.ignored 6 個 signal 中「外資現貨 / 法人共識」為此 bug 犧牲
+- Q5 hit rate 只靠 P/C ratio + 分點漲停 + 結算日壓力 → 少 3 個 signal 支撐, 樣本嚴重失衡
+
+**新 audit script** (`scripts/verify_all_temperatures.py`):
+- 對 7 個 signal 逐一對照 today value + 官方 API
+- 標 🔴 疑似 bug / ⚠️ parse fail (需 dedicated) / ✅ match
+- 寫 `data/temp_verify_YYYYMMDD.json`
+
+**下一步** (待 production 確認):
+- 週一 6/30 daily-full 跑後看 signal 1 / 6 value 是否變非零
+- 融資熱度 (信號 5) audit fetcher 是否有輸出 (margin_rankings.top_margin_buy)
+- 3 個 skip 的 (外資期貨 / P/C Ratio 官方 parse / 分點漲停) 各補 dedicated verify
+
+---
+
 ### ✅ v3.71.19 — Cross_validate audit (v3.71.18 driven)
 
 對 v3.71.18 L 系列大改造做 cross_validate + 全套 test 雙重驗證:

@@ -135,13 +135,15 @@ def compute_chip_temperature(raw_output, trade_date=None):
     signals = []
 
     # 信號 1: 外資現貨
+    # v3.71.20 bug fix: crawler 產出 key 是 'net_lot' (line 826), 之前錯讀 'foreign_net_lot'
+    # → 35 天連續 value=0 (系統性 bug 至少從 v3.27 起存在)
     try:
         r = raw_output.get('institutional_rankings', {}).get('foreign') or {}
         buy = r.get('buy') or []
         sell = r.get('sell') or []
         if buy or sell:
-            net = (sum(x.get('foreign_net_lot', 0) or 0 for x in buy)
-                   + sum(x.get('foreign_net_lot', 0) or 0 for x in sell))
+            net = (sum(x.get('net_lot', 0) or 0 for x in buy)
+                   + sum(x.get('net_lot', 0) or 0 for x in sell))
             sc = _temp_signal_score(net, TEMP_THRESHOLDS['foreign_cash'])
             if sc:
                 signals.append({'name': '外資現貨', 'score': sc[0], 'level': sc[1], 'value': net})
@@ -198,6 +200,7 @@ def compute_chip_temperature(raw_output, trade_date=None):
         pass
 
     # 信號 6 (v3.27 新): 法人共識 — 外資 + 投信 同向 且 雙方量達標
+    # v3.71.20 bug fix: 同信號 1, 應該用 'net_lot' 不是 'foreign_net_lot'/'trust_net_lot'
     try:
         ir = raw_output.get('institutional_rankings', {}) or {}
         fr = ir.get('foreign') or {}
@@ -205,10 +208,10 @@ def compute_chip_temperature(raw_output, trade_date=None):
         f_buy, f_sell = fr.get('buy') or [], fr.get('sell') or []
         t_buy, t_sell = tr.get('buy') or [], tr.get('sell') or []
         if (f_buy or f_sell) and (t_buy or t_sell):
-            f_net = (sum(x.get('foreign_net_lot', 0) or 0 for x in f_buy)
-                     + sum(x.get('foreign_net_lot', 0) or 0 for x in f_sell))
-            t_net = (sum(x.get('trust_net_lot', 0) or 0 for x in t_buy)
-                     + sum(x.get('trust_net_lot', 0) or 0 for x in t_sell))
+            f_net = (sum(x.get('net_lot', 0) or 0 for x in f_buy)
+                     + sum(x.get('net_lot', 0) or 0 for x in f_sell))
+            t_net = (sum(x.get('net_lot', 0) or 0 for x in t_buy)
+                     + sum(x.get('net_lot', 0) or 0 for x in t_sell))
             f_thr = TEMP_THRESHOLDS['consensus_foreign']
             t_thr = TEMP_THRESHOLDS['consensus_trust']
             # 雙條件: 同向 + 雙方各自量達標
