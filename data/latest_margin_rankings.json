@@ -1,6 +1,6 @@
 {
  "trade_date": "20260701",
- "updated_at": "2026-07-01T22:52:09.085717+08:00",
+ "updated_at": "2026-07-02T00:12:04.990227+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -5014,93 +5014,84 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1160,
-   "watch": 71,
-   "high_risk": 8,
+   "healthy": 1165,
+   "watch": 69,
+   "high_risk": 7,
    "margin_call": 1,
-   "insufficient_data": 949
+   "insufficient_data": 947
   },
   "high_risk_stocks": [
    {
     "code": "3363",
     "name": "上詮",
-    "ratio": 117.6,
+    "ratio": 118.8,
     "risk_level": "margin_call",
     "margin_balance": 5513,
     "today_close": 537.0,
-    "estimated_cost": 761.06
+    "estimated_cost": 753.13
    },
    {
     "code": "6994",
     "name": "富威電力",
-    "ratio": 122.0,
+    "ratio": 124.8,
     "risk_level": "high_risk",
     "margin_balance": 2699,
     "today_close": 43.35,
-    "estimated_cost": 59.23
+    "estimated_cost": 57.9
    },
    {
     "code": "7717",
     "name": "萊德光電-KY",
-    "ratio": 123.3,
+    "ratio": 124.9,
     "risk_level": "high_risk",
     "margin_balance": 417,
     "today_close": 425.5,
-    "estimated_cost": 574.95
+    "estimated_cost": 567.97
    },
    {
     "code": "4977",
     "name": "眾達-KY",
-    "ratio": 124.0,
+    "ratio": 125.2,
     "risk_level": "high_risk",
     "margin_balance": 7770,
     "today_close": 157.0,
-    "estimated_cost": 210.94
+    "estimated_cost": 209.04
    },
    {
     "code": "3491",
     "name": "昇達科",
-    "ratio": 125.5,
+    "ratio": 126.8,
     "risk_level": "high_risk",
     "margin_balance": 3293,
     "today_close": 1260.0,
-    "estimated_cost": 1672.82
+    "estimated_cost": 1655.98
    },
    {
     "code": "6588",
     "name": "東典光電",
-    "ratio": 125.5,
+    "ratio": 127.5,
     "risk_level": "high_risk",
     "margin_balance": 2053,
     "today_close": 85.0,
-    "estimated_cost": 112.87
-   },
-   {
-    "code": "6830",
-    "name": "汎銓",
-    "ratio": 126.7,
-    "risk_level": "high_risk",
-    "margin_balance": 4183,
-    "today_close": 456.0,
-    "estimated_cost": 599.75
+    "estimated_cost": 111.1
    },
    {
     "code": "4971",
     "name": "IET-KY",
-    "ratio": 126.8,
+    "ratio": 128.5,
     "risk_level": "high_risk",
     "margin_balance": 4287,
     "today_close": 472.5,
-    "estimated_cost": 621.1
+    "estimated_cost": 612.98
    },
    {
-    "code": "4908",
-    "name": "前鼎",
-    "ratio": 129.5,
+    "code": "6830",
+    "name": "汎銓",
+    "ratio": 128.7,
     "risk_level": "high_risk",
-    "margin_balance": 3606,
-    "today_close": 173.0,
-    "estimated_cost": 222.65
+    "margin_balance": 4183,
+    "today_close": 456.0,
+    "estimated_cost": 590.45
    }
   ],
   "thresholds": {
