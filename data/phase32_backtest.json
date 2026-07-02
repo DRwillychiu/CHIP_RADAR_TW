@@ -1,72 +1,70 @@
 {
   "summary": {
     "baseline": {
-      "n": 448,
-      "hits": 202,
-      "hit_rate": 0.45089285714285715,
-      "mean_change": 0.7137723214285712,
+      "n": 461,
+      "hits": 205,
+      "hit_rate": 0.44468546637744033,
+      "mean_change": 0.645748373101952,
       "median_change": 0,
-      "days": 49,
+      "days": 50,
       "desc": "全部共識股 (對照)"
     },
     "e_anomaly_only": {
-      "n": 432,
-      "hits": 202,
-      "hit_rate": 0.4675925925925926,
-      "mean_change": 0.740208333333333,
+      "n": 445,
+      "hits": 205,
+      "hit_rate": 0.4606741573033708,
+      "mean_change": 0.6689662921348312,
       "median_change": 0,
-      "days": 44,
+      "days": 45,
       "desc": "共識 ∩ ≥1 master 異常 (vol_spike OR new_stocks)"
     },
     "e_volume_spike_only": {
-      "n": 252,
-      "hits": 126,
-      "hit_rate": 0.5,
-      "mean_change": 1.4309920634920623,
-      "median_change": 0.1,
-      "days": 27,
+      "n": 265,
+      "hits": 129,
+      "hit_rate": 0.4867924528301887,
+      "mean_change": 1.2774716981132066,
+      "median_change": 0.0,
+      "days": 28,
       "desc": "共識 ∩ ≥1 master volume_spike"
     },
     "e_new_stocks_only": {
-      "n": 432,
-      "hits": 202,
-      "hit_rate": 0.4675925925925926,
-      "mean_change": 0.740208333333333,
+      "n": 445,
+      "hits": 205,
+      "hit_rate": 0.4606741573033708,
+      "mean_change": 0.6689662921348312,
       "median_change": 0,
-      "days": 44,
+      "days": 45,
       "desc": "共識 ∩ ≥1 master new_stocks"
     },
     "e_anomaly_q5_bull": {
-      "n": 82,
-      "hits": 48,
-      "hit_rate": 0.5853658536585366,
-      "mean_change": 1.9878048780487811,
-      "median_change": 1.05,
-      "days": 9,
+      "n": 382,
+      "hits": 197,
+      "hit_rate": 0.5157068062827225,
+      "mean_change": 0.8346073298429317,
+      "median_change": 0.3,
+      "days": 37,
       "desc": "共識 ∩ Q5 偏多 ∩ ≥1 master 異常 (3 訊號)"
     },
     "e_vol_spike_q5_bull": {
-      "n": 38,
-      "hits": 30,
-      "hit_rate": 0.7894736842105263,
-      "mean_change": 4.37342105263158,
-      "median_change": 3.09,
-      "days": 5,
+      "n": 228,
+      "hits": 124,
+      "hit_rate": 0.543859649122807,
+      "mean_change": 1.5085964912280696,
+      "median_change": 0.68,
+      "days": 23,
       "desc": "共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike (嚴格 3 訊號)"
     },
     "q5_bull_only": {
-      "n": 82,
-      "hits": 48,
-      "hit_rate": 0.5853658536585366,
-      "mean_change": 1.9878048780487811,
-      "median_change": 1.05,
-      "days": 9,
+      "n": 382,
+      "hits": 197,
+      "hit_rate": 0.5157068062827225,
+      "mean_change": 0.8346073298429317,
+      "median_change": 0.3,
+      "days": 37,
       "desc": "共識 ∩ Q5 偏多 (Phase 3.1 對比)"
     }
   },
-  "best": [
-    "e_vol_spike_q5_bull"
-  ],
+  "best": [],
   "per_day": [
     {
       "date": "20260421",
@@ -193,7 +191,7 @@
       "next": "20260511",
       "cons": 10,
       "next_avail": 10,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 12,
       "e_hits": 9
@@ -203,7 +201,7 @@
       "next": "20260512",
       "cons": 8,
       "next_avail": 8,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 13,
       "e_hits": 5
@@ -213,7 +211,7 @@
       "next": "20260513",
       "cons": 8,
       "next_avail": 8,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 4,
       "new_stocks_masters": 13,
       "e_hits": 3
@@ -223,7 +221,7 @@
       "next": "20260514",
       "cons": 9,
       "next_avail": 9,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 13,
       "e_hits": 5
@@ -233,7 +231,7 @@
       "next": "20260515",
       "cons": 10,
       "next_avail": 10,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 13,
       "e_hits": 3
@@ -243,7 +241,7 @@
       "next": "20260518",
       "cons": 11,
       "next_avail": 11,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 13,
       "e_hits": 1
@@ -303,7 +301,7 @@
       "next": "20260526",
       "cons": 10,
       "next_avail": 10,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 13,
       "e_hits": 8
@@ -313,7 +311,7 @@
       "next": "20260527",
       "cons": 11,
       "next_avail": 11,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 3,
       "new_stocks_masters": 13,
       "e_hits": 6
@@ -323,7 +321,7 @@
       "next": "20260528",
       "cons": 12,
       "next_avail": 12,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 2,
       "new_stocks_masters": 13,
       "e_hits": 5
@@ -333,7 +331,7 @@
       "next": "20260529",
       "cons": 13,
       "next_avail": 13,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 1,
       "new_stocks_masters": 12,
       "e_hits": 11
@@ -343,7 +341,7 @@
       "next": "20260601",
       "cons": 9,
       "next_avail": 9,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 3,
       "new_stocks_masters": 13,
       "e_hits": 4
@@ -353,7 +351,7 @@
       "next": "20260602",
       "cons": 11,
       "next_avail": 11,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 1,
       "new_stocks_masters": 13,
       "e_hits": 6
@@ -363,7 +361,7 @@
       "next": "20260603",
       "cons": 10,
       "next_avail": 10,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 1,
       "new_stocks_masters": 13,
       "e_hits": 8
@@ -373,7 +371,7 @@
       "next": "20260604",
       "cons": 12,
       "next_avail": 12,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 2,
       "new_stocks_masters": 13,
       "e_hits": 8
@@ -383,7 +381,7 @@
       "next": "20260605",
       "cons": 13,
       "next_avail": 13,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 1,
       "new_stocks_masters": 12,
       "e_hits": 3
@@ -393,7 +391,7 @@
       "next": "20260608",
       "cons": 11,
       "next_avail": 11,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 10,
       "e_hits": 0
@@ -403,7 +401,7 @@
       "next": "20260609",
       "cons": 9,
       "next_avail": 9,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 1,
       "new_stocks_masters": 13,
       "e_hits": 8
@@ -413,7 +411,7 @@
       "next": "20260610",
       "cons": 11,
       "next_avail": 11,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 2,
       "new_stocks_masters": 13,
       "e_hits": 1
@@ -423,7 +421,7 @@
       "next": "20260611",
       "cons": 10,
       "next_avail": 10,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 1,
       "new_stocks_masters": 12,
       "e_hits": 3
@@ -433,7 +431,7 @@
       "next": "20260612",
       "cons": 11,
       "next_avail": 11,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 12,
       "e_hits": 10
@@ -443,7 +441,7 @@
       "next": "20260615",
       "cons": 8,
       "next_avail": 8,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 1,
       "new_stocks_masters": 13,
       "e_hits": 6
@@ -493,7 +491,7 @@
       "next": "20260623",
       "cons": 11,
       "next_avail": 11,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 2,
       "new_stocks_masters": 13,
       "e_hits": 1
@@ -503,7 +501,7 @@
       "next": "20260624",
       "cons": 14,
       "next_avail": 14,
-      "q5": "偏空",
+      "q5": "中性",
       "vol_spike_masters": 3,
       "new_stocks_masters": 10,
       "e_hits": 5
@@ -513,7 +511,7 @@
       "next": "20260625",
       "cons": 10,
       "next_avail": 10,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 4,
       "new_stocks_masters": 9,
       "e_hits": 6
@@ -523,7 +521,7 @@
       "next": "20260626",
       "cons": 11,
       "next_avail": 11,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 12,
       "e_hits": 2
@@ -533,7 +531,7 @@
       "next": "20260629",
       "cons": 14,
       "next_avail": 14,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 2,
       "new_stocks_masters": 8,
       "e_hits": 11
@@ -543,7 +541,7 @@
       "next": "20260630",
       "cons": 12,
       "next_avail": 12,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 12,
       "e_hits": 9
@@ -553,14 +551,24 @@
       "next": "20260701",
       "cons": 12,
       "next_avail": 12,
-      "q5": "中性",
+      "q5": "偏多",
       "vol_spike_masters": 1,
       "new_stocks_masters": 12,
       "e_hits": 4
+    },
+    {
+      "date": "20260701",
+      "next": "20260702",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "偏多",
+      "vol_spike_masters": 1,
+      "new_stocks_masters": 12,
+      "e_hits": 3
     }
   ],
-  "updated_at": "2026-07-01T17:47:09.477672",
-  "window_days": 49,
+  "updated_at": "2026-07-02T13:34:11.263616",
+  "window_days": 50,
   "thresholds": {
     "anomaly_sigma": 2.0,
     "min_history_days": 5,
