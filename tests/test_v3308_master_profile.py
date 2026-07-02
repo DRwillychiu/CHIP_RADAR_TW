@@ -154,11 +154,16 @@ if not ok: all_pass = False
 # ── 10. 端到端 build_all_profiles ──
 print("\n10. build_all_profiles 端到端 (用合成 history)")
 # 需 mock get_individual_masters
+# v3.72.2 P0 fix: data_dir 必須指到 tmp — 原本 default 'data' 讓 pipeline 把
+# 合成結果 (date=20260526, 全空) 寫進 production data/daily_trading_signals.json!
+# 每跑一次 test suite 就摧毀一次 quad engine 的 vol_spike 資料源 (至下次 crawl).
+import tempfile
 import master_profile as mp
 orig = mp.get_individual_masters
 mp.get_individual_masters = lambda: {'蔣承翰': ['next_day_flipper'], '民哥': ['swing']}
 try:
-    result = build_all_profiles(h)
+    with tempfile.TemporaryDirectory() as _tmp_data_dir:
+        result = build_all_profiles(h, data_dir=_tmp_data_dir)
     ok = (result['master_count'] == 2
           and '蔣承翰' in result['masters']
           and '民哥' in result['masters']
