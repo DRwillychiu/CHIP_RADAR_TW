@@ -25,19 +25,28 @@ print("=" * 72)
 all_pass = True
 
 # ────────── Test A: 兩個 alpha 信號同向 → 高信心偏多 ──────────
+# v3.72.0: Phase B weights 動態載入 (backtest_phase_b_results.json 隨資料更新),
+# 期望值不可寫死 — 用 load_phase_b_weights 同步算, 測「機制」而非凍結數字.
 print("\nA. 兩 alpha 信號同向 (PCR 極多 + 結算週 D-2 偏多 反彈訊號)")
+from signal_engine import load_phase_b_weights
+_pb = load_phase_b_weights()
 signals = [
-    make_temp_signal('外資現貨', 'bull'),  # ignored (no weight)
+    make_temp_signal('外資現貨', 'bull'),  # Phase B 動態 (insufficient → 0)
     make_temp_signal('外資期貨', 'extreme-bear'),  # killed signal (no weight)
     make_temp_signal('P/C Ratio', 'extreme-bull'),  # +0.087
-    make_temp_signal('分點漲停', 'extreme-bull'),  # ignored
-    make_temp_signal('融資熱度', 'neutral'),  # ignored
-    make_temp_signal('法人共識', 'bull'),  # ignored
+    make_temp_signal('分點漲停', 'extreme-bull'),  # Phase B 動態 (v3.72.0 起 +0.083)
+    make_temp_signal('融資熱度', 'neutral'),  # Phase B 動態 (無資料 → 0)
+    make_temp_signal('法人共識', 'bull'),  # Phase B 動態 (insufficient → 0)
     make_temp_signal('結算日壓力', 'bull', value={'days_to_settle': 2, 'foreign_eq_oi': -50000}),  # +0.136
 ]
 result = infer_market_direction(signals)
-expected_net = round(0.087 + 0.136, 4)  # 0.223
-expected_conf = 50 + 22.3  # 72.3
+expected_net = round(
+    0.087 + 0.136
+    + _pb.get('外資現貨', {}).get('bull', 0.0)
+    + _pb.get('分點漲停', {}).get('extreme-bull', 0.0)
+    + _pb.get('融資熱度', {}).get('neutral', 0.0)
+    + _pb.get('法人共識', {}).get('bull', 0.0), 4)
+expected_conf = min(95.0, max(10.0, 50 + expected_net * 100))
 ok = (result['direction'] == '偏多' and
       abs(result['net_weight'] - expected_net) < 0.001 and
       abs(result['confidence_pct'] - expected_conf) < 0.5)

@@ -1,8 +1,8 @@
 {
-  "backtest_run_at": "2026-06-19T21:44:30.606898+08:00",
-  "window_days": 30,
-  "samples_with_next_day_chg": 29,
-  "data_source": "data\\temp_history.json",
+  "backtest_run_at": "2026-07-02T09:28:19.212440+08:00",
+  "window_days": 119,
+  "samples_with_next_day_chg": 119,
+  "data_source": "data\\signal_history_official.json",
   "min_sample_size": 10,
   "enable_threshold_pct": 55.0,
   "disable_threshold_pct": 45.0,
@@ -21,10 +21,10 @@
   ],
   "market_regime_caveat": {
     "regime": "mild_bull",
-    "next_day_up_pct": 57.1,
-    "mean_next_day_chg_pct": 0.551,
-    "n_up": 12,
-    "n_down": 9,
+    "next_day_up_pct": 59.3,
+    "mean_next_day_chg_pct": 0.441,
+    "n_up": 70,
+    "n_down": 48,
     "warning": null,
     "trust_weights": true
   },
@@ -39,67 +39,136 @@
   "results": {
     "外資現貨": {
       "levels": {
+        "extreme-bull": {
+          "n": 47,
+          "mean_next_chg_pct": 0.719,
+          "hits": 34,
+          "misses": 13,
+          "hit_rate_pct": 72.3,
+          "expected_dir": "up",
+          "verdict": "enable",
+          "weight": 0.223
+        },
+        "bull": {
+          "n": 8,
+          "mean_next_chg_pct": 0.935,
+          "hits": 5,
+          "misses": 3,
+          "hit_rate_pct": 62.5,
+          "expected_dir": "up",
+          "verdict": "insufficient",
+          "weight": 0.0
+        },
         "neutral": {
           "n": 0,
-          "mean_next_chg_pct": 0.399,
+          "mean_next_chg_pct": -0.049,
           "hits": 0,
           "misses": 0,
           "hit_rate_pct": null,
           "expected_dir": "flat",
           "verdict": "insufficient",
           "weight": 0.0
+        },
+        "bear": {
+          "n": 4,
+          "mean_next_chg_pct": -1.245,
+          "hits": 3,
+          "misses": 1,
+          "hit_rate_pct": 75.0,
+          "expected_dir": "down",
+          "verdict": "insufficient",
+          "weight": 0.0
+        },
+        "extreme-bear": {
+          "n": 37,
+          "mean_next_chg_pct": 0.287,
+          "hits": 19,
+          "misses": 18,
+          "hit_rate_pct": 51.4,
+          "expected_dir": "down",
+          "verdict": "maintain",
+          "weight": 0.0
         }
       },
-      "overall_hit_rate_directional": null,
-      "overall_n_directional": 0
+      "overall_hit_rate_directional": 63.5,
+      "overall_n_directional": 96
     },
     "分點漲停": {
       "levels": {
         "extreme-bull": {
-          "n": 29,
-          "mean_next_chg_pct": 0.399,
-          "hits": 12,
-          "misses": 17,
-          "hit_rate_pct": 41.4,
+          "n": 48,
+          "mean_next_chg_pct": 0.47,
+          "hits": 28,
+          "misses": 20,
+          "hit_rate_pct": 58.3,
           "expected_dir": "up",
-          "verdict": "disable",
-          "weight": 0.0
+          "verdict": "enable",
+          "weight": 0.083
         }
       },
-      "overall_hit_rate_directional": 41.4,
-      "overall_n_directional": 29
+      "overall_hit_rate_directional": 58.3,
+      "overall_n_directional": 48
     },
     "融資熱度": {
-      "levels": {
-        "neutral": {
-          "n": 0,
-          "mean_next_chg_pct": 0.399,
-          "hits": 0,
-          "misses": 0,
-          "hit_rate_pct": null,
-          "expected_dir": "flat",
-          "verdict": "insufficient",
-          "weight": 0.0
-        }
-      },
+      "levels": {},
       "overall_hit_rate_directional": null,
       "overall_n_directional": 0
     },
     "法人共識": {
       "levels": {
+        "extreme-bull": {
+          "n": 22,
+          "mean_next_chg_pct": 0.551,
+          "hits": 15,
+          "misses": 7,
+          "hit_rate_pct": 68.2,
+          "expected_dir": "up",
+          "verdict": "enable",
+          "weight": 0.182
+        },
         "neutral": {
           "n": 0,
-          "mean_next_chg_pct": 0.397,
+          "mean_next_chg_pct": 0.69,
           "hits": 0,
           "misses": 0,
           "hit_rate_pct": null,
           "expected_dir": "flat",
           "verdict": "insufficient",
           "weight": 0.0
+        },
+        "bear": {
+          "n": 1,
+          "mean_next_chg_pct": 0.68,
+          "hits": 0,
+          "misses": 1,
+          "hit_rate_pct": 0.0,
+          "expected_dir": "down",
+          "verdict": "insufficient",
+          "weight": 0.0
+        },
+        "bull": {
+          "n": 6,
+          "mean_next_chg_pct": -0.152,
+          "hits": 1,
+          "misses": 5,
+          "hit_rate_pct": 16.7,
+          "expected_dir": "up",
+          "verdict": "insufficient",
+          "weight": 0.0
+        },
+        "extreme-bear": {
+          "n": 17,
+          "mean_next_chg_pct": -0.272,
+          "hits": 10,
+          "misses": 7,
+          "hit_rate_pct": 58.8,
+          "expected_dir": "down",
+          "verdict": "enable",
+          "weight": -0.088
         }
       },
-      "overall_hit_rate_directional": null,
-      "overall_n_directional": 0
+      "overall_hit_rate_directional": 56.5,
+      "overall_n_directional": 46
     }
   }
 }

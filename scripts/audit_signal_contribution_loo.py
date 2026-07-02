@@ -12,7 +12,7 @@
 
 ⚠️ 應用 v3.71.20 補完 stale guard (chg=0.0 AND close=None → skip).
 """
-import json, sys
+import json, sys, argparse
 from copy import deepcopy
 from pathlib import Path
 sys.stdout.reconfigure(encoding='utf-8')
@@ -21,9 +21,16 @@ sys.path.insert(0, str(ROOT))
 
 from src.analyzers.signal_engine import infer_market_direction
 
-with open(ROOT / 'data' / 'temp_history.json', 'r', encoding='utf-8') as f:
+# v3.72.0: --history 讓 LOO 可跑 backfilled official history
+# (temp_history 信號 1 值全 0, 新 weight 貢獻只在官方 backfill 資料上顯現)
+_ap = argparse.ArgumentParser()
+_ap.add_argument('--history', default=str(ROOT / 'data' / 'temp_history.json'))
+_args = _ap.parse_args()
+
+with open(_args.history, 'r', encoding='utf-8') as f:
     th = json.load(f)
 history = th.get('history') or []
+print(f"[LOO] data source: {_args.history} ({len(history)} entries)")
 
 # 7 signals
 SIGNAL_NAMES = ['外資現貨', '外資期貨', 'P/C Ratio', '分點漲停',
@@ -110,7 +117,8 @@ for s_name in SIGNAL_NAMES:
 # Save
 import datetime
 today = history[-1].get('date') if history else datetime.datetime.now().strftime('%Y%m%d')
-op = ROOT / 'data' / f'signal_contribution_loo_{today}.json'
+_suffix = '_official' if 'official' in str(_args.history) else ''
+op = ROOT / 'data' / f'signal_contribution_loo_{today}{_suffix}.json'
 op.write_text(json.dumps({
     'audited_at': datetime.datetime.now().isoformat(),
     'baseline': baseline,

@@ -12,6 +12,54 @@
 
 ---
 
+## algo-v3.72.0 (2026-07-02) — Phase B weights 重生: 官方 API 120d backfill 取代「等 60 天」
+
+**作者**:DRwillychiu
+**狀態**:🟢 active
+
+**背景**:
+L1-L3 audit (v3.71.20-23) 揭穿 Q5 只靠 P/C Ratio 撐 (5/7 signal dead weight)。
+原路徑「等 60 天累積乾淨 signal history」→ 改用 TWSE T86 官方歷史直接 backfill
+120 交易日 (2026-01-08 ~ 2026-07-01), 樣本多 3 倍且立即可用。
+
+**方法**:
+1. `scripts/backfill_signal_history_official.py` (新):
+   - 信號 1/6: T86 per-stock foreign/trust net → top100 buy+sell 加總 (與 crawler 同法)
+   - 信號 2/3/7: TAIFEX futContractsDate + pcRatio range (Phase A fetcher 重用)
+   - 信號 4: 自家 archive 解密 limit_up_summary (48 天)
+   - 信號 5: 略過 (production 單位 bug 張/1e8≈0 未修, 見 P0-4)
+   - next_day: FMTQIK 官方 TAIEX
+   - 方法驗證: 7/1 對照 production → f_net 差 10.6% (production 含上櫃), level 一致
+2. Phase B rerun on 119 天 official history → `backtest_phase_b_results.json`
+
+**結果 (regime=mild_bull 59.3% up, trust_weights=True)**:
+
+| Signal × Level | Weight | Hit | n | vs regime baseline |
+|---|---|---|---|---|
+| 外資現貨 extreme-bull | +0.223 | 72.3% | 47 | +13.0pp ✅ 真訊號 |
+| 法人共識 extreme-bull | +0.182 | 68.2% | 22 | +8.9pp ✅ 真訊號 |
+| 法人共識 extreme-bear | -0.088 | 58.8% | 17 | 逆 regime hit ✅ |
+| 分點漲停 extreme-bull | +0.083 | 58.3% | 48 | -1.0pp ⚠️ 疑似多頭 proxy |
+
+**LOO re-audit (119d official)**:
+- 外資現貨: dead weight → ✅ 輔助 (移除 -2.0pp)
+- 法人共識: dead weight → ✅ 輔助 (移除 -4.2pp, 最大貢獻)
+- P/C Ratio + 分點漲停: 此視窗顯示拖後腿 (+6.1/+6.4pp) — L2 threshold
+  recalibrate 的既有 scope, 依 data_snooping 紀律不當場改閾值
+
+**新舊系統對比 (同 119d 資料)**:
+- OLD (只 P/C+結算): 72.0% hit, 25/118 天出手 (21% 覆蓋)
+- NEW (+3 信號): 67.1% hit, 82/118 天出手 (69% 覆蓋, 3.3 倍)
+- NEW vs regime baseline: +7.8pp edge — 覆蓋大增是 quad alpha 管線的 enabler
+  (Q5 偏多是 quad trigger 條件之一, 25 天覆蓋會餓死 quad)
+
+**已知 caveat**:
+- backfill 信號 1/6 只含 TWSE 上市 (production 含上櫃), 值差 ~3-11% 但 level 一致
+- 分點漲停 58.3% ≈ baseline 59.3%, weight 小 (+0.083), 累積更多空頭樣本後 review
+- 融資熱度 weight 仍缺 (P0-4: production 單位 bug 待修)
+
+---
+
 ## algo-v3.43.0 (2026-06-19) — next_day backfill bug 修 + C8 survivorship disclosure
 
 **作者**:DRwillychiu
