@@ -3838,7 +3838,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="點 📋 更新看版本歷史">Chip Radar v3.72.0</div>
+      <div class="logo-en" title="點 📋 更新看版本歷史">Chip Radar v3.72.1</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -6343,6 +6343,10 @@ function formatDate(d) {
 // v3.17.2: 台股籌碼溫度計 (5 信號儀表板)
 // v3.17.4: 修正 production 真實欄位 + 視覺優化
 // ════════════════════════════════════════════════════════════════════
+// v3.72.1 P0-4: 信號 5 閾值 — 與後端 TEMP_THRESHOLDS['margin_market_yi'] 同步
+// (120d 官方 backfill P80/P60/P40/P20 quantile; 改值需雙處同步 + CHANGELOG_ALGO)
+const MARGIN_MARKET_YI_THR = [64.2, 39.6, 18.3, -29.9];
+
 function renderChipTemperature() {
   const el = document.getElementById('chipTemperature');
   if (!el || !CURRENT_DATA) return;
@@ -6428,29 +6432,23 @@ function renderChipTemperature() {
     return { name: '分點漲停', label, level, hint, tab: 'limitup' };
   })();
   
-  // ─── 信號 5: 散戶情緒 (從 margin_data summary) ───
+  // ─── 信號 5: 散戶情緒 — v3.72.1 P0-4 新語意: 全市場融資金額日增減 (億) ───
+  // 舊 top5 margin_change(張)/1e8 是單位 bug (值恆 ≈0), 已修.
+  // 資料源: margin_market_aggregate (官方 MI_MARGN 信用交易統計, 金額計價).
+  // 閾值 MARGIN_MARKET_YI_THR 與後端 TEMP_THRESHOLDS['margin_market_yi'] 同步
+  // (120d 官方 backfill P80/P60/P40/P20 quantile).
   const sig5 = (() => {
-    // 真實: 沒有 smart_money_in_count 欄位
-    // 改用 margin_rankings.top_margin_buy 與 top_margin_usage 推估
-    const mr = getMarginRankings();
-    if (!mr) return null;
-    
-    // 看融資增加最多 Top 5 的合計 (散戶熱度指標)
-    const buyTop = (mr.top_margin_buy || []).slice(0, 5);
-    if (buyTop.length === 0) return null;
-    
-    const totalIncrease = buyTop.reduce((s, x) => s + (x.margin_change || 0), 0);
-    
-    // 億單位
-    const billion = totalIncrease / 1e8;
-    
-    let level, label, hint;
-    if (billion >= 30) { level = 'extreme-bear'; label = `+${billion.toFixed(0)}億`; hint = '散戶極度追漲 (警覺)'; }
-    else if (billion >= 10) { level = 'bear'; label = `+${billion.toFixed(0)}億`; hint = '散戶活躍'; }
-    else if (billion >= -10) { level = 'neutral'; label = `${billion >= 0 ? '+' : ''}${billion.toFixed(0)}億`; hint = '融資中性'; }
-    else if (billion >= -30) { level = 'bull'; label = `${billion.toFixed(0)}億`; hint = '散戶減碼'; }
-    else { level = 'extreme-bull'; label = `${billion.toFixed(0)}億`; hint = '散戶大幅退場 (籌碼乾淨)'; }
-    
+    const agg = (CURRENT_DATA && CURRENT_DATA.margin_market_aggregate) || null;
+    if (!agg || agg.margin_amt_change_yi == null) return null;
+    const chgYi = agg.margin_amt_change_yi;
+    const t = MARGIN_MARKET_YI_THR;
+    let level, hint;
+    if (chgYi >= t[0]) { level = 'extreme-bear'; hint = '散戶極度追漲 (警覺)'; }
+    else if (chgYi >= t[1]) { level = 'bear'; hint = '散戶活躍'; }
+    else if (chgYi >= t[2]) { level = 'neutral'; hint = '融資中性'; }
+    else if (chgYi >= t[3]) { level = 'bull'; hint = '散戶減碼'; }
+    else { level = 'extreme-bull'; hint = '散戶大幅退場 (籌碼乾淨)'; }
+    const label = `${chgYi >= 0 ? '+' : ''}${chgYi.toFixed(0)}億`;
     return { name: '融資熱度', label, level, hint, tab: 'margin' };
   })();
   

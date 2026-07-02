@@ -12,6 +12,54 @@
 
 ---
 
+## algo-v3.72.1 (2026-07-02) — P0-4 信號 5 融資熱度: 單位 bug 修補 + 語意重定義
+
+**作者**:DRwillychiu
+**狀態**:🟢 active
+
+**背景 (單位 bug)**:
+信號 5 原邏輯 `sum(top5 margin_change)/1e8` — margin_change 是**張數**
+(margin.py: 融資今日餘額-前日餘額, 交易單位), 除 1e8 當金額 → 值恆 ≈0.00,
+35+ 天 temp_history value 全 0.0, Phase B 無法評估. 前端同 bug.
+
+**新語意**: 全市場融資金額日增減 (億)
+- 台股標準散戶情緒指標 (每日新聞必報「融資增減」)
+- 資料源: TWSE rwd MI_MARGN selectType=MS 信用交易統計 aggregate
+  「融資金額(仟元)」(今日餘額-前日餘額)/1e5 → 億 — 金額計價, 無單位換算風險
+- 含 response title ROC 日期驗證 (stale 防護, 與 v3.27.3 同族)
+
+**閾值 (120d 官方 backfill quantile — L2 audit 方法論)**:
+margin_market_yi: [64.2, 39.6, 18.3, -29.9] (P80/P60/P40/P20)
+分佈: min=-200.8 / med=+31.8 / max=+213.3 億
+
+**Phase B 結果 (118d, 反指標假設被資料校正)**:
+| Level | Hit | n | Verdict |
+|---|---|---|---|
+| bull (融資減碼) | 69.6% | 23 | ✅ enable +0.196 — 真訊號 |
+| extreme-bull (大減) | 54.2% | 24 | maintain |
+| bear (融資增) | 33.3% | 24 | ❌ disable |
+| extreme-bear (大增) | 33.3% | 24 | ❌ disable |
+
+發現: 「融資大增=散戶過熱=看空」在 mild_bull regime 不成立 (hit 33%),
+二分法 disable 自動擋掉壞 level; 「融資減碼→隔日漲」69.6% 是真訊號.
+
+**改動同步 (4 處)**:
+1. `src/fetchers/margin.py` +fetch_margin_market_aggregate()
+2. `crawler.py` margin stage 呼叫 + raw_output['margin_market_aggregate']
+3. `src/pipelines/crawler_pipeline.py` 信號 5 重寫 + TEMP_THRESHOLDS key 更名
+4. `index.html` sig5 重寫 + MARGIN_MARKET_YI_THR 前端常數
+
+**test debt 順手修 (test_v327_signals.py)**:
+- mock key 'foreign_net_lot' → 'net_lot' (v3.71.20 改 pipeline 讀法後 mock 沒跟上,
+  B 段 5 case 靜默 FAIL 但 exit 0 → run_all 誤報 PASS)
+- 失敗接 exit code (原本 ❌ 也 exit 0)
+- 新增 B2 段: 信號 5 新語意 5 case + 無 aggregate 略過 case
+- D 段: 7 信號全數產出斷言
+
+44/44 test PASS + cross_validate PASS + LOO re-audit.
+
+---
+
 ## algo-v3.72.0 (2026-07-02) — Phase B weights 重生: 官方 API 120d backfill 取代「等 60 天」
 
 **作者**:DRwillychiu

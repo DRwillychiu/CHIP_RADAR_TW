@@ -54,6 +54,75 @@ from typing import Dict, Any, Optional
 
 
 # ════════════════════════════════════════════════════════════════════
+#  v3.72.1 P0-4: 全市場融資金額 aggregate (信號 5 融資熱度 新資料源)
+# ════════════════════════════════════════════════════════════════════
+
+def fetch_margin_market_aggregate(trade_date: str,
+                                    timeout: int = 20) -> Optional[Dict[str, Any]]:
+    """抓 TWSE 信用交易統計 aggregate → 全市場融資金額日增減 (億).
+
+    v3.72.1 P0-4 背景: 信號 5 融資熱度 原邏輯 sum(top5 margin_change 張)/1e8 ≈ 0
+    (單位 bug, 35+ 天 value 全 0.0). 新語意: 全市場融資金額日增減 —
+    台股標準散戶情緒指標, 官方 aggregate 直接金額計價, 無單位換算風險.
+
+    資料源: rwd MI_MARGN?date={date}&selectType=MS
+    tables[0] 信用交易統計 row '融資金額(仟元)':
+      [買進, 賣出, 現金償還, 前日餘額, 今日餘額]
+
+    Returns:
+      {'margin_amt_change_yi': -23.5,   # (今日-前日) 仟元 / 1e5 → 億
+       'margin_amt_balance_yi': 4928.0,
+       'response_date_ok': True}        # title 日期 == trade_date 驗證
+      或 None (fetch fail / stat 非 OK / stale)
+    """
+    url = (f"https://www.twse.com.tw/rwd/zh/marginTrading/MI_MARGN"
+           f"?date={trade_date}&selectType=MS&response=json")
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'}
+    try:
+        from safe_fetch import safe_get
+        r = safe_get(url, source_id='TWSE_MI_MARGN_AGG', max_retries=2,
+                     timeout=timeout, headers=headers)
+    except ImportError:
+        try:
+            r = requests.get(url, timeout=timeout, headers=headers)
+        except Exception as e:
+            print(f"  ⚠️ MI_MARGN aggregate fetch fail: {e}")
+            return None
+    except Exception as e:
+        print(f"  ⚠️ MI_MARGN aggregate fetch fail: {e}")
+        return None
+    try:
+        d = r.json()
+    except Exception:
+        return None
+    if d.get('stat') != 'OK':
+        return None
+
+    # 日期驗證: tables[0].title 例 '115年07月01日 信用交易統計'
+    # trade_date '20260701' → ROC '115年07月01日'
+    roc_expect = f"{int(trade_date[:4]) - 1911}年{trade_date[4:6]}月{trade_date[6:8]}日"
+    for t in (d.get('tables') or []):
+        title = t.get('title') or ''
+        date_ok = roc_expect in title
+        for row in (t.get('data') or []):
+            if row and str(row[0]).startswith('融資金額'):
+                prev = _parse_int(row[4])
+                today = _parse_int(row[5])
+                if prev > 0 and today > 0:
+                    if not date_ok:
+                        print(f"  ⚠️ MI_MARGN aggregate stale: title={title!r} "
+                              f"≠ 預期 {roc_expect} → 不採用")
+                        return None
+                    return {
+                        'margin_amt_change_yi': round((today - prev) / 1e5, 2),
+                        'margin_amt_balance_yi': round(today / 1e5, 1),
+                        'response_date_ok': True,
+                    }
+                break
+    return None
+
+
+# ════════════════════════════════════════════════════════════════════
 #  抓取 TWSE 上市融資融券
 # ════════════════════════════════════════════════════════════════════
 

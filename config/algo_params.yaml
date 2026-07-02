@@ -13,7 +13,7 @@
 #
 # ⚠️ 改值前必跑: pytest test_v3380_settlement_tz.py test_v3370_margin_maintenance.py test_v3371_tdcc_holdings.py
 
-algo_version: "3.72.0"
+algo_version: "3.72.1"
 frozen_date: "2026-06-19"
 frozen_by: "DRwillychiu via institutional roadmap Sprint 3 + C2 Phase B"
 
@@ -107,7 +107,9 @@ chip_temperature:
     foreign_futures_eq:  [30000, 10000, -10000, -30000]
     pc_ratio_oi:         [1.3, 1.0, 0.8, 0.6]
     limit_up_count:      [8, 4, 1, 0]
-    margin_top5_yi:      [30, 10, -10, -30]
+    # v3.72.1 P0-4: margin_top5_yi (單位 bug, 值恆 0) → margin_market_yi
+    # 新語意: 全市場融資金額日增減 (億); 閾值 = 120d 官方 backfill quantile P80/P60/P40/P20
+    margin_market_yi:    [64.2, 39.6, 18.3, -29.9]
     consensus_foreign:   30000
     consensus_trust:     3000
     settlement_near_oi:  20000

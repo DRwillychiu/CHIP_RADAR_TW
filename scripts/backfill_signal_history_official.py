@@ -58,12 +58,15 @@ from src.backtest.backtester import (
 )
 
 T86_URL = 'https://www.twse.com.tw/rwd/zh/fund/T86'
+MARGN_URL = 'https://www.twse.com.tw/rwd/zh/marginTrading/MI_MARGN'
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'}
 T86_DELAY = 3.5   # TWSE rate limit 保守值 (秒)
 TOP_N = 100       # crawler build_inst_ranking top_n=100
 
 CACHE_DIR = ROOT / 'data' / 'cache' / 'backfill_t86'
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
+MARGN_CACHE_DIR = ROOT / 'data' / 'cache' / 'backfill_margn'
+MARGN_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _safe_int(v):
@@ -128,6 +131,67 @@ def fetch_t86_aggregates(date_str):
     }
     cache_p.write_text(json.dumps(result), encoding='utf-8')
     return result
+
+
+def fetch_margin_aggregate(date_str):
+    """MI_MARGN(date, MS) → 全市場融資金額日增減 (億). Cache per day.
+
+    v3.72.1 P0-4: 信號 5 新語意 — 全市場融資金額增減 (取代 top5 張數 bug).
+    tables[0] 信用交易統計 row '融資金額(仟元)': [買進, 賣出, 現償, 前日餘額, 今日餘額]
+    change_yi = (今日餘額 - 前日餘額) 仟元 / 1e5 → 億
+    """
+    cache_p = MARGN_CACHE_DIR / f'{date_str}.json'
+    if cache_p.exists():
+        try:
+            return json.loads(cache_p.read_text(encoding='utf-8'))
+        except Exception:
+            pass
+    url = f'{MARGN_URL}?date={date_str}&selectType=MS&response=json'
+    try:
+        r = requests.get(url, timeout=20, headers=HEADERS)
+        r.raise_for_status()
+        d = r.json()
+    except Exception as e:
+        print(f'    ! MI_MARGN {date_str} fetch fail: {e}')
+        return None
+    if d.get('stat') != 'OK':
+        result = {'no_data': True}
+        cache_p.write_text(json.dumps(result), encoding='utf-8')
+        return result
+    result = {'no_data': True}
+    for t in (d.get('tables') or []):
+        for row in (t.get('data') or []):
+            if row and str(row[0]).startswith('融資金額'):
+                prev = _safe_int(row[4])
+                today = _safe_int(row[5])
+                if prev > 0 and today > 0:
+                    result = {
+                        'margin_amt_change_yi': round((today - prev) / 1e5, 2),
+                        'margin_amt_balance_yi': round(today / 1e5, 1),
+                    }
+                break
+        if not result.get('no_data'):
+            break
+    cache_p.write_text(json.dumps(result), encoding='utf-8')
+    return result
+
+
+def sig5_from(change_yi, thresholds):
+    """信號 5 v3.72.1 新語意: 全市場融資金額日增減 (億), 反指標.
+
+    thresholds = (t_eb, t_b, t_bull, t_eb_bull) descending —
+    change >= t_eb → extreme-bear (散戶大幅追漲 = 看空) ... 依 crawler 同映射.
+    """
+    if change_yi is None:
+        return None
+    t = thresholds
+    if change_yi >= t[0]:   sc = (0, 'extreme-bear')
+    elif change_yi >= t[1]: sc = (5, 'bear')
+    elif change_yi >= t[2]: sc = (10, 'neutral')
+    elif change_yi >= t[3]: sc = (15, 'bull')
+    else:                   sc = (20, 'extreme-bull')
+    return {'name': '融資熱度', 'score': sc[0], 'level': sc[1],
+            'value': change_yi}
 
 
 def sig1_from(f_net):
@@ -294,6 +358,41 @@ def main():
             time.sleep(T86_DELAY)
     print(f'  ✓ T86 有效: {len(t86_by_day)} 天')
 
+    # ── 3.5. MI_MARGN aggregate per-day (信號 5 新語意) ──
+    print()
+    print('=' * 70)
+    print(f'Step 3.5/5: MI_MARGN 全市場融資金額 backfill ({len(window_days)} 天)')
+    print('=' * 70)
+    margn_by_day = {}
+    n_m_cached = sum(1 for d in window_days if (MARGN_CACHE_DIR / f'{d}.json').exists())
+    print(f'  已 cache: {n_m_cached}/{len(window_days)}')
+    for i, d in enumerate(window_days):
+        was_cached = (MARGN_CACHE_DIR / f'{d}.json').exists()
+        agg = fetch_margin_aggregate(d)
+        if agg and not agg.get('no_data'):
+            margn_by_day[d] = agg
+        if not was_cached:
+            if (i + 1) % 10 == 0:
+                print(f'  ... {i+1}/{len(window_days)} ({d})')
+            time.sleep(T86_DELAY)
+    print(f'  ✓ MI_MARGN 有效: {len(margn_by_day)} 天')
+
+    # 信號 5 quantile 閾值 (P80/P60/P40/P20 — L2 audit 方法論)
+    margin_thresholds = None
+    m_values = sorted(v['margin_amt_change_yi'] for v in margn_by_day.values())
+    if len(m_values) >= 30:
+        def _pct(p):
+            k = (len(m_values) - 1) * p
+            f = int(k)
+            c = min(f + 1, len(m_values) - 1)
+            return round(m_values[f] + (m_values[c] - m_values[f]) * (k - f), 1)
+        margin_thresholds = (_pct(0.8), _pct(0.6), _pct(0.4), _pct(0.2))
+        print(f'  信號 5 分佈: min={m_values[0]:.1f} med={_pct(0.5):.1f} max={m_values[-1]:.1f} 億')
+        print(f'  ★ 信號 5 quantile 閾值 (P80/P60/P40/P20): {margin_thresholds}')
+        print(f'    (production TEMP_THRESHOLDS[margin_market_yi] 應設此值)')
+    else:
+        print(f'  ! margin 樣本 <30, 不產閾值')
+
     # ── 4. 信號 4 from archive ──
     print()
     print('=' * 70)
@@ -332,6 +431,10 @@ def main():
         # 信號 4
         if d in limit_up_by_day:
             signals.append(sig4_from(limit_up_by_day[d]))
+        # 信號 5 (v3.72.1 新語意: 全市場融資金額增減)
+        if margin_thresholds and d in margn_by_day:
+            s5 = sig5_from(margn_by_day[d]['margin_amt_change_yi'], margin_thresholds)
+            if s5: signals.append(s5)
         # 信號 6
         if agg:
             signals.append(sig6_from(agg['f_net'], agg['t_net']))
@@ -359,10 +462,12 @@ def main():
                 '外資期貨': sum(1 for h in history if any(s['name'] == '外資期貨' for s in h['signals'])),
                 'P/C Ratio': sum(1 for h in history if any(s['name'] == 'P/C Ratio' for s in h['signals'])),
                 '分點漲停': sum(1 for h in history if any(s['name'] == '分點漲停' for s in h['signals'])),
+                '融資熱度': sum(1 for h in history if any(s['name'] == '融資熱度' for s in h['signals'])),
                 '法人共識': sum(1 for h in history if any(s['name'] == '法人共識' for s in h['signals'])),
                 '結算日壓力': sum(1 for h in history if any(s['name'] == '結算日壓力' for s in h['signals'])),
             },
-            'excluded': {'融資熱度': 'production 單位 bug (張/1e8≈0) 未修, 語意待定 — 見 P0-4'},
+            # v3.72.1 P0-4: 信號 5 新語意 (全市場融資金額增減 億, quantile 閾值)
+            'margin_market_yi_thresholds': list(margin_thresholds) if margin_thresholds else None,
         },
         'history': history,
     }

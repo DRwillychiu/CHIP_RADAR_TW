@@ -1,86 +1,168 @@
 {
  "_meta": {
-  "generated_at": "2026-07-02T09:27:27",
+  "generated_at": "2026-07-02T10:02:22",
   "source": "TWSE T86 + TAIFEX futContractsDate/pcRatio + FMTQIK + own archive",
   "window": [
-   "20171227",
+   "20251229",
    "20260701"
   ],
   "days_requested": 120,
   "signal_coverage": {
-   "外資現貨": 103,
-   "外資期貨": 116,
+   "外資現貨": 104,
+   "外資期貨": 119,
    "P/C Ratio": 119,
    "分點漲停": 48,
-   "法人共識": 103,
-   "結算日壓力": 116
+   "融資熱度": 118,
+   "法人共識": 104,
+   "結算日壓力": 119
   },
-  "excluded": {
-   "融資熱度": "production 單位 bug (張/1e8≈0) 未修, 語意待定 — 見 P0-4"
-  }
+  "margin_market_yi_thresholds": [
+   64.2,
+   39.6,
+   18.3,
+   -29.9
+  ]
  },
  "history": [
   {
-   "date": "20171227",
+   "date": "20251229",
    "signals": [
     {
      "name": "外資現貨",
      "score": 20,
      "level": "extreme-bull",
-     "value": 60912
+     "value": 75747
+    },
+    {
+     "name": "外資期貨",
+     "score": 5,
+     "level": "bear",
+     "value": -20874.7
     },
     {
      "name": "P/C Ratio",
      "score": 20,
      "level": "extreme-bull",
-     "value": 1.5773
+     "value": 1.5644
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": -4.5
     },
     {
      "name": "法人共識",
-     "score": 20,
-     "level": "extreme-bull",
+     "score": 10,
+     "level": "neutral",
      "value": {
-      "foreign_net": 60912,
-      "trust_net": 10835
+      "foreign_net": 75747,
+      "trust_net": -26971
+     }
+    },
+    {
+     "name": "結算日壓力",
+     "score": 10,
+     "level": "neutral",
+     "value": {
+      "days_to_settle": 23,
+      "foreign_eq_oi": -20874.7
      }
     }
    ],
-   "next_day_change_pct": 0.77
+   "next_day_change_pct": -0.36
   },
   {
-   "date": "20171228",
-   "signals": [
-    {
-     "name": "P/C Ratio",
-     "score": 20,
-     "level": "extreme-bull",
-     "value": 1.6637
-    }
-   ],
-   "next_day_change_pct": 0.71
-  },
-  {
-   "date": "20171229",
+   "date": "20251230",
    "signals": [
     {
      "name": "外資現貨",
      "score": 20,
      "level": "extreme-bull",
-     "value": 71646
+     "value": 180105
+    },
+    {
+     "name": "外資期貨",
+     "score": 5,
+     "level": "bear",
+     "value": -26101.3
     },
     {
      "name": "P/C Ratio",
      "score": 20,
      "level": "extreme-bull",
-     "value": 1.804
+     "value": 1.324
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 14.81
     },
     {
      "name": "法人共識",
+     "score": 10,
+     "level": "neutral",
+     "value": {
+      "foreign_net": 180105,
+      "trust_net": -27547
+     }
+    },
+    {
+     "name": "結算日壓力",
+     "score": 10,
+     "level": "neutral",
+     "value": {
+      "days_to_settle": 22,
+      "foreign_eq_oi": -26101.3
+     }
+    }
+   ],
+   "next_day_change_pct": 0.89
+  },
+  {
+   "date": "20251231",
+   "signals": [
+    {
+     "name": "外資現貨",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": -235289
+    },
+    {
+     "name": "外資期貨",
+     "score": 5,
+     "level": "bear",
+     "value": -24156.5
+    },
+    {
+     "name": "P/C Ratio",
      "score": 20,
      "level": "extreme-bull",
+     "value": 1.4402
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 20.42
+    },
+    {
+     "name": "法人共識",
+     "score": 0,
+     "level": "extreme-bear",
      "value": {
-      "foreign_net": 71646,
-      "trust_net": 14154
+      "foreign_net": -235289,
+      "trust_net": -38374
+     }
+    },
+    {
+     "name": "結算日壓力",
+     "score": 10,
+     "level": "neutral",
+     "value": {
+      "days_to_settle": 21,
+      "foreign_eq_oi": -24156.5
      }
     }
    ],
@@ -106,6 +188,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.376
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 32.25
     },
     {
      "name": "法人共識",
@@ -150,6 +238,12 @@
      "value": 1.624
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 43.15
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -192,6 +286,12 @@
      "value": 1.5509
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 36.01
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -228,6 +328,12 @@
      "value": 1.4753
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 25.08
+    },
+    {
      "name": "結算日壓力",
      "score": 10,
      "level": "neutral",
@@ -259,6 +365,12 @@
      "score": 15,
      "level": "bull",
      "value": 1.2635
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -46.71
     },
     {
      "name": "法人共識",
@@ -297,6 +409,12 @@
      "value": 1.2717
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": -8.95
+    },
+    {
      "name": "結算日壓力",
      "score": 10,
      "level": "neutral",
@@ -328,6 +446,12 @@
      "score": 15,
      "level": "bull",
      "value": 1.2866
+    },
+    {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 49.97
     },
     {
      "name": "法人共識",
@@ -372,6 +496,12 @@
      "value": 1.2366
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": -8.51
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -412,6 +542,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.5147
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 28.14
     },
     {
      "name": "法人共識",
@@ -456,6 +592,12 @@
      "value": 1.1903
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 8.46
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -496,6 +638,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.5784
+    },
+    {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 40.93
     },
     {
      "name": "法人共識",
@@ -540,6 +688,12 @@
      "value": 1.5016
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 60.24
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -582,6 +736,12 @@
      "value": 1.4846
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 18.1
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -618,6 +778,12 @@
      "value": 1.5459
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -34.76
+    },
+    {
      "name": "結算日壓力",
      "score": 20,
      "level": "extreme-bull",
@@ -649,6 +815,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.4089
+    },
+    {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 39.89
     },
     {
      "name": "法人共識",
@@ -693,6 +865,12 @@
      "value": 1.8565
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 43.43
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -733,6 +911,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.7178
+    },
+    {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 55.04
     },
     {
      "name": "法人共識",
@@ -777,6 +961,12 @@
      "value": 1.6865
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 11.47
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -817,6 +1007,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.9187
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 21.92
     },
     {
      "name": "法人共識",
@@ -861,6 +1057,12 @@
      "value": 1.3457
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -31.42
+    },
+    {
      "name": "法人共識",
      "score": 15,
      "level": "bull",
@@ -901,6 +1103,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.5704
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 21.15
     },
     {
      "name": "法人共識",
@@ -945,6 +1153,12 @@
      "value": 1.092
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -50.45
+    },
+    {
      "name": "法人共識",
      "score": 0,
      "level": "extreme-bear",
@@ -985,6 +1199,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.3155
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 32.77
     },
     {
      "name": "法人共識",
@@ -1029,6 +1249,12 @@
      "value": 1.7755
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 19.21
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -1069,6 +1295,12 @@
      "score": 15,
      "level": "bull",
      "value": 1.2892
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": -11.28
     },
     {
      "name": "法人共識",
@@ -1113,6 +1345,12 @@
      "value": 1.5839
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -89.27
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -1153,6 +1391,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.495
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 14.79
     },
     {
      "name": "法人共識",
@@ -1197,6 +1441,12 @@
      "value": 1.7078
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": -28.84
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -1237,6 +1487,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 2.1279
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -45.4
     },
     {
      "name": "法人共識",
@@ -1281,6 +1537,12 @@
      "value": 1.5022
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 46.58
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -1321,6 +1583,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.7641
+    },
+    {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 53.39
     },
     {
      "name": "法人共識",
@@ -1365,6 +1633,12 @@
      "value": 1.8217
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 56.32
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -1405,6 +1679,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.5395
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 67.34
     },
     {
      "name": "法人共識",
@@ -1449,6 +1729,12 @@
      "value": 1.4598
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 17.62
+    },
+    {
      "name": "法人共識",
      "score": 15,
      "level": "bull",
@@ -1489,6 +1775,12 @@
      "score": 15,
      "level": "bull",
      "value": 1.1143
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -71.65
     },
     {
      "name": "法人共識",
@@ -1533,6 +1825,12 @@
      "value": 1.3333
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -77.42
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -1573,6 +1871,12 @@
      "score": 15,
      "level": "bull",
      "value": 1.2898
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 25.5
     },
     {
      "name": "法人共識",
@@ -1617,6 +1921,12 @@
      "value": 1.5218
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 35.17
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -1657,6 +1967,12 @@
      "score": 15,
      "level": "bull",
      "value": 1.0118
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -107.23
     },
     {
      "name": "法人共識",
@@ -1701,6 +2017,12 @@
      "value": 1.1273
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -37.24
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -1741,6 +2063,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.6358
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 79.12
     },
     {
      "name": "法人共識",
@@ -1785,6 +2113,12 @@
      "value": 1.4416
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 32.19
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -1825,6 +2159,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.5891
+    },
+    {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 60.8
     },
     {
      "name": "法人共識",
@@ -1869,6 +2209,12 @@
      "value": 1.4017
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 68.37
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -1909,6 +2255,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.4839
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 11.83
     },
     {
      "name": "法人共識",
@@ -1953,6 +2305,12 @@
      "value": 1.5506
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 63.05
+    },
+    {
      "name": "法人共識",
      "score": 0,
      "level": "extreme-bear",
@@ -1993,6 +2351,12 @@
      "score": 15,
      "level": "bull",
      "value": 1.0958
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 23.24
     },
     {
      "name": "法人共識",
@@ -2037,6 +2401,12 @@
      "value": 1.4558
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -35.05
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -2077,6 +2447,12 @@
      "score": 15,
      "level": "bull",
      "value": 1.1009
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -52.57
     },
     {
      "name": "法人共識",
@@ -2121,6 +2497,12 @@
      "value": 1.113
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -32.31
+    },
+    {
      "name": "法人共識",
      "score": 0,
      "level": "extreme-bear",
@@ -2161,6 +2543,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.4119
+    },
+    {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 53.96
     },
     {
      "name": "法人共識",
@@ -2205,6 +2593,12 @@
      "value": 1.286
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -43.62
+    },
+    {
      "name": "法人共識",
      "score": 15,
      "level": "bull",
@@ -2245,6 +2639,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.3117
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 25.86
     },
     {
      "name": "法人共識",
@@ -2289,6 +2689,12 @@
      "value": 1.2229
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": -10.14
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -2329,6 +2735,12 @@
      "score": 15,
      "level": "bull",
      "value": 1.0659
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -109.84
     },
     {
      "name": "法人共識",
@@ -2373,6 +2785,12 @@
      "value": 1.4246
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 31.83
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -2413,6 +2831,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.4076
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": -7.07
     },
     {
      "name": "法人共識",
@@ -2457,6 +2881,12 @@
      "value": 1.3918
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 35.34
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -2493,6 +2923,12 @@
      "value": 1.2363
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 70.86
+    },
+    {
      "name": "結算日壓力",
      "score": 10,
      "level": "neutral",
@@ -2524,6 +2960,12 @@
      "score": 15,
      "level": "bull",
      "value": 1.0919
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 11.84
     },
     {
      "name": "法人共識",
@@ -2568,6 +3010,12 @@
      "value": 1.4114
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 47.23
+    },
+    {
      "name": "法人共識",
      "score": 0,
      "level": "extreme-bear",
@@ -2604,6 +3052,12 @@
      "value": 1.4089
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 74.11
+    },
+    {
      "name": "結算日壓力",
      "score": 15,
      "level": "bull",
@@ -2635,6 +3089,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.654
+    },
+    {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 63.04
     },
     {
      "name": "法人共識",
@@ -2673,6 +3133,12 @@
      "value": 1.4968
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 12.66
+    },
+    {
      "name": "結算日壓力",
      "score": 20,
      "level": "extreme-bull",
@@ -2704,6 +3170,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 1.3539
+    },
+    {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 61.55
     },
     {
      "name": "法人共識",
@@ -2748,6 +3220,12 @@
      "value": 1.3172
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 47.12
+    },
+    {
      "name": "法人共識",
      "score": 0,
      "level": "extreme-bear",
@@ -2790,6 +3268,12 @@
      "value": 1.0693
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 27.1
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -2826,6 +3310,12 @@
      "value": 1.1915
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 33.34
+    },
+    {
      "name": "結算日壓力",
      "score": 10,
      "level": "neutral",
@@ -2857,6 +3347,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 45
+    },
+    {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 53.81
     },
     {
      "name": "結算日壓力",
@@ -2896,6 +3392,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 40
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -77.18
     },
     {
      "name": "法人共識",
@@ -2940,6 +3442,12 @@
      "value": 23
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 100.81
+    },
+    {
      "name": "結算日壓力",
      "score": 10,
      "level": "neutral",
@@ -2977,6 +3485,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 27
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 111.37
     },
     {
      "name": "法人共識",
@@ -3027,6 +3541,12 @@
      "value": 57
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 50.65
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -3073,6 +3593,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 32
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 38.51
     },
     {
      "name": "法人共識",
@@ -3123,6 +3649,12 @@
      "value": 39
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": -0.7
+    },
+    {
      "name": "法人共識",
      "score": 15,
      "level": "bull",
@@ -3171,6 +3703,12 @@
      "value": 49
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 94.88
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -3213,6 +3751,12 @@
      "value": 67
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 47.56
+    },
+    {
      "name": "結算日壓力",
      "score": 10,
      "level": "neutral",
@@ -3250,6 +3794,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 49
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 5.03
     },
     {
      "name": "法人共識",
@@ -3294,6 +3844,12 @@
      "value": 67
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 70.16
+    },
+    {
      "name": "結算日壓力",
      "score": 10,
      "level": "neutral",
@@ -3331,6 +3887,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 33
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -54.79
     },
     {
      "name": "法人共識",
@@ -3381,6 +3943,12 @@
      "value": 70
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 74.08
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -3427,6 +3995,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 53
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 66.02
     },
     {
      "name": "法人共識",
@@ -3477,6 +4051,12 @@
      "value": 30
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 32.23
+    },
+    {
      "name": "法人共識",
      "score": 0,
      "level": "extreme-bear",
@@ -3525,6 +4105,12 @@
      "value": 38
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 47.17
+    },
+    {
      "name": "法人共識",
      "score": 0,
      "level": "extreme-bear",
@@ -3567,6 +4153,12 @@
      "value": 29
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -63.38
+    },
+    {
      "name": "結算日壓力",
      "score": 10,
      "level": "neutral",
@@ -3598,6 +4190,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 44
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 88.22
     },
     {
      "name": "結算日壓力",
@@ -3637,6 +4235,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 25
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -47.33
     },
     {
      "name": "法人共識",
@@ -3687,6 +4291,12 @@
      "value": 37
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 51.92
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -3733,6 +4343,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 85
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 90.75
     },
     {
      "name": "法人共識",
@@ -3783,6 +4399,12 @@
      "value": 81
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 111.35
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -3829,6 +4451,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 84
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 81.86
     },
     {
      "name": "法人共識",
@@ -3879,6 +4507,12 @@
      "value": 61
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 41.17
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -3925,6 +4559,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 23
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 16.76
     },
     {
      "name": "法人共識",
@@ -3975,6 +4615,12 @@
      "value": 34
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": -12.4
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -4021,6 +4667,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 51
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 213.34
     },
     {
      "name": "法人共識",
@@ -4071,6 +4723,12 @@
      "value": 63
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 94.19
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -4117,6 +4775,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 87
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 11.92
     },
     {
      "name": "法人共識",
@@ -4167,6 +4831,12 @@
      "value": 132
     },
     {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": 14.26
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -4215,6 +4885,12 @@
      "value": 128
     },
     {
+     "name": "融資熱度",
+     "score": 5,
+     "level": "bear",
+     "value": 42.41
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -4257,6 +4933,12 @@
      "value": 57
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -59.86
+    },
+    {
      "name": "結算日壓力",
      "score": 10,
      "level": "neutral",
@@ -4294,6 +4976,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 26
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -156.37
     },
     {
      "name": "法人共識",
@@ -4392,6 +5080,12 @@
      "value": 19
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -170.65
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -4434,6 +5128,12 @@
      "value": 36
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 23.65
+    },
+    {
      "name": "結算日壓力",
      "score": 10,
      "level": "neutral",
@@ -4471,6 +5171,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 58
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 78.51
     },
     {
      "name": "法人共識",
@@ -4521,6 +5227,12 @@
      "value": 77
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 148.79
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -4567,6 +5279,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 40
+    },
+    {
+     "name": "融資熱度",
+     "score": 15,
+     "level": "bull",
+     "value": -5.97
     },
     {
      "name": "法人共識",
@@ -4617,6 +5335,12 @@
      "value": 52
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 126.04
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -4663,6 +5387,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 77
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 82.86
     },
     {
      "name": "法人共識",
@@ -4713,6 +5443,12 @@
      "value": 87
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 119.95
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -4759,6 +5495,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 29
+    },
+    {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -111.13
     },
     {
      "name": "法人共識",
@@ -4809,6 +5551,12 @@
      "value": 39
     },
     {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 135.26
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -4855,6 +5603,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 31
+    },
+    {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 35.44
     },
     {
      "name": "法人共識",
@@ -4905,6 +5659,12 @@
      "value": 13
     },
     {
+     "name": "融資熱度",
+     "score": 20,
+     "level": "extreme-bull",
+     "value": -200.75
+    },
+    {
      "name": "法人共識",
      "score": 10,
      "level": "neutral",
@@ -4953,6 +5713,12 @@
      "value": 30
     },
     {
+     "name": "融資熱度",
+     "score": 10,
+     "level": "neutral",
+     "value": 33.03
+    },
+    {
      "name": "法人共識",
      "score": 20,
      "level": "extreme-bull",
@@ -4999,6 +5765,12 @@
      "score": 20,
      "level": "extreme-bull",
      "value": 79
+    },
+    {
+     "name": "融資熱度",
+     "score": 0,
+     "level": "extreme-bear",
+     "value": 174.23
     },
     {
      "name": "法人共識",

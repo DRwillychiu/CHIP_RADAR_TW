@@ -883,6 +883,20 @@ def main():
     except Exception as e:
         print(f"  ⚠️ 融資融券抓取失敗: {e}（不影響主流程）")
         import traceback; traceback.print_exc()
+
+    # v3.72.1 P0-4: 全市場融資金額 aggregate (信號 5 融資熱度 新資料源)
+    # 舊邏輯 sum(top5 margin_change 張)/1e8 ≈ 0 (單位 bug) → 改全市場金額增減
+    margin_market_aggregate = None
+    try:
+        margin_market_aggregate = margin.fetch_margin_market_aggregate(trade_date)
+        if margin_market_aggregate:
+            print(f"[融資融券] ✓ 全市場融資金額增減 "
+                  f"{margin_market_aggregate['margin_amt_change_yi']:+.1f} 億 "
+                  f"(餘額 {margin_market_aggregate['margin_amt_balance_yi']:.0f} 億)")
+        else:
+            print(f"[融資融券] ⚠️ aggregate 無資料 (信號 5 今日略過)")
+    except Exception as e:
+        print(f"  ⚠️ 融資金額 aggregate 抓取失敗: {e}（信號 5 略過）")
     
     # ════════════════════════════════════════════════════════════════
     # v3.37.0 stage 5.5: 融資維持率估算 + 注入 (B5+B6 後新增)
@@ -1182,6 +1196,8 @@ def main():
         # v3.11 新增
         "margin_data": margin_filtered,           # 智慧混合後的個股融資融券
         "margin_rankings": margin_rankings,       # 7 類排行榜
+        # v3.72.1 P0-4: 全市場融資金額 aggregate (信號 5 新資料源)
+        "margin_market_aggregate": margin_market_aggregate,
         # v3.37.0: 融資維持率市場估算 + TDCC 集保大戶
         "margin_maintenance_summary": margin_maint_summary,   # 全市場分布 + Top 30 危險
         "tdcc_metadata": (tdcc_inject or {}).get('metadata'),
