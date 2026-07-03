@@ -25,15 +25,13 @@ Windows 本機（本文件）
 
 ## 快速開始（3 步驟）
 
-### Step 1：安裝（做一次）
+### Step 1：安裝 Python（做一次）
 
 ```powershell
-# Python 3.11+
 winget install Python.Python.3.11
-
-# 重開終端後安裝套件
-pip install -r requirements.txt
 ```
+
+裝完後**關掉終端，重新開一個**，讓 PATH 生效。
 
 ### Step 2：設密碼（做一次）
 

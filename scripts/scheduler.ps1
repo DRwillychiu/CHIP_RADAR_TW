@@ -28,6 +28,13 @@ foreach ($p in $pyPaths) {
     if (Test-Path $p) { $env:Path = "$p;$p\Scripts;$env:Path"; break }
 }
 
+# ── Activate venv if exists (overrides system Python) ──
+$venvScripts = Join-Path $projectRoot ".venv\Scripts"
+if (Test-Path (Join-Path $venvScripts "python.exe")) {
+    $env:Path = "$venvScripts;$env:Path"
+    $env:VIRTUAL_ENV = Join-Path $projectRoot ".venv"
+}
+
 # ── Environment ──
 $env:CHIP_RADAR_DATA_DIR = Join-Path $projectRoot "local_data"
 $env:PYTHONIOENCODING = "utf-8"
