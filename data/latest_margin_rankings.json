@@ -1,6 +1,6 @@
 {
- "trade_date": "20260702",
- "updated_at": "2026-07-03T10:10:52.417507+08:00",
+ "trade_date": "20260703",
+ "updated_at": "2026-07-03T21:36:44.639633+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -1353,7 +1353,8 @@
     "short_quota": 24124,
     "short_usage": 0.0,
     "offsetting": 0,
-    "margin_short_ratio": 0.0
+    "margin_short_ratio": 0.0,
+    "industry": "電腦及週邊設備業"
    },
    {
     "code": "6909",
@@ -1376,8 +1377,7 @@
     "short_quota": 16805,
     "short_usage": 0.09,
     "offsetting": 6,
-    "margin_short_ratio": 0.78,
-    "industry": "半導體業"
+    "margin_short_ratio": 0.78
    },
    {
     "code": "3055",
@@ -2855,8 +2855,7 @@
     "short_quota": 13294,
     "short_usage": 0.24,
     "offsetting": 194,
-    "margin_short_ratio": 2.25,
-    "industry": "數位雲端"
+    "margin_short_ratio": 2.25
    }
   ],
   "top_offsetting": [
@@ -3239,8 +3238,7 @@
     "short_quota": 13294,
     "short_usage": 0.24,
     "offsetting": 194,
-    "margin_short_ratio": 2.25,
-    "industry": "數位雲端"
+    "margin_short_ratio": 2.25
    },
    {
     "code": "00403A",
@@ -5006,120 +5004,30 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1645,
-   "watch": 88,
-   "high_risk": 9,
-   "margin_call": 3,
-   "insufficient_data": 444
+   "healthy": 1229,
+   "watch": 45,
+   "high_risk": 1,
+   "margin_call": 1,
+   "insufficient_data": 913
   },
   "high_risk_stocks": [
    {
     "code": "00715L",
     "name": "期街口布蘭特正2",
-    "ratio": 108.0,
+    "ratio": 112.2,
     "risk_level": "margin_call",
     "margin_balance": 13136,
-    "today_close": 31.38,
+    "today_close": 32.6,
     "estimated_cost": 48.44
-   },
-   {
-    "code": "3363",
-    "name": "上詮",
-    "ratio": 118.4,
-    "risk_level": "margin_call",
-    "margin_balance": 5579,
-    "today_close": 529.0,
-    "estimated_cost": 744.86
-   },
-   {
-    "code": "3701",
-    "name": "大眾控",
-    "ratio": 120.0,
-    "risk_level": "margin_call",
-    "margin_balance": 7802,
-    "today_close": 43.0,
-    "estimated_cost": 59.74
    },
    {
     "code": "6994",
     "name": "富威電力",
-    "ratio": 120.6,
+    "ratio": 123.4,
     "risk_level": "high_risk",
     "margin_balance": 2793,
-    "today_close": 40.95,
+    "today_close": 41.9,
     "estimated_cost": 56.6
-   },
-   {
-    "code": "5386",
-    "name": "青雲",
-    "ratio": 124.4,
-    "risk_level": "high_risk",
-    "margin_balance": 2208,
-    "today_close": 382.5,
-    "estimated_cost": 512.29
-   },
-   {
-    "code": "7717",
-    "name": "萊德光電-KY",
-    "ratio": 124.8,
-    "risk_level": "high_risk",
-    "margin_balance": 418,
-    "today_close": 420.5,
-    "estimated_cost": 561.78
-   },
-   {
-    "code": "3138",
-    "name": "耀登",
-    "ratio": 126.0,
-    "risk_level": "high_risk",
-    "margin_balance": 2858,
-    "today_close": 117.5,
-    "estimated_cost": 155.48
-   },
-   {
-    "code": "3491",
-    "name": "昇達科",
-    "ratio": 128.6,
-    "risk_level": "high_risk",
-    "margin_balance": 3317,
-    "today_close": 1265.0,
-    "estimated_cost": 1639.65
-   },
-   {
-    "code": "6830",
-    "name": "汎銓",
-    "ratio": 128.6,
-    "risk_level": "high_risk",
-    "margin_balance": 4087,
-    "today_close": 448.0,
-    "estimated_cost": 580.82
-   },
-   {
-    "code": "6854",
-    "name": "錼創科技-KY創",
-    "ratio": 129.0,
-    "risk_level": "high_risk",
-    "margin_balance": 3649,
-    "today_close": 120.5,
-    "estimated_cost": 155.7
-   },
-   {
-    "code": "4977",
-    "name": "眾達-KY",
-    "ratio": 129.2,
-    "risk_level": "high_risk",
-    "margin_balance": 7636,
-    "today_close": 160.5,
-    "estimated_cost": 207.09
-   },
-   {
-    "code": "6588",
-    "name": "東典光電",
-    "ratio": 129.6,
-    "risk_level": "high_risk",
-    "margin_balance": 2105,
-    "today_close": 85.2,
-    "estimated_cost": 109.53
    }
   ],
   "thresholds": {
