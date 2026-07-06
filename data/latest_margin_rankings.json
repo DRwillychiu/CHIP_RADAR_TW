@@ -1,6 +1,6 @@
 {
- "trade_date": "20260703",
- "updated_at": "2026-07-06T10:44:42.596052+08:00",
+ "trade_date": "20260706",
+ "updated_at": "2026-07-06T21:34:54.357553+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -2649,8 +2649,7 @@
     "short_quota": 55382,
     "short_usage": 0.05,
     "offsetting": 4,
-    "margin_short_ratio": 0.31,
-    "industry": "電腦及週邊設備業"
+    "margin_short_ratio": 0.31
    },
    {
     "code": "3034",
@@ -3009,7 +3008,8 @@
     "short_quota": 39381,
     "short_usage": 0.38,
     "offsetting": 648,
-    "margin_short_ratio": 2.12
+    "margin_short_ratio": 2.12,
+    "industry": "半導體業"
    },
    {
     "code": "2483",
@@ -3246,8 +3246,7 @@
     "short_quota": 15072,
     "short_usage": 0.28,
     "offsetting": 282,
-    "margin_short_ratio": 0.68,
-    "industry": "汽車工業"
+    "margin_short_ratio": 0.68
    },
    {
     "code": "00637L",
@@ -5016,48 +5015,39 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1678,
-   "watch": 67,
-   "high_risk": 3,
+   "healthy": 1201,
+   "watch": 54,
+   "high_risk": 2,
    "margin_call": 1,
-   "insufficient_data": 441
+   "insufficient_data": 932
   },
   "high_risk_stocks": [
    {
     "code": "00715L",
     "name": "期街口布蘭特正2",
-    "ratio": 115.0,
+    "ratio": 114.6,
     "risk_level": "margin_call",
     "margin_balance": 13237,
-    "today_close": 32.6,
+    "today_close": 32.48,
     "estimated_cost": 47.25
    },
    {
-    "code": "6994",
-    "name": "富威電力",
-    "ratio": 125.7,
+    "code": "6830",
+    "name": "汎銓",
+    "ratio": 128.0,
     "risk_level": "high_risk",
-    "margin_balance": 2970,
-    "today_close": 41.9,
-    "estimated_cost": 55.55
+    "margin_balance": 4113,
+    "today_close": 439.5,
+    "estimated_cost": 572.25
    },
    {
-    "code": "3701",
-    "name": "大眾控",
-    "ratio": 126.8,
+    "code": "3363",
+    "name": "上詮",
+    "ratio": 129.8,
     "risk_level": "high_risk",
-    "margin_balance": 7815,
-    "today_close": 45.45,
-    "estimated_cost": 59.74
-   },
-   {
-    "code": "3138",
-    "name": "耀登",
-    "ratio": 128.1,
-    "risk_level": "high_risk",
-    "margin_balance": 2839,
-    "today_close": 119.5,
-    "estimated_cost": 155.48
+    "margin_balance": 6171,
+    "today_close": 574.0,
+    "estimated_cost": 736.96
    }
   ],
   "thresholds": {
