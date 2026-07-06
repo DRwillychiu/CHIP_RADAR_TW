@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T00:43:36.092535+08:00",
+  "generated_at": "2026-07-07T01:37:38.148572+08:00",
   "trade_date": "20260706",
   "pump_suspicion": [],
   "wash_trade": [
@@ -514,28 +514,12 @@
       "reasoning": "9614 買 105 張 vs 9B2n 賣 80 張 (匹配 76%)"
     }
   ],
-  "distribution": [
-    {
-      "stock_code": "1313",
-      "stock_name": "聯成",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 266,
-      "sell_amt_wan": 360,
-      "avg_30d_sell_lot": 35.7,
-      "sell_vs_avg_x": 7.5,
-      "recent_5d_limit_up_count": 31,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 266 張 (30 天均 36 張 × 7.5) + 近 5 天漲停 31 次"
-    }
-  ],
+  "distribution": [],
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 1,
-    "total": 31
+    "distribution_count": 0,
+    "total": 30
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
