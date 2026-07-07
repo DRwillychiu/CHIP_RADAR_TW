@@ -1,5 +1,6 @@
-$ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+
+try {
 
 # ── Load .env ──
 $dotenvFile = Join-Path $projectRoot ".env"
@@ -142,5 +143,12 @@ Write-Host "  Log:       Desktop\chip_radar_scheduler.log"
 Write-Host ""
 Write-Host "  To stop:   double-click stop.bat"
 Write-Host "============================================="
+
+} catch {
+    Write-Host ""
+    Write-Host "[ERROR] $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "  Location: $($_.InvocationInfo.PositionMessage)" -ForegroundColor Red
+}
+
 Write-Host ""
 Read-Host "Press Enter to close"
