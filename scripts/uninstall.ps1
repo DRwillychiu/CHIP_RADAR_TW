@@ -2,13 +2,12 @@ $ErrorActionPreference = "Continue"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
 Write-Host "============================================="
-Write-Host "  Chip Radar TW - Stopping server..."
+Write-Host "  Chip Radar TW - Uninstall (full cleanup)"
 Write-Host "============================================="
 Write-Host ""
 
 # ── Stop HTTP server ──
 $pidFile = Join-Path $projectRoot "scripts\.server.pid"
-
 if (Test-Path $pidFile) {
     $serverPid = (Get-Content $pidFile -Raw).Trim()
     try { Stop-Process -Id $serverPid -Force -ErrorAction Stop } catch {}
@@ -18,13 +17,21 @@ if (Test-Path $pidFile) {
     Write-Host "[--] Server was not running"
 }
 
-Write-Host ""
-Write-Host "  Scheduler and startup tasks are still registered."
-Write-Host "  To remove everything: double-click uninstall.bat (as admin)"
+# ── Remove all scheduled tasks ──
+$tasks = @("ChipRadar_Scheduler", "ChipRadar_Backup", "ChipRadar_Startup")
+foreach ($task in $tasks) {
+    $exists = schtasks /Query /TN $task 2>$null
+    if ($exists) {
+        schtasks /Delete /TN $task /F 2>$null
+        Write-Host "[OK] Removed task: $task" -ForegroundColor Green
+    } else {
+        Write-Host "[--] $task was not registered"
+    }
+}
+
 Write-Host ""
 Write-Host "============================================="
-Write-Host "  Server stopped. Scheduler will keep running."
-Write-Host "  To restart server: double-click start.bat"
+Write-Host "  All removed. To reinstall: start.bat (as admin)"
 Write-Host "============================================="
 Write-Host ""
 Read-Host "Press Enter to close"

@@ -129,6 +129,22 @@ if (-not $backupExists) {
     Write-Host "[OK] Backup already registered" -ForegroundColor Green
 }
 
+# ── Register startup task (server auto-start on logon) ──
+$startupScript = Join-Path $projectRoot "scripts\server_start.ps1"
+$startupExists = schtasks /Query /TN "ChipRadar_Startup" 2>$null
+if (-not $startupExists) {
+    schtasks /Create /TN "ChipRadar_Startup" `
+        /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$startupScript`"" `
+        /SC ONLOGON /F 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[OK] Startup registered (auto-start on logon)" -ForegroundColor Green
+    } else {
+        Write-Host "[WARN] Failed to register startup task." -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "[OK] Startup already registered" -ForegroundColor Green
+}
+
 # ── Open browser ──
 Write-Host ""
 Write-Host "Opening dashboard ..."
