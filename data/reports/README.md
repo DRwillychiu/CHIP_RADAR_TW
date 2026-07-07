@@ -32,10 +32,10 @@ Excel 抓取法依 master 切換:
 
 | 日期 | 檔案 | 大小 |
 |------|------|------|
-| 2026-07 | [chip_radar_2026-07.xlsx](./chip_radar_2026-07.xlsx) | 171.7 KB |
+| 2026-07 | [chip_radar_2026-07.xlsx](./chip_radar_2026-07.xlsx) | 171.8 KB |
 | 2026-06 | [chip_radar_2026-06.xlsx](./chip_radar_2026-06.xlsx) | 743.7 KB |
 | 2026-05 | [chip_radar_2026-05.xlsx](./chip_radar_2026-05.xlsx) | 865.2 KB |
 
 ---
 
-*Updated: 2026-07-06 18:15*
+*Updated: 2026-07-07 03:16*
