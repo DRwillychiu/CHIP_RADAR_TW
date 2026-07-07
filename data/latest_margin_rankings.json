@@ -1,6 +1,6 @@
 {
- "trade_date": "20260706",
- "updated_at": "2026-07-07T11:16:38.050988+08:00",
+ "trade_date": "20260707",
+ "updated_at": "2026-07-07T21:32:30.545343+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -2745,8 +2745,7 @@
     "short_quota": 42867,
     "short_usage": 0.23,
     "offsetting": 3,
-    "margin_short_ratio": 1.61,
-    "industry": "其他電子業"
+    "margin_short_ratio": 1.61
    },
    {
     "code": "8091",
@@ -3463,8 +3462,7 @@
     "short_quota": 8140,
     "short_usage": 0.1,
     "offsetting": 182,
-    "margin_short_ratio": 0.47,
-    "industry": "半導體業"
+    "margin_short_ratio": 0.47
    },
    {
     "code": "2344",
@@ -3583,7 +3581,8 @@
     "short_quota": 15072,
     "short_usage": 0.27,
     "offsetting": 155,
-    "margin_short_ratio": 0.68
+    "margin_short_ratio": 0.68,
+    "industry": "汽車工業"
    }
   ],
   "top_margin_usage": [
@@ -5020,66 +5019,120 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1668,
-   "watch": 72,
-   "high_risk": 5,
-   "margin_call": 1,
-   "insufficient_data": 444
+   "healthy": 1123,
+   "watch": 117,
+   "high_risk": 10,
+   "margin_call": 2,
+   "insufficient_data": 938
   },
   "high_risk_stocks": [
    {
+    "code": "00685L",
+    "name": "群益臺灣加權正2",
+    "ratio": 7.1,
+    "risk_level": "margin_call",
+    "margin_balance": 3600,
+    "today_close": 12.23,
+    "estimated_cost": 287.14
+   },
+   {
     "code": "00715L",
     "name": "期街口布蘭特正2",
-    "ratio": 117.6,
+    "ratio": 119.7,
     "risk_level": "margin_call",
     "margin_balance": 13823,
-    "today_close": 32.48,
+    "today_close": 33.08,
     "estimated_cost": 46.04
-   },
-   {
-    "code": "3701",
-    "name": "大眾控",
-    "ratio": 126.2,
-    "risk_level": "high_risk",
-    "margin_balance": 7865,
-    "today_close": 44.8,
-    "estimated_cost": 59.17
-   },
-   {
-    "code": "3138",
-    "name": "耀登",
-    "ratio": 128.6,
-    "risk_level": "high_risk",
-    "margin_balance": 2846,
-    "today_close": 118.5,
-    "estimated_cost": 153.58
-   },
-   {
-    "code": "6426",
-    "name": "統新",
-    "ratio": 128.8,
-    "risk_level": "high_risk",
-    "margin_balance": 2621,
-    "today_close": 188.0,
-    "estimated_cost": 243.26
    },
    {
     "code": "4977",
     "name": "眾達-KY",
-    "ratio": 129.1,
+    "ratio": 123.0,
     "risk_level": "high_risk",
     "margin_balance": 7633,
-    "today_close": 159.0,
-    "estimated_cost": 205.24
+    "today_close": 150.0,
+    "estimated_cost": 203.17
+   },
+   {
+    "code": "3491",
+    "name": "昇達科",
+    "ratio": 124.4,
+    "risk_level": "high_risk",
+    "margin_balance": 3264,
+    "today_close": 1195.0,
+    "estimated_cost": 1601.65
+   },
+   {
+    "code": "4971",
+    "name": "IET-KY",
+    "ratio": 124.7,
+    "risk_level": "high_risk",
+    "margin_balance": 4340,
+    "today_close": 443.5,
+    "estimated_cost": 592.58
    },
    {
     "code": "6830",
     "name": "汎銓",
-    "ratio": 129.9,
+    "ratio": 125.3,
     "risk_level": "high_risk",
     "margin_balance": 4090,
-    "today_close": 439.5,
+    "today_close": 424.0,
     "estimated_cost": 564.1
+   },
+   {
+    "code": "3581",
+    "name": "博磊",
+    "ratio": 125.7,
+    "risk_level": "high_risk",
+    "margin_balance": 2030,
+    "today_close": 129.0,
+    "estimated_cost": 170.98
+   },
+   {
+    "code": "4908",
+    "name": "前鼎",
+    "ratio": 126.1,
+    "risk_level": "high_risk",
+    "margin_balance": 3453,
+    "today_close": 162.0,
+    "estimated_cost": 214.15
+   },
+   {
+    "code": "6426",
+    "name": "統新",
+    "ratio": 126.4,
+    "risk_level": "high_risk",
+    "margin_balance": 2621,
+    "today_close": 183.0,
+    "estimated_cost": 241.35
+   },
+   {
+    "code": "6588",
+    "name": "東典光電",
+    "ratio": 126.8,
+    "risk_level": "high_risk",
+    "margin_balance": 2111,
+    "today_close": 81.1,
+    "estimated_cost": 106.59
+   },
+   {
+    "code": "4949",
+    "name": "有成精密",
+    "ratio": 127.1,
+    "risk_level": "high_risk",
+    "margin_balance": 3178,
+    "today_close": 72.4,
+    "estimated_cost": 94.96
+   },
+   {
+    "code": "1294",
+    "name": "漢田生技",
+    "ratio": 128.0,
+    "risk_level": "high_risk",
+    "margin_balance": 238,
+    "today_close": 59.5,
+    "estimated_cost": 77.46
    }
   ],
   "thresholds": {
