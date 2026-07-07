@@ -39,9 +39,7 @@ winget install Python.Python.3.11
 [System.Environment]::SetEnvironmentVariable('CHIP_RADAR_PASSWORD', '你的密碼', 'User')
 ```
 
-填跟 GitHub Secrets 裡同一組密碼。設完**重開終端**。
-
-或用圖形介面：`Win+R` → `sysdm.cpl` → 進階 → 環境變數 → 使用者變數 → 新增 `CHIP_RADAR_PASSWORD`。
+填跟 GitHub Secrets 裡同一組密碼。設完**關掉終端，重新開一個**。
 
 ### Step 3：啟動
 
@@ -208,7 +206,7 @@ local_data/
 
 | 問題 | 解法 |
 |------|------|
-| `CHIP_RADAR_PASSWORD not set` | 設完環境變數後**重開終端再跑** start.bat |
+| `CHIP_RADAR_PASSWORD not set` | 確認系統環境變數有設密碼，設完重開終端 |
 | `Python not found` | 重開終端讓 PATH 生效 |
 | 儀表板打不開 | 確認 server 有跑：`netstat -an \| findstr 8080` |
 | 排程沒跑 | 看 `chip_radar_scheduler.log`，或開 Task Scheduler 看歷史 |
@@ -219,13 +217,17 @@ local_data/
 
 ---
 
-## 環境變數一覽
+## 設定檔（`.env`）
 
-| 變數 | 必填 | 用途 |
-|------|------|------|
-| `CHIP_RADAR_PASSWORD` | 是 | 加密密碼（跟 GitHub Secrets 同一組） |
-| `CHIP_RADAR_DATA_DIR` | 否 | 資料目錄（start.bat / scheduler 自動設） |
+路徑和版本等設定放在專案根目錄的 `.env`（`KEY=VALUE` 格式）。密碼放系統環境變數，不進 `.env`。
+
+| 變數 | 設定位置 | 用途 |
+|------|----------|------|
+| `CHIP_RADAR_PASSWORD` | 系統環境變數 | 加密密碼（跟 GitHub Secrets 同一組） |
+| `CHIP_RADAR_DATA_DIR` | `.env` | 資料目錄（本機用 `local_data`） |
 | `CHIP_RADAR_STAGE` | 否 | `full`（預設）/ `margin_only` |
 | `CHIP_RADAR_PORT` | 否 | Local server port（預設 8080） |
 | `CHIP_RADAR_LOG_DIR` | 否 | Log 路徑覆蓋 |
 | `PYTHONIOENCODING` | 否 | 終端編碼（解決亂碼用 `utf-8`） |
+
+> `.env` 的值不會覆蓋已存在的系統環境變數。

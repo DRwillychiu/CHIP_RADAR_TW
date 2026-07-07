@@ -1,6 +1,21 @@
 $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
+# ── Load .env ──
+$dotenvFile = Join-Path $projectRoot ".env"
+if (Test-Path $dotenvFile) {
+    Get-Content $dotenvFile -Encoding UTF8 | ForEach-Object {
+        $line = $_.Trim()
+        if ($line -and -not $line.StartsWith("#") -and $line.Contains("=")) {
+            $k, $v = $line -split "=", 2
+            $k = $k.Trim(); $v = $v.Trim()
+            if ($v -and -not [System.Environment]::GetEnvironmentVariable($k)) {
+                Set-Item -Path "env:$k" -Value $v
+            }
+        }
+    }
+}
+
 Write-Host "============================================="
 Write-Host "  Chip Radar TW - Local Mode"
 Write-Host "============================================="

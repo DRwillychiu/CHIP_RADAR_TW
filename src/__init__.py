@@ -15,10 +15,25 @@ Import 策略 (backward compat):
   Entry points (crawler.py / heartbeat_check.py / ...) 直接 `import src`
   即會自動把 8 個子目錄加進 sys.path. 既有 `import attention_fetcher` 仍 work.
 """
+import os
 import sys
 from pathlib import Path
 
 _SRC_ROOT = Path(__file__).resolve().parent
+_PROJECT_ROOT = _SRC_ROOT.parent
+
+# Load .env (不依賴 python-dotenv)
+_dotenv = _PROJECT_ROOT / ".env"
+if _dotenv.is_file():
+    for line in _dotenv.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" in line:
+            k, v = line.split("=", 1)
+            k, v = k.strip(), v.strip()
+            if not os.environ.get(k):
+                os.environ[k] = v
 _SUBDIRS = ['fetchers', 'analyzers', 'pipelines', 'backtest',
              'audit', 'alerts', 'exports', 'core']
 
