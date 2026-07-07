@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T22:48:49.716028+08:00",
+  "generated_at": "2026-07-08T00:09:48.323491+08:00",
   "trade_date": "20260707",
   "pump_suspicion": [],
   "wash_trade": [
@@ -317,14 +317,14 @@
       "sell_branch_code": "9A9g",
       "sell_master": "陳族元",
       "buy_lot": 167,
-      "sell_lot": 229,
+      "sell_lot": 218,
       "buy_amt_wan": 1934,
       "sell_amt_wan": 2497,
-      "lot_match_ratio": 0.73,
+      "lot_match_ratio": 0.77,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9B25 買 167 張 vs 9A9g 賣 229 張 (匹配 73%)"
+      "reasoning": "9B25 買 167 張 vs 9A9g 賣 218 張 (匹配 77%)"
     },
     {
       "stock_code": "8150",
@@ -514,12 +514,28 @@
       "reasoning": "961M 買 93 張 vs 1040 賣 95 張 (匹配 98%)"
     }
   ],
-  "distribution": [],
+  "distribution": [
+    {
+      "stock_code": "1314",
+      "stock_name": "中石化",
+      "branch_code": "9A9g",
+      "branch_name": "永豐金-內湖",
+      "master": "陳族元",
+      "sell_lot": 1494,
+      "sell_amt_wan": 1460,
+      "avg_30d_sell_lot": 47.0,
+      "sell_vs_avg_x": 31.8,
+      "recent_5d_limit_up_count": 49,
+      "rule": "C_distribution",
+      "severity": "high",
+      "reasoning": "當日賣 1,494 張 (30 天均 47 張 × 31.8) + 近 5 天漲停 49 次"
+    }
+  ],
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 0,
-    "total": 30
+    "distribution_count": 1,
+    "total": 31
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
