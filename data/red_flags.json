@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-08T22:48:35.662136+08:00",
+  "generated_at": "2026-07-08T23:48:15.964519+08:00",
   "trade_date": "20260708",
   "pump_suspicion": [
     {
@@ -560,12 +560,28 @@
       "reasoning": "9A8F 買 145 張 vs 8450 賣 111 張 (匹配 77%)"
     }
   ],
-  "distribution": [],
+  "distribution": [
+    {
+      "stock_code": "3026",
+      "stock_name": "禾伸堂",
+      "branch_code": "9A9G",
+      "branch_name": "永豐金-天母",
+      "master": "永豐天母(老錢)",
+      "sell_lot": 382,
+      "sell_amt_wan": 36405,
+      "avg_30d_sell_lot": 53.5,
+      "sell_vs_avg_x": 7.1,
+      "recent_5d_limit_up_count": 110,
+      "rule": "C_distribution",
+      "severity": "medium",
+      "reasoning": "當日賣 382 張 (30 天均 54 張 × 7.1) + 近 5 天漲停 110 次"
+    }
+  ],
   "summary": {
     "pump_count": 3,
     "wash_count": 30,
-    "distribution_count": 0,
-    "total": 33
+    "distribution_count": 1,
+    "total": 34
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
