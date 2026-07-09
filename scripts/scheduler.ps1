@@ -54,6 +54,36 @@ if (Test-Path (Join-Path $venvScripts "python.exe")) {
 $env:CHIP_RADAR_DATA_DIR = Join-Path $projectRoot "local_data"
 $env:PYTHONIOENCODING = "utf-8"
 
+# ── Structured execution log (JSONL) ──
+$logsDir = Join-Path $projectRoot "logs"
+if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir -Force | Out-Null }
+
+function Write-ExecutionRecord {
+    param(
+        [string]$JobName,
+        [string]$Command,
+        [string]$Status,     # OK / FAIL / SKIP / EXCEPTION
+        [int]$ExitCode = 0,
+        [double]$DurationMin = 0,
+        [string]$OutputTail = "",
+        [string]$ErrorMsg = ""
+    )
+    $dateStr = (Get-Date).ToString("yyyyMMdd")
+    $record = @{
+        ts        = (Get-Date).ToString("yyyy-MM-ddTHH:mm:sszzz")
+        job       = $JobName
+        cmd       = $Command
+        status    = $Status
+        exit_code = $ExitCode
+        duration_min = $DurationMin
+        output    = $OutputTail
+        error     = $ErrorMsg
+    }
+    $jsonLine = $record | ConvertTo-Json -Compress
+    $jsonlPath = Join-Path $logsDir "scheduler_$dateStr.jsonl"
+    Add-Content -Path $jsonlPath -Value $jsonLine -Encoding UTF8
+}
+
 # ── Schedule table (mirrors .github/workflows/*.yml) ──
 # Format: HH:mm = @{ days = "Mon-Fri" or "Tue-Sat" or "Sat" or "Sun"; job = "name" }
 #
@@ -99,6 +129,9 @@ $schedule = @(
     # ── heartbeat.yml: 資料新鮮度 ──
     @{ time="00:30"; days=@(0,1,2,3,4,5,6); job="heartbeat"; cmd="python heartbeat_check.py --latest local_data/latest.json --output local_data/heartbeat.json" }
     @{ time="09:00"; days=@(0,1,2,3,4,5,6); job="heartbeat"; cmd="python heartbeat_check.py --latest local_data/latest.json --output local_data/heartbeat.json" }
+
+    # ── morning report: 每日執行報告彈窗 ──
+    @{ time="08:10"; days=@(0,1,2,3,4,5,6); job="morning-report"; cmd="morning_report.ps1"; gui=$true }
 )
 
 # ── Check current time ──
@@ -131,10 +164,12 @@ print('YES' if in_window else 'NO')
 " 2>&1
             if ($checkResult -ne "YES") {
                 Add-Content -Path $logFile -Value "[$timestamp] [$jobName] SKIP (not in settlement window)" -Encoding UTF8
+                Write-ExecutionRecord -JobName $jobName -Command $cmd -Status "SKIP" -ErrorMsg "not in settlement window"
                 continue
             }
         } catch {
             Add-Content -Path $logFile -Value "[$timestamp] [$jobName] Settlement check failed: $_" -Encoding UTF8
+            Write-ExecutionRecord -JobName $jobName -Command $cmd -Status "SKIP" -ErrorMsg "settlement check failed: $_"
             continue
         }
     }
@@ -149,6 +184,20 @@ print('YES' if in_window else 'NO')
     Add-Content -Path $logFile -Value "[$timestamp] [$jobName] START: $cmd" -Encoding UTF8
     $startTime = Get-Date
 
+    # GUI jobs (morning report) need a visible window — fire-and-forget via Start-Process
+    if ($entry.gui) {
+        $scriptPath = Join-Path $PSScriptRoot $cmd
+        try {
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -File `"$scriptPath`"" -WindowStyle Normal
+            Add-Content -Path $logFile -Value "[$timestamp] [$jobName] LAUNCHED (gui)" -Encoding UTF8
+            Write-ExecutionRecord -JobName $jobName -Command $cmd -Status "OK"
+        } catch {
+            Add-Content -Path $logFile -Value "[$timestamp] [$jobName] LAUNCH FAILED: $_" -Encoding UTF8
+            Write-ExecutionRecord -JobName $jobName -Command $cmd -Status "EXCEPTION" -ErrorMsg "$_"
+        }
+        continue
+    }
+
     try {
         $output = & cmd /c "cd /d `"$projectRoot`" && $cmd" 2>&1
         $exitCode = $LASTEXITCODE
@@ -156,12 +205,15 @@ print('YES' if in_window else 'NO')
         $status = if ($exitCode -eq 0) { "OK" } else { "FAIL (exit $exitCode)" }
         Add-Content -Path $logFile -Value "[$timestamp] [$jobName] $status (${duration} min)" -Encoding UTF8
 
-        # Always log last 5 lines (Excel errors are caught by try/except so exit=0)
         $lastLines = ($output | Select-Object -Last 5) -join " | "
         Add-Content -Path $logFile -Value "[$timestamp] [$jobName] Output: $lastLines" -Encoding UTF8
+
+        $recStatus = if ($exitCode -eq 0) { "OK" } else { "FAIL" }
+        Write-ExecutionRecord -JobName $jobName -Command $cmd -Status $recStatus -ExitCode $exitCode -DurationMin $duration -OutputTail $lastLines
     } catch {
         $duration = [math]::Round(((Get-Date) - $startTime).TotalMinutes, 1)
         Add-Content -Path $logFile -Value "[$timestamp] [$jobName] EXCEPTION (${duration} min): $_" -Encoding UTF8
+        Write-ExecutionRecord -JobName $jobName -Command $cmd -Status "EXCEPTION" -DurationMin $duration -ErrorMsg "$_"
     }
 
     # Reset extra env vars
