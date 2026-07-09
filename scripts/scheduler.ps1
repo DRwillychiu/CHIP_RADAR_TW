@@ -156,10 +156,9 @@ print('YES' if in_window else 'NO')
         $status = if ($exitCode -eq 0) { "OK" } else { "FAIL (exit $exitCode)" }
         Add-Content -Path $logFile -Value "[$timestamp] [$jobName] $status (${duration} min)" -Encoding UTF8
 
-        if ($exitCode -ne 0) {
-            $lastLines = ($output | Select-Object -Last 3) -join " | "
-            Add-Content -Path $logFile -Value "[$timestamp] [$jobName] Output: $lastLines" -Encoding UTF8
-        }
+        # Always log last 5 lines (Excel errors are caught by try/except so exit=0)
+        $lastLines = ($output | Select-Object -Last 5) -join " | "
+        Add-Content -Path $logFile -Value "[$timestamp] [$jobName] Output: $lastLines" -Encoding UTF8
     } catch {
         $duration = [math]::Round(((Get-Date) - $startTime).TotalMinutes, 1)
         Add-Content -Path $logFile -Value "[$timestamp] [$jobName] EXCEPTION (${duration} min): $_" -Encoding UTF8
