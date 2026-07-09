@@ -106,19 +106,14 @@ if (Test-Path $pidFile) {
 Write-Host ""
 Write-Host "Registering scheduler (every minute) ..."
 
-$schedulerPath = Join-Path $projectRoot "scripts\scheduler.ps1"
-$taskExists = schtasks /Query /TN "ChipRadar_Scheduler" 2>$null
-if (-not $taskExists) {
-    schtasks /Create /TN "ChipRadar_Scheduler" `
-        /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$schedulerPath`"" `
-        /SC MINUTE /MO 1 /F 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "[OK] Scheduler registered" -ForegroundColor Green
-    } else {
-        Write-Host "[WARN] Failed to register scheduler. Try running as administrator." -ForegroundColor Yellow
-    }
+$schedulerVbs = Join-Path $projectRoot "scripts\scheduler_silent.vbs"
+schtasks /Create /TN "ChipRadar_Scheduler" `
+    /TR "wscript.exe `"$schedulerVbs`"" `
+    /SC MINUTE /MO 1 /F 2>$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "[OK] Scheduler registered" -ForegroundColor Green
 } else {
-    Write-Host "[OK] Scheduler already registered" -ForegroundColor Green
+    Write-Host "[WARN] Failed to register scheduler. Try running as administrator." -ForegroundColor Yellow
 }
 
 # ── Register backup task ──
