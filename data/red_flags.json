@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-10T01:15:31.235771+08:00",
+  "generated_at": "2026-07-10T21:28:08.413509+08:00",
   "trade_date": "20260709",
   "pump_suspicion": [
     {
@@ -12,10 +12,10 @@
       "sell_lot": 12226,
       "buy_amt_wan": 154087,
       "daytrade_ratio": 0.93,
-      "amt_vs_median_x": 18.8,
+      "amt_vs_median_x": 15.3,
       "rule": "A_pump",
       "severity": "high",
-      "reasoning": "當沖比 93% (> 70%) + 漲停 + 買金額 154,087 萬 (中位數 8,212 萬 × 18.8)"
+      "reasoning": "當沖比 93% (> 70%) + 漲停 + 買金額 154,087 萬 (中位數 10,074 萬 × 15.3)"
     }
   ],
   "wash_trade": [
@@ -154,23 +154,6 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9B25 買 252 張 vs 9692 賣 217 張 (匹配 86%)"
-    },
-    {
-      "stock_code": "2344",
-      "stock_name": "華邦電",
-      "buy_branch_code": "9B25",
-      "buy_master": "民哥",
-      "sell_branch_code": "9A9G",
-      "sell_master": "永豐天母(老錢)",
-      "buy_lot": 252,
-      "sell_lot": 191,
-      "buy_amt_wan": 4479,
-      "sell_amt_wan": 3363,
-      "lot_match_ratio": 0.76,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9B25 買 252 張 vs 9A9G 賣 191 張 (匹配 76%)"
     },
     {
       "stock_code": "2344",
@@ -381,23 +364,6 @@
       "stock_name": "華邦電",
       "buy_branch_code": "989N",
       "buy_master": "強森",
-      "sell_branch_code": "9A9G",
-      "sell_master": "永豐天母(老錢)",
-      "buy_lot": 210,
-      "sell_lot": 191,
-      "buy_amt_wan": 3704,
-      "sell_amt_wan": 3363,
-      "lot_match_ratio": 0.91,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "989N 買 210 張 vs 9A9G 賣 191 張 (匹配 91%)"
-    },
-    {
-      "stock_code": "2344",
-      "stock_name": "華邦電",
-      "buy_branch_code": "989N",
-      "buy_master": "強森",
       "sell_branch_code": "1040",
       "sell_master": "臺銀證券",
       "buy_lot": 210,
@@ -460,6 +426,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9B2D 買 63 張 vs 913R 賣 73 張 (匹配 86%)"
+    },
+    {
+      "stock_code": "2344",
+      "stock_name": "華邦電",
+      "buy_branch_code": "9B2D",
+      "buy_master": "強森",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 63,
+      "sell_lot": 79,
+      "buy_amt_wan": 1110,
+      "sell_amt_wan": 1402,
+      "lot_match_ratio": 0.8,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9B2D 買 63 張 vs 9A9G 賣 79 張 (匹配 80%)"
     },
     {
       "stock_code": "2344",
@@ -528,6 +511,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9B18 買 197 張 vs 9A9J 賣 242 張 (匹配 81%)"
+    },
+    {
+      "stock_code": "2344",
+      "stock_name": "華邦電",
+      "buy_branch_code": "9B18",
+      "buy_master": "蔣承翰",
+      "sell_branch_code": "9692",
+      "sell_master": "嘉義幫",
+      "buy_lot": 197,
+      "sell_lot": 217,
+      "buy_amt_wan": 3483,
+      "sell_amt_wan": 3822,
+      "lot_match_ratio": 0.91,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9B18 買 197 張 vs 9692 賣 217 張 (匹配 91%)"
     }
   ],
   "distribution": [],
