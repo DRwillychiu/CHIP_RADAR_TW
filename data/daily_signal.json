@@ -1,19 +1,13 @@
 {
-  "date": "20260709",
-  "generated_at": "2026-07-10T17:39:02.735633",
+  "date": "20260713",
+  "generated_at": "2026-07-13T16:16:27.856877",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
   "headline": "偏多 信心95% (高信心) · 3 檔個股關注",
   "market_direction": {
     "direction": "偏多",
     "confidence_pct": 95,
-    "net_weight": 0.523,
+    "net_weight": 0.503,
     "contributing": [
-      {
-        "name": "外資現貨",
-        "level": "extreme-bull",
-        "weight": 0.202,
-        "sign": "bull"
-      },
       {
         "name": "P/C Ratio",
         "level": "bull",
@@ -27,59 +21,65 @@
         "sign": "bull"
       },
       {
-        "name": "法人共識",
-        "level": "extreme-bull",
-        "weight": 0.15,
+        "name": "融資熱度",
+        "level": "bull",
+        "weight": 0.196,
+        "sign": "bull"
+      },
+      {
+        "name": "結算日壓力",
+        "level": "bull",
+        "weight": 0.136,
         "sign": "bull"
       }
     ],
     "ignored": [
+      "外資現貨",
       "外資期貨",
-      "融資熱度",
-      "結算日壓力"
+      "法人共識"
     ]
   },
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "8046",
-      "name": "南電",
-      "change_pct": 9.95,
-      "tier": "consensus",
-      "master_count": 0,
-      "masters": [],
-      "total_buy_amt_K": 4838900,
-      "total_buy_amt_yi": 48.39,
-      "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.95%, 共淨買 48.39 億",
-      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
-    },
-    {
-      "rank": 2,
-      "code": "2408",
-      "name": "南亞科",
-      "change_pct": 9.97,
-      "tier": "consensus",
-      "master_count": 0,
-      "masters": [],
-      "total_buy_amt_K": 14862034,
-      "total_buy_amt_yi": 148.62,
-      "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.97%, 共淨買 148.62 億",
-      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
-    },
-    {
-      "rank": 3,
-      "code": "8150",
-      "name": "南茂",
+      "code": "4958",
+      "name": "臻鼎-KY",
       "change_pct": 9.86,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 4363421,
-      "total_buy_amt_yi": 43.63,
+      "total_buy_amt_K": 21040969,
+      "total_buy_amt_yi": 210.41,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.86%, 共淨買 43.63 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.86%, 共淨買 210.41 億",
+      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
+    },
+    {
+      "rank": 2,
+      "code": "6182",
+      "name": "合晶",
+      "change_pct": 9.86,
+      "tier": "consensus",
+      "master_count": 0,
+      "masters": [],
+      "total_buy_amt_K": 5949132,
+      "total_buy_amt_yi": 59.49,
+      "confidence_pct": 52,
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.86%, 共淨買 59.49 億",
+      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
+    },
+    {
+      "rank": 3,
+      "code": "1301",
+      "name": "台塑",
+      "change_pct": 9.85,
+      "tier": "consensus",
+      "master_count": 0,
+      "masters": [],
+      "total_buy_amt_K": 1580876,
+      "total_buy_amt_yi": 15.81,
+      "confidence_pct": 52,
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.85%, 共淨買 15.81 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],
