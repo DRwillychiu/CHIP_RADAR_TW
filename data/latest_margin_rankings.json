@@ -1,6 +1,6 @@
 {
  "trade_date": "20260713",
- "updated_at": "2026-07-14T00:16:24.009225+08:00",
+ "updated_at": "2026-07-14T00:53:48.231928+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -5012,102 +5012,102 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1098,
-   "watch": 173,
-   "high_risk": 6,
-   "margin_call": 4,
-   "insufficient_data": 913
+   "healthy": 1113,
+   "watch": 156,
+   "high_risk": 7,
+   "margin_call": 3,
+   "insufficient_data": 915
   },
   "high_risk_stocks": [
    {
     "code": "00685L",
     "name": "群益臺灣加權正2",
-    "ratio": 7.6,
+    "ratio": 7.9,
     "risk_level": "margin_call",
     "margin_balance": 130908,
     "today_close": 12.08,
-    "estimated_cost": 264.57
+    "estimated_cost": 256.36
    },
    {
     "code": "3701",
     "name": "大眾控",
-    "ratio": 116.8,
+    "ratio": 118.1,
     "risk_level": "margin_call",
     "margin_balance": 7844,
     "today_close": 40.65,
-    "estimated_cost": 57.99
+    "estimated_cost": 57.37
    },
    {
     "code": "5386",
     "name": "青雲",
-    "ratio": 117.3,
+    "ratio": 119.2,
     "risk_level": "margin_call",
     "margin_balance": 1846,
     "today_close": 351.0,
-    "estimated_cost": 498.57
+    "estimated_cost": 490.71
    },
    {
     "code": "6861",
     "name": "睿生光電",
-    "ratio": 119.8,
-    "risk_level": "margin_call",
+    "ratio": 121.4,
+    "risk_level": "high_risk",
     "margin_balance": 2907,
     "today_close": 263.0,
-    "estimated_cost": 365.87
-   },
-   {
-    "code": "6830",
-    "name": "汎銓",
-    "ratio": 123.5,
-    "risk_level": "high_risk",
-    "margin_balance": 4147,
-    "today_close": 394.5,
-    "estimated_cost": 532.6
+    "estimated_cost": 360.99
    },
    {
     "code": "7709",
     "name": "榮田",
-    "ratio": 125.4,
+    "ratio": 126.1,
     "risk_level": "high_risk",
     "margin_balance": 415,
     "today_close": 73.6,
-    "estimated_cost": 97.82
+    "estimated_cost": 97.25
    },
    {
-    "code": "4971",
-    "name": "IET-KY",
-    "ratio": 127.1,
+    "code": "6830",
+    "name": "汎銓",
+    "ratio": 126.5,
     "risk_level": "high_risk",
-    "margin_balance": 4341,
-    "today_close": 428.0,
-    "estimated_cost": 561.22
+    "margin_balance": 4147,
+    "today_close": 394.5,
+    "estimated_cost": 519.82
    },
    {
     "code": "1294",
     "name": "漢田生技",
-    "ratio": 127.2,
+    "ratio": 128.4,
     "risk_level": "high_risk",
     "margin_balance": 198,
     "today_close": 57.7,
-    "estimated_cost": 75.59
+    "estimated_cost": 74.92
    },
    {
-    "code": "6588",
-    "name": "東典光電",
-    "ratio": 127.3,
+    "code": "4971",
+    "name": "IET-KY",
+    "ratio": 129.5,
     "risk_level": "high_risk",
-    "margin_balance": 1999,
-    "today_close": 78.0,
-    "estimated_cost": 102.09
+    "margin_balance": 4341,
+    "today_close": 428.0,
+    "estimated_cost": 550.68
    },
    {
     "code": "4977",
     "name": "眾達-KY",
-    "ratio": 127.4,
+    "ratio": 129.5,
     "risk_level": "high_risk",
     "margin_balance": 7716,
     "today_close": 151.5,
-    "estimated_cost": 198.12
+    "estimated_cost": 194.97
+   },
+   {
+    "code": "6588",
+    "name": "東典光電",
+    "ratio": 129.6,
+    "risk_level": "high_risk",
+    "margin_balance": 1999,
+    "today_close": 78.0,
+    "estimated_cost": 100.34
    }
   ],
   "thresholds": {
