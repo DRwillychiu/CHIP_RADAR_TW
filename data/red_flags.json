@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-15T00:19:27.281854+08:00",
+  "generated_at": "2026-07-15T01:03:01.468364+08:00",
   "trade_date": "20260714",
   "pump_suspicion": [],
   "wash_trade": [
@@ -53,6 +53,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "8888 買 133 張 vs 1590 賣 188 張 (匹配 71%)"
+    },
+    {
+      "stock_code": "8299",
+      "stock_name": "群聯",
+      "buy_branch_code": "1650",
+      "buy_master": "瑞銀",
+      "sell_branch_code": "9A9g",
+      "sell_master": "陳族元",
+      "buy_lot": 232,
+      "sell_lot": 194,
+      "buy_amt_wan": 47512,
+      "sell_amt_wan": 39770,
+      "lot_match_ratio": 0.84,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "1650 買 232 張 vs 9A9g 賣 194 張 (匹配 84%)"
     },
     {
       "stock_code": "8299",
@@ -495,23 +512,6 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9A9R 買 344 張 vs 9658 賣 279 張 (匹配 81%)"
-    },
-    {
-      "stock_code": "1303",
-      "stock_name": "南亞",
-      "buy_branch_code": "9A9R",
-      "buy_master": "陳律師",
-      "sell_branch_code": "913Y",
-      "sell_master": "江士勳",
-      "buy_lot": 344,
-      "sell_lot": 355,
-      "buy_amt_wan": 6989,
-      "sell_amt_wan": 7104,
-      "lot_match_ratio": 0.97,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9A9R 買 344 張 vs 913Y 賣 355 張 (匹配 97%)"
     }
   ],
   "distribution": [],
