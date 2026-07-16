@@ -3491,26 +3491,180 @@
       "hits": 3,
       "hit_rate": 0.2308,
       "mean_change": -1.71
+    },
+    {
+      "date": "20260715",
+      "next_date": "20260716",
+      "q5_direction": "偏多",
+      "q5_confidence": 95,
+      "taifex_change": 2.0,
+      "vol_spike_masters": [
+        "蔣承翰"
+      ],
+      "quad_picks": [
+        {
+          "code": "4958",
+          "name": "臻鼎-KY",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -6.47,
+          "hit": false,
+          "leader_pct": 0.181,
+          "excess_return": -8.47,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "6182",
+          "name": "合晶",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -7.52,
+          "hit": false,
+          "leader_pct": 0.298,
+          "excess_return": -9.52,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "3008",
+          "name": "大立光",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 5.45,
+          "hit": true,
+          "leader_pct": 0.462,
+          "excess_return": 3.45,
+          "failure_reasons": []
+        },
+        {
+          "code": "2303",
+          "name": "聯電",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -3.61,
+          "hit": false,
+          "leader_pct": 0.323,
+          "excess_return": -5.61,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "6488",
+          "name": "環球晶",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -7.12,
+          "hit": false,
+          "leader_pct": 0.478,
+          "excess_return": -9.12,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "2330",
+          "name": "台積電",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 1.23,
+          "hit": true,
+          "leader_pct": 0.561,
+          "excess_return": -0.77,
+          "failure_reasons": []
+        },
+        {
+          "code": "2891",
+          "name": "中信金",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -0.79,
+          "hit": false,
+          "leader_pct": 0.177,
+          "excess_return": -2.79,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "1303",
+          "name": "南亞",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -2.86,
+          "hit": false,
+          "leader_pct": 0.575,
+          "excess_return": -4.86,
+          "failure_reasons": [
+            "假共識 (領頭獨佔 ≥50%)",
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "2454",
+          "name": "聯發科",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -1.07,
+          "hit": false,
+          "leader_pct": 0.79,
+          "excess_return": -3.07,
+          "failure_reasons": [
+            "假共識 (領頭獨佔 ≥50%)",
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "6213",
+          "name": "聯茂",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -2.99,
+          "hit": false,
+          "leader_pct": 0.436,
+          "excess_return": -4.99,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        }
+      ],
+      "n": 10,
+      "hits": 2,
+      "hit_rate": 0.2,
+      "mean_change": -2.58
     }
   ],
   "rolling_30d": {
-    "trigger_days": 7,
-    "n": 74,
-    "hits": 35,
-    "hit_rate": 0.473,
-    "mean_change": 0.31
+    "trigger_days": 8,
+    "n": 84,
+    "hits": 37,
+    "hit_rate": 0.4405,
+    "mean_change": -0.03
   },
   "rolling_all": {
-    "trigger_days": 23,
-    "n": 228,
-    "hits": 124,
-    "hit_rate": 0.5439,
-    "mean_change": 1.51
+    "trigger_days": 24,
+    "n": 238,
+    "hits": 126,
+    "hit_rate": 0.5294,
+    "mean_change": 1.34
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.5439,
-    "delta_pp": -24.5
+    "actual_hit_rate": 0.5294,
+    "delta_pp": -26.0
   },
-  "updated_at": "2026-07-15T17:14:08.234891"
+  "updated_at": "2026-07-16T13:34:14.983789"
 }
