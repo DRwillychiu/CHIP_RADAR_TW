@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-17T23:05:41.648471+08:00",
+  "generated_at": "2026-07-18T00:13:11.146189+08:00",
   "trade_date": "20260717",
   "pump_suspicion": [],
   "wash_trade": [
@@ -45,14 +45,14 @@
       "sell_branch_code": "9A9G",
       "sell_master": "永豐天母(老錢)",
       "buy_lot": 353,
-      "sell_lot": 348,
+      "sell_lot": 358,
       "buy_amt_wan": 83397,
       "sell_amt_wan": 81907,
       "lot_match_ratio": 0.99,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "1260 買 353 張 vs 9A9G 賣 348 張 (匹配 99%)"
+      "reasoning": "1260 買 353 張 vs 9A9G 賣 358 張 (匹配 99%)"
     },
     {
       "stock_code": "2330",
@@ -96,14 +96,14 @@
       "sell_branch_code": "9A9G",
       "sell_master": "永豐天母(老錢)",
       "buy_lot": 355,
-      "sell_lot": 348,
+      "sell_lot": 358,
       "buy_amt_wan": 81376,
       "sell_amt_wan": 81907,
-      "lot_match_ratio": 0.98,
+      "lot_match_ratio": 0.99,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9216 買 355 張 vs 9A9G 賣 348 張 (匹配 98%)"
+      "reasoning": "9216 買 355 張 vs 9A9G 賣 358 張 (匹配 99%)"
     },
     {
       "stock_code": "2330",
@@ -147,14 +147,14 @@
       "sell_branch_code": "9A9G",
       "sell_master": "永豐天母(老錢)",
       "buy_lot": 334,
-      "sell_lot": 348,
+      "sell_lot": 358,
       "buy_amt_wan": 78639,
       "sell_amt_wan": 81907,
-      "lot_match_ratio": 0.96,
+      "lot_match_ratio": 0.93,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "920F 買 334 張 vs 9A9G 賣 348 張 (匹配 96%)"
+      "reasoning": "920F 買 334 張 vs 9A9G 賣 358 張 (匹配 93%)"
     },
     {
       "stock_code": "2330",
@@ -232,14 +232,14 @@
       "sell_branch_code": "9A9G",
       "sell_master": "永豐天母(老錢)",
       "buy_lot": 373,
-      "sell_lot": 348,
+      "sell_lot": 358,
       "buy_amt_wan": 85402,
       "sell_amt_wan": 81907,
-      "lot_match_ratio": 0.93,
+      "lot_match_ratio": 0.96,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9300 買 373 張 vs 9A9G 賣 348 張 (匹配 93%)"
+      "reasoning": "9300 買 373 張 vs 9A9G 賣 358 張 (匹配 96%)"
     },
     {
       "stock_code": "2330",
@@ -559,28 +559,13 @@
       "rule": "C_distribution",
       "severity": "medium",
       "reasoning": "當日賣 487 張 (30 天均 91 張 × 5.4) + 近 5 天漲停 60 次"
-    },
-    {
-      "stock_code": "8028",
-      "stock_name": "昇陽半導體",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 60,
-      "sell_amt_wan": 1904,
-      "avg_30d_sell_lot": 12.0,
-      "sell_vs_avg_x": 5.0,
-      "recent_5d_limit_up_count": 52,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 60 張 (30 天均 12 張 × 5.0) + 近 5 天漲停 52 次"
     }
   ],
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 4,
-    "total": 34
+    "distribution_count": 3,
+    "total": 33
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
