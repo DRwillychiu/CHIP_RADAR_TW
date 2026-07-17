@@ -1,12 +1,12 @@
 {
-  "date": "20260716",
-  "generated_at": "2026-07-16T17:09:19.746184",
+  "date": "20260717",
+  "generated_at": "2026-07-17T13:30:20.495899",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "偏多 信心69.4% (中信心) · 3 檔個股關注",
+  "headline": "中性 信心51.8% (低信心) · 0 檔個股關注",
   "market_direction": {
-    "direction": "偏多",
-    "confidence_pct": 69.4,
-    "net_weight": 0.194,
+    "direction": "中性",
+    "confidence_pct": 51.8,
+    "net_weight": 0.018,
     "contributing": [
       {
         "name": "P/C Ratio",
@@ -15,74 +15,21 @@
         "sign": "bear"
       },
       {
-        "name": "分點漲停",
-        "level": "extreme-bull",
-        "weight": 0.083,
-        "sign": "bull"
-      },
-      {
-        "name": "融資熱度",
-        "level": "bull",
-        "weight": 0.196,
-        "sign": "bull"
-      },
-      {
         "name": "結算日壓力",
-        "level": "extreme-bull",
-        "weight": 0.033,
+        "level": "bull",
+        "weight": 0.136,
         "sign": "bull"
       }
     ],
     "ignored": [
       "外資現貨",
       "外資期貨",
+      "分點漲停",
+      "融資熱度",
       "法人共識"
     ]
   },
-  "top_focus_stocks": [
-    {
-      "rank": 1,
-      "code": "6505",
-      "name": "台塑化",
-      "change_pct": 9.89,
-      "tier": "consensus",
-      "master_count": 0,
-      "masters": [],
-      "total_buy_amt_K": 2283678,
-      "total_buy_amt_yi": 22.84,
-      "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.89%, 共淨買 22.84 億",
-      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
-    },
-    {
-      "rank": 2,
-      "code": "2484",
-      "name": "希華",
-      "change_pct": 9.94,
-      "tier": "consensus",
-      "master_count": 0,
-      "masters": [],
-      "total_buy_amt_K": 758325,
-      "total_buy_amt_yi": 7.58,
-      "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.94%, 共淨買 7.58 億",
-      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
-    },
-    {
-      "rank": 3,
-      "code": "8028",
-      "name": "昇陽半導體",
-      "change_pct": 9.89,
-      "tier": "consensus",
-      "master_count": 0,
-      "masters": [],
-      "total_buy_amt_K": 3067892,
-      "total_buy_amt_yi": 30.68,
-      "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.89%, 共淨買 30.68 億",
-      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
-    }
-  ],
+  "top_focus_stocks": [],
   "killed_signals": {
     "外資期貨等效大台淨 OI": {
       "reason": "1 年 backtest 96% 樣本歸到偏空/極空, 全年外資長期淨空, 反指標假設失效",
