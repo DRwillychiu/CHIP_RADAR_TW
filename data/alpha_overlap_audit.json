@@ -1,32 +1,32 @@
 {
-  "updated_at": "2026-07-12T14:53:49.927430",
-  "days_analyzed": 41,
+  "updated_at": "2026-07-19T14:52:50.151632",
+  "days_analyzed": 45,
   "summary": {
-    "mild_only_pct": 45.26315789473684,
-    "both_overlap_pct_of_quad": 21.84873949579832,
+    "mild_only_pct": 47.706422018348626,
+    "both_overlap_pct_of_quad": 22.983870967741936,
     "verdict": "部分獨立 — mild_up 大部分非 quad subset, 雙層仍有獨立信息"
   },
   "buckets": {
     "quad_only": {
-      "n": 186,
+      "n": 191,
       "hits": 101,
-      "hit_rate": 0.543010752688172,
-      "mean_change": 1.5837634408602146,
-      "median_change": 0.7250000000000001
+      "hit_rate": 0.5287958115183246,
+      "mean_change": 1.4646596858638739,
+      "median_change": 0.58
     },
     "both": {
-      "n": 52,
-      "hits": 24,
-      "hit_rate": 0.46153846153846156,
-      "mean_change": -0.38134615384615306,
-      "median_change": -0.415
+      "n": 57,
+      "hits": 26,
+      "hit_rate": 0.45614035087719296,
+      "mean_change": -0.5394736842105262,
+      "median_change": -0.83
     },
     "mild_up_only": {
-      "n": 43,
-      "hits": 17,
-      "hit_rate": 0.3953488372093023,
-      "mean_change": -0.5774418604651157,
-      "median_change": -1.02
+      "n": 52,
+      "hits": 18,
+      "hit_rate": 0.34615384615384615,
+      "mean_change": -1.6688461538461523,
+      "median_change": -1.565
     }
   },
   "per_day": [
@@ -398,6 +398,42 @@
       "intersection": 0,
       "quad_only": 0,
       "mild_only": 1
+    },
+    {
+      "date": "20260709",
+      "next_date": "20260713",
+      "quad_n": 0,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 0
+    },
+    {
+      "date": "20260713",
+      "next_date": "20260714",
+      "quad_n": 0,
+      "mild_n": 3,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 3
+    },
+    {
+      "date": "20260715",
+      "next_date": "20260716",
+      "quad_n": 10,
+      "mild_n": 5,
+      "intersection": 5,
+      "quad_only": 5,
+      "mild_only": 0
+    },
+    {
+      "date": "20260716",
+      "next_date": "20260717",
+      "quad_n": 0,
+      "mild_n": 6,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 6
     }
   ]
 }
