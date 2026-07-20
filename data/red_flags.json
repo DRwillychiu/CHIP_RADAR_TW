@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-21T00:21:58.194483+08:00",
+  "generated_at": "2026-07-21T01:19:41.546976+08:00",
   "trade_date": "20260720",
   "pump_suspicion": [],
   "wash_trade": [
@@ -384,15 +384,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "9300",
       "sell_master": "陳族元",
-      "buy_lot": 275,
+      "buy_lot": 271,
       "sell_lot": 271,
       "buy_amt_wan": 10487,
       "sell_amt_wan": 10341,
-      "lot_match_ratio": 0.99,
+      "lot_match_ratio": 1.0,
       "same_master": true,
       "rule": "B_wash",
       "severity": "high",
-      "reasoning": "9A9g 買 275 張 vs 9300 賣 271 張 (匹配 99%) 且同 master '陳族元'"
+      "reasoning": "9A9g 買 271 張 vs 9300 賣 271 張 (匹配 100%) 且同 master '陳族元'"
     },
     {
       "stock_code": "2408",
@@ -401,15 +401,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "9661",
       "sell_master": "陳族元",
-      "buy_lot": 275,
+      "buy_lot": 271,
       "sell_lot": 204,
       "buy_amt_wan": 10487,
       "sell_amt_wan": 7924,
-      "lot_match_ratio": 0.74,
+      "lot_match_ratio": 0.75,
       "same_master": true,
       "rule": "B_wash",
       "severity": "high",
-      "reasoning": "9A9g 買 275 張 vs 9661 賣 204 張 (匹配 74%) 且同 master '陳族元'"
+      "reasoning": "9A9g 買 271 張 vs 9661 賣 204 張 (匹配 75%) 且同 master '陳族元'"
     },
     {
       "stock_code": "2408",
@@ -418,15 +418,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "9215",
       "sell_master": "強森",
-      "buy_lot": 275,
+      "buy_lot": 271,
       "sell_lot": 298,
       "buy_amt_wan": 10487,
       "sell_amt_wan": 11531,
-      "lot_match_ratio": 0.92,
+      "lot_match_ratio": 0.91,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9g 買 275 張 vs 9215 賣 298 張 (匹配 92%)"
+      "reasoning": "9A9g 買 271 張 vs 9215 賣 298 張 (匹配 91%)"
     },
     {
       "stock_code": "2408",
@@ -435,15 +435,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "9647",
       "sell_master": "竹科主力分點",
-      "buy_lot": 275,
+      "buy_lot": 271,
       "sell_lot": 215,
       "buy_amt_wan": 10487,
       "sell_amt_wan": 8174,
-      "lot_match_ratio": 0.78,
+      "lot_match_ratio": 0.79,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9g 買 275 張 vs 9647 賣 215 張 (匹配 78%)"
+      "reasoning": "9A9g 買 271 張 vs 9647 賣 215 張 (匹配 79%)"
     },
     {
       "stock_code": "2408",
@@ -452,15 +452,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "884F",
       "sell_master": "Krenz(再多一位數本人)",
-      "buy_lot": 275,
+      "buy_lot": 271,
       "sell_lot": 252,
       "buy_amt_wan": 10487,
       "sell_amt_wan": 9610,
-      "lot_match_ratio": 0.92,
+      "lot_match_ratio": 0.93,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9g 買 275 張 vs 884F 賣 252 張 (匹配 92%)"
+      "reasoning": "9A9g 買 271 張 vs 884F 賣 252 張 (匹配 93%)"
     },
     {
       "stock_code": "2408",
@@ -469,15 +469,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "888A",
       "sell_master": "江士勳",
-      "buy_lot": 275,
+      "buy_lot": 271,
       "sell_lot": 384,
       "buy_amt_wan": 10487,
       "sell_amt_wan": 14892,
-      "lot_match_ratio": 0.72,
+      "lot_match_ratio": 0.71,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9g 買 275 張 vs 888A 賣 384 張 (匹配 72%)"
+      "reasoning": "9A9g 買 271 張 vs 888A 賣 384 張 (匹配 71%)"
     },
     {
       "stock_code": "2408",
@@ -514,12 +514,28 @@
       "reasoning": "9200 買 351 張 vs 9215 賣 298 張 (匹配 85%)"
     }
   ],
-  "distribution": [],
+  "distribution": [
+    {
+      "stock_code": "2303",
+      "stock_name": "聯電",
+      "branch_code": "9A9g",
+      "branch_name": "永豐金-內湖",
+      "master": "陳族元",
+      "sell_lot": 1763,
+      "sell_amt_wan": 23132,
+      "avg_30d_sell_lot": 320.2,
+      "sell_vs_avg_x": 5.5,
+      "recent_5d_limit_up_count": 56,
+      "rule": "C_distribution",
+      "severity": "medium",
+      "reasoning": "當日賣 1,763 張 (30 天均 320 張 × 5.5) + 近 5 天漲停 56 次"
+    }
+  ],
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 0,
-    "total": 30
+    "distribution_count": 1,
+    "total": 31
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
