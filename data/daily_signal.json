@@ -1,12 +1,12 @@
 {
-  "date": "20260717",
-  "generated_at": "2026-07-17T17:00:36.024117",
+  "date": "20260720",
+  "generated_at": "2026-07-20T13:31:49.744191",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "中性 信心51.8% (低信心) · 0 檔個股關注",
+  "headline": "中性 信心46.5% (低信心) · 3 檔個股關注",
   "market_direction": {
     "direction": "中性",
-    "confidence_pct": 51.8,
-    "net_weight": 0.018,
+    "confidence_pct": 46.5,
+    "net_weight": -0.035,
     "contributing": [
       {
         "name": "P/C Ratio",
@@ -15,21 +15,64 @@
         "sign": "bear"
       },
       {
-        "name": "結算日壓力",
-        "level": "bull",
-        "weight": 0.136,
+        "name": "分點漲停",
+        "level": "extreme-bull",
+        "weight": 0.083,
         "sign": "bull"
       }
     ],
     "ignored": [
       "外資現貨",
       "外資期貨",
-      "分點漲停",
       "融資熱度",
-      "法人共識"
+      "法人共識",
+      "結算日壓力"
     ]
   },
-  "top_focus_stocks": [],
+  "top_focus_stocks": [
+    {
+      "rank": 1,
+      "code": "3532",
+      "name": "台勝科",
+      "change_pct": 9.91,
+      "tier": "consensus",
+      "master_count": 0,
+      "masters": [],
+      "total_buy_amt_K": 283837,
+      "total_buy_amt_yi": 2.84,
+      "confidence_pct": 52,
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.91%, 共淨買 2.84 億",
+      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
+    },
+    {
+      "rank": 2,
+      "code": "4939",
+      "name": "亞電",
+      "change_pct": 9.97,
+      "tier": "consensus",
+      "master_count": 0,
+      "masters": [],
+      "total_buy_amt_K": 186637,
+      "total_buy_amt_yi": 1.87,
+      "confidence_pct": 52,
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.97%, 共淨買 1.87 億",
+      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
+    },
+    {
+      "rank": 3,
+      "code": "00715L",
+      "name": "期街口布蘭特正2",
+      "change_pct": 11.36,
+      "tier": "consensus",
+      "master_count": 0,
+      "masters": [],
+      "total_buy_amt_K": 136296,
+      "total_buy_amt_yi": 1.36,
+      "confidence_pct": 52,
+      "reason": "0 位 sniper 共識買 (), 漲幅 11.36%, 共淨買 1.36 億",
+      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
+    }
+  ],
   "killed_signals": {
     "外資期貨等效大台淨 OI": {
       "reason": "1 年 backtest 96% 樣本歸到偏空/極空, 全年外資長期淨空, 反指標假設失效",
