@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-21T21:29:46.101036+08:00",
+  "generated_at": "2026-07-21T22:49:55.146443+08:00",
   "trade_date": "20260721",
   "pump_suspicion": [
     {
@@ -545,58 +545,12 @@
       "reasoning": "9215 買 110 張 vs 9A9g 賣 90 張 (匹配 82%)"
     }
   ],
-  "distribution": [
-    {
-      "stock_code": "3374",
-      "stock_name": "精材",
-      "branch_code": "779W",
-      "branch_name": "國票-彰化",
-      "master": "民哥",
-      "sell_lot": 71,
-      "sell_amt_wan": 2608,
-      "avg_30d_sell_lot": 12.3,
-      "sell_vs_avg_x": 5.8,
-      "recent_5d_limit_up_count": 26,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 71 張 (30 天均 12 張 × 5.8) + 近 5 天漲停 26 次"
-    },
-    {
-      "stock_code": "4764",
-      "stock_name": "雙鍵",
-      "branch_code": "9A9g",
-      "branch_name": "永豐金-內湖",
-      "master": "陳族元",
-      "sell_lot": 79,
-      "sell_amt_wan": 2301,
-      "avg_30d_sell_lot": 15.0,
-      "sell_vs_avg_x": 5.3,
-      "recent_5d_limit_up_count": 13,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 79 張 (30 天均 15 張 × 5.3) + 近 5 天漲停 13 次"
-    },
-    {
-      "stock_code": "3532",
-      "stock_name": "台勝科",
-      "branch_code": "7003",
-      "branch_name": "兆豐-台中",
-      "master": "劉子豪",
-      "sell_lot": 74,
-      "sell_amt_wan": 3274,
-      "avg_30d_sell_lot": 11.7,
-      "sell_vs_avg_x": 6.3,
-      "recent_5d_limit_up_count": 26,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 74 張 (30 天均 12 張 × 6.3) + 近 5 天漲停 26 次"
-    }
-  ],
+  "distribution": [],
   "summary": {
     "pump_count": 2,
     "wash_count": 30,
-    "distribution_count": 3,
-    "total": 35
+    "distribution_count": 0,
+    "total": 32
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
