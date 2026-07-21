@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-21T23:30:12.030553+08:00",
+  "generated_at": "2026-07-22T00:17:09.457520+08:00",
   "trade_date": "20260721",
   "pump_suspicion": [
     {
@@ -12,10 +12,10 @@
       "sell_lot": 173,
       "buy_amt_wan": 111556,
       "daytrade_ratio": 0.75,
-      "amt_vs_median_x": 42.3,
+      "amt_vs_median_x": 38.8,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 75% (> 70%) + 漲停 + 買金額 111,556 萬 (中位數 2,638 萬 × 42.3)"
+      "reasoning": "當沖比 75% (> 70%) + 漲停 + 買金額 111,556 萬 (中位數 2,875 萬 × 38.8)"
     },
     {
       "stock_code": "8039",
@@ -209,6 +209,23 @@
       "stock_name": "南亞科",
       "buy_branch_code": "9B25",
       "buy_master": "民哥",
+      "sell_branch_code": "9A9g",
+      "sell_master": "陳族元",
+      "buy_lot": 126,
+      "sell_lot": 90,
+      "buy_amt_wan": 5190,
+      "sell_amt_wan": 3664,
+      "lot_match_ratio": 0.71,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9B25 買 126 張 vs 9A9g 賣 90 張 (匹配 71%)"
+    },
+    {
+      "stock_code": "2408",
+      "stock_name": "南亞科",
+      "buy_branch_code": "9B25",
+      "buy_master": "民哥",
       "sell_branch_code": "9B2r",
       "sell_master": "強森",
       "buy_lot": 126,
@@ -379,6 +396,23 @@
       "stock_name": "南亞科",
       "buy_branch_code": "989N",
       "buy_master": "強森",
+      "sell_branch_code": "9A9g",
+      "sell_master": "陳族元",
+      "buy_lot": 91,
+      "sell_lot": 90,
+      "buy_amt_wan": 3694,
+      "sell_amt_wan": 3664,
+      "lot_match_ratio": 0.99,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "989N 買 91 張 vs 9A9g 賣 90 張 (匹配 99%)"
+    },
+    {
+      "stock_code": "2408",
+      "stock_name": "南亞科",
+      "buy_branch_code": "989N",
+      "buy_master": "強森",
       "sell_branch_code": "9217",
       "sell_master": "迷你哥/松山哥",
       "buy_lot": 91,
@@ -498,59 +532,41 @@
       "stock_name": "南亞科",
       "buy_branch_code": "9215",
       "buy_master": "強森",
-      "sell_branch_code": "9217",
-      "sell_master": "迷你哥/松山哥",
+      "sell_branch_code": "9A9g",
+      "sell_master": "陳族元",
       "buy_lot": 110,
-      "sell_lot": 79,
+      "sell_lot": 90,
       "buy_amt_wan": 4406,
-      "sell_amt_wan": 3260,
-      "lot_match_ratio": 0.72,
+      "sell_amt_wan": 3664,
+      "lot_match_ratio": 0.82,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9215 買 110 張 vs 9217 賣 79 張 (匹配 72%)"
-    },
-    {
-      "stock_code": "2408",
-      "stock_name": "南亞科",
-      "buy_branch_code": "9215",
-      "buy_master": "強森",
-      "sell_branch_code": "9B2r",
-      "sell_master": "強森",
-      "buy_lot": 110,
-      "sell_lot": 126,
-      "buy_amt_wan": 4406,
-      "sell_amt_wan": 5082,
-      "lot_match_ratio": 0.87,
-      "same_master": true,
-      "rule": "B_wash",
-      "severity": "high",
-      "reasoning": "9215 買 110 張 vs 9B2r 賣 126 張 (匹配 87%) 且同 master '強森'"
-    },
-    {
-      "stock_code": "2408",
-      "stock_name": "南亞科",
-      "buy_branch_code": "9215",
-      "buy_master": "強森",
-      "sell_branch_code": "700V",
-      "sell_master": "竹科主力分點",
-      "buy_lot": 110,
-      "sell_lot": 87,
-      "buy_amt_wan": 4406,
-      "sell_amt_wan": 3507,
-      "lot_match_ratio": 0.79,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9215 買 110 張 vs 700V 賣 87 張 (匹配 79%)"
+      "reasoning": "9215 買 110 張 vs 9A9g 賣 90 張 (匹配 82%)"
     }
   ],
-  "distribution": [],
+  "distribution": [
+    {
+      "stock_code": "4764",
+      "stock_name": "雙鍵",
+      "branch_code": "9A9G",
+      "branch_name": "永豐金-天母",
+      "master": "永豐天母(老錢)",
+      "sell_lot": 79,
+      "sell_amt_wan": 218,
+      "avg_30d_sell_lot": 7.0,
+      "sell_vs_avg_x": 11.3,
+      "recent_5d_limit_up_count": 23,
+      "rule": "C_distribution",
+      "severity": "high",
+      "reasoning": "當日賣 79 張 (30 天均 7 張 × 11.3) + 近 5 天漲停 23 次"
+    }
+  ],
   "summary": {
     "pump_count": 2,
     "wash_count": 30,
-    "distribution_count": 0,
-    "total": 32
+    "distribution_count": 1,
+    "total": 33
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
