@@ -1,7 +1,15 @@
 {
   "date": "20260722",
-  "generated_at": "2026-07-22T22:58:50.155832+08:00",
+  "generated_at": "2026-07-22T23:38:28.715852+08:00",
   "anomalies": [
+    {
+      "master": "蔣承翰",
+      "type": "volume_spike",
+      "today_buy_amt_wan": 635779,
+      "avg_buy_amt_wan": 349999,
+      "z_score": 2.33,
+      "description": "蔣承翰 今日買進 635,779 萬 (平均 349,999 萬, 偏離 2.3σ)"
+    },
     {
       "master": "Krenz(再多一位數本人)",
       "type": "new_stocks",
@@ -489,6 +497,34 @@
         }
       ],
       "description": "竹科主力分點 今日買進 8 檔新標的 (過去從沒買過)"
+    },
+    {
+      "master": "蔣承翰",
+      "type": "new_stocks",
+      "count": 7,
+      "top_new": [
+        {
+          "code": "6206",
+          "buy_amt_wan": 648
+        },
+        {
+          "code": "2425",
+          "buy_amt_wan": 307
+        },
+        {
+          "code": "2745",
+          "buy_amt_wan": 234
+        },
+        {
+          "code": "2534",
+          "buy_amt_wan": 220
+        },
+        {
+          "code": "4513",
+          "buy_amt_wan": 66
+        }
+      ],
+      "description": "蔣承翰 今日買進 7 檔新標的 (過去從沒買過)"
     },
     {
       "master": "謝孟恭(股癌)",
@@ -1043,5 +1079,5 @@
       "description": "林滄海 連續 21 天加碼 2363 (累計 33,409 萬)"
     }
   ],
-  "summary": "20260722 實戰信號: 25 異常行為 / 15 派系共識 / 15 連續加碼"
+  "summary": "20260722 實戰信號: 27 異常行為 / 15 派系共識 / 15 連續加碼"
 }
