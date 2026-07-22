@@ -194,12 +194,15 @@ WATCHED_BRANCHES = [
      "enabled": True, "region": "domestic"},
  
     # ─────────────────────────────────────────────────────────
-    # 蔣承翰（2 個分點）
+    # 蔣承翰（3 個分點）- 全部漲停鎖定/隔日沖風格
     # ─────────────────────────────────────────────────────────
     {"code": "9227", "name": "凱基-城中", "master": "蔣承翰",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "9B18", "name": "台新-建北", "master": "蔣承翰",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9A9S", "name": "永豐金-南京", "master": "蔣承翰",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
  
