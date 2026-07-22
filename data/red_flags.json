@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-23T00:16:39.070504+08:00",
+  "generated_at": "2026-07-23T01:13:56.191897+08:00",
   "trade_date": "20260722",
   "pump_suspicion": [
     {
@@ -63,21 +63,6 @@
       "reasoning": "當沖比 87% (> 70%) + 漲停 + 買金額 95,350 萬 (中位數 4,544 萬 × 21.0)"
     },
     {
-      "stock_code": "2344",
-      "stock_name": "華邦電",
-      "branch_code": "984K",
-      "branch_name": "元大-館前",
-      "master": "強森",
-      "buy_lot": 1716,
-      "sell_lot": 1231,
-      "buy_amt_wan": 28972,
-      "daytrade_ratio": 0.72,
-      "amt_vs_median_x": 3.1,
-      "rule": "A_pump",
-      "severity": "medium",
-      "reasoning": "當沖比 72% (> 70%) + 漲停 + 買金額 28,972 萬 (中位數 9,400 萬 × 3.1)"
-    },
-    {
       "stock_code": "5328",
       "stock_name": "華容",
       "branch_code": "9227",
@@ -102,10 +87,10 @@
       "sell_lot": 273,
       "buy_amt_wan": 5662,
       "daytrade_ratio": 0.76,
-      "amt_vs_median_x": 7.3,
+      "amt_vs_median_x": 7.2,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 76% (> 70%) + 漲停 + 買金額 5,662 萬 (中位數 772 萬 × 7.3)"
+      "reasoning": "當沖比 76% (> 70%) + 漲停 + 買金額 5,662 萬 (中位數 784 萬 × 7.2)"
     },
     {
       "stock_code": "2408",
@@ -582,23 +567,6 @@
     {
       "stock_code": "2327",
       "stock_name": "國巨*",
-      "buy_branch_code": "9661",
-      "buy_master": "陳族元",
-      "sell_branch_code": "9A9G",
-      "sell_master": "永豐天母(老錢)",
-      "buy_lot": 70,
-      "sell_lot": 88,
-      "buy_amt_wan": 4899,
-      "sell_amt_wan": 6209,
-      "lot_match_ratio": 0.8,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9661 買 70 張 vs 9A9G 賣 88 張 (匹配 80%)"
-    },
-    {
-      "stock_code": "2327",
-      "stock_name": "國巨*",
       "buy_branch_code": "9A9g",
       "buy_master": "陳族元",
       "sell_branch_code": "779Z",
@@ -663,6 +631,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9A9R 買 74 張 vs 585U 賣 66 張 (匹配 89%)"
+    },
+    {
+      "stock_code": "2327",
+      "stock_name": "國巨*",
+      "buy_branch_code": "9A9R",
+      "buy_master": "陳律師",
+      "sell_branch_code": "9359",
+      "sell_master": "華南永昌中正(未知大哥)",
+      "buy_lot": 74,
+      "sell_lot": 73,
+      "buy_amt_wan": 5222,
+      "sell_amt_wan": 5119,
+      "lot_match_ratio": 0.99,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9A9R 買 74 張 vs 9359 賣 73 張 (匹配 99%)"
     }
   ],
   "distribution": [
@@ -676,17 +661,17 @@
       "sell_amt_wan": 352059,
       "avg_30d_sell_lot": 119.5,
       "sell_vs_avg_x": 5.4,
-      "recent_5d_limit_up_count": 66,
+      "recent_5d_limit_up_count": 67,
       "rule": "C_distribution",
       "severity": "medium",
-      "reasoning": "當日賣 642 張 (30 天均 120 張 × 5.4) + 近 5 天漲停 66 次"
+      "reasoning": "當日賣 642 張 (30 天均 120 張 × 5.4) + 近 5 天漲停 67 次"
     }
   ],
   "summary": {
-    "pump_count": 10,
+    "pump_count": 9,
     "wash_count": 30,
     "distribution_count": 1,
-    "total": 41
+    "total": 40
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
