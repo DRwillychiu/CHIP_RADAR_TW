@@ -1,90 +1,56 @@
 {
-  "date": "20260723",
-  "generated_at": "2026-07-23T17:20:06.171252",
+  "date": "20260724",
+  "generated_at": "2026-07-24T13:31:51.320741",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "偏多 信心95% (高信心) · 3 檔個股關注",
+  "headline": "中性 信心58.8% (低信心) · 2 檔個股關注",
   "market_direction": {
-    "direction": "偏多",
-    "confidence_pct": 95,
-    "net_weight": 0.719,
+    "direction": "中性",
+    "confidence_pct": 58.8,
+    "net_weight": 0.088,
     "contributing": [
-      {
-        "name": "外資現貨",
-        "level": "extreme-bull",
-        "weight": 0.202,
-        "sign": "bull"
-      },
       {
         "name": "P/C Ratio",
         "level": "bull",
         "weight": 0.088,
         "sign": "bull"
-      },
-      {
-        "name": "分點漲停",
-        "level": "extreme-bull",
-        "weight": 0.083,
-        "sign": "bull"
-      },
-      {
-        "name": "融資熱度",
-        "level": "bull",
-        "weight": 0.196,
-        "sign": "bull"
-      },
-      {
-        "name": "法人共識",
-        "level": "extreme-bull",
-        "weight": 0.15,
-        "sign": "bull"
       }
     ],
     "ignored": [
+      "外資現貨",
       "外資期貨",
+      "分點漲停",
+      "融資熱度",
+      "法人共識",
       "結算日壓力"
     ]
   },
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "8039",
-      "name": "台虹",
-      "change_pct": 9.87,
+      "code": "4707",
+      "name": "磐亞",
+      "change_pct": 9.97,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 3133634,
-      "total_buy_amt_yi": 31.34,
+      "total_buy_amt_K": 49243,
+      "total_buy_amt_yi": 0.49,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.87%, 共淨買 31.34 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.97%, 共淨買 0.49 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "3081",
-      "name": "聯亞",
-      "change_pct": 9.91,
+      "code": "6577",
+      "name": "勁豐",
+      "change_pct": 9.9,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 207228,
-      "total_buy_amt_yi": 2.07,
+      "total_buy_amt_K": 25677,
+      "total_buy_amt_yi": 0.26,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.91%, 共淨買 2.07 億",
-      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
-    },
-    {
-      "rank": 3,
-      "code": "6579",
-      "name": "研揚",
-      "change_pct": 9.88,
-      "tier": "consensus",
-      "master_count": 0,
-      "masters": [],
-      "total_buy_amt_K": 272317,
-      "total_buy_amt_yi": 2.72,
-      "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.88%, 共淨買 2.72 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.9%, 共淨買 0.26 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],
