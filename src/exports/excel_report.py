@@ -904,6 +904,68 @@ def _write_notice_row(ws: "Worksheet", row: int, notice: str):
             c.number_format = NUMBER_FMT_PNL
 
 
+# v3.72.8: histock 失敗警示 + 時間戳 (bug #4 + #8)
+def _write_histock_status_notice(ws: "Worksheet", row: int, stats: Dict[str, int],
+                                  trade_date: Optional[str] = None) -> int:
+    """若 histock 全 fail 或 <50% → 寫警示 row 在 Section 0 頂端 (row 1).
+
+    Returns: 用了幾 rows (0 = 沒寫, 1 = 寫了 1 row 警示)
+    """
+    attempted = stats.get("attempted", 0)
+    success = stats.get("success", 0)
+    if attempted == 0:
+        return 0  # 沒 fetch 任何 histock (no sniper 買漲停 or 未啟用) → 不寫
+    if success == attempted:
+        return 0  # 100% 成功 → 不寫警示
+    # 有失敗, 分析主因
+    stale = stats.get("stale_date", 0)
+    no_data = stats.get("no_data", 0)
+    http_err = stats.get("http_error", 0)
+    net_neg = stats.get("net_zero_or_neg", 0)
+    success_rate = int(success / attempted * 100)
+
+    # 主因判定
+    if success == 0:
+        # 全 fail
+        if stale >= http_err and stale >= no_data:
+            reason = f"histock 資料仍是 T-1 (需等到當日盤後晚間 update)"
+        elif http_err >= no_data:
+            reason = f"histock 網站連線失敗 (rate limit / server down)"
+        else:
+            reason = f"histock 分點榜無資料 (可能個股冷門)"
+        notice = f"⚠️ 本 Excel 無 top-buyer highlight — {reason} (histock: {attempted} 試, 0 success)"
+    else:
+        # 部分 fail
+        notice = f"⚠️ 部分 top-buyer highlight 缺 (histock: {success}/{attempted} = {success_rate}% success | stale={stale} http_err={http_err} no_data={no_data})"
+
+    # 用 orange fill 讓警示醒目
+    _write_notice_row(ws, row, notice)
+    orange_fill = PatternFill("solid", fgColor="FFFFECB3")  # 淺橘
+    for ci in range(1, 13):
+        ws.cell(row=row, column=ci).fill = orange_fill
+    return 1
+
+
+def _write_histock_timestamp_footer(ws: "Worksheet", row: int, stats: Dict[str, int]) -> int:
+    """Section 0 尾端加 histock 資料時間戳 (informational).
+
+    Returns: 用了幾 rows.
+    """
+    attempted = stats.get("attempted", 0)
+    if attempted == 0:
+        return 0  # 沒 fetch → 不寫
+    success = stats.get("success", 0)
+    from datetime import datetime as _dt
+    now = _dt.now().strftime("%Y-%m-%d %H:%M")
+    notice = f"ⓘ histock top-buyer 資料 fetched @ {now} | {success}/{attempted} success"
+    c_d = ws.cell(row=row, column=1)
+    c_d.value = notice
+    c_d.font = Font(name=FONT_NAME, size=10, bold=False, italic=True, color="FFAAAAAA")
+    c_d.alignment = _align_center()
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=12)
+    return 1
+
+
 # ============================================================
 #  Build single-day sheet
 # ============================================================
@@ -966,6 +1028,9 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
         ws.column_dimensions[col].width = width
 
     row = 1
+    # v3.72.8: bug #4 — 若 histock 全 fail 或 <50% → Section 0 頂端加醒目警示 row
+    row += _write_histock_status_notice(ws, row, stats, trade_date=trade_date)
+
     sniper_count = 0
     sniper_with_data = 0
     for master in MASTER_MAPPING:
@@ -1077,6 +1142,11 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
             master_anchor_row=master_data_start,
             colors=block_colors,
         )
+
+    # v3.72.8: bug #8 — 尾端 histock 資料時間戳 (informational)
+    used = _write_histock_timestamp_footer(ws, row, stats)
+    if used:
+        row += used
 
     # Apply uniform row height
     for r in range(1, row):

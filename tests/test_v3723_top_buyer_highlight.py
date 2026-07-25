@@ -201,9 +201,14 @@ new_warnings_for_new_branch = [w for w in _MASTER_MAPPING_WARNINGS if "9A9S" in 
 check("蔣承翰 9A9S 沒 drift warning (branches.py + MASTER_MAPPING 同步)",
       len(new_warnings_for_new_branch) == 0)
 
+# ─── v3.72.8 helpers 匯入 ───
+from src.exports.excel_report import (
+    _write_histock_status_notice, _write_histock_timestamp_footer,
+    _get_histock_stats, _reset_histock_stats,
+)
+
 # ─── 10. v3.72.7 histock stats + net<=0 guard ───
 print("\n10. v3.72.7 histock fetch stats 收集")
-from src.exports.excel_report import _get_histock_stats, _reset_histock_stats
 
 # Scenario A: success case
 _reset_histock_stats()
@@ -234,6 +239,57 @@ with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=mo
     _fetch_histock_top_buyer("8888", cache, trade_date="20260724")
 stats = _get_histock_stats()
 check("stale_date stats++", stats["stale_date"] == 1)
+
+# ─── 11. v3.72.8 Bug #4 histock 全 fail → 警示 row ───
+print("\n11. v3.72.8 histock 全 fail → 警示 row 寫入")
+wb3 = Workbook()
+ws3 = wb3.active
+# 模擬全 fail
+stats_fail = {"attempted": 3, "success": 0, "stale_date": 0, "no_data": 0,
+              "http_error": 3, "net_zero_or_neg": 0}
+used = _write_histock_status_notice(ws3, 1, stats_fail)
+check("全 http_err → 寫警示 row (used=1)", used == 1)
+notice_val = ws3.cell(row=1, column=4).value
+check("警示 notice 內容含「無 top-buyer」", "無 top-buyer" in (notice_val or ""))
+# 檢查橘色 fill (FFFFECB3)
+fill = ws3.cell(row=1, column=1).fill
+rgb = getattr(getattr(fill, 'fgColor', None), 'rgb', None)
+check("警示 row 背景 = 橘色 FFFFECB3", rgb == "FFFFECB3")
+
+# 100% success → 不寫警示
+wb4 = Workbook()
+ws4 = wb4.active
+stats_ok = {"attempted": 3, "success": 3, "stale_date": 0, "no_data": 0,
+            "http_error": 0, "net_zero_or_neg": 0}
+used = _write_histock_status_notice(ws4, 1, stats_ok)
+check("100% success → 不寫警示 (used=0)", used == 0)
+
+# 部分 fail (2/3)
+wb5 = Workbook()
+ws5 = wb5.active
+stats_partial = {"attempted": 3, "success": 1, "stale_date": 1, "no_data": 1,
+                 "http_error": 0, "net_zero_or_neg": 0}
+used = _write_histock_status_notice(ws5, 1, stats_partial)
+check("部分 fail → 寫警示 (used=1)", used == 1)
+notice_val = ws5.cell(row=1, column=4).value
+check("警示含「部分 top-buyer」", "部分" in (notice_val or ""))
+
+# ─── 12. v3.72.8 Bug #8 histock 時間戳 footer ───
+print("\n12. v3.72.8 histock timestamp footer")
+wb6 = Workbook()
+ws6 = wb6.active
+used = _write_histock_timestamp_footer(ws6, 100, stats_ok)
+check("attempted>0 → 寫時間戳 (used=1)", used == 1)
+val = ws6.cell(row=100, column=1).value
+check("時間戳含 'histock top-buyer 資料 fetched'", "histock top-buyer 資料 fetched" in (val or ""))
+
+# attempted=0 → 不寫
+wb7 = Workbook()
+ws7 = wb7.active
+stats_empty = {"attempted": 0, "success": 0, "stale_date": 0, "no_data": 0,
+               "http_error": 0, "net_zero_or_neg": 0}
+used = _write_histock_timestamp_footer(ws7, 100, stats_empty)
+check("attempted=0 → 不寫 (used=0)", used == 0)
 
 # ─── 總結 ───
 print(f"\n{'─' * 60}")
