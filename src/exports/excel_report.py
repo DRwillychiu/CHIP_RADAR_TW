@@ -600,45 +600,58 @@ def _write_header_row(ws: "Worksheet", row: int, header_label: str, include_mast
         c.alignment = _align_center()
 
 
-def _build_top_net_buyer_index(branches_data: List[Dict]) -> Dict[str, str]:
-    """v3.72.3: 建 {stock_code: branch_code_of_top_net_buyer} index.
+def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]]) -> Optional[str]:
+    """v3.72.4: 透過 histock 個股分點榜找該股當日 top #1 買方 bno.
 
-    對每檔股票, 掃所有 branches, 找 net_buy (buy_amt - sell_amt) 最大的分點.
-    若某檔只在一個分點的 buys 出現, 該分點自動是 top.
-    若多 branch 平手最高, 選第一個遇到的 (deterministic by list order).
+    Args:
+      stock_code: 股票代號 (e.g. '6577')
+      cache: dict cache {stock_code: bno or None}, 避免同 run 重複 fetch
 
-    用途: Section 0 sniper 模式黃色 highlight — 若當前 branch 是該股 top net buyer, 標黃.
+    Returns:
+      top #1 買方 bno (e.g. '9A9S') / None (fetch 失敗或無資料)
     """
-    net_by_stock: Dict[str, Dict[str, int]] = {}  # {stock: {branch: net_amt}}
-    for b in branches_data or []:
-        bcode = b.get("code")
-        if not bcode:
-            continue
-        # 累加 buys
-        for s in b.get("buys", []) or []:
-            scode = s.get("code")
-            if not scode:
-                continue
-            amt = int(s.get("buy_amt", 0) or 0)
-            net_by_stock.setdefault(scode, {}).setdefault(bcode, 0)
-            net_by_stock[scode][bcode] += amt
-        # 扣 sells (same branch)
-        for s in b.get("sells", []) or []:
-            scode = s.get("code")
-            if not scode:
-                continue
-            amt = int(s.get("sell_amt", 0) or 0)
-            net_by_stock.setdefault(scode, {}).setdefault(bcode, 0)
-            net_by_stock[scode][bcode] -= amt
+    if stock_code in cache:
+        return cache[stock_code]
+    try:
+        from src.audit.histock_branch_audit import fetch_histock_branch
+        data = fetch_histock_branch(stock_code, timeout=8, max_retries=1)
+        if data and data.get('buys'):
+            # histock 買方榜已排序 (rank #1 in [0])
+            top_bno = data['buys'][0].get('bno')
+            cache[stock_code] = top_bno
+            return top_bno
+    except Exception:
+        pass
+    cache[stock_code] = None  # 失敗也 cache 避免重試
+    return None
 
+
+def _build_top_net_buyer_index(branches_data: List[Dict],
+                                sniper_stock_codes: Optional[set] = None) -> Dict[str, str]:
+    """v3.72.4: 建 {stock_code: bno_of_top_net_buyer} index.
+
+    ★ 判定範圍: 從 histock 全市場分點榜 top #1 買方 (不再限於 tracked branches).
+    ★ 為避免 histock 塞爆, 只 fetch sniper_stock_codes 內的股票 (蔣承翰買的漲停股).
+
+    Args:
+      branches_data: crawler 產出的 tracked branches (v3.72.3 fallback 用)
+      sniper_stock_codes: set of stock codes to fetch histock for (通常 <5 檔)
+                         若 None → fallback 用 tracked branches (v3.72.3 舊行為)
+
+    Returns:
+      {stock_code: top_buyer_bno} - 只包含成功抓到 top #1 的股票
+    """
     top_index: Dict[str, str] = {}
-    for scode, branches_net in net_by_stock.items():
-        if not branches_net:
-            continue
-        top_b, top_amt = max(branches_net.items(), key=lambda kv: kv[1])
-        # Only mark as "top #1" if net > 0 (真的有淨買)
-        if top_amt > 0:
-            top_index[scode] = top_b
+    if sniper_stock_codes:
+        # v3.72.4 新路徑: 用 histock 全市場榜
+        cache: Dict[str, Optional[str]] = {}
+        for scode in sniper_stock_codes:
+            top_bno = _fetch_histock_top_buyer(scode, cache)
+            if top_bno:
+                top_index[scode] = top_bno
+        return top_index
+
+    # Fallback (若沒 sniper 買漲停 or 呼叫者沒指定): 空 index
     return top_index
 
 
@@ -800,8 +813,22 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
         if c:
             by_code[c] = b
 
-    # v3.72.3: 建 top-net-buyer index (該股當日買超#1 的分點, 供 sniper 黃色 highlight)
-    top_net_buyer: Dict[str, str] = _build_top_net_buyer_index(branches_data)
+    # v3.72.4: 先掃 sniper master 買的漲停股 → fetch histock 全市場 top #1 買方
+    # 這樣才是「該股全市場分點榜 #1」而不是「tracked branches 內 #1」
+    sniper_stock_codes: set = set()
+    for master in MASTER_MAPPING:
+        if not _is_sniper_master(master["name"]):
+            continue
+        for branch_code, _ in master["branches"]:
+            bdata = by_code.get(branch_code, {})
+            for s in (bdata.get("buys") or []):
+                if s.get("is_limit_up") and (s.get("net_amt", 0) > 0 or s.get("net_lot", 0) > 0):
+                    scode = s.get("code")
+                    if scode and not _is_excluded_by_market_type(s):
+                        sniper_stock_codes.add(scode)
+    top_net_buyer: Dict[str, str] = _build_top_net_buyer_index(
+        branches_data, sniper_stock_codes=sniper_stock_codes if sniper_stock_codes else None,
+    )
 
     # Apply column widths
     for col, width in COL_WIDTHS.items():
