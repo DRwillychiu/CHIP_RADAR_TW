@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.72.4(2026-07-22) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.72.5(2026-07-24) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.72.4** | 7/22 | **修正 top-buyer 判定為 histock 全市場榜** — v3.72.3 誤用 tracked branches 內 #1, 改用 histock per-stock 分點榜 #1 (真正全市場第一) |
+| **v3.72.5** | 7/24 | **時效 guard + MASTER_MAPPING 一致性 validator** — histock date != trade_date → skip 塗黃 (防假信號); 加 branches.py drift guard (findings: 迷你哥 9200/9600 券商總機碼 + 強森/9B2E 缺 co_master) |
+| v3.72.4 | 7/22 | 修正 top-buyer 判定為 histock 全市場榜 — v3.72.3 誤用 tracked branches 內 #1, 改用 histock per-stock 分點榜 #1 (真正全市場第一) |
 | v3.72.3 | 7/22 | Sniper 漲停股買超#1 黃色 highlight (初版, 用 tracked branches 判定, v3.72.4 修正) |
 | v3.72.2 | 7/22 | 蔣承翰 +1 分點 永豐金-南京 (9A9S) — 蔣承翰第 3 分點, 3 個都漲停鎖定風格; branches.py + excel_report Section 0 分點名單同步 |
 | v3.71.23 | 6/28 | L3 per-signal Q5 LOO audit — 揭穿 5/7 signal 對 Q5 完全 dead weight / P/C Ratio 唯一實質貢獻 (Δ -3.3pp) |

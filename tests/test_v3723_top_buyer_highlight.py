@@ -165,6 +165,42 @@ check("9227 買 2330 但 histock top=1480 → 不塗黃", found_not_yellow)
 print("\n7. SNIPER_MASTER_WHITELIST 只含蔣承翰")
 check("白名單 = 蔣承翰", SNIPER_MASTER_WHITELIST == {"蔣承翰"})
 
+# ─── 8. v3.72.5 histock 時效 guard ───
+print("\n8. v3.72.5 histock date != trade_date → 不塗黃 (防假信號)")
+MOCK_HISTOCK_STALE = {
+    "8888": {  # 日期是 T-1
+        "date": "2026/07/23",  # 昨日
+        "buys": [{"bno": "9A9S", "name": "永豐金-南京", "net": 100}]
+    }
+}
+def mock_stale(stock_code, timeout=8, max_retries=1):
+    return MOCK_HISTOCK_STALE.get(stock_code)
+
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=mock_stale):
+    cache = {}
+    result = _fetch_histock_top_buyer("8888", cache, trade_date="20260724")  # 今日
+    check("stale histock (2026/07/23 vs trade_date 20260724) → None", result is None)
+
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=mock_stale):
+    cache = {}
+    result = _fetch_histock_top_buyer("8888", cache, trade_date="20260723")  # 同日
+    check("fresh histock (date match) → 9A9S", result == "9A9S")
+
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=mock_stale):
+    cache = {}
+    result = _fetch_histock_top_buyer("8888", cache, trade_date=None)  # 不 guard
+    check("trade_date=None → 不 guard, 正常回 9A9S (b/c compat)", result == "9A9S")
+
+# ─── 9. v3.72.5 drift guard ───
+print("\n9. v3.72.5 MASTER_MAPPING drift guard 存在且 non-fatal")
+from src.exports.excel_report import _MASTER_MAPPING_WARNINGS
+check("_MASTER_MAPPING_WARNINGS list 存在 (可能 empty 也可能有既有 drift)",
+      isinstance(_MASTER_MAPPING_WARNINGS, list))
+# 蔣承翰 9A9S 這次改動不該產生新 warning
+new_warnings_for_new_branch = [w for w in _MASTER_MAPPING_WARNINGS if "9A9S" in w]
+check("蔣承翰 9A9S 沒 drift warning (branches.py + MASTER_MAPPING 同步)",
+      len(new_warnings_for_new_branch) == 0)
+
 # ─── 總結 ───
 print(f"\n{'─' * 60}")
 print(f"整體: {pass_count} pass / {fail_count} fail")

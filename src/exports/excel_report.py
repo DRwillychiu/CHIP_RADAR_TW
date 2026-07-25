@@ -296,6 +296,72 @@ MASTER_MAPPING: List[Dict] = [
 TRACKED_MASTERS: set = {m["name"] for m in MASTER_MAPPING}
 
 
+# ══════════════════════════════════════════════════════════════════════
+# v3.72.5: MASTER_MAPPING <-> branches.py 一致性 guard
+# ══════════════════════════════════════════════════════════════════════
+# 問題:MASTER_MAPPING (excel 版面順序 + header_label) 是硬 code 手工維護,
+# branches.py 是 crawler 的 source of truth. 兩者若不同步 → excel 顯示的分點
+# 跟實際 crawl 到的資料不一致 (crawl 到但沒顯示 / 顯示但抓不到).
+#
+# 這個 guard 在 module import 時執行, 找出 drift:
+#   - MASTER_MAPPING 有 (code, name), 但 branches.py 沒有該 bno
+#   - branches.py 有 bno 但 master name 對不上 MASTER_MAPPING
+#   - MASTER_MAPPING 的 name 跟 branches.py canonical name 不一致 (warn)
+def _validate_master_mapping_vs_branches() -> List[str]:
+    """回傳 warning list. 若有 drift 印 stderr, 不 raise (避免 breakage)."""
+    warnings = []
+    try:
+        from src.core.branches import get_branch_by_code, get_branches_by_master
+    except Exception:
+        return warnings  # 不能 import 就 skip (test env, 部分安裝)
+
+    # 1. MASTER_MAPPING 每筆 code 必須存在於 branches.py
+    for m in MASTER_MAPPING:
+        master_name = m["name"]
+        for code, name in m["branches"]:
+            b = get_branch_by_code(code)
+            if b is None:
+                warnings.append(
+                    f"[master_mapping] {master_name} 的 bno={code} 在 branches.py 找不到")
+                continue
+            # 2. bno 存在, 但 master 對不上
+            b_master = b.get("master")
+            b_co = b.get("co_masters", []) or []
+            if b_master != master_name and master_name not in b_co:
+                warnings.append(
+                    f"[master_mapping] {master_name}/{code}: "
+                    f"branches.py 該 bno 掛在 {b_master!r} (co={b_co}), 不含 {master_name}")
+            # 3. 名稱 warn (canonical vs 手工)
+            b_name = b.get("name", "")
+            if b_name and name != b_name:
+                warnings.append(
+                    f"[master_mapping-name] {code}: MASTER_MAPPING 用 {name!r} 但 branches.py canonical 是 {b_name!r}")
+
+    # 4. branches.py 有的 sniper master 分點, 卻不在 MASTER_MAPPING → 少算
+    for m in MASTER_MAPPING:
+        master_name = m["name"]
+        mapped = {c for c, _ in m["branches"]}
+        try:
+            true_branches = get_branches_by_master(master_name, include_disabled=False)
+        except Exception:
+            continue
+        true_codes = {b["code"] for b in true_branches}
+        missing = true_codes - mapped
+        if missing:
+            warnings.append(
+                f"[master_mapping-missing] {master_name}: branches.py 有 {missing}, "
+                f"MASTER_MAPPING 沒有")
+    return warnings
+
+
+# 執行 (module import time)
+_MASTER_MAPPING_WARNINGS = _validate_master_mapping_vs_branches()
+if _MASTER_MAPPING_WARNINGS:
+    import sys as _sys
+    for _w in _MASTER_MAPPING_WARNINGS:
+        print(f"  ⚠️ {_w}", file=_sys.stderr)
+
+
 # v3.71.5 Phase 3.2 Premium Tier: master vol_spike 可靠度 (snapshot 2026-06-26)
 # source: scripts/analyze_master_vol_spike_reliability.py
 # 過去 33 picks / 9 trigger days backtest:
@@ -600,15 +666,18 @@ def _write_header_row(ws: "Worksheet", row: int, header_label: str, include_mast
         c.alignment = _align_center()
 
 
-def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]]) -> Optional[str]:
+def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]],
+                              trade_date: Optional[str] = None) -> Optional[str]:
     """v3.72.4: 透過 histock 個股分點榜找該股當日 top #1 買方 bno.
+    v3.72.5: 加時效 guard — 若 histock 頁面日期 != trade_date → 回 None 避免假信號.
 
     Args:
       stock_code: 股票代號 (e.g. '6577')
       cache: dict cache {stock_code: bno or None}, 避免同 run 重複 fetch
+      trade_date: YYYYMMDD 我們期待的當日. 若 histock 頁面日期不符 → skip.
 
     Returns:
-      top #1 買方 bno (e.g. '9A9S') / None (fetch 失敗或無資料)
+      top #1 買方 bno (e.g. '9A9S') / None (fetch 失敗、無資料、或日期不符)
     """
     if stock_code in cache:
         return cache[stock_code]
@@ -616,7 +685,14 @@ def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]]) -
         from src.audit.histock_branch_audit import fetch_histock_branch
         data = fetch_histock_branch(stock_code, timeout=8, max_retries=1)
         if data and data.get('buys'):
-            # histock 買方榜已排序 (rank #1 in [0])
+            # v3.72.5: 時效 guard — histock date (YYYY/MM/DD) 需等於 trade_date (YYYYMMDD)
+            if trade_date:
+                histock_date = (data.get('date') or '').replace('/', '')
+                if histock_date and histock_date != trade_date:
+                    # histock 資料還沒 update 到當日 → 不塗黃 (避免用 T-1 資料誤判)
+                    cache[stock_code] = None
+                    return None
+            # histock 買方榜已排序 (rank #1 in [0], v3.72.4 verified net desc)
             top_bno = data['buys'][0].get('bno')
             cache[stock_code] = top_bno
             return top_bno
@@ -627,26 +703,29 @@ def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]]) -
 
 
 def _build_top_net_buyer_index(branches_data: List[Dict],
-                                sniper_stock_codes: Optional[set] = None) -> Dict[str, str]:
+                                sniper_stock_codes: Optional[set] = None,
+                                trade_date: Optional[str] = None) -> Dict[str, str]:
     """v3.72.4: 建 {stock_code: bno_of_top_net_buyer} index.
+    v3.72.5: 加 trade_date 傳遞供時效 guard.
 
     ★ 判定範圍: 從 histock 全市場分點榜 top #1 買方 (不再限於 tracked branches).
     ★ 為避免 histock 塞爆, 只 fetch sniper_stock_codes 內的股票 (蔣承翰買的漲停股).
+    ★ v3.72.5: histock 頁面日期 != trade_date → 該股不列 index (safe skip).
 
     Args:
       branches_data: crawler 產出的 tracked branches (v3.72.3 fallback 用)
       sniper_stock_codes: set of stock codes to fetch histock for (通常 <5 檔)
-                         若 None → fallback 用 tracked branches (v3.72.3 舊行為)
+      trade_date: YYYYMMDD, 用於 histock date match check
 
     Returns:
-      {stock_code: top_buyer_bno} - 只包含成功抓到 top #1 的股票
+      {stock_code: top_buyer_bno} - 只包含 histock date 匹配且成功抓到的股票
     """
     top_index: Dict[str, str] = {}
     if sniper_stock_codes:
         # v3.72.4 新路徑: 用 histock 全市場榜
         cache: Dict[str, Optional[str]] = {}
         for scode in sniper_stock_codes:
-            top_bno = _fetch_histock_top_buyer(scode, cache)
+            top_bno = _fetch_histock_top_buyer(scode, cache, trade_date=trade_date)
             if top_bno:
                 top_index[scode] = top_bno
         return top_index
@@ -827,7 +906,9 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
                     if scode and not _is_excluded_by_market_type(s):
                         sniper_stock_codes.add(scode)
     top_net_buyer: Dict[str, str] = _build_top_net_buyer_index(
-        branches_data, sniper_stock_codes=sniper_stock_codes if sniper_stock_codes else None,
+        branches_data,
+        sniper_stock_codes=sniper_stock_codes if sniper_stock_codes else None,
+        trade_date=trade_date,  # v3.72.5 時效 guard
     )
 
     # Apply column widths
