@@ -124,11 +124,17 @@ def _apply_master_block_color(ws: "Worksheet",
         return  # color spec 壞掉就不套
 
     # 先全 block 套 body (淡), L 欄(12)留白給色階 conditional formatting
+    # v3.72.3: 若 cell 已有黃色 fill (sniper top buyer highlight) 則保留, 不覆寫
     for r in data_rows:
         for c in range(1, cols + 1):
             if c == 12:
                 continue
-            ws.cell(row=r, column=c).fill = body_fill
+            cell = ws.cell(row=r, column=c)
+            existing = cell.fill
+            existing_color = getattr(getattr(existing, 'fgColor', None), 'rgb', None) if existing else None
+            if existing_color == "FFFFFF00":
+                continue  # preserve top-buyer 黃色
+            cell.fill = body_fill
 
     # 再套 header rows (深)
     for r in header_rows:
@@ -594,9 +600,62 @@ def _write_header_row(ws: "Worksheet", row: int, header_label: str, include_mast
         c.alignment = _align_center()
 
 
-def _write_stock_row(ws: "Worksheet", row: int, stock: Dict, sniper_mode: bool = False):
+def _build_top_net_buyer_index(branches_data: List[Dict]) -> Dict[str, str]:
+    """v3.72.3: 建 {stock_code: branch_code_of_top_net_buyer} index.
+
+    對每檔股票, 掃所有 branches, 找 net_buy (buy_amt - sell_amt) 最大的分點.
+    若某檔只在一個分點的 buys 出現, 該分點自動是 top.
+    若多 branch 平手最高, 選第一個遇到的 (deterministic by list order).
+
+    用途: Section 0 sniper 模式黃色 highlight — 若當前 branch 是該股 top net buyer, 標黃.
+    """
+    net_by_stock: Dict[str, Dict[str, int]] = {}  # {stock: {branch: net_amt}}
+    for b in branches_data or []:
+        bcode = b.get("code")
+        if not bcode:
+            continue
+        # 累加 buys
+        for s in b.get("buys", []) or []:
+            scode = s.get("code")
+            if not scode:
+                continue
+            amt = int(s.get("buy_amt", 0) or 0)
+            net_by_stock.setdefault(scode, {}).setdefault(bcode, 0)
+            net_by_stock[scode][bcode] += amt
+        # 扣 sells (same branch)
+        for s in b.get("sells", []) or []:
+            scode = s.get("code")
+            if not scode:
+                continue
+            amt = int(s.get("sell_amt", 0) or 0)
+            net_by_stock.setdefault(scode, {}).setdefault(bcode, 0)
+            net_by_stock[scode][bcode] -= amt
+
+    top_index: Dict[str, str] = {}
+    for scode, branches_net in net_by_stock.items():
+        if not branches_net:
+            continue
+        top_b, top_amt = max(branches_net.items(), key=lambda kv: kv[1])
+        # Only mark as "top #1" if net > 0 (真的有淨買)
+        if top_amt > 0:
+            top_index[scode] = top_b
+    return top_index
+
+
+# v3.72.3: 黃色 highlight (蔣承翰漲停股當日買超#1)
+_TOP_BUYER_FILL = None
+def _get_top_buyer_fill():
+    global _TOP_BUYER_FILL
+    if _TOP_BUYER_FILL is None and OPENPYXL_AVAILABLE:
+        _TOP_BUYER_FILL = PatternFill(start_color="FFFFFF00", end_color="FFFFFF00", fill_type="solid")
+    return _TOP_BUYER_FILL
+
+
+def _write_stock_row(ws: "Worksheet", row: int, stock: Dict, sniper_mode: bool = False,
+                     is_top_net_buyer: bool = False):
     """Write 9 data columns (D-L) for a single stock. E-I integer, J-K price, L formula.
-    v3.27.4 L4: sniper_mode=True 時在標的欄顯示漲幅%, 讓使用者一眼驗證漲停。"""
+    v3.27.4 L4: sniper_mode=True 時在標的欄顯示漲幅%, 讓使用者一眼驗證漲停。
+    v3.72.3: is_top_net_buyer=True → 該 row (D-L) 背景黃色 (該股當日買超#1)。"""
     code = stock.get("code", "") or ""
     name = stock.get("name", "") or code
     buy_lot = stock.get("buy_lot", 0) or 0
@@ -650,6 +709,13 @@ def _write_stock_row(ws: "Worksheet", row: int, stock: Dict, sniper_mode: bool =
         c_l.font = _font_pnl_neg()
     else:
         c_l.font = _font_pnl_pos()
+
+    # v3.72.3: 若是該股當日買超#1 → D-L 背景黃色
+    if is_top_net_buyer:
+        fill = _get_top_buyer_fill()
+        if fill:
+            for ci in range(4, 13):  # D-L
+                ws.cell(row=row, column=ci).fill = fill
 
 
 def _write_blank_data_row(ws: "Worksheet", row: int):
@@ -734,6 +800,9 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
         if c:
             by_code[c] = b
 
+    # v3.72.3: 建 top-net-buyer index (該股當日買超#1 的分點, 供 sniper 黃色 highlight)
+    top_net_buyer: Dict[str, str] = _build_top_net_buyer_index(branches_data)
+
     # Apply column widths
     for col, width in COL_WIDTHS.items():
         ws.column_dimensions[col].width = width
@@ -792,7 +861,11 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
                 r = branch_first_row + ri
                 block_data_rows.append(r)   # v3.31.1: 累積 data rows 給套色用
                 if ri < n_stocks:
-                    _write_stock_row(ws, r, stocks[ri], sniper_mode=sniper_mode)
+                    # v3.72.3: sniper 且該分點是該股當日買超#1 → 黃色 highlight
+                    is_top = (sniper_mode
+                              and top_net_buyer.get(stocks[ri].get("code", "")) == branch_code)
+                    _write_stock_row(ws, r, stocks[ri], sniper_mode=sniper_mode,
+                                     is_top_net_buyer=is_top)
                 elif ri == n_stocks and has_branch_data:
                     # 第一個空白 row 加 by-design 提示
                     if n_stocks == 0:
