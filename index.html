@@ -863,6 +863,25 @@ th.sortable.sort-desc::after {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
 }
+/* v3.72.9 P2 #6: 該股當日 histock 全市場買超#1 → 黃色 highlight (跟 Excel 一致) */
+.sniper-detail-chip.top-market-buyer {
+  background: linear-gradient(135deg, rgba(255,235,59,0.35) 0%, rgba(212,175,55,0.25) 100%);
+  border: 1.5px solid rgba(255,193,7,0.85);
+  box-shadow: 0 0 8px rgba(255,193,7,0.3);
+  font-weight: 600;
+}
+.sniper-detail-chip.top-market-buyer::before {
+  content: '👑';
+  margin-right: 3px;
+  font-size: 11px;
+}
+.sniper-detail-chip.top-market-buyer:hover {
+  background: linear-gradient(135deg, rgba(255,235,59,0.5) 0%, rgba(212,175,55,0.4) 100%);
+  border-color: rgba(255,193,7,1);
+}
+.sniper-detail-chip.top-market-buyer .code {
+  color: #ffd700;
+}
 
 /* 共買漲停股卡片 */
 .consensus-lu-card {
@@ -3838,7 +3857,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="點 📋 更新看版本歷史">Chip Radar v3.72.8</div>
+      <div class="logo-en" title="點 📋 更新看版本歷史">Chip Radar v3.72.9</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -7047,17 +7066,25 @@ function renderLimitUpPanel() {
       let detailsHTML = '';
       if (sniperView === 'branch' && sn.limit_up_details) {
         // v3.30.0: chip 內加 📋 AI 解讀 按鈕 (branch 模式才有 branch_code 可用)
+        // v3.72.9: is_top_market_buyer=True → chip 加 .top-market-buyer 黃色 highlight
         detailsHTML = sn.limit_up_details.slice(0, 20).map(d => {
           const aiBtn = insightBtnHTML(sn.master, sn.branch_code, sn.branch_name, d.code, d.name);
-          return `<span class="sniper-detail-chip" onclick="showStockDetail('${d.code}','${(d.name||'').replace(/'/g,"\\'")}')">
+          const topCls = d.is_top_market_buyer ? ' top-market-buyer' : '';
+          const topTitle = d.is_top_market_buyer
+            ? ` title="全市場買超#1 (histock top-buyer)"` : '';
+          return `<span class="sniper-detail-chip${topCls}"${topTitle} onclick="showStockDetail('${d.code}','${(d.name||'').replace(/'/g,"\\'")}')">
             ${d.name} <span class="code">${d.code}</span> +${(d.change_pct||0).toFixed(1)}% <span style="color:#fca5a5;">${fmtAmtWan(d.buy_amt)}</span>${aiBtn}
           </span>`;
         }).join('');
       } else if (sniperView === 'master' && sn.limit_up_codes) {
         // Master 視角：列出個股代碼
-        detailsHTML = sn.limit_up_codes.slice(0, 30).map(c => 
-          `<span class="sniper-detail-chip" onclick="showStockDetail('${c}','')"><span class="code">${c}</span></span>`
-        ).join('');
+        // v3.72.9: 若該 code 出現在 lu.sniper_top_buyer_index (蔣承翰為 top #1) → highlight
+        const topSet = new Set(Object.keys(lu.sniper_top_buyer_index || {}));
+        detailsHTML = sn.limit_up_codes.slice(0, 30).map(c => {
+          const topCls = topSet.has(c) ? ' top-market-buyer' : '';
+          const topTitle = topSet.has(c) ? ` title="全市場買超#1"` : '';
+          return `<span class="sniper-detail-chip${topCls}"${topTitle} onclick="showStockDetail('${c}','')"><span class="code">${c}</span></span>`;
+        }).join('');
       }
       
       rankHTML += `<div class="sniper-card ${cls}">
