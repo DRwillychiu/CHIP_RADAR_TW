@@ -666,10 +666,34 @@ def _write_header_row(ws: "Worksheet", row: int, header_label: str, include_mast
         c.alignment = _align_center()
 
 
+# v3.72.7: histock fetch 統計 (P2 #5 — 監控 rate limit / block)
+# 每次 build_day_sheet 開始清空, 結束 dump 到 stderr + 累加到 module-level 統計
+_HISTOCK_STATS = {
+    "attempted": 0,      # 呼叫次數
+    "success": 0,        # 成功抓到 buys
+    "stale_date": 0,     # v3.72.5 時效不符
+    "no_data": 0,        # 抓到但 empty
+    "http_error": 0,     # requests exception
+    "net_zero_or_neg": 0, # buys[0].net <= 0 (fix bug in this version)
+}
+
+
+def _reset_histock_stats():
+    global _HISTOCK_STATS
+    for k in _HISTOCK_STATS:
+        _HISTOCK_STATS[k] = 0
+
+
+def _get_histock_stats() -> Dict[str, int]:
+    """公開 stats 給 test / 外部監控."""
+    return dict(_HISTOCK_STATS)
+
+
 def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]],
                               trade_date: Optional[str] = None) -> Optional[str]:
     """v3.72.4: 透過 histock 個股分點榜找該股當日 top #1 買方 bno.
     v3.72.5: 加時效 guard — 若 histock 頁面日期 != trade_date → 回 None 避免假信號.
+    v3.72.7: 加 fetch stats 收集 + net<=0 guard (bug fix).
 
     Args:
       stock_code: 股票代號 (e.g. '6577')
@@ -677,28 +701,39 @@ def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]],
       trade_date: YYYYMMDD 我們期待的當日. 若 histock 頁面日期不符 → skip.
 
     Returns:
-      top #1 買方 bno (e.g. '9A9S') / None (fetch 失敗、無資料、或日期不符)
+      top #1 買方 bno (e.g. '9A9S') / None (fetch 失敗、無資料、日期不符、或 net<=0)
     """
     if stock_code in cache:
         return cache[stock_code]
+    _HISTOCK_STATS["attempted"] += 1
     try:
         from src.audit.histock_branch_audit import fetch_histock_branch
         data = fetch_histock_branch(stock_code, timeout=8, max_retries=1)
-        if data and data.get('buys'):
-            # v3.72.5: 時效 guard — histock date (YYYY/MM/DD) 需等於 trade_date (YYYYMMDD)
-            if trade_date:
-                histock_date = (data.get('date') or '').replace('/', '')
-                if histock_date and histock_date != trade_date:
-                    # histock 資料還沒 update 到當日 → 不塗黃 (避免用 T-1 資料誤判)
-                    cache[stock_code] = None
-                    return None
-            # histock 買方榜已排序 (rank #1 in [0], v3.72.4 verified net desc)
-            top_bno = data['buys'][0].get('bno')
-            cache[stock_code] = top_bno
-            return top_bno
+        if not data or not data.get('buys'):
+            _HISTOCK_STATS["no_data"] += 1
+            cache[stock_code] = None
+            return None
+        # v3.72.5: 時效 guard
+        if trade_date:
+            histock_date = (data.get('date') or '').replace('/', '')
+            if histock_date and histock_date != trade_date:
+                _HISTOCK_STATS["stale_date"] += 1
+                cache[stock_code] = None
+                return None
+        # v3.72.7: net<=0 guard (histock 排序 desc, 但 buys[0].net 可能仍 <=0 若當日全負)
+        top = data['buys'][0]
+        top_net = int(top.get('net', 0) or 0)
+        if top_net <= 0:
+            _HISTOCK_STATS["net_zero_or_neg"] += 1
+            cache[stock_code] = None
+            return None
+        top_bno = top.get('bno')
+        _HISTOCK_STATS["success"] += 1
+        cache[stock_code] = top_bno
+        return top_bno
     except Exception:
-        pass
-    cache[stock_code] = None  # 失敗也 cache 避免重試
+        _HISTOCK_STATS["http_error"] += 1
+    cache[stock_code] = None
     return None
 
 
@@ -894,6 +929,8 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
 
     # v3.72.4: 先掃 sniper master 買的漲停股 → fetch histock 全市場 top #1 買方
     # 這樣才是「該股全市場分點榜 #1」而不是「tracked branches 內 #1」
+    # v3.72.7: reset histock fetch stats (per build)
+    _reset_histock_stats()
     sniper_stock_codes: set = set()
     for master in MASTER_MAPPING:
         if not _is_sniper_master(master["name"]):
@@ -910,6 +947,19 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
         sniper_stock_codes=sniper_stock_codes if sniper_stock_codes else None,
         trade_date=trade_date,  # v3.72.5 時效 guard
     )
+
+    # v3.72.7: dump histock fetch stats to stderr (監控 rate limit / block)
+    stats = _get_histock_stats()
+    if stats["attempted"] > 0:
+        success_rate = stats["success"] / stats["attempted"] * 100
+        import sys as _sys
+        print(f"[histock stats] {stats['attempted']} attempted "
+              f"→ {stats['success']} success ({success_rate:.0f}%) | "
+              f"stale={stats['stale_date']} | no_data={stats['no_data']} | "
+              f"http_err={stats['http_error']} | net<=0={stats['net_zero_or_neg']}",
+              file=_sys.stderr)
+        if success_rate < 50:
+            print(f"⚠️ histock 成功率 {success_rate:.0f}% < 50% — 可能被 rate limit / 資料未 update", file=_sys.stderr)
 
     # Apply column widths
     for col, width in COL_WIDTHS.items():

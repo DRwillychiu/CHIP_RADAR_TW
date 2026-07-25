@@ -201,6 +201,40 @@ new_warnings_for_new_branch = [w for w in _MASTER_MAPPING_WARNINGS if "9A9S" in 
 check("蔣承翰 9A9S 沒 drift warning (branches.py + MASTER_MAPPING 同步)",
       len(new_warnings_for_new_branch) == 0)
 
+# ─── 10. v3.72.7 histock stats + net<=0 guard ───
+print("\n10. v3.72.7 histock fetch stats 收集")
+from src.exports.excel_report import _get_histock_stats, _reset_histock_stats
+
+# Scenario A: success case
+_reset_histock_stats()
+with patch("src.audit.histock_branch_audit.fetch_histock_branch",
+           side_effect=mock_fetch_histock_branch):
+    cache = {}
+    _fetch_histock_top_buyer("6577", cache)
+stats = _get_histock_stats()
+check("成功後 stats.success++", stats["success"] == 1 and stats["attempted"] == 1)
+
+# Scenario B: net<=0 guard (histock 買方榜 top net <= 0 → 不算 top #1)
+_reset_histock_stats()
+NET_ZERO_MOCK = {"XXXX": {"date": "2026/07/24",
+                          "buys": [{"bno": "9A9S", "net": 0, "buy_lot": 10, "sell_lot": 10}]}}
+def mock_net_zero(code, timeout=8, max_retries=1):
+    return NET_ZERO_MOCK.get(code)
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=mock_net_zero):
+    cache = {}
+    result = _fetch_histock_top_buyer("XXXX", cache)
+stats = _get_histock_stats()
+check("net=0 top → return None (bug fix)", result is None)
+check("stats.net_zero_or_neg++", stats["net_zero_or_neg"] == 1)
+
+# Scenario C: stale date stats
+_reset_histock_stats()
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=mock_stale):
+    cache = {}
+    _fetch_histock_top_buyer("8888", cache, trade_date="20260724")
+stats = _get_histock_stats()
+check("stale_date stats++", stats["stale_date"] == 1)
+
 # ─── 總結 ───
 print(f"\n{'─' * 60}")
 print(f"整體: {pass_count} pass / {fail_count} fail")
