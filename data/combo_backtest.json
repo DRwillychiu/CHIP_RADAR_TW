@@ -1,21 +1,21 @@
 {
   "summary": {
     "baseline": {
-      "n": 564,
-      "hits": 236,
-      "hit_rate": 0.41843971631205673,
-      "mean_change": 0.10460992907801414,
+      "n": 594,
+      "hits": 252,
+      "hit_rate": 0.42424242424242425,
+      "mean_change": -0.08077441077441079,
       "median_change": 0,
       "days": 59,
       "desc": "全部共識股 (對照)"
     },
     "q5_bull": {
-      "n": 469,
-      "hits": 216,
-      "hit_rate": 0.4605543710021322,
-      "mean_change": 0.12174840085287841,
-      "median_change": -0.44,
-      "days": 45,
+      "n": 499,
+      "hits": 227,
+      "hit_rate": 0.45490981963927857,
+      "mean_change": 0.011683366733466838,
+      "median_change": -0.52,
+      "days": 48,
       "desc": "共識 ∩ Q5 偏多"
     },
     "q5_bear": {
@@ -28,66 +28,66 @@
       "desc": "共識 ∩ Q5 偏空"
     },
     "high_conv": {
-      "n": 469,
-      "hits": 194,
-      "hit_rate": 0.4136460554371002,
-      "mean_change": -0.05522388059701439,
-      "median_change": 0,
+      "n": 488,
+      "hits": 203,
+      "hit_rate": 0.41598360655737704,
+      "mean_change": -0.2430327868852455,
+      "median_change": -0.24,
       "days": 59,
       "desc": "共識 ∩ 領頭佔比 <50% (真共識)"
     },
     "extra_breadth": {
-      "n": 163,
-      "hits": 72,
-      "hit_rate": 0.44171779141104295,
-      "mean_change": 0.5861349693251544,
+      "n": 178,
+      "hits": 80,
+      "hit_rate": 0.449438202247191,
+      "mean_change": 0.4319101123595514,
       "median_change": 0,
-      "days": 53,
+      "days": 56,
       "desc": "共識 ∩ 大戶數 ≥12"
     },
     "combo_AAA": {
-      "n": 395,
-      "hits": 176,
-      "hit_rate": 0.44556962025316454,
-      "mean_change": -0.07253164556961962,
-      "median_change": -0.56,
-      "days": 45,
+      "n": 417,
+      "hits": 182,
+      "hit_rate": 0.4364508393285372,
+      "mean_change": -0.21568345323740953,
+      "median_change": -0.79,
+      "days": 48,
       "desc": "共識 ∩ Q5 偏多 ∩ 真共識"
     },
     "ex_chase": {
-      "n": 498,
-      "hits": 197,
-      "hit_rate": 0.39558232931726905,
-      "mean_change": -0.248052208835341,
-      "median_change": 0,
+      "n": 519,
+      "hits": 208,
+      "hit_rate": 0.4007707129094412,
+      "mean_change": -0.48653179190751394,
+      "median_change": -0.18,
       "days": 59,
       "desc": "排除追高 (今日漲 ≤+3%)"
     },
     "ex_falling_knife": {
-      "n": 346,
-      "hits": 140,
-      "hit_rate": 0.4046242774566474,
-      "mean_change": 0.2669075144508674,
+      "n": 348,
+      "hits": 152,
+      "hit_rate": 0.4367816091954023,
+      "mean_change": 0.3291091954022993,
       "median_change": 0,
-      "days": 58,
+      "days": 57,
       "desc": "排除接刀 (今日跌 ≥-3%)"
     },
     "mild_uptrend": {
-      "n": 146,
-      "hits": 47,
-      "hit_rate": 0.3219178082191781,
-      "mean_change": -0.9103424657534245,
-      "median_change": 0,
-      "days": 54,
+      "n": 155,
+      "hits": 49,
+      "hit_rate": 0.3161290322580645,
+      "mean_change": -1.1427741935483866,
+      "median_change": -0.11,
+      "days": 51,
       "desc": "近 3 天累積 0-8% (溫和上行)"
     },
     "pullback_buy": {
-      "n": 118,
-      "hits": 52,
-      "hit_rate": 0.4406779661016949,
-      "mean_change": -0.3915254237288136,
-      "median_change": -0.23,
-      "days": 47,
+      "n": 121,
+      "hits": 55,
+      "hit_rate": 0.45454545454545453,
+      "mean_change": -0.53,
+      "median_change": -0.47,
+      "days": 48,
       "desc": "近 3 天累積 -5 ~ -1% (短線回檔)"
     },
     "fresh_breakout": {
@@ -100,36 +100,37 @@
       "desc": "今日 close 距 20d high 5% 內 + 今日漲 >1%"
     },
     "near_low_rebound": {
-      "n": 9,
-      "hits": 6,
-      "hit_rate": 0.6666666666666666,
-      "mean_change": 2.39,
-      "median_change": 1.39,
-      "days": 8,
+      "n": 18,
+      "hits": 13,
+      "hit_rate": 0.7222222222222222,
+      "mean_change": 2.596111111111111,
+      "median_change": 3.35,
+      "days": 13,
       "desc": "今日 close 距 20d low 5% 內 + 今日漲 >0"
     },
     "q5_bull_ex_chase": {
-      "n": 405,
-      "hits": 179,
-      "hit_rate": 0.4419753086419753,
-      "mean_change": -0.27750617283950574,
-      "median_change": -0.56,
-      "days": 45,
+      "n": 426,
+      "hits": 185,
+      "hit_rate": 0.43427230046948356,
+      "mean_change": -0.43582159624413114,
+      "median_change": -0.64,
+      "days": 48,
       "desc": "Q5 偏多 ∩ 排除追高"
     },
     "q5_bull_mild_up": {
-      "n": 109,
-      "hits": 44,
-      "hit_rate": 0.4036697247706422,
-      "mean_change": -1.0782568807339448,
-      "median_change": -1.34,
-      "days": 41,
+      "n": 119,
+      "hits": 46,
+      "hit_rate": 0.3865546218487395,
+      "mean_change": -1.3592436974789914,
+      "median_change": -1.57,
+      "days": 43,
       "desc": "Q5 偏多 ∩ 近 3 天溫和上行"
     }
   },
   "best": [
+    "near_low_rebound",
     "fresh_breakout"
   ],
-  "updated_at": "2026-07-19T14:52:36.976426",
+  "updated_at": "2026-07-26T15:02:18.209351",
   "window_days": 59
 }

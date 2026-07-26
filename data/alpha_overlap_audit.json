@@ -1,32 +1,32 @@
 {
-  "updated_at": "2026-07-19T14:52:50.151632",
-  "days_analyzed": 45,
+  "updated_at": "2026-07-26T15:02:33.214931",
+  "days_analyzed": 48,
   "summary": {
-    "mild_only_pct": 47.706422018348626,
-    "both_overlap_pct_of_quad": 22.983870967741936,
+    "mild_only_pct": 48.739495798319325,
+    "both_overlap_pct_of_quad": 23.552123552123554,
     "verdict": "部分獨立 — mild_up 大部分非 quad subset, 雙層仍有獨立信息"
   },
   "buckets": {
     "quad_only": {
-      "n": 191,
-      "hits": 101,
-      "hit_rate": 0.5287958115183246,
-      "mean_change": 1.4646596858638739,
-      "median_change": 0.58
+      "n": 198,
+      "hits": 102,
+      "hit_rate": 0.5151515151515151,
+      "mean_change": 1.322575757575757,
+      "median_change": 0.47
     },
     "both": {
-      "n": 57,
-      "hits": 26,
-      "hit_rate": 0.45614035087719296,
-      "mean_change": -0.5394736842105262,
+      "n": 61,
+      "hits": 28,
+      "hit_rate": 0.45901639344262296,
+      "mean_change": -0.5595081967213114,
       "median_change": -0.83
     },
     "mild_up_only": {
-      "n": 52,
+      "n": 58,
       "hits": 18,
-      "hit_rate": 0.34615384615384615,
-      "mean_change": -1.6688461538461523,
-      "median_change": -1.565
+      "hit_rate": 0.3103448275862069,
+      "mean_change": -2.200344827586205,
+      "median_change": -2.15
     }
   },
   "per_day": [
@@ -429,6 +429,33 @@
     {
       "date": "20260716",
       "next_date": "20260717",
+      "quad_n": 0,
+      "mild_n": 6,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 6
+    },
+    {
+      "date": "20260721",
+      "next_date": "20260722",
+      "quad_n": 0,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 0
+    },
+    {
+      "date": "20260722",
+      "next_date": "20260723",
+      "quad_n": 11,
+      "mild_n": 4,
+      "intersection": 4,
+      "quad_only": 7,
+      "mild_only": 0
+    },
+    {
+      "date": "20260723",
+      "next_date": "20260724",
       "quad_n": 0,
       "mild_n": 6,
       "intersection": 0,
