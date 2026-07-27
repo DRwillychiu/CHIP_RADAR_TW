@@ -1,24 +1,34 @@
 {
-  "date": "20260724",
-  "generated_at": "2026-07-24T17:25:44.593451",
+  "date": "20260727",
+  "generated_at": "2026-07-27T14:32:11.786181",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "中性 信心58.8% (低信心) · 2 檔個股關注",
+  "headline": "偏多 信心87.3% (高信心) · 3 檔個股關注",
   "market_direction": {
-    "direction": "中性",
-    "confidence_pct": 58.8,
-    "net_weight": 0.088,
+    "direction": "偏多",
+    "confidence_pct": 87.3,
+    "net_weight": 0.373,
     "contributing": [
+      {
+        "name": "外資現貨",
+        "level": "extreme-bull",
+        "weight": 0.202,
+        "sign": "bull"
+      },
       {
         "name": "P/C Ratio",
         "level": "bull",
         "weight": 0.088,
         "sign": "bull"
+      },
+      {
+        "name": "分點漲停",
+        "level": "extreme-bull",
+        "weight": 0.083,
+        "sign": "bull"
       }
     ],
     "ignored": [
-      "外資現貨",
       "外資期貨",
-      "分點漲停",
       "融資熱度",
       "法人共識",
       "結算日壓力"
@@ -27,30 +37,44 @@
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "4707",
-      "name": "磐亞",
-      "change_pct": 9.97,
+      "code": "2332",
+      "name": "友訊",
+      "change_pct": 9.95,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 49243,
-      "total_buy_amt_yi": 0.49,
+      "total_buy_amt_K": 413360,
+      "total_buy_amt_yi": 4.13,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.97%, 共淨買 0.49 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.95%, 共淨買 4.13 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "6577",
-      "name": "勁豐",
-      "change_pct": 9.9,
+      "code": "6187",
+      "name": "萬潤",
+      "change_pct": 9.87,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 25677,
-      "total_buy_amt_yi": 0.26,
+      "total_buy_amt_K": 929008,
+      "total_buy_amt_yi": 9.29,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.9%, 共淨買 0.26 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.87%, 共淨買 9.29 億",
+      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
+    },
+    {
+      "rank": 3,
+      "code": "3362",
+      "name": "先進光",
+      "change_pct": 9.97,
+      "tier": "consensus",
+      "master_count": 0,
+      "masters": [],
+      "total_buy_amt_K": 112477,
+      "total_buy_amt_yi": 1.12,
+      "confidence_pct": 52,
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.97%, 共淨買 1.12 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],
