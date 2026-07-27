@@ -1,6 +1,6 @@
 {
  "trade_date": "20260727",
- "updated_at": "2026-07-28T00:54:18.876883+08:00",
+ "updated_at": "2026-07-28T01:37:41.558797+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -5004,11 +5004,11 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 883,
+   "healthy": 882,
    "watch": 324,
-   "high_risk": 43,
+   "high_risk": 42,
    "margin_call": 19,
-   "insufficient_data": 931
+   "insufficient_data": 933
   },
   "high_risk_stocks": [
    {
@@ -5201,15 +5201,6 @@
     "estimated_cost": 60.49
    },
    {
-    "code": "3550",
-    "name": "聯穎",
-    "ratio": 121.8,
-    "risk_level": "high_risk",
-    "margin_balance": 13841,
-    "today_close": 21.4,
-    "estimated_cost": 29.29
-   },
-   {
     "code": "2472",
     "name": "立隆電",
     "ratio": 122.4,
@@ -5280,6 +5271,15 @@
     "margin_balance": 11559,
     "today_close": 595.0,
     "estimated_cost": 794.7
+   },
+   {
+    "code": "3114",
+    "name": "好德",
+    "ratio": 125.4,
+    "risk_level": "high_risk",
+    "margin_balance": 1232,
+    "today_close": 31.65,
+    "estimated_cost": 42.08
    }
   ],
   "thresholds": {

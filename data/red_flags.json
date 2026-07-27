@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-28T00:51:32.846968+08:00",
+  "generated_at": "2026-07-28T01:33:49.217818+08:00",
   "trade_date": "20260727",
   "pump_suspicion": [],
   "wash_trade": [
@@ -348,23 +348,6 @@
       "stock_name": "南亞科",
       "buy_branch_code": "9B25",
       "buy_master": "民哥",
-      "sell_branch_code": "9A9g",
-      "sell_master": "陳族元",
-      "buy_lot": 135,
-      "sell_lot": 119,
-      "buy_amt_wan": 5582,
-      "sell_amt_wan": 4746,
-      "lot_match_ratio": 0.88,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9B25 買 135 張 vs 9A9g 賣 119 張 (匹配 88%)"
-    },
-    {
-      "stock_code": "2408",
-      "stock_name": "南亞科",
-      "buy_branch_code": "9B25",
-      "buy_master": "民哥",
       "sell_branch_code": "9A8F",
       "sell_master": "布哥/n_nchang",
       "buy_lot": 135,
@@ -512,30 +495,31 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "920F 買 148 張 vs 779W 賣 112 張 (匹配 76%)"
-    }
-  ],
-  "distribution": [
+    },
     {
-      "stock_code": "1810",
-      "stock_name": "和成",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 333,
-      "sell_amt_wan": 882,
-      "avg_30d_sell_lot": 28.0,
-      "sell_vs_avg_x": 11.9,
-      "recent_5d_limit_up_count": 46,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 333 張 (30 天均 28 張 × 11.9) + 近 5 天漲停 46 次"
+      "stock_code": "2408",
+      "stock_name": "南亞科",
+      "buy_branch_code": "920F",
+      "buy_master": "張濬安(航海王)",
+      "sell_branch_code": "9658",
+      "sell_master": "林滄海",
+      "buy_lot": 148,
+      "sell_lot": 152,
+      "buy_amt_wan": 6443,
+      "sell_amt_wan": 6606,
+      "lot_match_ratio": 0.97,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "920F 買 148 張 vs 9658 賣 152 張 (匹配 97%)"
     }
   ],
+  "distribution": [],
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 1,
-    "total": 31
+    "distribution_count": 0,
+    "total": 30
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
