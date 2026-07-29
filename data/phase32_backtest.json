@@ -1,38 +1,38 @@
 {
   "summary": {
     "baseline": {
-      "n": 604,
+      "n": 607,
       "hits": 257,
-      "hit_rate": 0.42549668874172186,
-      "mean_change": -0.19781456953642387,
-      "median_change": -0.32,
+      "hit_rate": 0.4233937397034596,
+      "mean_change": -0.3502306425041186,
+      "median_change": -0.6,
       "days": 59,
       "desc": "全部共識股 (對照)"
     },
     "e_anomaly_only": {
-      "n": 604,
+      "n": 607,
       "hits": 257,
-      "hit_rate": 0.42549668874172186,
-      "mean_change": -0.19781456953642387,
-      "median_change": -0.32,
+      "hit_rate": 0.4233937397034596,
+      "mean_change": -0.3502306425041186,
+      "median_change": -0.6,
       "days": 59,
       "desc": "共識 ∩ ≥1 master 異常 (vol_spike OR new_stocks)"
     },
     "e_volume_spike_only": {
-      "n": 278,
+      "n": 283,
       "hits": 134,
-      "hit_rate": 0.48201438848920863,
-      "mean_change": 1.0478776978417257,
+      "hit_rate": 0.4734982332155477,
+      "mean_change": 0.735547703180211,
       "median_change": 0.0,
       "days": 28,
       "desc": "共識 ∩ ≥1 master volume_spike"
     },
     "e_new_stocks_only": {
-      "n": 604,
+      "n": 607,
       "hits": 257,
-      "hit_rate": 0.42549668874172186,
-      "mean_change": -0.19781456953642387,
-      "median_change": -0.32,
+      "hit_rate": 0.4233937397034596,
+      "mean_change": -0.3502306425041186,
+      "median_change": -0.6,
       "days": 59,
       "desc": "共識 ∩ ≥1 master new_stocks"
     },
@@ -66,16 +66,6 @@
   },
   "best": [],
   "per_day": [
-    {
-      "date": "20260504",
-      "next": "20260505",
-      "cons": 9,
-      "next_avail": 9,
-      "q5": null,
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 12,
-      "e_hits": 0
-    },
     {
       "date": "20260505",
       "next": "20260506",
@@ -655,9 +645,19 @@
       "vol_spike_masters": 0,
       "new_stocks_masters": 13,
       "e_hits": 0
+    },
+    {
+      "date": "20260728",
+      "next": "20260729",
+      "cons": 12,
+      "next_avail": 12,
+      "q5": "偏空",
+      "vol_spike_masters": 1,
+      "new_stocks_masters": 9,
+      "e_hits": 0
     }
   ],
-  "updated_at": "2026-07-28T17:26:28.333798",
+  "updated_at": "2026-07-29T13:34:27.164327",
   "window_days": 59,
   "thresholds": {
     "anomaly_sigma": 2.0,
