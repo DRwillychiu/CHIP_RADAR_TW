@@ -1,0 +1,135 @@
+{
+  "audited_at": "2026-07-02T08:44:01.800702",
+  "baseline": {
+    "bull_hit": 6,
+    "bull_total": 9,
+    "bull_rate": 0.6666666666666666,
+    "bear_hit": 1,
+    "bear_total": 1,
+    "bear_rate": 1.0,
+    "total_hit": 7,
+    "total_total": 10,
+    "overall_rate": 0.7
+  },
+  "per_signal_loo": [
+    {
+      "signal": "外資現貨",
+      "n_affected": 37,
+      "stat_without": {
+        "bull_hit": 6,
+        "bull_total": 9,
+        "bull_rate": 0.6666666666666666,
+        "bear_hit": 1,
+        "bear_total": 1,
+        "bear_rate": 1.0,
+        "total_hit": 7,
+        "total_total": 10,
+        "overall_rate": 0.7
+      },
+      "delta_pp": 0.0,
+      "verdict": "⚪ Dead weight (weight=0 or 移除無影響)"
+    },
+    {
+      "signal": "外資期貨",
+      "n_affected": 37,
+      "stat_without": {
+        "bull_hit": 6,
+        "bull_total": 9,
+        "bull_rate": 0.6666666666666666,
+        "bear_hit": 1,
+        "bear_total": 1,
+        "bear_rate": 1.0,
+        "total_hit": 7,
+        "total_total": 10,
+        "overall_rate": 0.7
+      },
+      "delta_pp": 0.0,
+      "verdict": "⚪ Dead weight (weight=0 or 移除無影響)"
+    },
+    {
+      "signal": "P/C Ratio",
+      "n_affected": 37,
+      "stat_without": {
+        "bull_hit": 2,
+        "bull_total": 3,
+        "bull_rate": 0.6666666666666666,
+        "bear_hit": 0,
+        "bear_total": 0,
+        "bear_rate": 0,
+        "total_hit": 2,
+        "total_total": 3,
+        "overall_rate": 0.6666666666666666
+      },
+      "delta_pp": -3.3333333333333326,
+      "verdict": "✅ 輔助 (移除後 hit 微降)"
+    },
+    {
+      "signal": "分點漲停",
+      "n_affected": 37,
+      "stat_without": {
+        "bull_hit": 6,
+        "bull_total": 9,
+        "bull_rate": 0.6666666666666666,
+        "bear_hit": 1,
+        "bear_total": 1,
+        "bear_rate": 1.0,
+        "total_hit": 7,
+        "total_total": 10,
+        "overall_rate": 0.7
+      },
+      "delta_pp": 0.0,
+      "verdict": "⚪ Dead weight (weight=0 or 移除無影響)"
+    },
+    {
+      "signal": "融資熱度",
+      "n_affected": 37,
+      "stat_without": {
+        "bull_hit": 6,
+        "bull_total": 9,
+        "bull_rate": 0.6666666666666666,
+        "bear_hit": 1,
+        "bear_total": 1,
+        "bear_rate": 1.0,
+        "total_hit": 7,
+        "total_total": 10,
+        "overall_rate": 0.7
+      },
+      "delta_pp": 0.0,
+      "verdict": "⚪ Dead weight (weight=0 or 移除無影響)"
+    },
+    {
+      "signal": "法人共識",
+      "n_affected": 36,
+      "stat_without": {
+        "bull_hit": 6,
+        "bull_total": 9,
+        "bull_rate": 0.6666666666666666,
+        "bear_hit": 1,
+        "bear_total": 1,
+        "bear_rate": 1.0,
+        "total_hit": 7,
+        "total_total": 10,
+        "overall_rate": 0.7
+      },
+      "delta_pp": 0.0,
+      "verdict": "⚪ Dead weight (weight=0 or 移除無影響)"
+    },
+    {
+      "signal": "結算日壓力",
+      "n_affected": 36,
+      "stat_without": {
+        "bull_hit": 0,
+        "bull_total": 0,
+        "bull_rate": 0,
+        "bear_hit": 1,
+        "bear_total": 1,
+        "bear_rate": 1.0,
+        "total_hit": 1,
+        "total_total": 1,
+        "overall_rate": 1.0
+      },
+      "delta_pp": 30.000000000000004,
+      "verdict": "⚠️ 拖後腿 (移除後 hit 大升!)"
+    }
+  ]
+}

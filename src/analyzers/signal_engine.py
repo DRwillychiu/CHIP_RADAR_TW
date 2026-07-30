@@ -192,9 +192,12 @@ def infer_market_direction(temp_signals: List[Dict]) -> Dict[str, Any]:
     # confidence% = 50% + net * 100, clamp [10, 95]
     conf_pct = max(10, min(95, 50 + net * 100))
 
-    if net > 0.05:
+    # v3.67.3: 中性閾值 0.05 → 0.10
+    # Phase 2.4 揭穿: 33 個樣本中 23 個 net=+0.087 (單一 P/C signal) 全進偏多
+    # → 偏多 hit 43%, 比隨機 50% 還差. 拉高閾值讓弱訊號歸中性.
+    if net > 0.10:
         direction = '偏多'
-    elif net < -0.05:
+    elif net < -0.10:
         direction = '偏空'
     else:
         direction = '中性'

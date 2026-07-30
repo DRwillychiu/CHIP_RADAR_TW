@@ -49,8 +49,11 @@ TEMP_THRESHOLDS = {
     'pc_ratio_oi':        (1.3,    1.0,   0.8,    0.6),
     # 信號 4: 分點漲停股數 (無 bear/extreme-bear 區隔,因下限是 0)
     'limit_up_count':     (8,      4,     1,      0),     # >=8/4/1/0
-    # 信號 5: 融資熱度 Top5 變化 (億, 反指標, 散戶追漲 = 看空)
-    'margin_top5_yi':     (30,     10,    -10,    -30),   # +30/+10/-10/-30 → 0/5/10/15/20
+    # 信號 5: 融資熱度 (億, 反指標, 散戶追漲 = 看空)
+    # v3.72.1 P0-4 新語意: 全市場融資金額日增減 (取代 top5 張數單位 bug)
+    # 閾值 = 120d 官方 backfill (2026-01-08~07-01) P80/P60/P40/P20 quantile
+    # 分佈: min=-200.8 / med=+31.8 / max=+213.3 億 (mild_bull 期間中位數偏正)
+    'margin_market_yi':   (64.2,   39.6,  18.3,   -29.9),
     # 信號 6 (v3.27 新): 法人共識 — 用「外資量達標 AND 投信量達標 AND 同向」雙條件
     'consensus_foreign':  30000,   # 張 (外資門檻)
     'consensus_trust':    3000,    # 張 (投信門檻)
@@ -135,13 +138,15 @@ def compute_chip_temperature(raw_output, trade_date=None):
     signals = []
 
     # 信號 1: 外資現貨
+    # v3.71.20 bug fix: crawler 產出 key 是 'net_lot' (line 826), 之前錯讀 'foreign_net_lot'
+    # → 35 天連續 value=0 (系統性 bug 至少從 v3.27 起存在)
     try:
         r = raw_output.get('institutional_rankings', {}).get('foreign') or {}
         buy = r.get('buy') or []
         sell = r.get('sell') or []
         if buy or sell:
-            net = (sum(x.get('foreign_net_lot', 0) or 0 for x in buy)
-                   + sum(x.get('foreign_net_lot', 0) or 0 for x in sell))
+            net = (sum(x.get('net_lot', 0) or 0 for x in buy)
+                   + sum(x.get('net_lot', 0) or 0 for x in sell))
             sc = _temp_signal_score(net, TEMP_THRESHOLDS['foreign_cash'])
             if sc:
                 signals.append({'name': '外資現貨', 'score': sc[0], 'level': sc[1], 'value': net})
@@ -179,25 +184,30 @@ def compute_chip_temperature(raw_output, trade_date=None):
     except Exception:
         pass
 
-    # 信號 5: 融資熱度 (反指標)
+    # 信號 5: 融資熱度 (反指標) — v3.72.1 P0-4 新語意
+    # 舊: sum(top5 margin_change 張)/1e8 ≈ 0 — 單位 bug (margin_change 是張數,
+    #     除 1e8 當金額), 35+ 天 value 全 0.0 → Phase B 無法評估.
+    # 新: 全市場融資金額日增減 (億) — 台股標準散戶情緒指標,
+    #     資料源 margin.fetch_margin_market_aggregate (官方 aggregate, 金額計價).
+    #     閾值 = 120d 官方 backfill P80/P60/P40/P20 quantile (L2 audit 方法論).
     try:
-        mr = raw_output.get('margin_rankings') or {}
-        buy_top = (mr.get('top_margin_buy') or [])[:5]
-        if buy_top:
-            total_increase = sum(x.get('margin_change', 0) or 0 for x in buy_top)
-            billion = total_increase / 1e8
-            thr = TEMP_THRESHOLDS['margin_top5_yi']  # (30, 10, -10, -30)
-            # 反指標: 散戶大幅追漲 = 看空
-            if billion >= thr[0]:   sc = (0, 'extreme-bear')
-            elif billion >= thr[1]: sc = (5, 'bear')
-            elif billion >= thr[2]: sc = (10, 'neutral')
-            elif billion >= thr[3]: sc = (15, 'bull')
-            else:                   sc = (20, 'extreme-bull')
-            signals.append({'name': '融資熱度', 'score': sc[0], 'level': sc[1], 'value': round(billion, 2)})
+        agg = raw_output.get('margin_market_aggregate') or {}
+        chg_yi = agg.get('margin_amt_change_yi')
+        if chg_yi is not None:
+            thr = TEMP_THRESHOLDS['margin_market_yi']
+            # 反指標: 融資大增 = 散戶追漲 = 看空
+            if chg_yi >= thr[0]:   sc = (0, 'extreme-bear')
+            elif chg_yi >= thr[1]: sc = (5, 'bear')
+            elif chg_yi >= thr[2]: sc = (10, 'neutral')
+            elif chg_yi >= thr[3]: sc = (15, 'bull')
+            else:                  sc = (20, 'extreme-bull')
+            signals.append({'name': '融資熱度', 'score': sc[0], 'level': sc[1],
+                            'value': chg_yi})
     except Exception:
         pass
 
     # 信號 6 (v3.27 新): 法人共識 — 外資 + 投信 同向 且 雙方量達標
+    # v3.71.20 bug fix: 同信號 1, 應該用 'net_lot' 不是 'foreign_net_lot'/'trust_net_lot'
     try:
         ir = raw_output.get('institutional_rankings', {}) or {}
         fr = ir.get('foreign') or {}
@@ -205,10 +215,10 @@ def compute_chip_temperature(raw_output, trade_date=None):
         f_buy, f_sell = fr.get('buy') or [], fr.get('sell') or []
         t_buy, t_sell = tr.get('buy') or [], tr.get('sell') or []
         if (f_buy or f_sell) and (t_buy or t_sell):
-            f_net = (sum(x.get('foreign_net_lot', 0) or 0 for x in f_buy)
-                     + sum(x.get('foreign_net_lot', 0) or 0 for x in f_sell))
-            t_net = (sum(x.get('trust_net_lot', 0) or 0 for x in t_buy)
-                     + sum(x.get('trust_net_lot', 0) or 0 for x in t_sell))
+            f_net = (sum(x.get('net_lot', 0) or 0 for x in f_buy)
+                     + sum(x.get('net_lot', 0) or 0 for x in f_sell))
+            t_net = (sum(x.get('net_lot', 0) or 0 for x in t_buy)
+                     + sum(x.get('net_lot', 0) or 0 for x in t_sell))
             f_thr = TEMP_THRESHOLDS['consensus_foreign']
             t_thr = TEMP_THRESHOLDS['consensus_trust']
             # 雙條件: 同向 + 雙方各自量達標

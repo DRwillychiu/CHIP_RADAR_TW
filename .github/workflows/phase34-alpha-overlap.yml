@@ -1,0 +1,50 @@
+name: Phase 3.4 Alpha Overlap Audit
+
+# v3.71.2: 檢驗 quad ∩ mild_up 重疊比例
+# 確認雙層 alpha 是否獨立 — 若 mild_up 大部分是 quad subset, 雙層 sub-banner 該砍
+# 手動觸發 (workflow_dispatch)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install requests cryptography openpyxl pyyaml
+
+      - name: Run alpha overlap audit
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+        run: |
+          echo "🔬 Phase 3.4 alpha overlap audit"
+          python scripts/audit_alpha_overlap.py
+
+      - name: Commit result
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add data/alpha_overlap_audit.json
+          if git diff --staged --quiet; then
+            echo "::notice::no change in alpha_overlap_audit.json"
+          else
+            git commit -m "data: refresh alpha_overlap_audit.json"
+            git push
+          fi

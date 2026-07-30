@@ -1,8 +1,8 @@
 {
-  "backtest_run_at": "2026-06-19T21:44:30.606898+08:00",
-  "window_days": 30,
-  "samples_with_next_day_chg": 29,
-  "data_source": "data\\temp_history.json",
+  "backtest_run_at": "2026-07-02T10:03:53.622589+08:00",
+  "window_days": 119,
+  "samples_with_next_day_chg": 119,
+  "data_source": "data\\signal_history_official.json",
   "min_sample_size": 10,
   "enable_threshold_pct": 55.0,
   "disable_threshold_pct": 45.0,
@@ -21,10 +21,10 @@
   ],
   "market_regime_caveat": {
     "regime": "mild_bull",
-    "next_day_up_pct": 57.1,
-    "mean_next_day_chg_pct": 0.551,
-    "n_up": 12,
-    "n_down": 9,
+    "next_day_up_pct": 58.5,
+    "mean_next_day_chg_pct": 0.433,
+    "n_up": 69,
+    "n_down": 49,
     "warning": null,
     "trust_weights": true
   },
@@ -39,67 +39,187 @@
   "results": {
     "外資現貨": {
       "levels": {
+        "extreme-bull": {
+          "n": 47,
+          "mean_next_chg_pct": 0.686,
+          "hits": 33,
+          "misses": 14,
+          "hit_rate_pct": 70.2,
+          "expected_dir": "up",
+          "verdict": "enable",
+          "weight": 0.202
+        },
+        "extreme-bear": {
+          "n": 38,
+          "mean_next_chg_pct": 0.315,
+          "hits": 19,
+          "misses": 19,
+          "hit_rate_pct": 50.0,
+          "expected_dir": "down",
+          "verdict": "maintain",
+          "weight": 0.0
+        },
+        "bull": {
+          "n": 8,
+          "mean_next_chg_pct": 0.935,
+          "hits": 5,
+          "misses": 3,
+          "hit_rate_pct": 62.5,
+          "expected_dir": "up",
+          "verdict": "insufficient",
+          "weight": 0.0
+        },
         "neutral": {
           "n": 0,
-          "mean_next_chg_pct": 0.399,
+          "mean_next_chg_pct": -0.049,
           "hits": 0,
           "misses": 0,
           "hit_rate_pct": null,
           "expected_dir": "flat",
           "verdict": "insufficient",
           "weight": 0.0
+        },
+        "bear": {
+          "n": 4,
+          "mean_next_chg_pct": -1.245,
+          "hits": 3,
+          "misses": 1,
+          "hit_rate_pct": 75.0,
+          "expected_dir": "down",
+          "verdict": "insufficient",
+          "weight": 0.0
         }
       },
-      "overall_hit_rate_directional": null,
-      "overall_n_directional": 0
+      "overall_hit_rate_directional": 61.9,
+      "overall_n_directional": 97
     },
     "分點漲停": {
       "levels": {
         "extreme-bull": {
-          "n": 29,
-          "mean_next_chg_pct": 0.399,
-          "hits": 12,
-          "misses": 17,
-          "hit_rate_pct": 41.4,
+          "n": 48,
+          "mean_next_chg_pct": 0.47,
+          "hits": 28,
+          "misses": 20,
+          "hit_rate_pct": 58.3,
           "expected_dir": "up",
-          "verdict": "disable",
-          "weight": 0.0
+          "verdict": "enable",
+          "weight": 0.083
         }
       },
-      "overall_hit_rate_directional": 41.4,
-      "overall_n_directional": 29
+      "overall_hit_rate_directional": 58.3,
+      "overall_n_directional": 48
     },
     "融資熱度": {
       "levels": {
+        "bull": {
+          "n": 23,
+          "mean_next_chg_pct": 0.752,
+          "hits": 16,
+          "misses": 7,
+          "hit_rate_pct": 69.6,
+          "expected_dir": "up",
+          "verdict": "enable",
+          "weight": 0.196
+        },
         "neutral": {
           "n": 0,
-          "mean_next_chg_pct": 0.399,
+          "mean_next_chg_pct": -0.07,
           "hits": 0,
           "misses": 0,
           "hit_rate_pct": null,
           "expected_dir": "flat",
           "verdict": "insufficient",
           "weight": 0.0
+        },
+        "bear": {
+          "n": 24,
+          "mean_next_chg_pct": 0.434,
+          "hits": 8,
+          "misses": 16,
+          "hit_rate_pct": 33.3,
+          "expected_dir": "down",
+          "verdict": "disable",
+          "weight": 0.0
+        },
+        "extreme-bull": {
+          "n": 24,
+          "mean_next_chg_pct": 0.527,
+          "hits": 13,
+          "misses": 11,
+          "hit_rate_pct": 54.2,
+          "expected_dir": "up",
+          "verdict": "maintain",
+          "weight": 0.0
+        },
+        "extreme-bear": {
+          "n": 24,
+          "mean_next_chg_pct": 0.65,
+          "hits": 8,
+          "misses": 16,
+          "hit_rate_pct": 33.3,
+          "expected_dir": "down",
+          "verdict": "disable",
+          "weight": 0.0
         }
       },
-      "overall_hit_rate_directional": null,
-      "overall_n_directional": 0
+      "overall_hit_rate_directional": 47.4,
+      "overall_n_directional": 95
     },
     "法人共識": {
       "levels": {
         "neutral": {
           "n": 0,
-          "mean_next_chg_pct": 0.397,
+          "mean_next_chg_pct": 0.676,
           "hits": 0,
           "misses": 0,
           "hit_rate_pct": null,
           "expected_dir": "flat",
           "verdict": "insufficient",
           "weight": 0.0
+        },
+        "extreme-bear": {
+          "n": 18,
+          "mean_next_chg_pct": -0.183,
+          "hits": 10,
+          "misses": 8,
+          "hit_rate_pct": 55.6,
+          "expected_dir": "down",
+          "verdict": "enable",
+          "weight": -0.056
+        },
+        "bear": {
+          "n": 1,
+          "mean_next_chg_pct": 0.68,
+          "hits": 0,
+          "misses": 1,
+          "hit_rate_pct": 0.0,
+          "expected_dir": "down",
+          "verdict": "insufficient",
+          "weight": 0.0
+        },
+        "bull": {
+          "n": 6,
+          "mean_next_chg_pct": -0.152,
+          "hits": 1,
+          "misses": 5,
+          "hit_rate_pct": 16.7,
+          "expected_dir": "up",
+          "verdict": "insufficient",
+          "weight": 0.0
+        },
+        "extreme-bull": {
+          "n": 20,
+          "mean_next_chg_pct": 0.501,
+          "hits": 13,
+          "misses": 7,
+          "hit_rate_pct": 65.0,
+          "expected_dir": "up",
+          "verdict": "enable",
+          "weight": 0.15
         }
       },
-      "overall_hit_rate_directional": null,
-      "overall_n_directional": 0
+      "overall_hit_rate_directional": 53.3,
+      "overall_n_directional": 45
     }
   }
 }

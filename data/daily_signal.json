@@ -1,70 +1,66 @@
 {
-  "date": "20260624",
-  "generated_at": "2026-06-24T17:48:45.461956",
+  "date": "20260730",
+  "generated_at": "2026-07-30T13:33:16.108406",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "偏多 信心58.7% (低信心) · 3 檔個股關注",
+  "headline": "偏空 信心35.2% (低信心) · 2 檔個股關注",
   "market_direction": {
-    "direction": "偏多",
-    "confidence_pct": 58.7,
-    "net_weight": 0.087,
+    "direction": "偏空",
+    "confidence_pct": 35.2,
+    "net_weight": -0.148,
     "contributing": [
       {
-        "name": "P/C Ratio",
+        "name": "外資現貨",
         "level": "extreme-bull",
-        "weight": 0.087,
+        "weight": 0.202,
+        "sign": "bull"
+      },
+      {
+        "name": "P/C Ratio",
+        "level": "bear",
+        "weight": -0.5,
+        "sign": "bear"
+      },
+      {
+        "name": "法人共識",
+        "level": "extreme-bull",
+        "weight": 0.15,
         "sign": "bull"
       }
     ],
     "ignored": [
-      "外資現貨",
       "外資期貨",
       "分點漲停",
       "融資熱度",
-      "法人共識",
       "結算日壓力"
     ]
   },
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "6683",
-      "name": "雍智科技",
-      "change_pct": 9.92,
+      "code": "3529",
+      "name": "力旺",
+      "change_pct": 9.83,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 1501850,
-      "total_buy_amt_yi": 15.02,
+      "total_buy_amt_K": 158567,
+      "total_buy_amt_yi": 1.59,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.92%, 共淨買 15.02 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.83%, 共淨買 1.59 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "2312",
-      "name": "金寶",
-      "change_pct": 9.99,
+      "code": "3520",
+      "name": "華盈",
+      "change_pct": 9.82,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 1956514,
-      "total_buy_amt_yi": 19.57,
+      "total_buy_amt_K": 3472,
+      "total_buy_amt_yi": 0.03,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.99%, 共淨買 19.57 億",
-      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
-    },
-    {
-      "rank": 3,
-      "code": "6213",
-      "name": "聯茂",
-      "change_pct": 9.96,
-      "tier": "consensus",
-      "master_count": 0,
-      "masters": [],
-      "total_buy_amt_K": 2332504,
-      "total_buy_amt_yi": 23.33,
-      "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.96%, 共淨買 23.33 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.82%, 共淨買 0.03 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],

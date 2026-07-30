@@ -5,11 +5,20 @@ import src  # noqa: F401 — side effect: 把 src/* 8 子目錄加進 sys.path
 
 """v3.27 信號 6/7 本地測試 — 不需網路, 不需爬蟲
 驗證 compute_chip_temperature() 對 4 個邊界 case 給出預期分數。
+
+v3.72.1 修補 (P0-4 順手挖出的 test debt):
+  1. mock key 同步 v3.71.20: 'foreign_net_lot'/'trust_net_lot' → 'net_lot'
+     (crawler build_inst_ranking 產 'net_lot', v3.71.20 修 pipeline 讀法後
+      本 mock 沒跟上 → B 段 5 case 靜默 FAIL)
+  2. 失敗接 exit code — 原本 ❌ 也 exit 0, run_all 誤報 PASS
+  3. 信號 5 mock: margin_top5 → margin_market_aggregate (P0-4 新語意)
 """
 import sys
 sys.path.insert(0, '.')
 
 from crawler import compute_chip_temperature, _days_to_settlement
+
+all_pass = True
 
 # ────────────────── A. 結算日演算 ──────────────────
 print("A. _days_to_settlement 驗證")
@@ -26,30 +35,42 @@ cases_days = [
 ]
 for date, expected, desc in cases_days:
     actual = _days_to_settlement(date)
-    ok = "✅" if actual == expected else "❌"
-    print(f"  {ok} {date} expected d={expected:+}, got d={actual:+} ({desc})")
+    ok = actual == expected
+    if not ok: all_pass = False
+    print(f"  {'✅' if ok else '❌'} {date} expected d={expected:+}, got d={actual:+} ({desc})")
 
 # ────────────────── B. 信號 6 法人共識 ──────────────────
 print("\nB. 信號 6 法人共識")
 print("-" * 60)
 
-def make_raw(foreign_net=0, trust_net=0, futures_eq=None, pcr=None, limit_up=0, margin_top5=0):
-    """偽造 raw_output. net 用張數,塞進單一 stock 條目讓加總對。"""
-    return {
+def make_raw(foreign_net=0, trust_net=0, futures_eq=None, pcr=None, limit_up=0,
+             margin_market_yi=None):
+    """偽造 raw_output. net 用張數,塞進單一 stock 條目讓加總對。
+
+    v3.72.1: key 用 'net_lot' (對齊 crawler build_inst_ranking 真實產出 +
+    v3.71.20 pipeline 讀法); 信號 5 用 margin_market_aggregate 新語意.
+    """
+    raw = {
         'institutional_rankings': {
             'foreign': {
-                'buy':  [{'foreign_net_lot': foreign_net}] if foreign_net > 0 else [],
-                'sell': [{'foreign_net_lot': foreign_net}] if foreign_net < 0 else [],
+                'buy':  [{'net_lot': foreign_net}] if foreign_net > 0 else [],
+                'sell': [{'net_lot': foreign_net}] if foreign_net < 0 else [],
             },
             'trust': {
-                'buy':  [{'trust_net_lot': trust_net}] if trust_net > 0 else [],
-                'sell': [{'trust_net_lot': trust_net}] if trust_net < 0 else [],
+                'buy':  [{'net_lot': trust_net}] if trust_net > 0 else [],
+                'sell': [{'net_lot': trust_net}] if trust_net < 0 else [],
             },
         },
         'futures_data': {'summary': {'foreign_equivalent_net_oi': futures_eq, 'pc_ratio_oi': pcr}},
         'limit_up_summary': {'limit_up_stocks': [{}] * limit_up},
-        'margin_rankings': {'top_margin_buy': [{'margin_change': margin_top5 * 1e8}]} if margin_top5 else {},
     }
+    if margin_market_yi is not None:
+        raw['margin_market_aggregate'] = {
+            'margin_amt_change_yi': margin_market_yi,
+            'margin_amt_balance_yi': 5000.0,
+            'response_date_ok': True,
+        }
+    return raw
 
 cases_consensus = [
     # (foreign, trust, expected_score, expected_level, desc)
@@ -64,9 +85,10 @@ for f, t, exp_score, exp_level, desc in cases_consensus:
     raw = make_raw(foreign_net=f, trust_net=t)
     result = compute_chip_temperature(raw, trade_date='20260508')  # 非結算週,避免 sig7 干擾
     sig6 = next((s for s in result['signals'] if s['name'] == '法人共識'), None)
-    ok = "✅" if sig6 and sig6['score'] == exp_score and sig6['level'] == exp_level else "❌"
+    ok = bool(sig6 and sig6['score'] == exp_score and sig6['level'] == exp_level)
+    if not ok: all_pass = False
     actual = f"score={sig6['score']} level={sig6['level']}" if sig6 else "MISSING"
-    print(f"  {ok} {desc}: expected {exp_score}/{exp_level}, got {actual}")
+    print(f"  {'✅' if ok else '❌'} {desc}: expected {exp_score}/{exp_level}, got {actual}")
 
 # ────────────────── C. 信號 7 結算日壓力 ──────────────────
 print("\nC. 信號 7 結算日壓力")
@@ -87,22 +109,64 @@ for date, eq, exp_score, exp_level, desc in cases_settle:
     raw = make_raw(futures_eq=eq)
     result = compute_chip_temperature(raw, trade_date=date)
     sig7 = next((s for s in result['signals'] if s['name'] == '結算日壓力'), None)
-    ok = "✅" if sig7 and sig7['score'] == exp_score and sig7['level'] == exp_level else "❌"
+    ok = bool(sig7 and sig7['score'] == exp_score and sig7['level'] == exp_level)
+    if not ok: all_pass = False
     actual = f"score={sig7['score']} level={sig7['level']}" if sig7 else "MISSING"
-    print(f"  {ok} {desc}: expected {exp_score}/{exp_level}, got {actual}")
+    print(f"  {'✅' if ok else '❌'} {desc}: expected {exp_score}/{exp_level}, got {actual}")
+
+# ────────────────── B2 (v3.72.1). 信號 5 融資熱度 新語意 ──────────────────
+print("\nB2. 信號 5 融資熱度 (v3.72.1 全市場融資金額增減)")
+print("-" * 60)
+from crawler_pipeline import TEMP_THRESHOLDS
+_thr = TEMP_THRESHOLDS['margin_market_yi']
+cases_margin = [
+    # (change_yi, expected_score, expected_level, desc)
+    (_thr[0] + 5,  0, 'extreme-bear', f'融資大增 {_thr[0]+5:.0f} 億 → 散戶追漲看空'),
+    (_thr[1] + 1,  5, 'bear',         f'融資增 {_thr[1]+1:.0f} 億 → 偏空'),
+    ((_thr[1] + _thr[2]) / 2, 10, 'neutral', '中間值 → 中性'),
+    (_thr[2] - 0.1, 15, 'bull',       f'融資減 → 偏多'),
+    (_thr[3] - 5,  20, 'extreme-bull', f'融資大減 {_thr[3]-5:.0f} 億 → 籌碼乾淨看多'),
+]
+for chg, exp_score, exp_level, desc in cases_margin:
+    raw = make_raw(margin_market_yi=chg)
+    result = compute_chip_temperature(raw, trade_date='20260508')
+    sig5 = next((s for s in result['signals'] if s['name'] == '融資熱度'), None)
+    ok = bool(sig5 and sig5['score'] == exp_score and sig5['level'] == exp_level)
+    if not ok: all_pass = False
+    actual = f"score={sig5['score']} level={sig5['level']}" if sig5 else "MISSING"
+    print(f"  {'✅' if ok else '❌'} {desc}: expected {exp_score}/{exp_level}, got {actual}")
+
+# 無 aggregate → 信號 5 應略過 (不噴錯、不給假 0)
+raw = make_raw(foreign_net=15000)
+result = compute_chip_temperature(raw, trade_date='20260508')
+sig5 = next((s for s in result['signals'] if s['name'] == '融資熱度'), None)
+ok = sig5 is None
+if not ok: all_pass = False
+print(f"  {'✅' if ok else '❌'} 無 margin_market_aggregate → 信號 5 略過 (got {sig5})")
 
 # ────────────────── D. 完整 7 信號 + 加總 ──────────────────
 print("\nD. 完整 7 信號加總範例 (5/8 真實數據近似)")
 print("-" * 60)
 raw_full = make_raw(
     foreign_net=15000,    # → 外資現貨 bull (15)
-    trust_net=2000,       # 不夠 3k 門檻
+    trust_net=2000,       # 不夠 3k 門檻 → 法人共識 bull (同向未達標 15)
     futures_eq=-54530,    # → 外資期貨 extreme-bear (0); 結算 d=12 → neutral (10)
     pcr=1.81,             # → P/C extreme-bull (20)
     limit_up=33,          # → 分點漲停 extreme-bull (20)
-    margin_top5=15,       # → 融資熱度 bear (5)
+    margin_market_yi=_thr[1] + 1,  # → 融資熱度 bear (5)
 )
 result = compute_chip_temperature(raw_full, trade_date='20260508')
 print(f"  總分: {result['score']}/100  (signal_count={result['signal_count']}, total={result['total']}/{result['max_total']})")
 for s in result['signals']:
     print(f"    - {s['name']}: {s['score']}/20 [{s['level']}]")
+# D 驗證: 7 信號全數出現 (v3.72.1 起 mock 給齊全部資料源)
+expected_names = {'外資現貨', '外資期貨', 'P/C Ratio', '分點漲停', '融資熱度', '法人共識', '結算日壓力'}
+actual_names = {s['name'] for s in result['signals']}
+ok = expected_names == actual_names
+if not ok: all_pass = False
+print(f"  {'✅' if ok else '❌'} 7 信號全數產出: {sorted(actual_names)}")
+
+# ────────────────── Exit code (v3.72.1: 失敗必 exit 1) ──────────────────
+print("\n" + "─" * 60)
+print(f"  整體: {'✅ ALL PASS' if all_pass else '❌ HAS FAIL'}")
+sys.exit(0 if all_pass else 1)

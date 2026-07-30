@@ -771,6 +771,30 @@ def main():
               f"（買 {top_sniper['limit_up_stocks_bought']} 檔漲停，{top_sniper['total_limit_up_buy_amt']:.0f} 萬）")
     if limit_up_summary['consensus_limit_up']:
         print(f"  👥 多位高手共買漲停股：{len(limit_up_summary['consensus_limit_up'])} 檔")
+
+    # v3.72.9 P2 #6: enrich sniper limit_up_details with top-market-buyer flag
+    # 為前端 sniper card 提供「該股當日全市場買超#1」黃色 highlight 資料
+    try:
+        from src.analyzers.sniper_top_buyer_enricher import enrich_sniper_top_buyer
+        # SNIPER_MASTER_WHITELIST 定義在 excel_report, 這裡直接寫死 (跟 excel 一致)
+        SNIPER_MASTERS = {"蔣承翰"}
+        enrich_result = enrich_sniper_top_buyer(
+            limit_up_summary, SNIPER_MASTERS, trade_date=trade_date)
+        # 存 top-level 給前端 / 其他 consumer lookup
+        limit_up_summary['sniper_top_buyer_index'] = enrich_result['top_buyer_index']
+        limit_up_summary['sniper_top_buyer_meta'] = {
+            'fetched_at': enrich_result.get('fetched_at'),
+            'stats': enrich_result.get('stats', {}),
+        }
+        n_top = len(enrich_result['top_buyer_index'])
+        stats = enrich_result.get('stats', {})
+        att = stats.get('attempted', 0)
+        succ = stats.get('success', 0)
+        if att > 0:
+            print(f"  🌟 sniper top-buyer enrich: {succ}/{att} success | "
+                  f"{n_top} stocks matched (蔣承翰為 top #1)")
+    except Exception as _e:
+        print(f"  [sniper_top_buyer_enricher] 失敗 (不影響主流程): {_e}")
     
     # v3.13 隔日沖驗證 — 比對昨日漲停買進 × 今日賣超
     # v3.50.0 後2 (Sprint 12): 抽 _stage_load_yesterday_branches helper
@@ -891,6 +915,20 @@ def main():
     except Exception as e:
         print(f"  ⚠️ 融資融券抓取失敗: {e}（不影響主流程）")
         import traceback; traceback.print_exc()
+
+    # v3.72.1 P0-4: 全市場融資金額 aggregate (信號 5 融資熱度 新資料源)
+    # 舊邏輯 sum(top5 margin_change 張)/1e8 ≈ 0 (單位 bug) → 改全市場金額增減
+    margin_market_aggregate = None
+    try:
+        margin_market_aggregate = margin.fetch_margin_market_aggregate(trade_date)
+        if margin_market_aggregate:
+            print(f"[融資融券] ✓ 全市場融資金額增減 "
+                  f"{margin_market_aggregate['margin_amt_change_yi']:+.1f} 億 "
+                  f"(餘額 {margin_market_aggregate['margin_amt_balance_yi']:.0f} 億)")
+        else:
+            print(f"[融資融券] ⚠️ aggregate 無資料 (信號 5 今日略過)")
+    except Exception as e:
+        print(f"  ⚠️ 融資金額 aggregate 抓取失敗: {e}（信號 5 略過）")
     
     # ════════════════════════════════════════════════════════════════
     # v3.37.0 stage 5.5: 融資維持率估算 + 注入 (B5+B6 後新增)
@@ -1190,6 +1228,8 @@ def main():
         # v3.11 新增
         "margin_data": margin_filtered,           # 智慧混合後的個股融資融券
         "margin_rankings": margin_rankings,       # 7 類排行榜
+        # v3.72.1 P0-4: 全市場融資金額 aggregate (信號 5 新資料源)
+        "margin_market_aggregate": margin_market_aggregate,
         # v3.37.0: 融資維持率市場估算 + TDCC 集保大戶
         "margin_maintenance_summary": margin_maint_summary,   # 全市場分布 + Top 30 危險
         "tdcc_metadata": (tdcc_inject or {}).get('metadata'),

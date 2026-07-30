@@ -651,7 +651,69 @@ if 'next_day_flipper' in declared and '短打型' not in labels:
 > **v3.36.2 D 方案 — 處置持倉「不上標籤」**:資料保留在 profile.disposal_holdings
 > + tab14「⛓️ 處置股持倉風險」面板。等 disposal_history 快照滿 30 天後(~7/4)
 > 重評是否開啟標籤。詳見 §4.9。
+>
+> **v3.71.17 N6 提前 audit (2026-06-27, 21 snapshot)**: 第一天 (6/5) 占比 99/276 = **35.9%** (中度 clip), 仍維持 D 方案不開標籤. weekly cron 跑 `audit_disposal_history_maturity.py` 追蹤,直到 oldest_pct < 20% 才開. 預計 7/4 後再 audit.
 
 ---
 
-*本文件與 `master_profile.py` 的 `THRESH` + `generate_labels()` + `build_label_hierarchy()` + `classify_strategy_l2()` 嚴格同步。任何改動兩處都要對齊。*
+*本文件 §1-§4 與 `master_profile.py` 的 `THRESH` + `generate_labels()` + `build_label_hierarchy()` + `classify_strategy_l2()` 嚴格同步。任何改動兩處都要對齊。*
+
+---
+
+## 5. Excel / Dashboard 視覺標記 (v3.71.x 加, 跟 §1-§4 master 標籤是不同概念)
+
+> §1-§4 是 master strategy 標籤 (漲停獵手 / 鎖漲停 / 處置玩家 etc, 套在 master_profile).
+> §5 是 Excel Dashboard 內 picks 的視覺標記 (打在「個股名」cell 前 prefix), 跟 master 標籤無關.
+
+### 5.1 名稱欄 prefix 標記 (Section 0 + Mobile sheet)
+
+| Prefix | 觸發條件 | 意義 | 套用範圍 |
+|---|---|---|---|
+| `⭐⭐` | quad pick + 含 ≥1 premium master (陳律師/竹科主力分點/陳族元) | Premium quad (歷史 ≥77% hit) | Section 0 名稱欄 + Mobile |
+| `⭐` | quad pick (共識 ∩ Q5 偏多 ∩ master vol_spike) | 一般 quad (78.9% hit overall) | 同上 |
+| `🔁` | 過去 7 天已 trigger 的同 code | 跨日 dedup (user 可能已跟單,別重複進場) | 最外層 (可跟 ⭐⭐ 疊加 e.g. `🔁⭐⭐ 台積電`) |
+| `⚠️` | 領頭大戶獨佔 ≥50% (leader_pct ≥ 0.5) | 假共識防呆 (1 大戶獨大稀釋共識真實度) | Section 0 名稱欄 |
+
+### 5.2 Section 0 sub-banner icon
+
+| Icon | Sub-banner | 觸發條件 |
+|---|---|---|
+| `🟡` | baseline 30 天 backtest | hit 45-55% 中性, n≥50 |
+| `⭐` | Phase 3.2 三訊號 alpha | 強 alpha (hit ≥70%, n≥30) |
+| `💰` | 跟單實際淨報酬 (扣 0.585% 成本) | mean 淨報酬 ≥+1% 「淨利 alpha 確認」 |
+| `🔬` | Phase 3.5 多日 alpha (觀察期) | n<60 觀察期 (n≥60 變 🚀 正式) |
+| `⚠️` | alpha 失效 alarm | rolling 30d hit <50% AND n≥20 |
+| `🎯` / `💤` | quad day 狀態 banner | quad 命中 N 檔 / quad 未啟動 |
+
+### 5.3 Mobile sheet section header
+
+| Icon | Section | 內容 |
+|---|---|---|
+| `📅` | 明日預測 | Q5 direction + confidence% |
+| `⭐` | Quad 命中 (78.9% alpha) | quad picks list (premium 排前 ⭐⭐) |
+| `🎯` | 強共識買超 Top 5 | consensus top 5 (prefix ⭐⭐ / ⭐ / ①②③④⑤) |
+| `🚫` | 今日避開 | 除權息 + 處置股 + 明日恐處置 |
+| `⚠️` | Mild_up watch | 反向參考 (mild_up_only 41.7% trap, 別追) |
+| `📊` | 追蹤池方向 | 淨買差億 + vs 昨 / 5d 比較 |
+
+### 5.4 Master 量爆 anomaly icon (E section)
+
+| Icon | Anomaly type |
+|---|---|
+| `🔴` | volume_spike (z>2σ, 該 master 今日量爆) |
+| `🆕` | new_stocks (該 master 今日買 ≥3 檔過去 60 天從未買) |
+
+### 5.5 顏色語義 (Excel + 前端)
+
+| 語義 | Hex | 用途 |
+|---|---|---|
+| 漲 / bull | `#C62828` 深紅 | 台股傳統紅漲 |
+| 跌 / bear | `#2E7D32` 深綠 | 台股傳統綠跌 |
+| Premium / 一般 alpha | `#059669` | ⭐⭐ / ⭐ quad sub-banner |
+| 觀察期 | `#7C3AED` 紫 | 🔬 樣本未足 (n<60) |
+| 警示 | `#FB923C` / `#FED7AA` 琥珀 | ⚠️ outlier / mild_up watch / 處置股 |
+| 失效 | `#DC2626` 紅 | alpha 失效 alarm |
+
+---
+
+*§5 與 `src/exports/excel_report.py` 的 PREMIUM_MASTERS + _compute_quad_picks + _compute_mild_up_picks + _get_recent_quad_codes 嚴格同步.*

@@ -77,6 +77,7 @@ WATCHED_BRANCHES = [
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "9B2E", "name": "台新-城中", "master": "張濬安(航海王)",
+     "co_masters": ["強森"],   # v3.72.5 user confirmed shared (audit drift 解決)
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "920F", "name": "凱基-站前", "master": "張濬安(航海王)",
@@ -130,12 +131,17 @@ WATCHED_BRANCHES = [
     {"code": "9217", "name": "凱基-松山", "master": "迷你哥/松山哥",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
-    # v3.31.7 拆: 9200 凱基證券 / 9600 富邦證券 是整個證券公司加總 (含全分行散戶+大戶),
-    #              不該歸給「迷你哥」個人大戶 → 改 master = 公司本身, style=company_total (排除分析)
+    # v3.31.7 原始決定: 9200 凱基證券 / 9600 富邦證券 是整個證券公司加總 (含全分行散戶+大戶),
+    #                    不該歸給「迷你哥」個人大戶 → master = 公司本身, style=company_total
+    # v3.72.5 更新: user 澄清 9200/9600 是迷你哥/松山哥會使用的分點 → 加 co_masters,
+    #               保留 master=公司本身 (analysis 仍區分 aggregate vs individual),
+    #               但 Excel Section 0 顯示可對到迷你哥. (audit drift 解決)
     {"code": "9200", "name": "凱基證券", "master": "凱基證券",
+     "co_masters": ["迷你哥/松山哥"],
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "company_total"},
     {"code": "9600", "name": "富邦證券", "master": "富邦證券",
+     "co_masters": ["迷你哥/松山哥"],
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "company_total"},
  
@@ -194,12 +200,15 @@ WATCHED_BRANCHES = [
      "enabled": True, "region": "domestic"},
  
     # ─────────────────────────────────────────────────────────
-    # 蔣承翰（2 個分點）
+    # 蔣承翰（3 個分點）- 全部漲停鎖定/隔日沖風格
     # ─────────────────────────────────────────────────────────
     {"code": "9227", "name": "凱基-城中", "master": "蔣承翰",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "9B18", "name": "台新-建北", "master": "蔣承翰",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9A9S", "name": "永豐金-南京", "master": "蔣承翰",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
  

@@ -12,6 +12,102 @@
 
 ---
 
+## algo-v3.72.1 (2026-07-02) — P0-4 信號 5 融資熱度: 單位 bug 修補 + 語意重定義
+
+**作者**:DRwillychiu
+**狀態**:🟢 active
+
+**背景 (單位 bug)**:
+信號 5 原邏輯 `sum(top5 margin_change)/1e8` — margin_change 是**張數**
+(margin.py: 融資今日餘額-前日餘額, 交易單位), 除 1e8 當金額 → 值恆 ≈0.00,
+35+ 天 temp_history value 全 0.0, Phase B 無法評估. 前端同 bug.
+
+**新語意**: 全市場融資金額日增減 (億)
+- 台股標準散戶情緒指標 (每日新聞必報「融資增減」)
+- 資料源: TWSE rwd MI_MARGN selectType=MS 信用交易統計 aggregate
+  「融資金額(仟元)」(今日餘額-前日餘額)/1e5 → 億 — 金額計價, 無單位換算風險
+- 含 response title ROC 日期驗證 (stale 防護, 與 v3.27.3 同族)
+
+**閾值 (120d 官方 backfill quantile — L2 audit 方法論)**:
+margin_market_yi: [64.2, 39.6, 18.3, -29.9] (P80/P60/P40/P20)
+分佈: min=-200.8 / med=+31.8 / max=+213.3 億
+
+**Phase B 結果 (118d, 反指標假設被資料校正)**:
+| Level | Hit | n | Verdict |
+|---|---|---|---|
+| bull (融資減碼) | 69.6% | 23 | ✅ enable +0.196 — 真訊號 |
+| extreme-bull (大減) | 54.2% | 24 | maintain |
+| bear (融資增) | 33.3% | 24 | ❌ disable |
+| extreme-bear (大增) | 33.3% | 24 | ❌ disable |
+
+發現: 「融資大增=散戶過熱=看空」在 mild_bull regime 不成立 (hit 33%),
+二分法 disable 自動擋掉壞 level; 「融資減碼→隔日漲」69.6% 是真訊號.
+
+**改動同步 (4 處)**:
+1. `src/fetchers/margin.py` +fetch_margin_market_aggregate()
+2. `crawler.py` margin stage 呼叫 + raw_output['margin_market_aggregate']
+3. `src/pipelines/crawler_pipeline.py` 信號 5 重寫 + TEMP_THRESHOLDS key 更名
+4. `index.html` sig5 重寫 + MARGIN_MARKET_YI_THR 前端常數
+
+**test debt 順手修 (test_v327_signals.py)**:
+- mock key 'foreign_net_lot' → 'net_lot' (v3.71.20 改 pipeline 讀法後 mock 沒跟上,
+  B 段 5 case 靜默 FAIL 但 exit 0 → run_all 誤報 PASS)
+- 失敗接 exit code (原本 ❌ 也 exit 0)
+- 新增 B2 段: 信號 5 新語意 5 case + 無 aggregate 略過 case
+- D 段: 7 信號全數產出斷言
+
+44/44 test PASS + cross_validate PASS + LOO re-audit.
+
+---
+
+## algo-v3.72.0 (2026-07-02) — Phase B weights 重生: 官方 API 120d backfill 取代「等 60 天」
+
+**作者**:DRwillychiu
+**狀態**:🟢 active
+
+**背景**:
+L1-L3 audit (v3.71.20-23) 揭穿 Q5 只靠 P/C Ratio 撐 (5/7 signal dead weight)。
+原路徑「等 60 天累積乾淨 signal history」→ 改用 TWSE T86 官方歷史直接 backfill
+120 交易日 (2026-01-08 ~ 2026-07-01), 樣本多 3 倍且立即可用。
+
+**方法**:
+1. `scripts/backfill_signal_history_official.py` (新):
+   - 信號 1/6: T86 per-stock foreign/trust net → top100 buy+sell 加總 (與 crawler 同法)
+   - 信號 2/3/7: TAIFEX futContractsDate + pcRatio range (Phase A fetcher 重用)
+   - 信號 4: 自家 archive 解密 limit_up_summary (48 天)
+   - 信號 5: 略過 (production 單位 bug 張/1e8≈0 未修, 見 P0-4)
+   - next_day: FMTQIK 官方 TAIEX
+   - 方法驗證: 7/1 對照 production → f_net 差 10.6% (production 含上櫃), level 一致
+2. Phase B rerun on 119 天 official history → `backtest_phase_b_results.json`
+
+**結果 (regime=mild_bull 59.3% up, trust_weights=True)**:
+
+| Signal × Level | Weight | Hit | n | vs regime baseline |
+|---|---|---|---|---|
+| 外資現貨 extreme-bull | +0.223 | 72.3% | 47 | +13.0pp ✅ 真訊號 |
+| 法人共識 extreme-bull | +0.182 | 68.2% | 22 | +8.9pp ✅ 真訊號 |
+| 法人共識 extreme-bear | -0.088 | 58.8% | 17 | 逆 regime hit ✅ |
+| 分點漲停 extreme-bull | +0.083 | 58.3% | 48 | -1.0pp ⚠️ 疑似多頭 proxy |
+
+**LOO re-audit (119d official)**:
+- 外資現貨: dead weight → ✅ 輔助 (移除 -2.0pp)
+- 法人共識: dead weight → ✅ 輔助 (移除 -4.2pp, 最大貢獻)
+- P/C Ratio + 分點漲停: 此視窗顯示拖後腿 (+6.1/+6.4pp) — L2 threshold
+  recalibrate 的既有 scope, 依 data_snooping 紀律不當場改閾值
+
+**新舊系統對比 (同 119d 資料)**:
+- OLD (只 P/C+結算): 72.0% hit, 25/118 天出手 (21% 覆蓋)
+- NEW (+3 信號): 67.1% hit, 82/118 天出手 (69% 覆蓋, 3.3 倍)
+- NEW vs regime baseline: +7.8pp edge — 覆蓋大增是 quad alpha 管線的 enabler
+  (Q5 偏多是 quad trigger 條件之一, 25 天覆蓋會餓死 quad)
+
+**已知 caveat**:
+- backfill 信號 1/6 只含 TWSE 上市 (production 含上櫃), 值差 ~3-11% 但 level 一致
+- 分點漲停 58.3% ≈ baseline 59.3%, weight 小 (+0.083), 累積更多空頭樣本後 review
+- 融資熱度 weight 仍缺 (P0-4: production 單位 bug 待修)
+
+---
+
 ## algo-v3.43.0 (2026-06-19) — next_day backfill bug 修 + C8 survivorship disclosure
 
 **作者**:DRwillychiu

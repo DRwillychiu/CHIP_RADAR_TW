@@ -72,21 +72,29 @@ check("ROC '115/08/15' → 20260815", _roc_to_yyyymmdd('115/08/15') == '20260815
 check("ROC '115年08月15日' → 20260815", _roc_to_yyyymmdd('115年08月15日') == '20260815')
 check("空字串 → None", _roc_to_yyyymmdd('') is None)
 check("壞輸入 → None", _roc_to_yyyymmdd('not-a-date') is None)
+# v3.72.0: 00713 ex_date 改動態 (今天+3 天) — 原寫死 115/06/22 在 2026-06-22 後
+# 全部過期導致 upcoming_30d 空 → 假 FAIL (時間相依測試 rot)
+from datetime import datetime as _dt, timedelta as _td
+_near = _dt.now() + _td(days=3)
+_near_roc = f"{_near.year - 1911}/{_near.month:02d}/{_near.day:02d}"
+_far = _dt.now() + _td(days=44)
+_far_roc = f"{_far.year - 1911}/{_far.month:02d}/{_far.day:02d}"
+_far_yyyymmdd = _far.strftime('%Y%m%d')
 mock_twt48u = {
     'stat': 'OK',
     'fields': ['除權除息日期', '股票代號', '名稱', '除權息', '無償配股率', '現金股利'],
     'data': [
-        ['115/06/22', '00713', '元大台灣高息低波', '息', '0', '1.00'],
-        ['115/08/15', '2330', '台積電', '息', '0', '4.00'],
+        [_near_roc, '00713', '元大台灣高息低波', '息', '0', '1.00'],
+        [_far_roc, '2330', '台積電', '息', '0', '4.00'],
         ['115/12/31', '1101', '台泥', '息', '0', '2.50'],
     ],
 }
 pdr = parse_twt48u(mock_twt48u)
 check("count = 3", pdr['count'] == 3)
-check("2330 ex_date = 20260815", pdr['by_code']['2330']['ex_date'] == '20260815')
+check(f"2330 ex_date = {_far_yyyymmdd}", pdr['by_code']['2330']['ex_date'] == _far_yyyymmdd)
 check("2330 cash = 4.00", pdr['by_code']['2330']['cash_dividend'] == 4.00)
-# upcoming_30d (從今天 2026-06-19 算): 00713 6/22 在內, 2330 8/15 在外, 1101 12/31 在外
-check("upcoming 30d 含 6/22 00713",
+# upcoming_30d (動態): 00713 今天+3 在內, 2330 今天+44 在外, 1101 12/31 在外
+check("upcoming 30d 含 00713 (今天+3)",
       any(it['code'] == '00713' for it in pdr['upcoming_30d']))
 
 # ─────────────────────────────────────────────────────────────────────

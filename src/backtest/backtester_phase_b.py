@@ -377,6 +377,11 @@ def format_console_summary(results: Dict[str, Any]) -> str:
 
 def main():
     import argparse
+    # v3.72.0: Windows console cp950 → UTF-8 (⭐/≥ 等符號防 UnicodeEncodeError)
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
     parser = argparse.ArgumentParser(description='Phase B backtest')
     parser.add_argument('--temp-history', default='data/temp_history.json')
     parser.add_argument('--output', default='data/backtest_phase_b_results.json')

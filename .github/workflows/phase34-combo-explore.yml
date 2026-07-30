@@ -1,0 +1,72 @@
+name: Phase 3.4 Combo Backtest Explorer
+
+# v3.71.0: 探索新 filter combo 找 strong共識 baseline 提升空間
+# 手動觸發 (workflow_dispatch), 不入排程
+# 跑 bootstrap_combo_backtest.py 含新增的 8 個 price-based filter,
+# 結果寫 data/combo_backtest.json 並 commit + push
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  explore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install requests cryptography openpyxl pyyaml
+
+      - name: Run combo backtest
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+        run: |
+          echo "🔬 Phase 3.4 combo backtest 探索"
+          python scripts/bootstrap_combo_backtest.py
+
+      - name: Display result summary
+        run: |
+          echo "=== combo_backtest.json summary ==="
+          python -c "
+          import json
+          with open('data/combo_backtest.json', 'r', encoding='utf-8') as f:
+              cb = json.load(f)
+          rows = []
+          for cn, cd in cb.get('summary', {}).items():
+              rows.append((cn, cd.get('n', 0), cd.get('hit_rate', 0)*100, cd.get('mean_change_pct', 0)))
+          # sort by hit_rate desc
+          rows.sort(key=lambda r: -r[2])
+          for cn, n, hit, mean in rows:
+              marker = '⭐' if hit >= 60 and n >= 20 else '  '
+              print(f'  {marker} {cn:30} n={n:>4} hit={hit:>5.1f}%  mean={mean:>+5.2f}%')
+          best = cb.get('best', [])
+          print(f'\\nbest (hit ≥ 60%, n ≥ 20): {len(best)} combo(s)')
+          for b in best:
+              print(f'  ⭐ {b}')
+          "
+
+      - name: Commit result
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add data/combo_backtest.json
+          if git diff --staged --quiet; then
+            echo "::notice::no change in combo_backtest.json"
+          else
+            git commit -m "data: refresh combo_backtest.json from Phase 3.4 explore"
+            git push
+          fi

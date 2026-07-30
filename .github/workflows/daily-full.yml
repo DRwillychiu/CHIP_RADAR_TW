@@ -133,6 +133,22 @@ jobs:
             -o /dev/null
           echo "::notice::已推 Telegram 失敗通知"
       
+      # v3.70.0 Phase 3.2 落地: rolling backtest + Excel regen
+      # 在 crawler 結束後重 bootstrap phase32_backtest.json + 重 regen Excel
+      # 這樣今日 Dashboard 的 alpha sub-banner 抓到含今日的新滾動數字
+      - name: Update Phase 3.2 rolling backtest + regen Excel
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+        run: |
+          python scripts/daily_rolling_update.py
+        continue-on-error: true
+
+      # v3.71.7: 抓 attstock.tw 處置股清單 (整合到「今日避開」)
+      - name: Refresh attstock disposal
+        run: |
+          python scripts/refresh_attstock_disposal.py
+        continue-on-error: true
+
       # v3.31.14: 上傳更新後的 DB (GitHub Artifact, 90 天保留)
       # DB 不進 git (.gitignore) 但透過 artifact 在 workflow 間傳遞累積
       - name: Upload DB artifact
@@ -145,6 +161,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Commit and push data
+        id: commit
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions Bot"
@@ -154,11 +171,13 @@ jobs:
           # 能一眼分出「真跑了但資料沒更新」vs「根本沒跑」
           if git diff --staged --quiet; then
             echo "::notice title=No data changes::Crawler ran but data already up to date (likely manual trigger ran first)"
+            echo "data_changed=false" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+          echo "data_changed=true" >> $GITHUB_OUTPUT
+
           git commit -m "🔒 [FULL] Daily chip data $(TZ=Asia/Taipei date +%Y-%m-%d\ %H:%M)"
-          
+
           # Push with retry (萬一同時多個 workflow push)
           for i in 1 2 3; do
             if git push; then
@@ -170,3 +189,78 @@ jobs:
               sleep $((i * 5))
             fi
           done
+
+      # v3.67.2 Phase 2.7: 萃取手機摘要 + 發送 email
+      # 僅當 data 有變動才寄 (避免 no-op 重複寄)
+      - name: Extract mobile summary
+        if: steps.commit.outputs.data_changed == 'true'
+        id: summary
+        run: |
+          # 抓 latest.xlsx 的「📱 手機摘要」sheet → 純文字
+          SUMMARY=$(python scripts/extract_mobile_summary_text.py)
+          # 也萃取 trade_date 給 subject 用
+          TRADE_DATE=$(python -c "
+          import json
+          with open('data/index.json', 'r', encoding='utf-8') as f:
+              d = json.load(f)
+          v = d.get('latest', '')
+          print(f'{v[:4]}/{v[4:6]}/{v[6:8]}' if len(v)==8 else v)
+          ")
+          # 寫進 GITHUB_OUTPUT (multi-line 用 heredoc 形式)
+          {
+            echo "summary<<MOBILE_EOF"
+            echo "$SUMMARY"
+            echo "MOBILE_EOF"
+            echo "trade_date=$TRADE_DATE"
+          } >> $GITHUB_OUTPUT
+
+      - name: Send daily summary email
+        id: send_email
+        if: steps.commit.outputs.data_changed == 'true'
+        uses: dawidd6/action-send-mail@v6
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: willychiu77761@gmail.com
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "📋 Chip Radar · ${{ steps.summary.outputs.trade_date }} 摘要"
+          body: ${{ steps.summary.outputs.summary }}
+          to: willychiu77761@gmail.com
+          from: Chip Radar Bot <willychiu77761@gmail.com>
+          attachments: data/reports/latest.xlsx
+
+      # v3.71.12 D4: Email 寄送失敗 → 開 GitHub Issue alert
+      # GitHub 預設會 email notification 你, 等於 fallback channel
+      - name: Email failure alert (GitHub Issue)
+        if: failure() && steps.commit.outputs.data_changed == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const date = '${{ steps.summary.outputs.trade_date }}' || new Date().toISOString().slice(0,10);
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Daily email 寄送失敗 ${date}`,
+              labels: ['email-failure', 'production-alert'],
+              body: [
+                '## Daily summary email 寄送失敗',
+                '',
+                `**日期**: ${date}`,
+                `**Workflow run**: ${runUrl}`,
+                '',
+                '### 可能原因',
+                '- GMAIL_APP_PASSWORD secret 過期 (Google 帳號改密碼會 invalidate)',
+                '- SMTP 連線問題 (smtp.gmail.com:465 短暫 fail)',
+                '- latest.xlsx 不存在 / 過大 (attachment fail)',
+                '',
+                '### 處置 SOP',
+                '1. 看 workflow log 確認 fail 步驟',
+                '2. 若 password 問題: 到 Google 帳戶 → App passwords 重發 → 更新 GitHub secret',
+                '3. 若 SMTP 暫時性: 等下次主排程 (22:37 兜底 / 23:47 兜底)',
+                '4. 修好後手動 trigger: `gh workflow run daily-full.yml`',
+                '',
+                '解決後 close 此 issue.'
+              ].join('\n'),
+            });

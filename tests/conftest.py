@@ -16,3 +16,9 @@ if _SRC_ROOT.exists():
     for sub in _SRC_ROOT.iterdir():
         if sub.is_dir() and not sub.name.startswith('_'):
             sys.path.insert(0, str(sub))
+
+# v3.71.9 A5: tests/ 用 home-grown print-based runner + module-level sys.exit()
+# pytest 跑 collection 時 import module → 遇 sys.exit 直接 abort 整個 session
+# 解法: pytest 跳過 home-grown tests; 改用 `python tests/run_all.py` 跑全套
+# (44 個 test 全改 pytest assert style 是大工程, 此 collect_ignore 是 5min 務實解)
+collect_ignore_glob = ['test_*.py']

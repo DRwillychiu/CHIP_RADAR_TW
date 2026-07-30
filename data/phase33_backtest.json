@@ -1,0 +1,596 @@
+{
+  "summary": {
+    "baseline": {
+      "n": 399,
+      "hits": 176,
+      "hit_rate": 0.44110275689223055,
+      "mean_change": 0.8491729323308265,
+      "median_change": 0,
+      "days": 45,
+      "desc": "全部共識股 (對照)"
+    },
+    "f_hot5": {
+      "n": 320,
+      "hits": 145,
+      "hit_rate": 0.453125,
+      "mean_change": 0.9864687499999988,
+      "median_change": 0,
+      "days": 41,
+      "desc": "共識 ∩ max_streak >= 5"
+    },
+    "f_hot7": {
+      "n": 259,
+      "hits": 128,
+      "hit_rate": 0.4942084942084942,
+      "mean_change": 1.0467181467181474,
+      "median_change": 0.0,
+      "days": 39,
+      "desc": "共識 ∩ max_streak >= 7"
+    },
+    "f_hot10": {
+      "n": 189,
+      "hits": 98,
+      "hit_rate": 0.5185185185185185,
+      "mean_change": 1.2606349206349214,
+      "median_change": 0.44,
+      "days": 36,
+      "desc": "共識 ∩ max_streak >= 10"
+    },
+    "f_hot5_q5_bull": {
+      "n": 62,
+      "hits": 35,
+      "hit_rate": 0.5645161290322581,
+      "mean_change": 2.029193548387097,
+      "median_change": 1.12,
+      "days": 9,
+      "desc": "共識 ∩ max_streak >= 5 ∩ Q5 偏多"
+    },
+    "f_hot7_q5_bull": {
+      "n": 52,
+      "hits": 31,
+      "hit_rate": 0.5961538461538461,
+      "mean_change": 2.275769230769231,
+      "median_change": 1.8,
+      "days": 9,
+      "desc": "共識 ∩ max_streak >= 7 ∩ Q5 偏多"
+    },
+    "f_hot10_q5_bull": {
+      "n": 40,
+      "hits": 23,
+      "hit_rate": 0.575,
+      "mean_change": 2.36925,
+      "median_change": 1.71,
+      "days": 9,
+      "desc": "共識 ∩ max_streak >= 10 ∩ Q5 偏多"
+    },
+    "quad_AAAA": {
+      "n": 28,
+      "hits": 23,
+      "hit_rate": 0.8214285714285714,
+      "mean_change": 4.845,
+      "median_change": 3.82,
+      "days": 5,
+      "desc": "共識 ∩ Q5 偏多 ∩ vol_spike ∩ max_streak >= 5 (4 訊號)"
+    },
+    "q5_bull_only": {
+      "n": 82,
+      "hits": 48,
+      "hit_rate": 0.5853658536585366,
+      "mean_change": 1.9878048780487811,
+      "median_change": 1.05,
+      "days": 9,
+      "desc": "共識 ∩ Q5 偏多 (對比)"
+    }
+  },
+  "best": [
+    "quad_AAAA"
+  ],
+  "per_day": [
+    {
+      "date": "20260421",
+      "next": "20260422",
+      "cons": 2,
+      "q5": null,
+      "vol_spike": 0,
+      "hot5": 0,
+      "hot7": 0,
+      "hot10": 0,
+      "quad": 0
+    },
+    {
+      "date": "20260422",
+      "next": "20260423",
+      "cons": 2,
+      "q5": null,
+      "vol_spike": 0,
+      "hot5": 0,
+      "hot7": 0,
+      "hot10": 0,
+      "quad": 0
+    },
+    {
+      "date": "20260423",
+      "next": "20260424",
+      "cons": 2,
+      "q5": null,
+      "vol_spike": 0,
+      "hot5": 0,
+      "hot7": 0,
+      "hot10": 0,
+      "quad": 0
+    },
+    {
+      "date": "20260424",
+      "next": "20260427",
+      "cons": 2,
+      "q5": null,
+      "vol_spike": 0,
+      "hot5": 0,
+      "hot7": 0,
+      "hot10": 0,
+      "quad": 0
+    },
+    {
+      "date": "20260427",
+      "next": "20260428",
+      "cons": 9,
+      "q5": null,
+      "vol_spike": 0,
+      "hot5": 8,
+      "hot7": 0,
+      "hot10": 0,
+      "quad": 0
+    },
+    {
+      "date": "20260428",
+      "next": "20260429",
+      "cons": 4,
+      "q5": null,
+      "vol_spike": 3,
+      "hot5": 4,
+      "hot7": 0,
+      "hot10": 0,
+      "quad": 0
+    },
+    {
+      "date": "20260429",
+      "next": "20260430",
+      "cons": 6,
+      "q5": null,
+      "vol_spike": 0,
+      "hot5": 3,
+      "hot7": 2,
+      "hot10": 0,
+      "quad": 0
+    },
+    {
+      "date": "20260430",
+      "next": "20260504",
+      "cons": 7,
+      "q5": null,
+      "vol_spike": 1,
+      "hot5": 6,
+      "hot7": 6,
+      "hot10": 0,
+      "quad": 0
+    },
+    {
+      "date": "20260504",
+      "next": "20260505",
+      "cons": 9,
+      "q5": null,
+      "vol_spike": 1,
+      "hot5": 7,
+      "hot7": 6,
+      "hot10": 0,
+      "quad": 0
+    },
+    {
+      "date": "20260505",
+      "next": "20260506",
+      "cons": 8,
+      "q5": null,
+      "vol_spike": 0,
+      "hot5": 7,
+      "hot7": 6,
+      "hot10": 4,
+      "quad": 0
+    },
+    {
+      "date": "20260506",
+      "next": "20260507",
+      "cons": 9,
+      "q5": null,
+      "vol_spike": 5,
+      "hot5": 8,
+      "hot7": 6,
+      "hot10": 6,
+      "quad": 0
+    },
+    {
+      "date": "20260507",
+      "next": "20260508",
+      "cons": 8,
+      "q5": null,
+      "vol_spike": 0,
+      "hot5": 7,
+      "hot7": 6,
+      "hot10": 6,
+      "quad": 0
+    },
+    {
+      "date": "20260508",
+      "next": "20260511",
+      "cons": 10,
+      "q5": "中性",
+      "vol_spike": 0,
+      "hot5": 10,
+      "hot7": 7,
+      "hot10": 5,
+      "quad": 0
+    },
+    {
+      "date": "20260511",
+      "next": "20260512",
+      "cons": 8,
+      "q5": "中性",
+      "vol_spike": 0,
+      "hot5": 5,
+      "hot7": 4,
+      "hot10": 3,
+      "quad": 0
+    },
+    {
+      "date": "20260512",
+      "next": "20260513",
+      "cons": 8,
+      "q5": "中性",
+      "vol_spike": 4,
+      "hot5": 5,
+      "hot7": 4,
+      "hot10": 4,
+      "quad": 0
+    },
+    {
+      "date": "20260513",
+      "next": "20260514",
+      "cons": 9,
+      "q5": "中性",
+      "vol_spike": 0,
+      "hot5": 7,
+      "hot7": 6,
+      "hot10": 5,
+      "quad": 0
+    },
+    {
+      "date": "20260514",
+      "next": "20260515",
+      "cons": 10,
+      "q5": "中性",
+      "vol_spike": 0,
+      "hot5": 8,
+      "hot7": 7,
+      "hot10": 4,
+      "quad": 0
+    },
+    {
+      "date": "20260515",
+      "next": "20260518",
+      "cons": 11,
+      "q5": "中性",
+      "vol_spike": 0,
+      "hot5": 8,
+      "hot7": 5,
+      "hot10": 4,
+      "quad": 0
+    },
+    {
+      "date": "20260518",
+      "next": "20260519",
+      "cons": 10,
+      "q5": "偏多",
+      "vol_spike": 0,
+      "hot5": 9,
+      "hot7": 7,
+      "hot10": 5,
+      "quad": 0
+    },
+    {
+      "date": "20260519",
+      "next": "20260520",
+      "cons": 10,
+      "q5": "偏多",
+      "vol_spike": 0,
+      "hot5": 8,
+      "hot7": 8,
+      "hot10": 7,
+      "quad": 0
+    },
+    {
+      "date": "20260520",
+      "next": "20260521",
+      "cons": 12,
+      "q5": "偏多",
+      "vol_spike": 1,
+      "hot5": 7,
+      "hot7": 7,
+      "hot10": 5,
+      "quad": 5
+    },
+    {
+      "date": "20260521",
+      "next": "20260522",
+      "cons": 6,
+      "q5": "偏多",
+      "vol_spike": 1,
+      "hot5": 5,
+      "hot7": 4,
+      "hot10": 3,
+      "quad": 5
+    },
+    {
+      "date": "20260522",
+      "next": "20260525",
+      "cons": 6,
+      "q5": "偏多",
+      "vol_spike": 4,
+      "hot5": 4,
+      "hot7": 4,
+      "hot10": 3,
+      "quad": 4
+    },
+    {
+      "date": "20260525",
+      "next": "20260526",
+      "cons": 10,
+      "q5": "中性",
+      "vol_spike": 0,
+      "hot5": 8,
+      "hot7": 6,
+      "hot10": 5,
+      "quad": 0
+    },
+    {
+      "date": "20260526",
+      "next": "20260527",
+      "cons": 11,
+      "q5": "中性",
+      "vol_spike": 3,
+      "hot5": 9,
+      "hot7": 7,
+      "hot10": 5,
+      "quad": 0
+    },
+    {
+      "date": "20260527",
+      "next": "20260528",
+      "cons": 12,
+      "q5": "中性",
+      "vol_spike": 2,
+      "hot5": 7,
+      "hot7": 6,
+      "hot10": 5,
+      "quad": 0
+    },
+    {
+      "date": "20260528",
+      "next": "20260529",
+      "cons": 13,
+      "q5": "中性",
+      "vol_spike": 1,
+      "hot5": 9,
+      "hot7": 8,
+      "hot10": 5,
+      "quad": 0
+    },
+    {
+      "date": "20260529",
+      "next": "20260601",
+      "cons": 9,
+      "q5": "中性",
+      "vol_spike": 3,
+      "hot5": 8,
+      "hot7": 8,
+      "hot10": 5,
+      "quad": 0
+    },
+    {
+      "date": "20260601",
+      "next": "20260602",
+      "cons": 11,
+      "q5": "中性",
+      "vol_spike": 1,
+      "hot5": 9,
+      "hot7": 9,
+      "hot10": 7,
+      "quad": 0
+    },
+    {
+      "date": "20260602",
+      "next": "20260603",
+      "cons": 10,
+      "q5": "中性",
+      "vol_spike": 1,
+      "hot5": 8,
+      "hot7": 5,
+      "hot10": 3,
+      "quad": 0
+    },
+    {
+      "date": "20260603",
+      "next": "20260604",
+      "cons": 12,
+      "q5": "中性",
+      "vol_spike": 2,
+      "hot5": 10,
+      "hot7": 9,
+      "hot10": 8,
+      "quad": 0
+    },
+    {
+      "date": "20260604",
+      "next": "20260605",
+      "cons": 13,
+      "q5": "中性",
+      "vol_spike": 1,
+      "hot5": 11,
+      "hot7": 10,
+      "hot10": 9,
+      "quad": 0
+    },
+    {
+      "date": "20260605",
+      "next": "20260608",
+      "cons": 11,
+      "q5": "中性",
+      "vol_spike": 0,
+      "hot5": 10,
+      "hot7": 7,
+      "hot10": 6,
+      "quad": 0
+    },
+    {
+      "date": "20260608",
+      "next": "20260609",
+      "cons": 9,
+      "q5": "中性",
+      "vol_spike": 1,
+      "hot5": 8,
+      "hot7": 8,
+      "hot10": 7,
+      "quad": 0
+    },
+    {
+      "date": "20260609",
+      "next": "20260610",
+      "cons": 11,
+      "q5": "中性",
+      "vol_spike": 2,
+      "hot5": 10,
+      "hot7": 9,
+      "hot10": 6,
+      "quad": 0
+    },
+    {
+      "date": "20260610",
+      "next": "20260611",
+      "cons": 10,
+      "q5": "中性",
+      "vol_spike": 1,
+      "hot5": 10,
+      "hot7": 8,
+      "hot10": 6,
+      "quad": 0
+    },
+    {
+      "date": "20260611",
+      "next": "20260612",
+      "cons": 11,
+      "q5": "中性",
+      "vol_spike": 0,
+      "hot5": 10,
+      "hot7": 10,
+      "hot10": 7,
+      "quad": 0
+    },
+    {
+      "date": "20260612",
+      "next": "20260615",
+      "cons": 8,
+      "q5": "中性",
+      "vol_spike": 1,
+      "hot5": 7,
+      "hot7": 5,
+      "hot10": 4,
+      "quad": 0
+    },
+    {
+      "date": "20260615",
+      "next": "20260616",
+      "cons": 7,
+      "q5": "偏多",
+      "vol_spike": 0,
+      "hot5": 6,
+      "hot7": 5,
+      "hot10": 4,
+      "quad": 0
+    },
+    {
+      "date": "20260616",
+      "next": "20260617",
+      "cons": 8,
+      "q5": "偏多",
+      "vol_spike": 2,
+      "hot5": 6,
+      "hot7": 5,
+      "hot10": 3,
+      "quad": 6
+    },
+    {
+      "date": "20260617",
+      "next": "20260618",
+      "cons": 14,
+      "q5": "偏多",
+      "vol_spike": 0,
+      "hot5": 9,
+      "hot7": 6,
+      "hot10": 6,
+      "quad": 0
+    },
+    {
+      "date": "20260618",
+      "next": "20260622",
+      "cons": 9,
+      "q5": "偏多",
+      "vol_spike": 3,
+      "hot5": 8,
+      "hot7": 6,
+      "hot10": 4,
+      "quad": 8
+    },
+    {
+      "date": "20260622",
+      "next": "20260623",
+      "cons": 11,
+      "q5": "中性",
+      "vol_spike": 2,
+      "hot5": 10,
+      "hot7": 7,
+      "hot10": 5,
+      "quad": 0
+    },
+    {
+      "date": "20260623",
+      "next": "20260624",
+      "cons": 14,
+      "q5": "偏空",
+      "vol_spike": 3,
+      "hot5": 12,
+      "hot7": 11,
+      "hot10": 7,
+      "quad": 0
+    },
+    {
+      "date": "20260624",
+      "next": "20260625",
+      "cons": 10,
+      "q5": "中性",
+      "vol_spike": 4,
+      "hot5": 9,
+      "hot7": 9,
+      "hot10": 8,
+      "quad": 0
+    }
+  ],
+  "updated_at": "2026-06-26T11:56:48.510040",
+  "window_days": 45,
+  "thresholds": {
+    "anomaly_sigma": 2.0,
+    "min_history_days": 5,
+    "streak_thresholds": [
+      5,
+      7,
+      10
+    ]
+  }
+}

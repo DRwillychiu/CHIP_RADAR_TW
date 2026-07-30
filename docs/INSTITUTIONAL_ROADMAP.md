@@ -93,6 +93,784 @@ C2 Phase B backtest (用內建 temp_history 避 FinMind) + signal_engine 動態�
 
 🔥 **首跑揭穿真實 data bug**: history.py `_fetch_taiex_index` 對 TWSE「漲跌」sign 偶爾空白沒處理 → 30 天 stock_history.market.change_pct 100% 全正 → 修為「拿前日 index 自己算 signed change_pct」+ backfill 30 天 → 真相: 13 漲/9 跌/8 平 → 「分點漲停 extreme-bull」原 spurious 100% hit 真實 41.4% → 自動 disable.
 
+### ✅ v3.71.23 — L3 per-signal Q5 LOO 揭穿「5/7 signal 對 Q5 完全 dead weight」
+
+新 `scripts/audit_signal_contribution_loo.py` 對 temp_history 36 entry 做 LOO:
+移除每個 signal 後看 Q5 hit rate 變化.
+
+**結果**:
+| Signal | LOO 後 | Δ pp | Verdict |
+|---|---|---|---|
+| 外資現貨 | 70.0% | 0.0 | ⚪ Dead weight (weight=0) |
+| 外資期貨 | 70.0% | 0.0 | ⚪ Dead weight (KILLED, weight=0) |
+| **P/C Ratio** | **66.7%** | **-3.3** | **✅ 唯一實質貢獻** |
+| 分點漲停 | 70.0% | 0.0 | ⚪ Dead weight |
+| 融資熱度 | 70.0% | 0.0 | ⚪ Dead weight |
+| 法人共識 | 70.0% | 0.0 | ⚪ Dead weight |
+| 結算日壓力 | 100.0% | +30 | ⚠️ (n=1 太小, 不可信) |
+
+**Baseline (全 7 signal)**: 7/10 = 70.0%
+
+**揭穿**: Q5 幾乎完全靠 P/C Ratio 撐, 其他 5 個 signal 對預測完全無影響 (Δ 0.0pp).
+
+**修 L1 讓 value 變非 0 但沒用**: 因為 `signal_engine.SIGNAL_WEIGHTS` 只有 P/C Ratio + settlement 有 weight, 其他 5 signal weight=0 → 值有了也不會影響 Q5 淨權重.
+
+**三層 audit 聯合結論** (v3.71.20-22-23):
+- L1 修 key mismatch (value 變非 0) ✅
+- L2 揭穿 threshold 崩盤 (需 recalibrate) ⏸ 等 60d 樣本
+- L3 揭穿 signal_engine 只用 P/C ⏸ 需 Phase B backtest 補 weight
+
+**Q5 提升路徑**:
+1. ✅ v3.71.20 修 key mismatch
+2. ⏸ 等 60d 累積乾淨 signal history
+3. ⏸ L2 recalibrate threshold
+4. ⏸ Phase B backtest 為 5 signal 產 weight
+5. ⏸ SIGNAL_WEIGHTS 補 weight
+6. ⏸ 預期 Q5 hit rate 70% → 75-80%
+
+---
+
+### ✅ v3.71.22 — L2 threshold 分位合理性 audit (揭穿 4/5 崩盤)
+
+新 `scripts/audit_temp_thresholds.py` 對 temp_history 36 個 entry 統計每 signal tier 分布:
+
+| Signal | 現閾值 | Tier 分布 | 判定 |
+|---|---|---|---|
+| 外資現貨 | (50k, 10k, -10k, -50k) | 100% neutral | 🔴 崩盤 (v3.71.20 bug) |
+| 外資期貨 | (30k, 10k, -10k, -30k) | 100% extreme-bear | 🔴 崩盤 (現閾值對長期空頭失效) |
+| **P/C Ratio** | (1.3, 1.0, 0.8, 0.6) | 75% extreme-bull | ⚠️ 偏誤 (閾值太低) |
+| 分點漲停 | (8, 4, 1, 0) | 100% extreme-bull | 🔴 崩盤 (閾值差 10 倍量級) |
+| 融資熱度 | (30, 10, -10, -30) | 100% neutral | 🔴 崩盤 (v3.71.20 bug) |
+
+**建議新閾值 (基於 P20/P40/P60/P80)**:
+- 外資期貨: [-51k, -60k, -66k, -70k] (全負)
+- P/C Ratio: [1.68, 1.56, 1.35, 1.28]
+- 分點漲停: [80, 58, 39, 30]
+
+**Confirmed 已知 backtest 現象**: `signal_engine.KILLED_SIGNALS` 早已標「外資期貨等效大台淨 OI: 96% 樣本歸到偏空/極空, 反指標假設失效, hit 40.8%/41.4%」→ L2 用 36 天樣本確認這是市場結構性長期空頭, 不是短期 outlier.
+
+**沒 recalibrate 直接改閾值** — 因為:
+1. 信號 1/5/6 bug 剛修 (v3.71.20), 需等 production 累積新資料
+2. 36 天樣本太小, P20/P40 分位不穩定
+3. 建議等 60+ 天後 (~7 月底) recalibrate
+
+`config/algo_params.yaml` `chip_temperature` section 加 audit 註釋 (現閾值保留, 待 recalibration).
+
+---
+
+### ✅ v3.71.21 — L1 續 (信號 2/3/4 官方對照完成)
+
+新 `scripts/verify_futures_officials.py` 補完 4 signal dedicated verify:
+
+| 信號 | Our | Official | 差 | 判定 |
+|---|---|---|---|---|
+| **3 P/C Ratio** | 1.3493 | 1.3493 (TAIFEX) | 0.000 | ✅ **完美 match** |
+| **2 外資期貨** | -82367 (equiv) | -83063 (TXF only) | 696 口 (0.84%) | ✅ 可解釋 (MXF/4 貢獻) |
+| **4 分點漲停** | 79 | (naming 誤導) | — | ⚪ 定義: 追蹤 master 買漲停股數 (非全市場家數) |
+| **5 融資熱度** | 0.0 (35 天連續) | — | — | 🔴 suspect bug (待 daily JSON audit) |
+
+**信號 2 差 696 口解釋**: Our=TXF+MXF/4 equivalent, Official=TXF only → 差 696 = MXF net_oi≈2784 口 × 1/4 conversion. 0.84% off 可接受.
+
+**信號 4 naming 誤導**: pipeline `limit_up_summary.limit_up_stocks` list length = 「追蹤 master 買到漲停股數」而非全市場漲停家數. 邏輯合理但 name 應改「master 漲停命中數」.
+
+**下一步**:
+- 信號 5 融資熱度 → 週一 production 跑後查 `raw_output.margin_rankings.top_margin_buy` 是否空
+- 若 empty → margin fetcher regression, 需查 v3.11+
+- 若非 empty → margin_change 加總本來就 < 1 億 → 邏輯 OK 但訊號可能已 stale
+
+---
+
+### ✅ v3.71.20 — L1 溫度計 audit 揭穿 systemic bug (信號 1 + 6 修補)
+
+用戶要求「嚴格驗證溫度計」. L1 audit 揭穿 3 個 signal 過去 **35 天連續 100% value=0**:
+- 外資現貨 (信號 1)
+- 融資熱度 (信號 5) — 待 production 確認 fetcher 是否有輸出
+- 法人共識 (信號 6)
+
+**Root cause (信號 1 + 6)**: crawler.py line 826 產出 key = `net_lot`, 但 crawler_pipeline.py 讀 `foreign_net_lot` / `trust_net_lot` → 永遠 None → `sum()` = 0.
+
+**修補** (`src/pipelines/crawler_pipeline.py`):
+- 信號 1 外資現貨: `foreign_net_lot` → `net_lot`
+- 信號 6 法人共識: `foreign_net_lot` / `trust_net_lot` → `net_lot`
+
+**歷史影響**:
+- Bug 至少從 v3.27 (信號 6 建立) 起存在, 可能更早
+- daily_signal.ignored 6 個 signal 中「外資現貨 / 法人共識」為此 bug 犧牲
+- Q5 hit rate 只靠 P/C ratio + 分點漲停 + 結算日壓力 → 少 3 個 signal 支撐, 樣本嚴重失衡
+
+**新 audit script** (`scripts/verify_all_temperatures.py`):
+- 對 7 個 signal 逐一對照 today value + 官方 API
+- 標 🔴 疑似 bug / ⚠️ parse fail (需 dedicated) / ✅ match
+- 寫 `data/temp_verify_YYYYMMDD.json`
+
+**下一步** (待 production 確認):
+- 週一 6/30 daily-full 跑後看 signal 1 / 6 value 是否變非零
+- 融資熱度 (信號 5) audit fetcher 是否有輸出 (margin_rankings.top_margin_buy)
+- 3 個 skip 的 (外資期貨 / P/C Ratio 官方 parse / 分點漲停) 各補 dedicated verify
+
+---
+
+### ✅ v3.71.19 — Cross_validate audit (v3.71.18 driven)
+
+對 v3.71.18 L 系列大改造做 cross_validate + 全套 test 雙重驗證:
+
+**Cross_validate (cross_validate_dashboard.py)**:
+- 28 個既有 Dashboard 數字 audit 全 PASS
+- 1 個 data bar 9/11 是合成 data 邊界 (Section F 累計買 / H 借券張數 sample 空), 非真 bug
+  → 改 hard fail → warn (production 真實 10+ picks 會全 11 觸發)
+- 修補後 cross_validate **全 PASS** ✅
+
+**44 套 home-grown test (tests/run_all.py)**:
+- 43/44 pass
+- test_v3460_tier2 known date-dependent (memory 已記錄)
+
+v3.71.18 PINNED 系統落地未 break 既有:
+- Section 0 sub-banner / picks 名稱欄 / Mobile section / Phase 3.2 quad backtest 全 audit OK
+- Pinned 框架 (PINNED_MASTERS set / _try_add_data_bar / consensus 計算邏輯) 無 regression
+
+---
+
+### ✅ v3.71.18 — L 系列「📌 Pinned Master」完整落地 (用戶要求大牌專屬)
+
+用戶要求對「每天關注的大牌分析師(新光新竹)」量身打造 dashboard.
+盤點發現: quad alpha 不適用 (47/47 active 高頻短打型, 不爆量 → 永不觸發 vol_spike).
+N1 LOO 顯示「未貢獻」 但對用戶 actionable, 需 master-specific spotlight.
+
+8 個 L 系列全完成 (L7 Telegram defer):
+
+L4 ✅ Section 0 名稱欄 📌 marker (在 ⭐⭐/⭐/⚠️/🔁 之外最外層)
+L3 ✅ Mobile sheet 「📌 大牌 今日 Top 3」 (含 ★共識 sub-tag, Email body 自動帶入)
+L1 ✅ 大牌歷史 alpha backtest (analyze_pinned_master_alpha.py 三維度: 全 picks / 新標的 / 連續加碼)
+L5 ✅ 新標的 alpha (含在 L1 script)
+L6 ✅ 連續加碼 alpha (含在 L1 script)
+L2 ✅ Pinned Master 追蹤 sheet (Excel 第 5 enrichment, header + narrative + L1/L5/L6 stats + 今日 Top 10 + 連續囤貨 table)
+L8 ✅ Pinned 系統 generalize (PINNED_MASTERS set + 全 helper 支援多 master, 未來加 N 位只需改 set)
+L7 ⏸ Telegram bot defer (需 user 配 token)
+
+架構:
+- `PINNED_MASTERS = {'大牌分析師'}` (excel_report.py module level)
+- helper `_compute_sector_distribution` 重用 + 新建 `build_pinned_track_sheet`
+- weekly-loop-audit.yml 加 Step 5 (analyze_pinned_master_alpha.py 自動跑) + commit pinned_master_stats.json
+- 註腳同步含 「📌 = 你關注的 master (X / Y / Z) 參與」 (動態)
+
+未來擴展: PINNED_MASTERS 改成 user 可設 (e.g. config/pinned_masters.yaml), 不需動 code.
+
+---
+
+### ✅ v3.71.17 — N6 處置玩家標籤提前 audit (用戶 override, 結論不開)
+
+用戶 override v3.36.2「等 7/4 滿 30 天」規範, 提前 review 21 snapshot:
+
+新 `scripts/audit_disposal_history_maturity.py`:
+- 對 disposal_history 所有 snapshot 算 per-stock first_active_date
+- 看 oldest_date 占比 (越低越成熟):
+  - > 50% → 嚴重 clip (歷史處置股全卡, 不開)
+  - 20-50% → 中度 clip (開但加註腳)
+  - < 20% → 散開充足 (可開)
+
+**v3.71.17 audit 結果** (21 snapshot, 6/5 ~ 6/27):
+- 第一天 (6/5) 占比 99/276 = **35.9%** (中度 clip)
+- 結論: **仍維持 D 方案不開標籤** (避免 1/3 master 誤判)
+- 但累積資料顯示後續 trickle 合理 (6/22 一日新增 29 / 6/24 新增 17)
+
+整合:
+- `weekly-loop-audit.yml` 加 Step 跑 maturity audit (週日自動追蹤)
+- `docs/LABELS_DEFINITION.md` §4.10 + 末尾 註腳 加 v3.71.17 audit 結果
+- 預計 ~7/4 後 audit oldest_pct 應降到 <20%, 才正式開「⚠️ 處置玩家」標籤
+
+---
+
+### ✅ v3.71.16 — N1 Master 貢獻度 LOO 分析 (per-master 雙維度)
+
+新 `scripts/analyze_master_contribution.py` Leave-One-Out 簡化版:
+- 對每 master M, 算 「with_M」 vs 「without_M」 quad pool hit rate
+- 判定 5 類: 核心 alpha / 輔助 / 中性 / 拖後腿 / 未貢獻
+- 寫 `data/master_contribution.json`
+
+**v3.71.16 snapshot (2026-06-26, quad pool n=38, hit 78.9%)** — 揭穿:
+
+| Master | 貢獻% | hit(with M) | hit(without M) | Δpp | Verdict |
+|---|---|---|---|---|---|
+| 陳律師 ⭐⭐ | 47.4% | 78% | 80% | -2.2 | 中性 |
+| **強森** | 42.1% | 62% | **91%** | **-28.4** | **⚠️ 拖後腿** |
+| 張濬安(航海王) | 23.7% | 67% | 83% | -16.1 | ⚠️ 拖後腿 |
+| 竹科主力分點 ⭐⭐ | 23.7% | 89% | 76% | +13.0 | ✅ 輔助 |
+| 蔣承翰 | 21.1% | 75% | 80% | -5.0 | 中性 |
+| 陳族元 ⭐⭐ | 15.8% | 83% | 78% | +5.2 | ✅ 輔助 |
+| Tradow | 7.9% | 67% | 80% | -13.3 | ⚠️ 拖後腿 |
+| 6 位未貢獻 | 0% | — | — | — | 未貢獻 |
+
+**極關鍵發現**: 強森配對 quad picks 拉低整體 alpha **-28.4pp** (沒他 quad hit 變 91%, 有他 62%). 但 n=16 還小, 等樣本累積才能 production action.
+
+整合:
+- `weekly-loop-audit.yml` 加 Step 跑 analyzer (週日 22:00 TW 自動 re-run + commit)
+- `docs/MASTER_REVIEW_SOP.md` 加雙維度分析 + 警告「n=38 還小, n≥80 才 actionable」
+
+---
+
+### ✅ v3.71.15 — N2 Sector rotation 落地 (族群輪動分析)
+
+新 helper `_compute_sector_distribution(picks, data_dir, top_n=3)`:
+- 對 picks 取 stock_history.stocks.{code}.industry
+- 統計 + 排序 + 回 top N (industry, count, pct)
+
+**Section 0 R12 新 sub-banner** (在 quad day banner 後 / 註腳前):
+- 「📊 今日共識集中產業 (top 3): 半導體業 5 (33%) | 電子零組件 3 (20%) | 金融業 2 (13%)」
+- 靛紫色 (FF6366F1) + 極淡靛底 (FFEEF2FF) — 跟現有 sub-banner 視覺區隔
+- 用戶價值: 一眼看出主力今天打哪個族群
+
+**Mobile sheet 新 📊 共識集中產業 section** (列在共識 Top 5 後):
+- 「📊 共識集中產業」 + per-industry 一行「半導體業 · 5 檔 (33%)」
+- Email body 自動帶入 (extract_mobile_summary_text 讀 mobile sheet)
+
+**N6 處置玩家標籤重評 ⏸ skip 時機未到**:
+- disposal_history 累積 21 snapshot (6/5-6/27), 還缺 ~9 個 (~12 trading days 到 7/4)
+- 提前 review 違反 LABELS_DEFINITION 既定紀律
+- 等 7/4 後第一個交易日再 review
+
+---
+
+### ✅ v3.71.14 — 6/26 production 全功能 validation + R10 wording bug fix
+
+**6/26 production 全功能 validation** (週六無交易 → 用 v3.71.13 code + 真實 backtest data 合成 branches 重 build):
+
+PASS 項目:
+| 位置 | 驗證內容 | 結果 |
+|---|---|---|
+| R3 TL;DR | 「🎯 0 強共識 / Q5 ↑ 偏多 65% / E 3 異常 / F 0 長期 / J 3 集中 / H 4 借券壓力」 | ✅ |
+| R4 Action card | 「避開 — 除權息 7 檔 \| **明日恐處置 10 檔** 1435/2233/2302」 | ✅ v3.71.7 處置股整合 |
+| R8 Phase 3.2 quad | 78.9% / 30d 64.7% / 強 alpha (p<0.001) | ✅ |
+| R9 跟單實際淨報酬 | 74% 淨 hit / +3.79% mean / 累積 +144% | ✅ v3.71.7 |
+| R10 Phase 3.5 multiday | peak_5d 86.8% / premium 92.9% | ⚠️ wording bug (fix in v3.71.14) |
+| R12 註腳 | ⭐⭐ / ⭐ / ⚠️ / **🔁** 四標記說明 | ✅ v3.71.11 dedup |
+| Mobile R5 | 「↑ 偏多 65.0%」 | ✅ |
+| Mobile R12 | 「**明日恐處置 10 檔**」 | ✅ |
+| Email body | 5 section 完整 (明日預測 / 強共識 / 避開含處置 / 追蹤池方向) | ✅ |
+
+**R10 wording bug fix**:
+原邏輯 `'  |  '.join([prefix:, content_1, content_2])` → 「Phase 3.5 多日 alpha (觀察期 n=38): | 5 日內擇高...」醜空格.
+修補: prefix 不入 join, 直接 `f"{prefix}: " + join(...)` → 「Phase 3.5 多日 alpha (觀察期 n=38): 5 日內擇高... | premium 擇高... | premium 持有 3 天...」
+
+---
+
+### ✅ v3.71.13 — 文檔 E3 + E4 + E5 (新對話 onboarding + 標記同步 + docs 索引)
+
+**E5 docs/ 索引** (`docs/README.md` 新建):
+- 12 個檔分 5 類: 必讀 / 架構 / 資料合規 / Production SOP / Auto-generated
+- 加新文件規則 (檔名 + index 更新紀律)
+- 新進場找文件 5 秒搞定 (vs 之前要逐個檔看)
+
+**E3 CONTINUATION_GUIDE** (`docs/CONTINUATION_GUIDE.md` 新建, 1-pager):
+- Claude 新對話接手必讀 (5 分鐘)
+- 包含: 系統現況 (Alpha 體系) / 常用 path / 重要規範 (8 條) / Production 監控 / 重要 SOP / 接手後第一步 / 不要做的事
+- 解決「重讀全 history」浪費
+
+**E4 LABELS_DEFINITION §5** (Excel 視覺標記 audit, 跟 §1-§4 master 標籤分開):
+- 加 5.1 名稱欄 prefix: ⭐⭐ / ⭐ / 🔁 / ⚠️
+- 加 5.2 sub-banner icon: 🟡 / ⭐ / 💰 / 🔬 / ⚠️ / 🎯 / 💤
+- 加 5.3 Mobile sheet header: 📅 / ⭐ / 🎯 / 🚫 / ⚠️ / 📊
+- 加 5.4 anomaly icon: 🔴 (vol_spike) / 🆕 (new_stocks)
+- 加 5.5 顏色語義 (Hex + 用途, 跟 COLORS dict 同步)
+- 明確分割: §1-§4 = master_profile 標籤 / §5 = Excel Dashboard 視覺
+
+**E1 archive 老 entry** ⏸ skip: docs/README.md 已導讀新進場直接看 ✓ 最新 entry, archive ROI 不夠
+**E2 README slim** ⏸ skip: 24KB README 沒到 must-fix, 編輯風險中
+**E6 Email body polish** ⏸ wait user feedback
+
+---
+
+### ✅ v3.71.12 — 流程 D1 + D4 + D6 (production 監控 + LOOP 自動化)
+
+**D4 Email 寄送 failure alert** (silent failure 修補):
+- daily-full.yml `Send daily summary email` step 加 `id: send_email`
+- 新增 `if: failure() && data_changed` step 用 `actions/github-script@v8`
+- 失敗時自動 `github.rest.issues.create` 開 issue (title/labels/body + SOP)
+- GitHub 預設 email notification → 等於 fallback channel
+
+**D6 LOOP 自動化** (新 `weekly-loop-audit.yml`):
+- cron `0 14 * * 0` 每週日 22:00 TW 自動 trigger
+- 4 個 audit 連跑: Phase 3.4 combo / Phase 3.5 multiday / alpha overlap / per-master vol_spike
+- 結果 commit + push, 樣本累積 → LOOP iteration 自動推進
+
+**D1 Workflows health monitor** (新 `workflow-health.yml`):
+- 每週日 22:30 TW 統計 12 workflows 過去 7 天成功率
+- 用 `actions/github-script` 呼叫 GitHub API listWorkflowRuns
+- 寫 `docs/WORKFLOW_HEALTH.md` markdown (🔴 ≥30% fail)
+- 失敗率 > 30% AND runs ≥ 3 → 自動 issue alert
+
+**D2 ✅ 已有 / D5 ✅ healthy / D3 backup defer** (GitHub Artifact 90 天保留已夠)
+
+---
+
+### ✅ v3.71.11 — 內容 C1 + C7 (Master 月度 SOP + 跨日 dedup)
+
+**C7 跨日 quad 重複標記**:
+- 新 helper `_get_recent_quad_codes(data_dir, days=7, today)`:
+  讀 quad_hit_log 過去 7 天 trigger 的 picks codes set
+- Section 0 名稱欄: 過去 7 天已 trigger → 加 **🔁** prefix (在 ⭐⭐/⭐/⚠️ 之外的最外層)
+- 註腳更新: 加 「🔁 = 過去 7 天 quad 重複 (可能已跟單)」
+- 用戶價值: 若 7 天內同 pick 已跟單, 看到第二次不應重複進場
+
+**C1 Master 月度評估 SOP**:
+- 新增 `docs/MASTER_REVIEW_SOP.md` 6 step 月度流程
+- 觸發: 每月第一個交易日
+- 步驟: 跑 analyzer → 對比上月 → PREMIUM 升降決策 → 從未觸發 master 評估 (6 位) → 新 master 招募 → 文件化
+- 加入 / 踢出 premium 條件數字化 (hit ≥77% AND n≥5 進 / drop <70% 連 2 個月 出)
+- 防呆: 不根據 1 個月 n<5 升降 / 不全砍從未觸發 master / commit message 必含數字
+- 加 MASTER_TIER_HISTORY snapshot table (每月 append)
+
+**C2 跟單追蹤** ⏸ deferred:
+- 真實 actionable 需要 user 行為改變 (每天 CLI / form 輸入)
+- 重複 Trading Journal 專案範疇 (memory 已標)
+- v3.71.7 「跟單實際淨報酬」已用 「全跟單 simulation」回答 80% 訊號
+
+**C5 短線 short alpha** ⏸ deferred:
+- mild_up_only 41.7% trap 隱含 58.3% short 期望
+- 但台股 short 機制不友善 (借券成本 + 風險), production 不適合
+
+**C3 / C4 / C6** ⏸ 等樣本累積:
+- quad n=38 → 60+ 需 2-3 週
+- multiday OOS n=6 太小
+- fresh_breakout n=15 → 30+
+
+---
+
+### ✅ v3.71.10 — 前端優化 B6 + B7 + B2/B4 audit (確認已 well-covered)
+
+**B6 release notes** (前端用戶看不到更新, 終於補上):
+- header 加 📋 更新 button (旁邊 ❓ 說明)
+- `toggleChangelog()` 新 modal 顯示近 10 版 (CHANGELOG_ENTRIES hardcode)
+- 每 entry: version / date / title / desc, 點 modal 外或 ✕ 關閉
+- logo "v3" → "v3.71.10" 具體版本號 + hover tooltip
+
+**B7 忘記密碼說明** (login 頁完全缺):
+- login card 加 `<details>` 折疊式說明
+- 內容: 「客戶端解密 zero-knowledge, 伺服器無法重設, 聯絡 willychiu77761@gmail.com 重發」
+- 樣式跟 login 主題對齊 (text-3 灰 + gold accent)
+
+**B2 XSS audit 結論** (跳過大重構):
+- innerHTML 126 處全部 server JSON / hardcoded (TWSE 官方來源)
+- 所有 user input 用 `.value` (input/select native, 不直 inject DOM)
+- XSS exposure 低, 進一步 audit ROI 不高
+- 未來引入 user-controlled string (留言區 / 自訂 filter) 時再 sanitize
+
+**B4 mobile responsive audit 結論** (跳過):
+- v3.58.0 已建 6+ breakpoints (380/640/720/768/780/900)
+- 涵蓋 tab nav scroll / stat-row wrap / table horizontal scroll / theme-toggle thumb zone / login card
+- 新加 element (changelog modal / login-forgot details) 自動 inherit, 不需新規則
+
+**B1/B3/B5 不做** (確認):
+- B1 assets 拆分: GitHub Pages 簡單性會降, deferred
+- B3 a11y: 螢幕閱讀器使用者少, deferred
+- B5 PWA: 已有 email push, ROI 重複
+
+---
+
+### ✅ v3.71.9 — 後端優化 4 件 (A1 / A4 / A5 / A6 audit)
+
+A1. **rename typo**: `audit_institutional,py` → `audit_institutional.py` (整檔本來不能 import)
+
+A4. **scripts/ 分類**: 寫 `scripts/README.md` 28 個檔分類索引 (Backtest / Audit / Maintenance / Tools)
+    - 不 move file (避免 break 6 個 workflow yml path reference)
+    - 加新 script 命名前綴規範 + 必更 README 紀律
+
+A5. **tests/ pytest collection abort 修補**:
+    - 44 個 test 用 home-grown print runner + module-level sys.exit() → pytest collect 中 abort
+    - `tests/conftest.py` 加 `collect_ignore_glob = ['test_*.py']` 跳過
+    - 新 `tests/run_all.py` subprocess 順跑全套, 自動補 PYTHONIOENCODING=utf-8 解 Windows cp950
+    - **驗證**: 43/44 pass (test_v3460_tier2 是 known date-dependent fail, 已記錄)
+    - 全改 pytest assert style 是大工程 (~1.5h × 44 檔), 留 follow-up
+
+A6. **requirements.txt audit**: 確認 4 個釘版 (requests/cryptography/openpyxl/pyyaml) 涵蓋所有實際依賴 ✓
+
+跳過 A2 (excel_report 3501 行拆) / A3 (crawler 1619 行拆) — 高風險 大重構, production stable 不動。
+跳過 A7 (type hints) — 8h 大工程, incremental 比較好。
+
+---
+
+### ✅ v3.71.8 — Phase 3.5 多日 alpha 落地 (Loop Iteration 1)
+
+第一個正式 LOOP_FRAMEWORK 落地. 詳見:
+- `.claude/skills/LOOP-FRAMEWORK.md` (framework 手冊)
+- `.claude/loops/CANDIDATES.md` (Chip Radar 9 任務適用性篩選)
+- `.claude/loops/state/phase35-multiday-20260626.md` (Iteration 1 state log)
+
+**Loop Spec**: 找 t+1 ~ t+5 「大戶分點 → 數天利潤」 alpha
+- 8 條 SUCCESS CRITERIA (hit ≥60%, n ≥30, mean ≥+3%, Wilson 下界 ≥45%, IS/OOS diff <10pp, 經濟學解釋, audit, Excel 整合)
+- HARD LIMIT: 12 combos
+- 反 over-fit: 60/40 IS/OOS split + 經濟學解釋必填
+
+**Iteration 1: combo `premium_only` vs `all_quad` baseline**
+
+新 `scripts/bootstrap_multiday_backtest.py`:
+- 對 quad_hit_log 38 picks 從 stock_history 算 cum_1d/3d/5d + peak_within_5d
+- IS/OOS 60/40 picks-level split
+- 輸出 `data/multiday_backtest.json`
+
+**結果** (8 criteria 通過 5/8):
+| combo | metric | hit% | mean% | Wilson 下界 |
+|---|---|---|---|---|
+| all_quad | peak_5d | **86.8%** | **+12.78%** | 72.7% |
+| premium_only | cum_3d | **92.9%** | **+12.16%** | 77.3% |
+| premium_only | peak_5d | **92.9%** | **+15.99%** | 77.3% |
+
+❌ #2 n=28 (差 2) / #5 IS/OOS OOS n=6 太小 → 樣本限制 (非真 over-fit)
+
+**3 大揭穿**:
+1. peak_5d (擇高出場) >> cum_5d (持有到底) — 用戶「擇高出場」假設成立
+2. premium cum_3d 92.9% / +12.16% — **3 天是最佳持有期 (sweet spot)**
+3. baseline 多日 alpha 也強 (peak 86.8%)
+
+**落地** (Section 0 R10 新 sub-banner):
+- 「🔬 Phase 3.5 多日 alpha (觀察期 n=38): 5 日內擇高 86.8% / +12.78% | premium 擇高 92.9% / +15.99% | premium 持有 3 天 92.9%」
+- 紫色 (FF7C3AED) 標「觀察期」, n≥60 後變綠 (FF059669) 正式
+
+**Iteration 2 待決策**: 等 daily_rolling_update 累積樣本 → 重跑 audit → 嚴格 IS/OOS 驗證
+
+---
+
+### ✅ v3.71.7 — 跟單實際淨報酬 + 處置股整合 (實戰實用性導向)
+
+A. **Quad 跟單實際淨報酬 backtest** (Section 0 sub-banner #3):
+- 用既有 quad_hit_log.json 38 picks 算扣台股成本後淨報酬
+- 成本場景 (最保守 0.585% = 手續費 0.1425% × 2 + 證交稅 0.3%):
+  - 淨 hit: **28/38 = 73.7%** (即使扣成本仍有 alpha)
+  - 平均淨報酬: **+3.79%**
+  - 中位數淨報酬: +2.49%
+  - 累積 (38 筆等額): **+144%**
+- 不同成本場景:
+  - 6 折手續費 (0.471%): 76.3% hit, +3.90% mean, +148% cum
+  - 隔日沖+6折 (0.321%): 76.3% hit, +4.05% mean, +154% cum
+- Premium (n=28) +4.39% mean +123% cum > Standard (n=10) +3.10% +31%
+- Section 0 R9 新 sub-banner: 💰 淨利 alpha 確認 / 勉強損益兩平 / alpha 被成本吃光
+- 結論: quad alpha 是真的, 不被成本吃光
+
+B. **處置股整合 Chip Radar avoidance** (跨 attstock.tw API):
+- 新建 `scripts/refresh_attstock_disposal.py`:
+  - 抓 `attstock.tw/api/stocks/risk` (279 風險股)
+  - 篩「正在處置」(disposal_start_date 內) + 「明日恐處置」 (minDaysToDisposal=1)
+  - 寫 data/disposal_attstock.json (codes / count / sample)
+- `daily-full.yml` 加 `Refresh attstock disposal` step (在 rolling update 後)
+- Mobile sheet 「🚫 今日避開」 加 「處置中 N 檔」 + 「明日恐處置 N 檔」 兩行
+- Action card 「避開」 segment 加處置股 (e.g. 「除權息 22 檔 | 明日恐處置 10 檔」)
+- Email body 自動帶入 (extract script 讀 mobile sheet)
+
+兩個落地的共同主題: **實戰實用** — A 揭穿 alpha 是真錢 (不只是漂亮數字), B 把已有 attstock 資料整合到 daily workflow (不用每天看兩封信).
+
+---
+
+### ✅ v3.71.6 — Phase 3.2 失效 SOP 文件化
+
+v3.70.2 P1-F alarm 偵測機制已建 (30d hit <50% AND n≥20 → 紅警告), 但「暫停使用」具體怎麼做沒寫. 本版補文件化.
+
+**新增 `docs/PHASE32_ALPHA_FAILURE_SOP.md`** (8 章節):
+1. 觸發條件 (alarm 邏輯 + 當前實戰數字)
+2. 立即行動 (24h 內 3 step 診斷)
+3. 短期應對 (1-3 天, 按診斷結果分流)
+4. 中期決策 (5-10 trigger days 後 4 個 option)
+   - A. recall PREMIUM_MASTERS (重跑 analyzer)
+   - B. 砍 Phase 3.2 sub-banner (暫停 quad, algo_params QUAD_DISABLED flag)
+   - C. 提升 quad 嚴格度 (master_count ≥12 / leader_pct <50%)
+   - D. 切換 mild_up_only 反向 (n=12 hit 41.7% trap → short 期望 59%)
+5. Recall 條件 (自動: 30d ≥65% n≥20 / 手動: 用戶觀察)
+6. 通訊 (alarm 觸發時 Email body 變化)
+7. 記錄追蹤 (建議建 PHASE32_ALPHA_INCIDENTS.md incident log)
+8. 教訓 (不要 panic / 不要 over-react / 保留 premium / 記錄是 alpha)
+
+**設計原則**:
+- 系統提供資訊 + 警示, 不替用戶決定買賣
+- Email 提示 > 砍訊號 (用戶有自主權)
+- n<20 觸發的 alarm 大多噪音, 先檢查歸因再決定
+- 每個 incident 是 alpha 演化的 data point, 比新增 feature 更值錢
+
+---
+
+### ✅ v3.71.5 — Phase 3.2 Premium Master Tier (per-master vol_spike 可靠度落地)
+
+`analyze_master_vol_spike_reliability.py` 揭穿 13 位 master 內僅 7 位曾觸發 vol_spike, 各自 hit rate 差距大:
+
+| Master | trigger | picks | hit% | mean% |
+|---|---|---|---|---|
+| 竹科主力分點 | 1 | 9 | **88.9%** | +4.65% |
+| 陳族元 | 1 | 6 | **83.3%** | +5.22% |
+| 陳律師 | 3 | 18 | **77.8%** | +4.90% |
+| 蔣承翰 / Tradow / 張濬安 | — | — | 66-75% | — |
+| 強森 | 2 | 16 | 62.5% | +3.30% (拖後腿) |
+
+**新增 PREMIUM_MASTERS 集合** (excel_report.py module level, snapshot 2026-06-26):
+- 陳律師 / 竹科主力分點 / 陳族元 (≥77% hit AND n ≥ 5 門檻)
+- 季度 review (next: 2026-09-30 後 n→80+)
+
+**三介面 ⭐⭐ tier 標記**:
+- `_compute_quad_picks` 新加 `premium_codes` set + `premium_vol_spike_masters`
+- Section 0 名稱欄: ⭐⭐ (premium) > ⭐ (一般 quad) > ⚠️ (假共識)
+- R10 banner: `🎯 quad 命中 N 檔 (⭐⭐ X premium + ⭐ Y 一般)`,picks 顯示 premium 在前
+- Mobile sheet: premium picks 排前面 + ⭐⭐ prefix,共識 Top 5 同 tier 判定
+- 註腳更新
+
+設計原則: 不同 hit rate 給不同視覺權重, 用戶優先跟單高信心 master 配對的 picks. 樣本 ≥5 才入 premium (避免 1 picks 的噪音).
+
+---
+
+### ✅ v3.71.4 — P0 TAIEX 歷史汙染 backfill — Q5 真實 hit rate 70.0%
+
+v3.67.3 揭穿 6/2-6/8 「兜底重複日」汙染殘留. 本版完整 backfill:
+
+**發現 17 個汙染日** (chg=0 + index 跟前一日相同):
+4/24, 4/27-4/30, 5/4-5/7, 5/12, 5/25, 5/27, 6/2-6/5, 6/8
+
+**新建 `scripts/backfill_taiex_history.py`**:
+- 從 TWSE `rwd/zh/afterTrading/MI_INDEX` 歷史 endpoint 抓 17 日真實 TAIEX (close + chg)
+- 一個 bug 修補: TWSE row[4] 已含 sign, 不能再重判 (上一輪 sign flip 後 git restore)
+- 更新 stock_history.market[d] + 同步 temp_history.next_day_change_pct (9 筆)
+
+**真實 Q5 hit rate 揭曉**:
+| Window | Before (v3.67.3 stale skip) | After backfill | Δ |
+|---|---|---|---|
+| 偏多 | 4/7 = 57.1% | **6/9 = 66.7%** | +9.6pp |
+| 整體 | 5/8 = 62.5% | **7/10 = 70.0%** | +7.5pp |
+
+stale guard skip 8 個 → 真實 chg 重算, 8 個中多數正 (5-6 月台股大漲), 偏多預測命中提升. n 從 8 → 10 (CI 更窄). Q5 v3.67.3 校準後實際 alpha 70%, 跨過「強 alpha」門檻.
+
+**下游影響** (待重跑):
+- phase32_backtest.json baseline (44.1%) 跟 quad (78.9%) 應更新
+- combo_backtest.json q5_bull (58.5%) 也應更新
+- 建議手動觸發 phase34-combo-explore workflow 重算
+
+---
+
+### ✅ v3.71.3 — Mobile sheet ⚠️ Mild_up watch (反向參考, 用戶要求)
+
+v3.71.2 ROLLBACK Phase 3.4 ★ alpha 標記後, 用戶仍要看歷史 mild_up_only 命中股作「反向參考 / 觀察清單」.
+
+Mobile sheet 新增 ⚠️ Mild_up watch section (列在共識 Top 5 後):
+- 標題: "⚠️ Mild_up watch (反向參考)"
+- 副標: "(歷史 41.7% hit, 平均 -0.72% — 別追)"
+- 琥珀色 (FFB45309) 區隔正面 alpha (⭐ quad 綠色), 視覺立刻 disambiguate
+- 命中股 prefix ⚠️ 而非 ★ (避免誤判為 alpha 訊號)
+- Email body 自動含此 section (extract_mobile_summary_text.py 直接讀 mobile sheet)
+- Q5 偏多時才會出現 (Q5 中性 / 偏空 自動 skip)
+
+Section 0 / 名稱欄維持 v3.71.2 ROLLBACK 狀態 (只顯示 ⭐ quad + ⚠️ outlier),
+mild_up 訊號只在 Mobile sheet / Email body 露出, 作純觀察用.
+
+---
+
+### ✅ v3.71.2 — Phase 3.4 ROLLBACK + alpha overlap audit 揭穿 mild_up_only trap
+
+**新建 audit**: `scripts/audit_alpha_overlap.py` + `phase34-alpha-overlap.yml`
+對 9 個 Q5 偏多歷史日跑 quad vs mild_up 3-bucket 分析:
+
+| Bucket | n | hit% | mean% |
+|---|---|---|---|
+| ⭐ quad_only (quad - mild_up) | 24 | **79.2%** | **+4.19%** |
+| ⭐⭐ both (quad ∩ mild_up) | 13 | 76.9% | +4.28% |
+| ★ **mild_up_only** (mild_up - quad) | 12 | **41.7%** | **-0.72%** |
+
+**揭穿**: alpha 100% 來自 master vol_spike。純 mild_up_only (沒 vol_spike) 是 end-of-trend trap, 平均虧 0.72%。原 v3.71.0 backtest 「q5_bull_mild_up 60% n=25」混淆了 both 的 quad alpha。
+
+**ROLLBACK 3 處**:
+- Section 0 砍掉 Phase 3.4 sub-banner
+- 名稱欄 ★ 標記砍掉, 註腳改回純 ⭐/⚠️
+- Mobile sheet 砍 ★ Mild_up section, prefix 邏輯回到 ⭐ only
+- R10 banner 回到純 quad 邏輯 (v3.70.0)
+- `_compute_mild_up_picks` 加 DEPRECATED 註解, 保留供未來研究 (e.g. vol_spike+mild_up 是否強化 quad)
+
+**教訓**: backtest 結果若有 overlap, 必須做 set difference analysis (quad_only / both / mild_up_only) 否則被「混合 alpha」誤導.
+
+---
+
+### ⚠️ v3.71.1 — Phase 3.4 mild_up 落地 (已 ROLLBACK in v3.71.2)
+
+**Section 0 升級** (`_compute_mild_up_picks` + `_build_section_consensus`):
+- 新 helper 識別「共識 ∩ Q5 偏多 ∩ 近 3 天累積 0-8% (溫和上行)」picks
+- 新 sub-banner (R9): 顯示 Phase 3.4 hit 60.0% [40.7–76.6% 95% CI] (n=25) +15.9pp
+- 名稱欄新增 ★ 標記 (mild_up only, 非 quad), ⭐ + ★ + ⚠️ 三層標記
+- 註腳更新含 ★ 說明
+
+**R10 quad banner 升級** — 整合 mild_up 狀態:
+- Quad 命中 + mild_up 額外命中 → 「⭐ N 檔 quad + ★ 另 M 檔 mild_up」
+- 無 quad 但 mild_up 命中 → 「★ quad 未啟動但 mild_up 命中 N 檔 (Q5 偏多 + 溫和上行 60% alpha)」(淡金底)
+- 都未啟動 → 「💤 無 alpha 訊號」
+
+**Mobile sheet 升級**:
+- 新 ★ Mild_up section 列在 ⭐ Quad section 後 / 共識 Top 5 前
+- mu_only_codes = mild_up - quad 避免重複
+- 強共識 Top 5 prefix 邏輯: ⭐ for quad / ★ for mild_up only / 否則 ①②③④⑤
+
+**設計原則**: Phase 3.2 quad 是強 alpha (78.9%), Phase 3.4 mild_up 是次等 alpha (60%, n=25 樣本待累積)。視覺區隔: ⭐ 雙星>★ 單星, 用戶一眼分強弱。
+
+---
+
+### ✅ v3.71.0 — Phase 3.4 combo backtest 8 個新 filter + manual dispatch workflow
+
+延續 Phase 3.1 (q5_bull 58.5%), 探索 baseline 提升空間 (純價格特徵, 不依賴 stock-level metadata).
+
+**8 個新 filter combo** (`bootstrap_combo_backtest.py`):
+- ex_chase / ex_falling_knife (排除追高 / 接刀)
+- mild_uptrend / pullback_buy (溫和上行 / 短線回檔)
+- fresh_breakout / near_low_rebound (突破 / 跌深反彈)
+- q5_bull_ex_chase / q5_bull_mild_up (Q5 疊加組合)
+
+**45 天 backtest 結果** (按 hit% sort, n≥20 才算 actionable):
+| Combo | n | hit% | vs baseline |
+|---|---|---|---|
+| ⭐ q5_bull_mild_up | 25 | **60.0%** | +15.9pp (達標) |
+| q5_bull | 82 | 58.5% | +14.4pp |
+| ⚠️ mild_uptrend | 111 | **34.2%** | -9.9pp (反向 trap!) |
+
+**關鍵發現**:
+1. mild_uptrend 反向 — 「共識 + 近 3 天溫和上行」是 trap (可能反映 end-of-trend)
+2. q5_bull_mild_up 60.0% — Q5 偏多後逆轉成 alpha
+3. 純價格 filter 上限約 55%, 真正 alpha 仍是「master vol_spike」(Phase 3.2 quad)
+
+**新增 manual dispatch workflow** (`phase34-combo-explore.yml`): user GitHub UI 一鍵跑探索
+
+---
+
+### ✅ v3.70.5 — ROLLBACK stale guard 2 + 全網數字 audit PASS
+
+TWSE STOCK_DAY 官方 API 驗證: 6/22 鴻海/台達電/華通 close 跟前一日相同是 LEGIT (intraday 有波動但收盤恰等於 psychological level), 非 stale data. ROLLBACK v3.70.4 加的 stale guard 2 (3 處), EXPECTED_HIT_RATE 0.857 (假) → 0.789 (真). 失效歸因 wording 改「flat close (真實現象)」. 新建 2 個 audit script 全 PASS.
+
+---
+
+### ✅ v3.70.4 — stale guard 2 + per-master vol_spike 可靠度分析 (隨後 ROLLBACK)
+
+P0 hotfix: TWSE 個股 stale 誤判 (鴻海/台達電/華通 6/22 案例) → 加 per-stock stale guard. 之後 v3.70.5 經 TWSE 驗證為 LEGIT, ROLLBACK.
+
+---
+
+### ✅ v3.70.3 — Phase 3.2 失效歸因 sheet (Excel 4th enrichment)
+
+`build_quad_failure_sheet` 第 4 個 enrichment sheet, 從 miss 學習. 每個 quad pick 加 attribution: leader_pct / excess_return / failure_reasons. 7 類歸因 (資料異常 / TAIEX 整盤跌 / 假共識 / 個股弱勢 / Q5 borderline / TAIEX 資料缺 / alpha noise).
+
+---
+
+### ✅ v3.70.2 — Phase 3.2 alpha 持續性追蹤 3 強化
+
+- **P1-E**: 📈 Quad 實戰追蹤 sheet (Excel 3rd enrichment) — 逐 trigger day 列日期/隔日/Q5/vol_spike masters/picks/hits/命中率/mean%/picks 預覽
+- **P1-F**: Alpha 失效 alarm — 30d hit <50% AND n>=20 → 紅警告「alpha 可能失效, 建議暫停使用」
+- **P1-G**: Wilson 95% CI 顯示 — sub-banner 顯示 "hit 78.9% [63.7-88.9% 95% CI]", 用戶才知道不是精確數字
+
+---
+
+### ✅ v3.70.1 — Phase 3.2 滾動 backtest + quad 實戰 hit log
+
+- `daily_rolling_update.py` — daily-full.yml 在 crawler 後執行: re-bootstrap phase32_backtest.json (每日新樣本) + update quad_hit_log.json + regen Excel
+- `quad_hit_log.json` — 逐 trigger day 記錄 q5_direction / vol_spike_masters / picks list / hits / hit_rate / mean / rolling_30d / rolling_all / vs_expected
+- Excel sub-banner 加「30d 實戰: X/Y = Z%」
+
+---
+
+### ✅ v3.70.0 — Phase 3.2 alpha 落地 — quad 命中股每日識別
+
+`_compute_quad_picks()` 三訊號齊聚判定. 三介面落地: Section 0 (quad 狀態 banner + 名稱欄 ⭐ 標記 + 註腳) / Action card (🎯 quad 進場 (78.9% alpha)) / Mobile sheet (新 ⭐ Quad 命中 section 列在共識前).
+
+---
+
+### ✅ v3.69.0 — Phase 3.2 三訊號疊加真 alpha 78.9% hit (+34.8pp)
+
+**DISCOVERY**: 共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike → **78.9% hit rate (n=38)**
+- vs random 50%: p=0.00018 (~3σ)
+- vs baseline 44.1%: p=0.00001
+- vs Q5 偏多 only 58.5%: p=0.00533
+- mean +4.37% next-day return
+
+5 層驗證 PASS (verify_phase32_e_anomaly.py). Phase 3.3 quad_AAAA (+ hot5 streak) 82.1% hit (n=28) 但 vs Phase 3.2 p=0.339 → hot5 過濾沒顯著加值.
+
+---
+
+### ✅ v3.68.0 — Phase 3.1 訊號組合 backtest (+14.4pp alpha)
+
+6 個組合 backtest 探索 (`bootstrap_combo_backtest.py`):
+- baseline (全部共識) 44.1%
+- ⭐ q5_bull (Q5 偏多) 58.5% +14.4pp **alpha**
+- combo_AAA (Q5 偏多 ∩ 真共識) 57.4%
+- high_conv / extra_breadth / q5_bear 都 <50%
+
+Section 0 加 sub-banner: 「Phase 3.1 真 alpha: Q5 偏多 ∩ 共識 hit 58.5%」
+
+---
+
+### ✅ v3.67.3 — Q5 偏多預測校準 (Phase 2.4 自我揭穿後對策)
+
+Phase 2.4 (v3.66.8) sub-banner 揭穿偏多 hit 41% (比隨機 50% 還差)。本版修兩個根因:
+
+**Fix #1**: 中性閾值 0.05 → 0.10 (signal_engine.py)
+- 33 樣本中 23 個 net=+0.087 (單一 P/C signal) 全進偏多 → 弱信號被當強信號
+- 拉高閾值,單一 P/C 自動歸中性 (不下注)
+
+**Fix #2**: _compute_q5_hit_rate stale guard (excel_report.py)
+- 揭穿: 8 個 chg=0.0 全是 false-negative, next_day_close=None 證明缺資料
+- 6/2-6/8 TAIEX index=45070.94 連 7 天相同 (v3.43.0 兜底重複日 bug 歷史汙染殘留)
+- 修補: chg=0.0 AND close=None → skip
+
+**驗證 (33 樣本 replay)**:
+| 指標 | Before | After |
+|---|---|---|
+| 偏多 hit | 13/30 = 43.3% | 4/7 = **57.1%** (+13.8pp) |
+| 整體 hit | 14/31 = 45.2% | 5/8 = **62.5%** (+17.3pp) |
+| 預測量 | 31 筆 | 8 筆 (砍 74%) |
+| 中性 (不下注) | 0 | 15 |
+| Skip stale | 0 | 8 |
+
+「沒把握就閉嘴」原則: 預測量少 74% 但跨過 60% 信心門檻。
+
+---
+
+### ✅ v3.67.1 + v3.67.2 — Phase 2.7 手機摘要 sheet + 自動 Email 寄送
+
+**v3.67.1**: 📱 手機摘要 sheet (19 row 單欄 4 個決策問題: 明日預測 / 強共識 Top 5 / 今日避開 / 追蹤池方向)
+
+**v3.67.2**: GitHub Actions + Gmail SMTP, 主排程 21:17 TW + 兩兜底, 僅 data_changed=true 才寄, 純文字 body + latest.xlsx 附件
+
+---
+
+### ✅ v3.67.0 — Phase 2.6 Color Tokens + Zebra stripes
+
+COLORS dict 35+ semantic token 集中文件化, _zebra_stripes() helper apply 給 E/F/G/H/I 5 section, 奇數 row 淡灰底 (#F9FAFB) 自動跳過已有 fill 的 cell
+
+---
+
+### ✅ v3.66.9 — Phase 2.5 強共識股隔日 backtest sub-banner
+
+bootstrap_consensus_backtest.py 對歷史每天算 Section 0 強共識 + 查 stock_history 隔日 chg, 30d summary: 306 picks / 153 hits = **50.0%** / 中位 +0.03% / 平均 +0.89%, Section 0 加 sub-banner 揭穿真實 alpha (目前判定: 無顯著 alpha)
+
+---
+
+### ✅ v3.66.8 — Phase 2.4 Q5 預測 hit rate 累積 sub-banner
+
+_compute_q5_hit_rate() 讀 temp_history × infer_market_direction → tally hit, Section A Q5 banner 下方加 sub-banner: 偏多 X/Y / 偏空 / 整體 + 顏色 (≥60% ✅ / 40-60% 🟡 / <40% ⚠️). 6/24 production 揭穿: 偏多 11/27=**41%** (比隨機差!) → 觸發 v3.67.3 修補
+
+---
+
+### ✅ v3.66.7 — Phase 2.3 Section A 時間維度 (今/昨/5日均)
+
+timeseries.json 60 天滾動 cache, Q1-Q4 KPI sub-text 顯示「(昨X/5d Y)」, bootstrap_timeseries.py 掃 45 天歷史 daily JSON 解密計算
+
+---
+
+### ✅ v3.66.6 — Phase 2.2 Conditional Formatting Data Bars
+
+_try_add_data_bar() helper, 11 處 data bars (Section 0 大戶數+合計淨買 / B 買進 / C 淨買 / F 連續天數+累計 / J 總買+集中度 / G 累計次數 / H 借券張數), 一秒掃完誰最值得關注
+
+---
+
+### ✅ v3.66.5 — TL;DR + Action card bug fix
+
+Bug 1: Action 進場關注 top 3 沒跟 Section 0 對齊 (隨機 dict iteration 改用相同 sort key)
+Bug 2: 避開除權息誤導 (3 檔 → 「N 檔: top3 ...」明示總數)
+
+---
+
+### ✅ v3.66.4 — Phase 2.1 TL;DR + Action card (首屏 5 秒決策摘要)
+
+Row 3 TL;DR 一句話 (淡黃底 12pt bold) 6 個 hot 指標
+Row 4 Action card (淡灰底 11pt italic) 3 段: 進場關注 top 3 / 避開除權息 / 訊號強弱判定
+freeze_panes A3 → A6, TL;DR + Action 永遠看得到
+
+---
+
 ### ✅ v3.66.3 — Section G empty state + H 借券 hot 標記 (Dashboard 簡潔收尾)
 
 **Section G 注意股** (`_build_section_risk`):

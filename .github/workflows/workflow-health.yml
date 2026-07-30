@@ -1,0 +1,127 @@
+name: Workflows Health Monitor
+
+# v3.71.12 D1: 每週日統計 12 workflows 過去 7 天成功率
+# 失敗率 > 30% 自動開 GitHub Issue alert
+# 結果寫 docs/WORKFLOW_HEALTH.md 給 user 看趨勢
+
+on:
+  schedule:
+    - cron: '30 14 * * 0'   # 週日 14:30 UTC = 22:30 TW (跟 LOOP audit 錯開 30min)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  actions: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Collect workflow stats
+        id: stats
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const workflows = await github.rest.actions.listRepoWorkflows({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const oneWeekAgo = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
+            const rows = [];
+            const unhealthy = [];
+            for (const wf of workflows.data.workflows) {
+              if (wf.state !== 'active') continue;
+              const runs = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: wf.id,
+                created: `>${oneWeekAgo}`,
+                per_page: 100,
+              });
+              const total = runs.data.total_count;
+              if (total === 0) continue;
+              const success = runs.data.workflow_runs.filter(r => r.conclusion === 'success').length;
+              const fail = runs.data.workflow_runs.filter(r => r.conclusion === 'failure').length;
+              const successRate = total > 0 ? (success / total * 100) : 0;
+              rows.push({
+                name: wf.name, file: wf.path.split('/').pop(),
+                total, success, fail, success_pct: successRate,
+              });
+              // alert: 過去 7 天有 ≥3 跑且 fail rate > 30%
+              if (total >= 3 && (fail / total) > 0.30) {
+                unhealthy.push({...rows[rows.length - 1], fail_rate: (fail / total * 100)});
+              }
+            }
+            rows.sort((a, b) => a.success_pct - b.success_pct);
+
+            // 寫 markdown 報告
+            const date = new Date().toISOString().slice(0, 10);
+            let md = `# Workflow Health Report — ${date}\n\n`;
+            md += '> 自動產生 (weekly cron) 過去 7 天 12 workflows 成功率\n\n';
+            md += '| Workflow | File | Runs | Success | Fail | Success % |\n';
+            md += '|---|---|---|---|---|---|\n';
+            for (const r of rows) {
+              const emoji = r.success_pct >= 90 ? '✅' : r.success_pct >= 70 ? '🟡' : '🔴';
+              md += `| ${emoji} ${r.name} | \`${r.file}\` | ${r.total} | ${r.success} | ${r.fail} | ${r.success_pct.toFixed(1)}% |\n`;
+            }
+            if (unhealthy.length > 0) {
+              md += `\n## ⚠️ Unhealthy Workflows (fail rate > 30%)\n\n`;
+              for (const u of unhealthy) {
+                md += `- **${u.name}**: ${u.fail}/${u.total} fail (${u.fail_rate.toFixed(1)}%)\n`;
+              }
+            }
+            require('fs').writeFileSync('docs/WORKFLOW_HEALTH.md', md, 'utf-8');
+
+            core.setOutput('unhealthy_count', unhealthy.length);
+            core.setOutput('unhealthy_list', JSON.stringify(unhealthy));
+
+      - name: Commit report
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add docs/WORKFLOW_HEALTH.md
+          if git diff --staged --quiet; then
+            echo "::notice::no health change"
+          else
+            git commit -m "docs: weekly workflow health report"
+            for i in 1 2 3; do
+              if git push; then break; fi
+              git pull --rebase --strategy-option=theirs origin main
+              sleep 2
+            done
+          fi
+
+      - name: Open issue if unhealthy
+        if: steps.stats.outputs.unhealthy_count != '0'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const unhealthy = JSON.parse('${{ steps.stats.outputs.unhealthy_list }}');
+            const date = new Date().toISOString().slice(0, 10);
+            const body = [
+              `## 過去 7 天 ${unhealthy.length} 個 workflow 失敗率 > 30%`,
+              '',
+              '| Workflow | Fail / Total | Rate |',
+              '|---|---|---|',
+              ...unhealthy.map(u => `| ${u.name} | ${u.fail}/${u.total} | ${u.fail_rate.toFixed(1)}% |`),
+              '',
+              '完整報告: [docs/WORKFLOW_HEALTH.md](../blob/main/docs/WORKFLOW_HEALTH.md)',
+              '',
+              '### 處置 SOP',
+              '1. 看每個 workflow 最近 fail run 的 log',
+              '2. 識別共同 fail pattern (API quota / cert / payload schema 變)',
+              '3. 修補後 close 此 issue',
+            ].join('\n');
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🟡 Workflow health alert ${date}`,
+              labels: ['workflow-health', 'production-alert'],
+              body: body,
+            });

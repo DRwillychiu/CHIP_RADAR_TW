@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.66.3(2026-06-24) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.72.9(2026-07-24) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,57 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.66.3** | 6/24 | **G empty state + H 借券 hot 標記** — G 「✅ 今日無新增注意股」綠斜體 / H ratio≥1000x 🔴 紅粗體 / 千分位 format |
+| **v3.72.9** | 7/24 | **P2 #6 前端 sniper card highlight 同步** — 新 sniper_top_buyer_enricher 於 crawler.py 注入 is_top_market_buyer 到 limit_up_details, index.html JS+CSS 顯示 👑 黃色 gradient (跟 Excel Section 0 一致) |
+| v3.72.8 | 7/24 | P0 #4 histock 全 fail 警示 row + P0 #8 時間戳 — Section 0 頂端橘色警示提示原因 (T-1/rate limit/net<=0), 尾端加 fetched@ 時間戳; P1 #3 撤回 (code re-inspect 證實 branch_code==top_bno 已直接匹配 MASTER_MAPPING, co_masters 不影響) |
+| v3.72.7 | 7/24 | histock rate limit 監控 + net<=0 bug fix — 加 fetch stats (attempted/success/stale/no_data/http_err/net<=0), stderr dump, 成功率<50%warn; 修 top.net<=0 誤判為 top #1 的 edge case |
+| v3.72.6 | 7/24 | 解決 v3.72.5 drift — user 確認 迷你哥/松山哥 3 分點 9217/9200/9600 全屬他 + 強森 9B2E co-share 張濬安, branches.py 加 co_masters, drift guard 現在 0 warning |
+| v3.72.5 | 7/24 | 時效 guard + MASTER_MAPPING 一致性 validator — histock date != trade_date → skip 塗黃 (防假信號); 加 branches.py drift guard (findings: 迷你哥 9200/9600 券商總機碼 + 強森/9B2E 缺 co_master) |
+| v3.72.4 | 7/22 | 修正 top-buyer 判定為 histock 全市場榜 — v3.72.3 誤用 tracked branches 內 #1, 改用 histock per-stock 分點榜 #1 (真正全市場第一) |
+| v3.72.3 | 7/22 | Sniper 漲停股買超#1 黃色 highlight (初版, 用 tracked branches 判定, v3.72.4 修正) |
+| v3.72.2 | 7/22 | 蔣承翰 +1 分點 永豐金-南京 (9A9S) — 蔣承翰第 3 分點, 3 個都漲停鎖定風格; branches.py + excel_report Section 0 分點名單同步 |
+| v3.71.23 | 6/28 | L3 per-signal Q5 LOO audit — 揭穿 5/7 signal 對 Q5 完全 dead weight / P/C Ratio 唯一實質貢獻 (Δ -3.3pp) |
+| v3.71.22 | 6/28 | L2 threshold audit 揭穿 4/5 崩盤 — 分點漲停現閾值 8 vs 實際 min 13 / 外資期貨 100% extreme-bear / PCR 75% extreme-bull / 建議新閾值 待 60d 樣本 |
+| v3.71.21 | 6/28 | L1 續 (信號 2/3/4 官方對照) — PCR ✅ perfect / 外資期貨 0.84% off (MXF/4 可解釋) / 分點漲停 naming 誤導 / 融資熱度 5 待 daily JSON audit |
+| v3.71.20 | 6/28 | L1 溫度計 audit + systemic bug 修 — 35 天連續 3 signal value=0 揭穿, key mismatch (net_lot vs foreign_net_lot) 修補信號 1 + 6 |
+| v3.71.19 | 6/27 | Cross_validate audit (v3.71.18 driven) — Dashboard 28 數字全 PASS / data bar 9/11 warn (合成樣本邊界) / 43 套 test pass |
+| v3.71.18 | 6/27 | L 系列 📌 Pinned Master 完整落地 — 大牌專屬 Excel sheet + Mobile section + Section 0 📌 marker + 歷史 alpha backtest |
+| v3.71.17 | 6/27 | N6 處置玩家標籤 audit — oldest_pct 35.9% (中度 clip) 仍不開 / weekly cron 追蹤直到 <20% |
+| v3.71.16 | 6/27 | N1 Master 貢獻度 LOO — 揭穿強森 -28.4pp 拖後腿 / 竹科+陳族元 真輔助 / weekly cron 自動 re-run |
+| v3.71.15 | 6/27 | N2 Sector rotation — Dashboard R12 + Mobile 「📊 共識集中產業 top 3」 (半導體業 X 檔, etc) |
+| v3.71.14 | 6/27 | 6/26 production 全 validation + R10 wording bug fix — 9 項 PASS / R10 sub-banner ': |' 醜空格修補 |
+| v3.71.13 | 6/27 | 文檔 E3+E4+E5 — docs/README.md 索引 / CONTINUATION_GUIDE 接手 1-pager / LABELS §5 Excel 視覺標記 audit |
+| v3.71.12 | 6/27 | 流程 D1+D4+D6 — Email fail alert (GitHub Issue) / weekly LOOP audit cron / workflows health monitor + 自動 alert |
+| v3.71.11 | 6/27 | 內容 C1+C7 — 🔁 跨日 quad 重複標記 (過去 7 天 dedup) / Master 月度評估 SOP 6 step / C2/C5 deferred |
+| v3.71.10 | 6/27 | 前端 B6+B7 — 📋 更新 modal (近 10 版) / 忘記密碼說明 / B2 B4 audit 確認 well-covered |
+| v3.71.9 | 6/27 | 後端優化 4 件 — A1 rename typo / A4 scripts 分類 README / A5 pytest collect 修復 + run_all.py (43/44 pass) / A6 requirements audit |
+| v3.71.8 | 6/26 | Phase 3.5 多日 alpha 落地 (Loop Iteration 1) — R10 sub-banner / peak_5d 86.8% / premium cum_3d 92.9% / 觀察期 n=38 |
+| v3.71.7 | 6/26 | 跟單實際淨報酬 + 處置股整合 — Section 0 R9 💰 sub-banner (扣 0.585% 後 74% 淨 hit / 累積 +144%) / Mobile + Action 加處置股 avoidance |
+| v3.71.6 | 6/26 | Phase 3.2 失效 SOP doc — `docs/PHASE32_ALPHA_FAILURE_SOP.md` 8 章節 (觸發/診斷/應對/recall/通訊/記錄) |
+| v3.71.5 | 6/26 | Phase 3.2 Premium Master Tier — 陳律師/竹科主力/陳族元 ≥77% hit / ⭐⭐ 三介面標記 / picks 排序 premium 在前 |
+| v3.71.4 | 6/26 | P0 TAIEX 歷史汙染 backfill — 17 日真實 TAIEX 補回 / Q5 真實 hit 62.5%→70.0% / temp_history 9 筆更新 |
+| v3.71.3 | 6/26 | Mobile ⚠️ Mild_up watch (反向參考) — 用戶要求保留歷史 mild_up_only 命中股作觀察清單, 琥珀色 + 警示 wording, Email body 自動帶入 |
+| v3.71.2 | 6/26 | Phase 3.4 ROLLBACK + alpha overlap audit — mild_up_only n=12 hit 41.7% mean -0.72% (trap!), 砍 sub-banner/★/Mobile section, 回 pure quad |
+| v3.71.1 | 6/26 | Phase 3.4 mild_up 落地 (已 ROLLBACK in v3.71.2) — Section 0 sub-banner / ★ 標記 / R10 + Mobile 整合 |
+| v3.71.0 | 6/26 | Phase 3.4 combo backtest 探索 — 8 個新 filter + workflow_dispatch / q5_bull_mild_up 60.0% hit |
+| v3.70.5 | 6/26 | ROLLBACK stale guard 2 + 全網數字 audit PASS — TWSE 驗證 flat close 是 LEGIT, 回復 78.9% 真值 |
+| v3.70.4 | 6/26 | stale guard 2 + per-master vol_spike 分析 (隨後 ROLLBACK) |
+| v3.70.3 | 6/26 | Phase 3.2 失效歸因 sheet (Excel 4th enrichment) — 7 類歸因 |
+| v3.70.2 | 6/26 | Phase 3.2 alpha 持續性 3 強化 — Quad 追蹤 sheet / 失效 alarm / Wilson 95% CI |
+| v3.70.1 | 6/26 | Phase 3.2 滾動 backtest + quad 實戰 hit log — daily_rolling_update.py + quad_hit_log.json |
+| v3.70.0 | 6/26 | Phase 3.2 alpha 落地 — quad 命中股每日識別 + 三介面 (Section 0/Action/Mobile) ⭐ 標記 |
+| v3.69.0 | 6/26 | **Phase 3.2 三訊號疊加真 alpha 78.9% hit (+34.8pp)** — 共識 ∩ Q5 偏多 ∩ master 量爆, n=38, p<0.001 |
+| v3.68.0 | 6/26 | Phase 3.1 訊號組合 backtest (+14.4pp) — q5_bull 58.5% / 6 combos / Section 0 sub-banner |
+| v3.67.3 | 6/25 | Q5 偏多預測校準 — hit rate 45%→62.5% / 中性閾值 0.05→0.10 / stale guard (chg=0+close=None skip) |
+| v3.67.2 | 6/25 | Phase 2.7 自動 Email 寄送 — GitHub Actions + Gmail SMTP, 主排程 21:17 + 2 兜底, 純文字 body + latest.xlsx 附件 |
+| v3.67.1 | 6/25 | Phase 2.7 📱 手機摘要 sheet — 19 row 單欄 4 決策問題 (明日預測/強共識/今日避開/追蹤池方向) |
+| v3.67.0 | 6/25 | Phase 2.6 Color Tokens + Zebra — 35+ semantic token / E F G H I 5 section 斑馬紋 |
+| v3.66.9 | 6/25 | Phase 2.5 強共識 backtest sub-banner — 30d 306 picks 50% hit / 中位+0.03% / 平均+0.89% |
+| v3.66.8 | 6/25 | Phase 2.4 Q5 hit rate sub-banner — 揭穿偏多預測 41% (比隨機差!) → 觸發 v3.67.3 修補 |
+| v3.66.7 | 6/25 | Phase 2.3 Section A 時間維度 — Q1-Q4 加「今/昨/5d均」(timeseries.json 60d 滾動 + 45d 歷史 bootstrap) |
+| v3.66.6 | 6/25 | Phase 2.2 Data Bars × 11 處 — Section 0/B/C/F/J/G/H 各個 col 加橫條, 一秒掃完誰大誰小 |
+| v3.66.5 | 6/25 | TL;DR Action bug fix — top 3 對齊 Section 0 sort key + 避開除權息明示總數 |
+| v3.66.4 | 6/25 | Phase 2.1 TL;DR + Action card — Row 3 一句話摘要 6 hot 指標 / Row 4 進場關注 top 3 + 訊號強弱 |
+| v3.66.3 | 6/24 | G empty state + H 借券 hot 標記 — G 「✅ 今日無新增注意股」綠斜體 / H ratio≥1000x 🔴 紅粗體 / 千分位 format |
 | v3.66.2 | 6/24 | Section J 集中度 + Master 色塊 — 新增 Top3 合計% col / Master cell 套 MASTER_BLOCK_COLORS / ≥80% 標 🔥 + 紅字粗體 |
 | v3.66.1 | 6/24 | Section G/H/I 時間正確性 — I 過濾過期 ex_date + G/H/I header 加 applicable_date + cross_validate 加 strict assertion |
 | v3.66.0 | 6/23 | Dashboard 簡潔原則: E 大砍 + F hot 標記 — E 砍 consensus/accumulation 留 anomalies top 10 + 修 new_stocks 沉底 bug / F ≥10 天 🔴 紅字粗體 |

@@ -1,0 +1,51 @@
+{
+  "date": "20260626",
+  "audited_at": "2026-07-01T21:17:02.051890",
+  "results": [
+    {
+      "signal": "foreign_cash",
+      "our": 0,
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    },
+    {
+      "signal": "foreign_futures_eq",
+      "our": -76458,
+      "note": "need dedicated TAIFEX fetcher audit"
+    },
+    {
+      "signal": "pc_ratio_oi",
+      "our": 1.2874,
+      "error": "parse_fail"
+    },
+    {
+      "signal": "limit_up_count",
+      "our": 13,
+      "note": "need MI_STAT dedicated audit"
+    },
+    {
+      "signal": "margin_top5_yi",
+      "our": 0.0,
+      "suspect_bug": true
+    },
+    {
+      "signal": "consensus",
+      "our": {
+        "foreign_net": 0,
+        "trust_net": 0
+      },
+      "suspect_bug": true
+    },
+    {
+      "signal": "settlement",
+      "our_days": 19,
+      "calc_days": 19,
+      "match": true,
+      "our_oi": -76458
+    }
+  ],
+  "suspect_bugs": [
+    "foreign_cash",
+    "margin_top5_yi",
+    "consensus"
+  ]
+}
