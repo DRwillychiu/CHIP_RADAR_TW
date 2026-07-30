@@ -94,6 +94,85 @@ def extract_mobile_summary() -> str:
     return '\n'.join(out)
 
 
+def build_disposal_message(trade_date: str) -> str:
+    """v3.73.3: 潛在處置股完整清單 (D-1 + D-2)。
+
+    資料源 attstock.tw/api/stocks/risk,由 refresh_attstock_disposal.py 抓下來。
+    D-3 以後有 160+ 檔屬長尾,只報數量不列清單 (列了會超過 Telegram 4096 字上限)。
+
+    注意: attstock 網頁上那種「收盤≤46.80元(漲跌0.5%才觸發)」的觸發價,
+    API 沒有提供,得自行重算其公式 — 這裡不做,只呈現 API 給的事實欄位。
+    """
+    path = DATA_DIR / 'disposal_attstock.json'
+    if not path.exists():
+        return ''
+    try:
+        d = json.loads(path.read_text(encoding='utf-8'))
+    except Exception:
+        return ''
+
+    detail = d.get('detail') or []
+    if not detail:
+        return ''
+
+    def fmt(x: dict) -> str:
+        bits = [f"{x.get('name', '')} {x.get('code', '')}"]
+        if x.get('type'):
+            bits.append(x['type'])
+        if x.get('consecutive_days'):
+            bits.append(f"連{x['consecutive_days']}日")
+        if x.get('count_in_30d'):
+            bits.append(f"30日{x['count_in_30d']}次")
+        price = x.get('last_price')
+        chg = x.get('change_pct')
+        if price is not None and chg is not None:
+            bits.append(f"{price} ({chg:+.1f}%)")
+        return "· ".join([bits[0] + " "] + [b + " " for b in bits[1:]]).rstrip()
+
+    # 市場劇烈時 D-1+D-2 可能暴增 (實測 38 檔約 1,860 字, 約可容納 79 檔)。
+    # 超過就砍 D-2 尾端 (risk_score 已由低到高排在後面) 並明講砍了幾檔 —
+    # 寧可標示「未列 N 檔」,也不要靜默截斷讓人以為看到的是全部。
+    BUDGET = 3900          # 留 ~200 字給結尾區塊
+
+    def render(limit_2d=None) -> tuple:
+        out = [f"⚠️ 潛在處置股 · {trade_date}", ""]
+        dropped = 0
+        for bucket, title, icon in (('in_disposal', '處置中', '⛔'),
+                                     ('1d', '最快下一交易日', '🔴'),
+                                     ('2d', '最快 2 個交易日', '🟡')):
+            rows = [x for x in detail if x.get('bucket') == bucket]
+            if not rows:
+                continue
+            shown = rows
+            if bucket == '2d' and limit_2d is not None and len(rows) > limit_2d:
+                shown = rows[:limit_2d]
+                dropped = len(rows) - limit_2d
+            out.append(f"━━ {title} ({len(rows)} 檔) ━━")
+            out += [f"{icon} {fmt(x)}" for x in shown]
+            if dropped and bucket == '2d':
+                out.append(f"…另 {dropped} 檔未列 (訊息長度上限)")
+            out.append("")
+        return out, dropped
+
+    lines, _ = render()
+    if len("\n".join(lines)) > BUDGET:
+        n2d = len([x for x in detail if x.get('bucket') == '2d'])
+        for limit in range(n2d - 1, -1, -1):
+            lines, _ = render(limit_2d=limit)
+            if len("\n".join(lines)) <= BUDGET:
+                break
+
+    far = d.get('count_pending_3d_plus') or 0
+    if far:
+        lines.append(f"3 個交易日以上還有 {far} 檔 (未列)")
+
+    fetched = (d.get('fetched_at') or '')[11:16]
+    lines.append(f"\n資料: attstock.tw{' · ' + fetched + ' 更新' if fetched else ''}")
+    lines.append("僅供風險提示,非投資建議")
+
+    return "\n".join(lines)
+
+
 def main() -> int:
     load_dotenv_into_env()
     token = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
@@ -129,12 +208,20 @@ def main() -> int:
         print(f"  [Telegram] 萃取手機摘要失敗: {e}")
         return 0        # 不讓排程判定為失敗 — 資料本身已經抓好了
 
+    d_fmt = f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:8]}" \
+        if len(trade_date) == 8 else trade_date
+    disposal = build_disposal_message(d_fmt)
+
     if DRY_RUN:
-        print(f"  [DRY RUN] trade_date={trade_date}, {len(summary)} 字元")
+        print(f"  [DRY RUN] trade_date={trade_date}, 摘要 {len(summary)} 字元, "
+              f"處置清單 {len(disposal)} 字元")
         print(f"  [DRY RUN] Excel: {XLSX} "
               f"({XLSX.stat().st_size / 1024:,.0f} KB)")
         print('─' * 55)
         print(summary)
+        if disposal:
+            print('─' * 55)
+            print(disposal)
         print('─' * 55)
         return 0
 
@@ -152,10 +239,26 @@ def main() -> int:
         return 0
     print(f"  [Telegram] ✓ 手機摘要已推送 ({trade_date}, {len(summary)} 字元)")
 
-    # ── 2) Excel 附件 ──
+    # ── 2) 潛在處置股完整清單 (v3.73.3, 獨立一則) ──
+    #    另外發而不併進手機摘要, 是為了讓摘要維持跟 email 逐字相同。
+    if disposal:
+        try:
+            r_d = requests.post(f"{api}/sendMessage", data={
+                'chat_id': chat_id,
+                'text': disposal[:4096],
+                'disable_web_page_preview': 'true',
+            }, timeout=20)
+            if r_d.status_code == 200:
+                print(f"  [Telegram] ✓ 處置股清單已推送 ({len(disposal)} 字元)")
+            else:
+                print(f"  [Telegram] ⚠️ 處置股清單失敗 HTTP {r_d.status_code}: "
+                      f"{r_d.text[:200]}")
+        except Exception as e:
+            print(f"  [Telegram] ⚠️ 處置股清單例外: {e}")
+
+    # ── 3) Excel 附件 ──
     try:
-        d = f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:8]}" \
-            if len(trade_date) == 8 else trade_date
+        d = d_fmt
         with open(XLSX, 'rb') as fh:
             r2 = requests.post(f"{api}/sendDocument",
                                data={'chat_id': chat_id,
