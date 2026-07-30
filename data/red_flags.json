@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-30T21:29:24.309178+08:00",
+  "generated_at": "2026-07-30T22:49:57.912768+08:00",
   "trade_date": "20260730",
   "pump_suspicion": [],
   "wash_trade": [
@@ -53,6 +53,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9666 買 94 張 vs 1260 賣 103 張 (匹配 91%)"
+    },
+    {
+      "stock_code": "00991A",
+      "stock_name": "主動復華未來50",
+      "buy_branch_code": "9666",
+      "buy_master": "民哥",
+      "sell_branch_code": "9A9g",
+      "sell_master": "陳族元",
+      "buy_lot": 94,
+      "sell_lot": 70,
+      "buy_amt_wan": 132,
+      "sell_amt_wan": 98,
+      "lot_match_ratio": 0.74,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9666 買 94 張 vs 9A9g 賣 70 張 (匹配 74%)"
     },
     {
       "stock_code": "00991A",
@@ -121,6 +138,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9666 買 94 張 vs 700S 賣 74 張 (匹配 79%)"
+    },
+    {
+      "stock_code": "00991A",
+      "stock_name": "主動復華未來50",
+      "buy_branch_code": "9666",
+      "buy_master": "民哥",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 94,
+      "sell_lot": 70,
+      "buy_amt_wan": 132,
+      "sell_amt_wan": 98,
+      "lot_match_ratio": 0.74,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9666 買 94 張 vs 9A9G 賣 70 張 (匹配 74%)"
     },
     {
       "stock_code": "00991A",
@@ -478,64 +512,14 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9215 買 124 張 vs 9B18 賣 172 張 (匹配 72%)"
-    },
-    {
-      "stock_code": "00991A",
-      "stock_name": "主動復華未來50",
-      "buy_branch_code": "9215",
-      "buy_master": "強森",
-      "sell_branch_code": "9874",
-      "sell_master": "東億資本",
-      "buy_lot": 124,
-      "sell_lot": 110,
-      "buy_amt_wan": 174,
-      "sell_amt_wan": 154,
-      "lot_match_ratio": 0.89,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9215 買 124 張 vs 9874 賣 110 張 (匹配 89%)"
-    },
-    {
-      "stock_code": "00991A",
-      "stock_name": "主動復華未來50",
-      "buy_branch_code": "9215",
-      "buy_master": "強森",
-      "sell_branch_code": "585Q",
-      "sell_master": "呂金發",
-      "buy_lot": 124,
-      "sell_lot": 97,
-      "buy_amt_wan": 174,
-      "sell_amt_wan": 136,
-      "lot_match_ratio": 0.78,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9215 買 124 張 vs 585Q 賣 97 張 (匹配 78%)"
     }
   ],
-  "distribution": [
-    {
-      "stock_code": "6226",
-      "stock_name": "光鼎",
-      "branch_code": "700c",
-      "branch_name": "兆豐-民生",
-      "master": "陳律師",
-      "sell_lot": 213,
-      "sell_amt_wan": 432,
-      "avg_30d_sell_lot": 34.0,
-      "sell_vs_avg_x": 6.3,
-      "recent_5d_limit_up_count": 18,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 213 張 (30 天均 34 張 × 6.3) + 近 5 天漲停 18 次"
-    }
-  ],
+  "distribution": [],
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 1,
-    "total": 31
+    "distribution_count": 0,
+    "total": 30
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
