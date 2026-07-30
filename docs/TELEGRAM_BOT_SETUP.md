@@ -1,8 +1,70 @@
-# Telegram Bot 推播設定 (v3.54.0 Sprint 16 長2)
+# Telegram Bot 推播設定 (v3.73.4)
 
-> Chip Radar 每日 daily-full crawler 跑完後,把偵測到的警報 (外資爆量/PCR 極端/漲停過熱/結算提醒/內部人) 推播到 Telegram.
+> 本機 (PC) 排程跑完 daily-full 後,推「📱 手機摘要」+ 潛在處置股清單 + `latest.xlsx`。
 >
-> 跟 Discord 並行存在,各自獨立 token. 兩個都沒設 → 走 test mode 只 print 不推.
+> **跟雲端 email 並行,不取代。** 雲端 GitHub Actions 照常寄 email,
+> 這裡講的是本機這條獨立的管道。
+
+## 兩條路的分工
+
+| | track 1 — 雲端 | track 2 — 本機 PC |
+|---|---|---|
+| 跑在哪 | GitHub Actions | Windows 工作排程器 |
+| 分支 | `main` | `dev` |
+| 資料寫到 | `data/` (commit 進 repo) | `local_data/` (不進 git) |
+| 通知管道 | email + Excel 附件 | **Telegram** (本文件) |
+| 設定在哪 | GitHub Repo Secrets | 專案根目錄 `.env` |
+
+兩條完全獨立,互不影響。雲端那側**未做任何改動**。
+
+## 本機每日推 3 則
+
+`scripts/scheduler.ps1` 的 daily-full 在 21:17 / 22:37 / 23:47 各跑一次完整鏈:
+
+```
+pre   refresh_attstock_disposal.py    抓處置股 → local_data/
+cmd   crawler.py                      完整爬蟲 + 產 Excel (含手機摘要 sheet)
+post  daily_rolling_update.py         重算 quad + 重產 Excel
+post  send_daily_telegram.py          推 Telegram
+```
+
+推播內容:
+
+| # | 內容 | 大小 |
+|---|---|---|
+| 1 | 📱 手機摘要 (跟雲端 email 內容同構) | 約 430 字 |
+| 2 | ⚠️ 潛在處置股完整清單 (D-1 + D-2) | 約 1,900 字 |
+| 3 | 📋 `latest.xlsx` | 約 570 KB |
+
+### 同一交易日重跑 → 編輯原訊息,不重發 (v3.73.4)
+
+三層兜底每層都完整跑爬蟲,而後面幾次的資料可能更完整
+(實測 21:17 抓到 76 分點、22:37 抓到 77)。所以:
+
+| 情況 | 行為 |
+|---|---|
+| 新的交易日 | 發新訊息,記下 `message_id` |
+| 同一天 + 內容有變 | `editMessageText` / `editMessageMedia` **原地更新** |
+| 同一天 + 內容沒變 | 完全不打 API |
+| 編輯失敗 (訊息被刪等) | 退回重發,不讓你漏掉更新 |
+
+狀態存在 `local_data/.tg_last_push` (JSON,含 `message_id` + 內容 hash)。
+
+Excel 附件不以檔案 hash 判斷是否更新 —— 每次 regen 內部時間戳都會變、
+hash 必然不同,拿它當基準會導致每次重傳 570KB。改以「手機摘要有沒有變」為準。
+
+### 潛在處置股清單
+
+資料源 `attstock.tw/api/stocks/risk`(跟 attstock 網站「處置雷達」同源),
+由 `scripts/refresh_attstock_disposal.py` 抓下來。
+
+- **D-1 / D-2 列完整明細**:股名、5分盤/20分盤、連續達標日數、30 日內次數、收盤價、漲跌%
+- **D-3 以後只報數量**(通常 160+ 檔,列出來會超過 Telegram 4096 字上限)
+- 超過 3,900 字時從 D-2 尾端(risk_score 低者)開始砍,並明確標示「另 N 檔未列」,
+  **D-1 一律完整保留**
+
+> 已知限制:attstock 網頁上「收盤≤46.80元(漲跌0.5%才觸發)」那種**觸發價**,
+> API 未提供,需自行重算其公式 — 目前未實作,只呈現 API 給的事實欄位。
 
 ## Token 機制速覽
 
@@ -55,7 +117,18 @@ Telegram                              GitHub Actions (cloud)
 4. 找 `chat` → `id`,通常是負數(如 `-1001234567890`)
 5. **這就是 `TELEGRAM_CHAT_ID`**
 
-### 3. 設定 GitHub Repo Secret
+### 3. 設定 token
+
+**本機 (track 2)** — 寫進專案根目錄 `.env`(已在 .gitignore,不會進 git):
+
+```
+TELEGRAM_BOT_TOKEN=123456789:ABCdef...
+TELEGRAM_CHAT_ID=987654321
+```
+
+`scheduler.ps1` 每次執行會自動載入。改完不需重啟排程。
+
+**雲端 (track 1)** — 若之後也要讓雲端推 TG,才需要設 Repo Secret:
 
 1. 進 GitHub Repo → Settings → Secrets and variables → Actions → New repository secret
 2. 加 2 個 secret:
@@ -98,10 +171,16 @@ gh workflow run daily-full.yml --repo DRwillychiu/CHIP_RADAR_TW
 `Run full crawler` step 有沒有印 `✓ Telegram 推播成功` 或 `[TEST MODE]`
 (印 TEST MODE = secret 沒讀到)。
 
-## 推播內容 (v3.55.0 起)
+## 附錄:籌碼 digest (預設關閉)
 
-每個交易日 daily-full crawler 跑完後**固定推一則** — 沒警報也推,
-讓你不必盯 GitHub Actions 綠燈就知道爬蟲跑完了:
+> ⚠️ 這是 v3.55.0 做的另一種格式,**目前預設不推**。
+> 現行主線是上面的「手機摘要 + 處置股清單」。
+>
+> 要啟用請設環境變數 `CHIP_RADAR_TG_DIGEST=1` — 但會變成一天收到兩種
+> 不同格式的訊息,建議二擇一。
+
+由 `alerts.py` 在 crawler 內部產生,偏「爬蟲有沒有跑 + 大盤氣氛」,
+跟手機摘要的「買什麼」互補:
 
 ```
 📊 Chip Radar · 20260729
@@ -134,18 +213,8 @@ gh workflow run daily-full.yml --repo DRwillychiu/CHIP_RADAR_TW
 | 無警報 | 警報區塊顯示 `今日無重大警報訊號` |
 | crawler 整個掛掉 | 由 workflow 補推 `🚨 Daily Full Crawl 失敗` + Actions log 連結 |
 
-crawler 成功時由 `alerts.py` 內部推、失敗時由 workflow 推,**兩條路互斥,永遠恰好一則**。
-
-### 為什麼一天只收到一則(而不是三則)
-
-`daily-full.yml` 有 21:17 / 22:37 / 23:47 三層兜底排程,主排程成功後兜底**仍會完整跑一次 crawler**
-(只是 commit 時 `git diff --quiet` 變 no-op)。若不處理,同一天會收到 3 則幾乎一樣的訊息。
-
-去重機制:workflow 在 crawler 跑之前先讀舊 `latest.json` 的 `trade_date`
-(明文外層,不需密碼),傳成 `CHIP_RADAR_PREV_TRADE_DATE`。
-`alerts.is_redundant_rerun()` 比對後若相同 → 判定為兜底重跑 → 跳過推播。
-
-未設此環境變數時一律推(保守策略:寧可多推也不要漏)。
+啟用時由 `alerts.py` 在 crawler 內部推送,去重靠 `CHIP_RADAR_PREV_TRADE_DATE`
+環境變數(本機 `scheduler.ps1` 未設,故啟用後三層兜底會各推一則)。
 
 ### 跟 GitHub 通知的關係
 
