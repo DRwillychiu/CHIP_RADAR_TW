@@ -1,75 +1,66 @@
 {
-  "date": "20260729",
-  "generated_at": "2026-07-29T17:11:58.725296",
+  "date": "20260730",
+  "generated_at": "2026-07-30T13:33:16.108406",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "中性 信心46.5% (低信心) · 3 檔個股關注",
+  "headline": "偏空 信心35.2% (低信心) · 2 檔個股關注",
   "market_direction": {
-    "direction": "中性",
-    "confidence_pct": 46.5,
-    "net_weight": -0.035,
+    "direction": "偏空",
+    "confidence_pct": 35.2,
+    "net_weight": -0.148,
     "contributing": [
       {
+        "name": "外資現貨",
+        "level": "extreme-bull",
+        "weight": 0.202,
+        "sign": "bull"
+      },
+      {
         "name": "P/C Ratio",
-        "level": "neutral",
-        "weight": -0.118,
+        "level": "bear",
+        "weight": -0.5,
         "sign": "bear"
       },
       {
-        "name": "分點漲停",
+        "name": "法人共識",
         "level": "extreme-bull",
-        "weight": 0.083,
+        "weight": 0.15,
         "sign": "bull"
       }
     ],
     "ignored": [
-      "外資現貨",
       "外資期貨",
+      "分點漲停",
       "融資熱度",
-      "法人共識",
       "結算日壓力"
     ]
   },
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "3362",
-      "name": "先進光",
-      "change_pct": 9.81,
+      "code": "3529",
+      "name": "力旺",
+      "change_pct": 9.83,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 39312,
-      "total_buy_amt_yi": 0.39,
+      "total_buy_amt_K": 158567,
+      "total_buy_amt_yi": 1.59,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.81%, 共淨買 0.39 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.83%, 共淨買 1.59 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "6226",
-      "name": "光鼎",
-      "change_pct": 10.0,
+      "code": "3520",
+      "name": "華盈",
+      "change_pct": 9.82,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 9870,
-      "total_buy_amt_yi": 0.1,
+      "total_buy_amt_K": 3472,
+      "total_buy_amt_yi": 0.03,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 10.0%, 共淨買 0.1 億",
-      "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
-    },
-    {
-      "rank": 3,
-      "code": "3504",
-      "name": "揚明光",
-      "change_pct": 9.94,
-      "tier": "consensus",
-      "master_count": 0,
-      "masters": [],
-      "total_buy_amt_K": 68841,
-      "total_buy_amt_yi": 0.69,
-      "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.94%, 共淨買 0.69 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.82%, 共淨買 0.03 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],
