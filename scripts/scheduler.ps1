@@ -54,6 +54,13 @@ if (Test-Path (Join-Path $venvScripts "python.exe")) {
 $env:CHIP_RADAR_DATA_DIR = Join-Path $projectRoot "local_data"
 $env:PYTHONIOENCODING = "utf-8"
 
+# v3.73.2: 修 log 中文亂碼 (「鞈??交?」)。
+#   Python 依 PYTHONIOENCODING 以 UTF-8 輸出,但 PowerShell 接收子行程 stdout 時
+#   是用 [Console]::OutputEncoding 解碼的,預設為系統 OEM codepage (zh-TW = CP950),
+#   於是 UTF-8 bytes 被當成 Big5 解讀 → 亂碼寫進 log。
+#   改成以 UTF-8 解碼即可 (寫檔端本來就已經是 -Encoding UTF8)。
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
+
 # ── Structured execution log (JSONL) ──
 $logsDir = Join-Path $projectRoot "logs"
 if (-not (Test-Path $logsDir)) { New-Item -ItemType Directory -Path $logsDir -Force | Out-Null }
