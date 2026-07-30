@@ -95,9 +95,16 @@ $FRI_ONLY    = @(5)                    # Fri
 
 $schedule = @(
     # ── daily-full.yml: 主爬蟲 (3-layer redundancy) ──
-    @{ time="21:17"; days=$WEEKDAY_1_5; job="daily-full";   cmd="python crawler.py" }
-    @{ time="22:37"; days=$WEEKDAY_1_5; job="daily-full";   cmd="python crawler.py" }
-    @{ time="23:47"; days=$WEEKDAY_1_5; job="daily-full";   cmd="python crawler.py" }
+    # v3.73.1: post = 爬完後的後續步驟,鏡射 daily-full.yml 的 step 6/7 + 推播。
+    #   每個 post 步驟獨立執行、失敗不中斷後續 (等同雲端的 continue-on-error)。
+    #   順序刻意跟雲端不同: 處置股放在 crawler 之前。
+    #   雲端是 crawler → regen Excel → refresh disposal,等於 Excel 用到的是
+    #   前一天的處置資料;本機提前抓,當天的 Excel 就吃得到當天處置清單。
+    #   send_daily_telegram.py 自己用 marker 檔去重 (同一 trade_date 只推一次),
+    #   所以 22:37 / 23:47 兜底跑到那步會自動跳過,不會重複推。
+    @{ time="21:17"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py") }
+    @{ time="22:37"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py") }
+    @{ time="23:47"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py") }
 
     # ── margin-refresh.yml: 融資融券 7-layer defense ──
     @{ time="22:30"; days=$WEEKDAY_1_5; job="margin";       cmd="python crawler.py"; env=@{CHIP_RADAR_STAGE="margin_only"} }
@@ -184,6 +191,25 @@ print('YES' if in_window else 'NO')
     Add-Content -Path $logFile -Value "[$timestamp] [$jobName] START: $cmd" -Encoding UTF8
     $startTime = Get-Date
 
+    # ── v3.73.1: pre 步驟 (爬蟲之前) ──
+    # 每個獨立執行,失敗不中斷 — 等同 daily-full.yml 的 continue-on-error
+    if ($entry.pre) {
+        foreach ($preCmd in $entry.pre) {
+            try {
+                $preOut = & cmd /c "cd /d `"$projectRoot`" && $preCmd" 2>&1
+                $preExit = $LASTEXITCODE
+                $preStatus = if ($preExit -eq 0) { "OK" } else { "FAIL (exit $preExit)" }
+                Add-Content -Path $logFile -Value "[$timestamp] [$jobName] PRE $preStatus : $preCmd" -Encoding UTF8
+                Write-ExecutionRecord -JobName "$jobName/pre" -Command $preCmd `
+                    -Status $(if ($preExit -eq 0) { "OK" } else { "FAIL" }) -ExitCode $preExit `
+                    -OutputTail (($preOut | Select-Object -Last 3) -join " | ")
+            } catch {
+                Add-Content -Path $logFile -Value "[$timestamp] [$jobName] PRE EXCEPTION: $preCmd -> $_" -Encoding UTF8
+                Write-ExecutionRecord -JobName "$jobName/pre" -Command $preCmd -Status "EXCEPTION" -ErrorMsg "$_"
+            }
+        }
+    }
+
     # GUI jobs (morning report) need a visible window — fire-and-forget via Start-Process
     if ($entry.gui) {
         $scriptPath = Join-Path $PSScriptRoot $cmd
@@ -214,6 +240,28 @@ print('YES' if in_window else 'NO')
         $duration = [math]::Round(((Get-Date) - $startTime).TotalMinutes, 1)
         Add-Content -Path $logFile -Value "[$timestamp] [$jobName] EXCEPTION (${duration} min): $_" -Encoding UTF8
         Write-ExecutionRecord -JobName $jobName -Command $cmd -Status "EXCEPTION" -DurationMin $duration -ErrorMsg "$_"
+    }
+
+    # ── v3.73.1: post 步驟 (爬蟲之後) ──
+    # 不論主命令成敗都跑 — 等同 daily-full.yml 的 continue-on-error。
+    # send_daily_telegram.py 自帶防呆: 爬蟲失敗時 trade_date 沒推進,
+    # marker 比對後會自動跳過,不會推到舊資料。
+    if ($entry.post) {
+        foreach ($postCmd in $entry.post) {
+            try {
+                $postOut = & cmd /c "cd /d `"$projectRoot`" && $postCmd" 2>&1
+                $postExit = $LASTEXITCODE
+                $postStatus = if ($postExit -eq 0) { "OK" } else { "FAIL (exit $postExit)" }
+                Add-Content -Path $logFile -Value "[$timestamp] [$jobName] POST $postStatus : $postCmd" -Encoding UTF8
+                Add-Content -Path $logFile -Value "[$timestamp] [$jobName] POST Output: $(($postOut | Select-Object -Last 3) -join ' | ')" -Encoding UTF8
+                Write-ExecutionRecord -JobName "$jobName/post" -Command $postCmd `
+                    -Status $(if ($postExit -eq 0) { "OK" } else { "FAIL" }) -ExitCode $postExit `
+                    -OutputTail (($postOut | Select-Object -Last 3) -join " | ")
+            } catch {
+                Add-Content -Path $logFile -Value "[$timestamp] [$jobName] POST EXCEPTION: $postCmd -> $_" -Encoding UTF8
+                Write-ExecutionRecord -JobName "$jobName/post" -Command $postCmd -Status "EXCEPTION" -ErrorMsg "$_"
+            }
+        }
     }
 
     # Reset extra env vars

@@ -38,6 +38,8 @@ from datetime import datetime
 from collections import defaultdict
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT = Path(__file__).resolve().parents[1]
+# v3.73.1: 尊重 CHIP_RADAR_DATA_DIR (本機排程用 local_data/, 雲端維持 data/)
+DATA = ROOT / os.environ.get('CHIP_RADAR_DATA_DIR', 'data')
 sys.path.insert(0, str(ROOT))
 
 from src.pipelines.crawler_output import decrypt_data
@@ -53,12 +55,12 @@ password = os.environ.get('CHIP_RADAR_PASSWORD', '')
 if not password:
     print("X CHIP_RADAR_PASSWORD not set"); sys.exit(1)
 
-with open(ROOT / 'data' / 'stock_history.json', 'r', encoding='utf-8') as f:
+with open(DATA / 'stock_history.json', 'r', encoding='utf-8') as f:
     sh = json.load(f)
 sh_stocks = sh.get('stocks', {})
 sh_dates = sh.get('dates', [])
 
-with open(ROOT / 'data' / 'temp_history.json', 'r', encoding='utf-8') as f:
+with open(DATA / 'temp_history.json', 'r', encoding='utf-8') as f:
     th = json.load(f)
 th_by_date = {e['date']: e for e in (th.get('history') or [])}
 
@@ -77,9 +79,9 @@ def _read_daily(p):
 
 # Load all daily files chronologically
 daily_files = sorted(
-    list((ROOT / 'data').glob('[0-9]' * 8 + '.json')) +
-    list((ROOT / 'data' / 'archive').glob('[0-9]' * 8 + '.json')) +
-    list((ROOT / 'data' / 'archive').glob('[0-9]' * 8 + '.json.gz')),
+    list((DATA).glob('[0-9]' * 8 + '.json')) +
+    list((DATA / 'archive').glob('[0-9]' * 8 + '.json')) +
+    list((DATA / 'archive').glob('[0-9]' * 8 + '.json.gz')),
     key=lambda p: p.name[:8]
 )
 seen = set(); files = []
@@ -316,7 +318,7 @@ out = {
     'updated_at': datetime.now().isoformat(),
 }
 
-out_path = ROOT / 'data' / 'quad_hit_log.json'
+out_path = DATA / 'quad_hit_log.json'
 with open(out_path, 'w', encoding='utf-8') as f:
     json.dump(out, f, ensure_ascii=False, indent=2)
 

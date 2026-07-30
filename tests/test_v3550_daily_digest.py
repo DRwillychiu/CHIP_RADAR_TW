@@ -133,33 +133,50 @@ check("未轉義的裸 < 不存在於警報內文", '<script>' not in d4)
 
 
 # ─────────────────────────────────────────────────────────────────────
-print("\n[Case 6] run_alerts — 無警報也推 Telegram, Discord 不推")
+print("\n[Case 6] run_alerts — digest 預設 opt-out (v3.73.1)")
 quiet = dict(REAL_DATA)
 quiet['institutional_rankings'] = {'foreign': {'buy': [], 'sell': [], 'total_net_lots': 100}}
 quiet['futures_data'] = {'summary': {'pc_ratio_oi': 1.0}}
 quiet['limit_up_summary'] = {'limit_up_stocks': []}
 
 mock_resp = MagicMock(status_code=200)
+
+# v3.73.1: 本機排程改推「手機摘要」(scripts/send_daily_telegram.py),
+# crawler 內的 digest 若也推會變成一天兩則不同格式 → 改為 opt-in。
 with patch('alerts.requests.post', return_value=mock_resp) as m:
     with patch.dict(os.environ, {'TELEGRAM_BOT_TOKEN': '123:ABC',
                                   'TELEGRAM_CHAT_ID': '789'}, clear=False):
         os.environ.pop('DISCORD_WEBHOOK_URL', None)
+        os.environ.pop('CHIP_RADAR_TG_DIGEST', None)
         res = run_alerts(quiet, dry_run=False)
 
     check("確實無警報", len(res['detected']) == 0)
-    check("Telegram 仍有推 (無警報也推)", res['pushed_telegram'] is True)
+    check("未設 CHIP_RADAR_TG_DIGEST → 不推 digest", res['pushed_telegram'] is False)
+    check("完全沒呼叫 POST (TG 跟 Discord 都沒推)", m.call_count == 0)
+    check("未推 Discord", res['pushed'] is False)
+
+print("\n[Case 6b] run_alerts — CHIP_RADAR_TG_DIGEST=1 時恢復推 digest")
+with patch('alerts.requests.post', return_value=mock_resp) as m:
+    with patch.dict(os.environ, {'TELEGRAM_BOT_TOKEN': '123:ABC',
+                                  'TELEGRAM_CHAT_ID': '789',
+                                  'CHIP_RADAR_TG_DIGEST': '1'}, clear=False):
+        os.environ.pop('DISCORD_WEBHOOK_URL', None)
+        os.environ.pop('CHIP_RADAR_PREV_TRADE_DATE', None)
+        res = run_alerts(quiet, dry_run=False)
+
+    check("opt-in 後有推", res['pushed_telegram'] is True)
     check("只呼叫一次 POST (Discord 沒推)", m.call_count == 1)
     payload = m.call_args[1].get('json', {})
     check("parse_mode = HTML", payload.get('parse_mode') == 'HTML')
-    check("內容是 digest 不是純警報", '爬蟲完成' in payload.get('text', ''))
-    check("未推 Discord", res['pushed'] is False)
+    check("內容是 digest", '爬蟲完成' in payload.get('text', ''))
 
 
 # ─────────────────────────────────────────────────────────────────────
-print("\n[Case 7] run_alerts — 兜底重跑完全不推")
+print("\n[Case 7] run_alerts — digest 啟用時,兜底重跑仍不推")
 with patch('alerts.requests.post', return_value=mock_resp) as m2:
     with patch.dict(os.environ, {'TELEGRAM_BOT_TOKEN': '123:ABC',
                                   'TELEGRAM_CHAT_ID': '789',
+                                  'CHIP_RADAR_TG_DIGEST': '1',
                                   'CHIP_RADAR_PREV_TRADE_DATE': '20260729'},
                      clear=False):
         os.environ.pop('DISCORD_WEBHOOK_URL', None)

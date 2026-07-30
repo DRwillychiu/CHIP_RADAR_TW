@@ -27,8 +27,12 @@ sys.stdout.reconfigure(encoding='utf-8')
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+# v3.73.1: 尊重 CHIP_RADAR_DATA_DIR (本機排程用 local_data/, 雲端維持 data/)。
+#   原本寫死 ROOT/'data' — 本機跑會去讀寫 git 追蹤的 data/, 污染工作目錄。
+DATA = ROOT / os.environ.get('CHIP_RADAR_DATA_DIR', 'data')
+
 # 1. 抓最新交易日
-with open(ROOT / 'data' / 'index.json', 'r', encoding='utf-8') as f:
+with open(DATA / 'index.json', 'r', encoding='utf-8') as f:
     idx = json.load(f)
 target_date = idx.get('latest')
 if not target_date:
@@ -75,9 +79,9 @@ password = os.environ.get('CHIP_RADAR_PASSWORD', '')
 if not password:
     print("X CHIP_RADAR_PASSWORD not set"); sys.exit(1)
 
-src = ROOT / 'data' / f'{target_date}.json'
+src = DATA / f'{target_date}.json'
 if not src.exists():
-    src = ROOT / 'data' / 'archive' / f'{target_date}.json'
+    src = DATA / 'archive' / f'{target_date}.json'
     if not src.exists():
         print(f"X data file not found: {target_date}")
         sys.exit(1)
@@ -89,8 +93,8 @@ plain = decrypt_data(enc['data'], password, iterations=enc.get('iterations'))
 data = json.loads(plain)
 
 month_str = f"{target_date[:4]}-{target_date[4:6]}"
-mp = ROOT / 'data' / 'reports' / f'chip_radar_{month_str}.xlsx'
-lp = ROOT / 'data' / 'reports' / 'latest.xlsx'
+mp = DATA / 'reports' / f'chip_radar_{month_str}.xlsx'
+lp = DATA / 'reports' / 'latest.xlsx'
 _update_monthly_workbook(mp, data['branches'], target_date)
 shutil.copy2(str(mp), str(lp))
 print(f"  Regen OK: {mp.name} + latest.xlsx")

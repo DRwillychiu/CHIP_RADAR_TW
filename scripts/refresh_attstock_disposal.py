@@ -15,12 +15,13 @@ disposal_watch 的完整節錄功能.
     "sample": [{code, name, type, days_to_disposal}, ...]   # 給 hover 用
   }
 """
-import json, sys, requests, datetime
+import json, os, sys, requests, datetime
 from pathlib import Path
 sys.stdout.reconfigure(encoding='utf-8')
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'data' / 'disposal_attstock.json'
+# v3.73.1: 尊重 CHIP_RADAR_DATA_DIR (本機排程用 local_data/)
+OUT = ROOT / os.environ.get('CHIP_RADAR_DATA_DIR', 'data') / 'disposal_attstock.json'
 
 URL = 'https://attstock.tw/api/stocks/risk'
 

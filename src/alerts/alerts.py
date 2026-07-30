@@ -573,17 +573,29 @@ def run_alerts(latest_data: Dict[str, Any], insider_data: Optional[Dict] = None,
                 'telegram_skipped_rerun': False}
 
     # ────────────────────────────────────────────────────────────────
-    # Telegram: v3.55.0 起「每個交易日固定推一則」
-    #   內容 = 執行狀態 + 籌碼摘要 + 警報 (無警報也推, 讓使用者確知 crawler 跑完)
-    #   例外 = 兜底排程重跑 → 跳過, 否則一天會收到 3 則
+    # Telegram digest (執行狀態 + 籌碼摘要 + 警報)
+    #
+    # v3.55.0: 每個交易日固定推一則
+    # v3.73.1: 改為 opt-in — 預設不推。
+    #   本機排程改推「手機摘要」(跟 email 同一份, 見 scripts/send_daily_telegram.py),
+    #   那是在 Excel regen 之後才做的獨立步驟。若這裡也推, 一天會收到兩則不同格式的。
+    #   要恢復推 digest → 設 CHIP_RADAR_TG_DIGEST=1
     # ────────────────────────────────────────────────────────────────
-    tg_skipped = is_redundant_rerun(today_str)
-    if tg_skipped:
-        print(f"\n  ⏭️ 兜底排程重跑 (資料已是 {today_str}),跳過 Telegram 推播")
+    digest_enabled = os.environ.get('CHIP_RADAR_TG_DIGEST', '').strip() in ('1', 'true', 'yes')
+    tg_skipped = False
+
+    if not digest_enabled:
+        print("\n  ⏭️ Telegram digest 未啟用 (CHIP_RADAR_TG_DIGEST 未設),"
+              "手機摘要由 send_daily_telegram.py 負責")
         tg_result = None
     else:
-        tg_result = send_telegram(build_daily_digest(latest_data, detected),
-                                    parse_mode='HTML')
+        tg_skipped = is_redundant_rerun(today_str)
+        if tg_skipped:
+            print(f"\n  ⏭️ 兜底排程重跑 (資料已是 {today_str}),跳過 Telegram 推播")
+            tg_result = None
+        else:
+            tg_result = send_telegram(build_daily_digest(latest_data, detected),
+                                        parse_mode='HTML')
 
     # ────────────────────────────────────────────────────────────────
     # Discord: 維持 v3.20 原行為 — 只在偵測到警報時推
