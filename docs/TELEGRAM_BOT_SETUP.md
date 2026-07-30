@@ -70,8 +70,17 @@ Telegram                              GitHub Actions (cloud)
 
 ### 4. 驗證
 
+**(a) 先看 digest 長什麼樣(不需 token,不會真的推)**
+
 ```powershell
-# 本地測試 (Windows PowerShell)
+python src/alerts/alerts.py
+```
+
+會用內建 mock 資料印出完整的每日摘要預覽。
+
+**(b) 真的推一則到你的 Telegram**
+
+```powershell
 $env:TELEGRAM_BOT_TOKEN = '123456789:ABCdef...'
 $env:TELEGRAM_CHAT_ID = '987654321'
 python -c "from src.alerts.alerts import send_telegram; send_telegram('Hello from Chip Radar!')"
@@ -79,28 +88,77 @@ python -c "from src.alerts.alerts import send_telegram; send_telegram('Hello fro
 
 成功會在 Telegram 收到訊息,console 印 `✓ Telegram 推播成功`.
 
-## 推播內容
+**(c) 端到端:手動觸發雲端 workflow**
 
-每日 daily-full crawler 跑完後推一則(僅當有警報):
-
-```
-📊 Chip Radar 20260621
-
-共 3 則警報  (foreign_extreme: 1 / limit_up: 2)
-
-▸ 外資爆量
-  +5500 張 (門檻 5000)
-▸ 漲停過熱
-  32 檔 (門檻 30)
-▸ 結算提醒
-  D-2 (settlement_date: 20260625)
+```bash
+gh workflow run daily-full.yml --repo DRwillychiu/CHIP_RADAR_TW
 ```
 
-無警報日 → 推 `今日無重大警報訊號` (還是會推一則, 讓你知道 crawler 跑了).
+跑完約 11-15 分鐘後應收到一則完整 digest。若沒收到,看 Actions log 裡
+`Run full crawler` step 有沒有印 `✓ Telegram 推播成功` 或 `[TEST MODE]`
+(印 TEST MODE = secret 沒讀到)。
 
-## 訊息上限
+## 推播內容 (v3.55.0 起)
 
-- 單則 4096 字 (我們 alert 通常 < 1000 字, 不會超)
+每個交易日 daily-full crawler 跑完後**固定推一則** — 沒警報也推,
+讓你不必盯 GitHub Actions 綠燈就知道爬蟲跑完了:
+
+```
+📊 Chip Radar · 20260729
+
+✅ 爬蟲完成 (full) · 21:23
+分點 81/81 · 個股 1,842 · 法人 1,795
+
+━━ 今日籌碼 ━━
+🦅 外資現貨 -7,512 張
+📈 外資期貨未平倉 -42,180 口
+📊 P/C Ratio 1.85
+🔥 漲停 32 檔
+💰 融資高風險 12 檔 · 斷頭 3 檔
+
+━━ 警報 3 則 ━━
+🔴 🦅 外資極端賣超
+　　外資現貨賣超 7,512 張 (閾值 5,000)
+🔴 📊 PCR 極端看空
+　　P/C Ratio = 1.85 (>1.8), 散戶極度看空 → 反指標偏多
+🟡 🔥 漲停家數過熱
+　　今日漲停 32 檔 (閾值 30), 市場過熱要小心
+```
+
+三個區塊各自的降級行為:
+
+| 狀況 | 顯示 |
+|---|---|
+| 分點有失敗 | `⚠️ 爬蟲部分失敗` + `分點 68/81 · 13 失敗` |
+| 期貨/融資抓不到 | 該行直接省略,其他行照常 (不會整則推播失敗) |
+| 無警報 | 警報區塊顯示 `今日無重大警報訊號` |
+| crawler 整個掛掉 | 由 workflow 補推 `🚨 Daily Full Crawl 失敗` + Actions log 連結 |
+
+crawler 成功時由 `alerts.py` 內部推、失敗時由 workflow 推,**兩條路互斥,永遠恰好一則**。
+
+### 為什麼一天只收到一則(而不是三則)
+
+`daily-full.yml` 有 21:17 / 22:37 / 23:47 三層兜底排程,主排程成功後兜底**仍會完整跑一次 crawler**
+(只是 commit 時 `git diff --quiet` 變 no-op)。若不處理,同一天會收到 3 則幾乎一樣的訊息。
+
+去重機制:workflow 在 crawler 跑之前先讀舊 `latest.json` 的 `trade_date`
+(明文外層,不需密碼),傳成 `CHIP_RADAR_PREV_TRADE_DATE`。
+`alerts.is_redundant_rerun()` 比對後若相同 → 判定為兜底重跑 → 跳過推播。
+
+未設此環境變數時一律推(保守策略:寧可多推也不要漏)。
+
+### 跟 GitHub 通知的關係
+
+**並行,不取代。** GitHub 原有的 Actions 失敗 email 和 heartbeat 自動開 issue 全部保留,
+Telegram 是額外多一條管道。要關掉 GitHub email 請自行到帳號的
+`Settings → Notifications` 調整 — 建議等 TG 連續正常跑幾天再關。
+
+## 訊息格式與上限
+
+- **parse_mode = HTML**(不是 Markdown)—— 股票名稱/分點名稱可能含 `_` `*` `` ` `` `[`
+  等 Markdown 元字元,未轉義會讓 Telegram 回 HTTP 400。HTML 只需轉義 `< > &`,
+  由 `alerts._esc()` 統一處理。
+- 單則 4096 字 (digest 通常 < 800 字, 不會超)
 - 推到群組需 bot 是 admin 或 group privacy mode off
 - API rate limit: 30 msg/sec, 我們一天最多推 1 次, 不會撞
 
@@ -127,7 +185,10 @@ Discord (DISCORD_WEBHOOK_URL) 跟 Telegram (TELEGRAM_BOT_TOKEN+TELEGRAM_CHAT_ID)
 | 症狀 | 可能原因 |
 |---|---|
 | HTTP 401 Unauthorized | TELEGRAM_BOT_TOKEN 錯了, /revoke 重發 |
-| HTTP 400 Bad Request | text 含未轉義的 Markdown 字元 (改 parse_mode=None 試試) |
+| HTTP 400 Bad Request | text 含未轉義字元 — v3.55.0 起走 HTML + `_esc()`,若仍發生表示有新欄位沒過 `_esc()` |
 | HTTP 403 Forbidden | bot 還沒收過你的訊息 (個人 chat 需先 start 一次) |
 | HTTP 429 Too Many Requests | rate limit (一天 1 次不會撞, 除非你手動 trigger 多次) |
-| 沒推但 console 印「test mode」 | env var 沒設或值為空, 檢查 GitHub Secret |
+| 沒推但 console 印「test mode」 | env var 沒設或值為空, 檢查 GitHub Secret 名稱有沒有打錯 |
+| console 印「兜底排程重跑…跳過」 | 正常 — 今天已推過, 這是 22:37/23:47 兜底那次 |
+| 一天收到 3 則重複 | `CHIP_RADAR_PREV_TRADE_DATE` 沒傳進去, 檢查 workflow 的 `Record previous trade date` step |
+| 摘要裡「外資現貨」那行不見 | `institutional_rankings.foreign.total_net_lots` 沒產出, 見 crawler.py `build_inst_ranking()` |

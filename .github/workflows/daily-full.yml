@@ -70,14 +70,68 @@ jobs:
           workflow: daily-full.yml
         continue-on-error: true
 
+      # v3.55.0: 記錄「跑之前」latest.json 的 trade_date。
+      #   本 workflow 有 21:17 / 22:37 / 23:47 三層兜底,每層都完整跑一次 crawler。
+      #   若主排程已成功,兜底這次的 trade_date 會跟舊檔相同 → alerts 據此跳過
+      #   Telegram 推播,否則同一天會收到 3 則一樣的訊息。
+      #   trade_date 在 latest.json 的明文外層,不需要 CHIP_RADAR_PASSWORD。
+      - name: Record previous trade date
+        id: prev
+        run: |
+          PREV=$(python -c "import json,sys;print(json.load(open('data/latest.json')).get('trade_date',''))" 2>/dev/null || echo "")
+          echo "trade_date=$PREV" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Previous trade_date::${PREV:-<none>}"
+
       - name: Run full crawler
+        id: crawl
         env:
           CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
           CHIP_RADAR_STAGE: full
+          # v3.55.0: Telegram 每日推播 (執行狀態 + 籌碼摘要 + 警報)。
+          #   兩個 secret 缺任一 → alerts.send_telegram 自動走 test mode 只 print,
+          #   不會讓 crawler 失敗。跟 GitHub 既有的 email/issue 通知並行,不取代。
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CHIP_RADAR_PREV_TRADE_DATE: ${{ steps.prev.outputs.trade_date }}
         run: |
           echo "🎯 STAGE=full (主爬蟲)"
           python crawler.py
         continue-on-error: true
+
+      # v3.55.0: crawler 掛掉時的兜底推播。
+      #   crawler 正常跑完 → 內部 alerts 已推 digest,這步 skip
+      #   crawler crash / timeout / checkout 失敗 → 內部推不到,由這步補
+      #   → 兩條路互斥,永遠恰好一則,不會重複也不會漏。
+      - name: Notify Telegram on crawler failure
+        if: always() && steps.crawl.outcome != 'success'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          OUTCOME: ${{ steps.crawl.outcome }}
+          SCHEDULE: ${{ github.event.schedule }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # secrets 不能用在 if: 條件, 只能在這裡擋
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "::notice::Telegram secrets 未設, 跳過失敗推播"
+            exit 0
+          fi
+
+          NOW="$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M')"
+          # 標示是哪一層排程觸發的 — 主排程失敗才嚴重, 兜底失敗時資料可能已由主排程更新
+          WHICH="${SCHEDULE:-手動觸發}"
+
+          # 用 printf 組多行 — 字面換行會頂到 column 0, 直接截斷 YAML 的 run: | block
+          TEXT=$(printf '🚨 <b>Chip Radar</b> · %s TW\n\n❌ Daily Full Crawl 失敗\ncrawler 未正常結束 (outcome: %s)\n觸發排程: %s UTC\n\n<a href="%s">開啟 Actions log</a>' \
+            "$NOW" "${OUTCOME:-unknown}" "$WHICH" "$RUN_URL")
+
+          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${TEXT}" \
+            -d "parse_mode=HTML" \
+            -d "disable_web_page_preview=true" \
+            -o /dev/null
+          echo "::notice::已推 Telegram 失敗通知"
       
       # v3.31.14: 上傳更新後的 DB (GitHub Artifact, 90 天保留)
       # DB 不進 git (.gitignore) 但透過 artifact 在 workflow 間傳遞累積

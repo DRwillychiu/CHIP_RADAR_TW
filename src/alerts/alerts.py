@@ -2,8 +2,14 @@
 alerts.py — v3.20 主動推播警報系統
 
 用途:
-  把 Daily Full Crawl 跑完的資料 → 偵測異常 → 推 Discord
-  
+  把 Daily Full Crawl 跑完的資料 → 偵測異常 → 推 Discord / Telegram
+
+推播管道 (各自獨立, 有 token 就推):
+  • Discord  — 只在偵測到警報時推 (v3.20 起行為未變)
+  • Telegram — 每個交易日固定推一則 digest: 執行狀態 + 籌碼摘要 + 警報 (v3.55.0)
+               無警報也推, 讓使用者不必盯 GitHub Actions 就知道 crawler 跑完了。
+               兜底排程重跑會跳過, 見 is_redundant_rerun()。
+
 5 種訊號:
   1. 外資現貨 ±5,000 張極端
   2. P/C Ratio > 1.8 或 < 0.6 (散戶極端情緒)
@@ -19,6 +25,7 @@ alerts.py — v3.20 主動推播警報系統
 import os
 import json
 import time
+import html as _html
 import requests
 from datetime import datetime, date, timedelta
 from typing import Dict, Any, List, Optional
@@ -173,6 +180,172 @@ def _format_telegram_alert(detected: List[Dict[str, Any]], trade_date: str) -> s
     if len(detected) > 8:
         lines.append(f"\n_...另 {len(detected) - 8} 則, 詳見網站 / Discord_")
     return "\n".join(lines)
+
+
+# ════════════════════════════════════════════════════════════════════
+#  v3.55.0: 每日 Telegram 摘要 (執行狀態 + 籌碼摘要 + 警報)
+#
+#  跟舊的 _format_telegram_alert 差別:
+#    舊: 只在「有警報」時推, 內容只有警報
+#    新: 每個交易日固定推一則, 內容 = 爬蟲跑得如何 + 當日籌碼重點 + 警報
+#        → 沒警報的日子也能確知 crawler 有跑完 (取代盯 GitHub Actions 綠燈)
+#
+#  parse_mode 用 HTML 不用 Markdown:
+#    股票名稱/分點名稱可能含 _ * ` [ 等 Markdown 元字元, 未轉義會 HTTP 400
+#    (見 docs/TELEGRAM_BOT_SETUP.md 故障排除表)。HTML 只需 escape 3 個字元。
+# ════════════════════════════════════════════════════════════════════
+
+def _esc(v: Any) -> str:
+    """HTML escape — Telegram parse_mode=HTML 僅允許少數 tag, 其餘須轉義."""
+    return _html.escape(str(v), quote=False)
+
+
+def _signed(n: Any) -> str:
+    """帶正負號的千分位 (買超 +5,500 / 賣超 -7,512)."""
+    try:
+        return f"{int(n):+,}"
+    except (TypeError, ValueError):
+        return str(n)
+
+
+def is_redundant_rerun(trade_date: Any) -> bool:
+    """本次是否為兜底排程的重複跑?
+
+    daily-full 有 21:17 / 22:37 / 23:47 三層兜底排程 (見 daily-full.yml),
+    每一層都會完整跑一次 crawler — 主排程成功後兜底仍照跑, 只是 commit 時
+    git diff --quiet 變 no-op。若不去重, 同一天會收到 3 則幾乎一樣的推播。
+
+    機制: 呼叫端 (workflow / scheduler.ps1) 在 crawler 跑之前先讀舊 latest.json
+    的 trade_date, 傳成 CHIP_RADAR_PREV_TRADE_DATE 環境變數。若它等於本次的
+    trade_date, 表示今天已經成功跑過並推播過 → 這次是兜底 → 跳過推播。
+
+    未設此 env var → 一律回 False (保守: 寧可多推也不要漏推)。
+    """
+    prev = os.environ.get('CHIP_RADAR_PREV_TRADE_DATE', '').strip()
+    if not prev or not trade_date:
+        return False
+    # trade_date 在不同路徑有 20260729 / 2026-07-29 / 2026/07/29 幾種寫法, 正規化再比
+    norm = lambda s: ''.join(ch for ch in str(s) if ch.isdigit())
+    return bool(norm(prev)) and norm(prev) == norm(trade_date)
+
+
+def _digest_exec_status(d: Dict[str, Any]) -> List[str]:
+    """執行狀態區塊: 分點成功/失敗數 + 個股/法人筆數 + 完成時間."""
+    ok = d.get('success')
+    failed = d.get('failed') or 0
+    empty = d.get('empty') or 0
+    stage = d.get('stage') or 'full'
+
+    # crawled_at 是 ISO 字串, 取 HH:MM
+    hhmm = ''
+    crawled = d.get('crawled_at') or ''
+    if len(crawled) >= 16 and crawled[10] == 'T':
+        hhmm = f" · {crawled[11:16]}"
+
+    if ok is None:
+        return [f"❓ 執行狀態未知 ({_esc(stage)}){hhmm}"]
+
+    total = ok + failed + empty
+    head = "✅ 爬蟲完成" if failed == 0 else "⚠️ 爬蟲部分失敗"
+    lines = [f"{head} ({_esc(stage)}){hhmm}"]
+
+    detail = f"分點 {ok}/{total}"
+    if failed:
+        detail += f" · {failed} 失敗"
+    if empty:
+        detail += f" · {empty} 空"
+    if d.get('quotes_count'):
+        detail += f" · 個股 {d['quotes_count']:,}"
+    if d.get('institutional_count'):
+        detail += f" · 法人 {d['institutional_count']:,}"
+    lines.append(detail)
+    return lines
+
+
+def _digest_chip_summary(d: Dict[str, Any]) -> List[str]:
+    """籌碼摘要區塊.
+
+    每一行獨立 try — 任何一個資料源掛掉 (期貨常抓不到) 只少一行,
+    不會讓整則推播失敗。爬蟲本身就是 continue-on-error, 推播更該容錯。
+    """
+    lines: List[str] = []
+
+    # 外資現貨淨買賣超 (v3.55.0 修好 total_net_lots 後才有值)
+    try:
+        foreign = (d.get('institutional_rankings') or {}).get('foreign') or {}
+        net = foreign.get('total_net_lots')
+        if net is not None:
+            lines.append(f"🦅 外資現貨 {_signed(net)} 張")
+    except Exception:
+        pass
+
+    # 期貨: 外資未平倉 + P/C Ratio
+    try:
+        fs = (d.get('futures_data') or {}).get('summary') or {}
+        oi = fs.get('foreign_equivalent_net_oi')
+        if oi is not None:
+            lines.append(f"📈 外資期貨未平倉 {_signed(oi)} 口")
+        pcr = fs.get('pc_ratio_oi')
+        if pcr is not None:
+            lines.append(f"📊 P/C Ratio {pcr}")
+    except Exception:
+        pass
+
+    # 漲停家數
+    try:
+        stocks = (d.get('limit_up_summary') or {}).get('limit_up_stocks') or []
+        if stocks:
+            lines.append(f"🔥 漲停 {len(stocks)} 檔")
+    except Exception:
+        pass
+
+    # 融資維持率風險分布 (高風險 120-130% / 斷頭 <120%)
+    try:
+        counts = ((d.get('margin_maintenance_summary') or {}).get('counts')) or {}
+        hr, mc = counts.get('high_risk', 0), counts.get('margin_call', 0)
+        if hr or mc:
+            lines.append(f"💰 融資高風險 {hr} 檔 · 斷頭 {mc} 檔")
+    except Exception:
+        pass
+
+    return lines
+
+
+def _digest_alerts(detected: List[Dict[str, Any]]) -> List[str]:
+    """警報區塊 (HTML). 標題本身已含分類 emoji, 前綴再加嚴重度顏色."""
+    if not detected:
+        return ["今日無重大警報訊號"]
+
+    lines = []
+    for sig in detected[:8]:
+        dot = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}.get(sig.get('severity'), '⚪')
+        lines.append(f"{dot} <b>{_esc(sig.get('title') or sig.get('type') or 'alert')}</b>")
+        msg = sig.get('message') or ''
+        if msg:
+            lines.append(f"　　{_esc(msg[:200])}")
+    if len(detected) > 8:
+        lines.append(f"<i>…另 {len(detected) - 8} 則,詳見網站</i>")
+    return lines
+
+
+def build_daily_digest(latest_data: Dict[str, Any],
+                        detected: Optional[List[Dict[str, Any]]] = None) -> str:
+    """組每日 Telegram 摘要 (HTML): 執行狀態 + 籌碼摘要 + 警報."""
+    d = latest_data or {}
+    detected = detected or []
+    trade_date = d.get('trade_date') or date.today().strftime('%Y%m%d')
+
+    parts = [f"📊 <b>Chip Radar</b> · {_esc(trade_date)}", ""]
+    parts += _digest_exec_status(d)
+
+    chip = _digest_chip_summary(d)
+    if chip:
+        parts += ["", "━━ 今日籌碼 ━━"] + chip
+
+    parts += ["", f"━━ 警報 {len(detected)} 則 ━━" if detected else "━━ 警報 ━━"]
+    parts += _digest_alerts(detected)
+
+    return "\n".join(parts)
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -391,37 +564,45 @@ def run_alerts(latest_data: Dict[str, Any], insider_data: Optional[Dict] = None,
                 'announcements': high_impact[:10],
             })
     
-    # 推播
-    if not detected:
-        print("\n  📭 今日無異常,不推播")
-        # v3.54.0: 仍 return Telegram 欄位 (test mode 表示沒推) 給 caller 一致 schema
-        return {'detected': [], 'pushed': False, 'count_by_type': {},
-                'pushed_telegram': False, 'pushed_telegram_test_mode': True}
+    today_str = latest_data.get('trade_date') or date.today().strftime('%Y/%m/%d')
 
     if dry_run:
         print(f"\n  🧪 dry_run 模式,共偵測 {len(detected)} 個訊號 (不推播)")
         return {'detected': detected, 'pushed': False, 'count_by_type': _count_by_type(detected),
-                'pushed_telegram': False, 'pushed_telegram_test_mode': True}
-    
-    # 組推播訊息
-    today_str = latest_data.get('trade_date') or date.today().strftime('%Y/%m/%d')
-    content_lines = [
-        f"📊 **Chip Radar 警報** · {today_str}",
-        f"偵測到 **{len(detected)}** 個異常訊號",
-        "",
-    ]
-    for sig in detected[:10]:  # 限制 10 個
-        emoji = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}.get(sig.get('severity'), '⚪')
-        content_lines.append(f"{emoji} **{sig['title']}**")
-        content_lines.append(f"   {sig['message']}")
-        content_lines.append("")
-    
-    content = '\n'.join(content_lines)
-    push_result = send_discord(content)
+                'pushed_telegram': False, 'pushed_telegram_test_mode': True,
+                'telegram_skipped_rerun': False}
 
-    # v3.54.0 (Sprint 16 長2): 並行推 Telegram (跟 Discord 獨立, 各自有 token 就推)
-    tg_text = _format_telegram_alert(detected, today_str)
-    tg_result = send_telegram(tg_text)
+    # ────────────────────────────────────────────────────────────────
+    # Telegram: v3.55.0 起「每個交易日固定推一則」
+    #   內容 = 執行狀態 + 籌碼摘要 + 警報 (無警報也推, 讓使用者確知 crawler 跑完)
+    #   例外 = 兜底排程重跑 → 跳過, 否則一天會收到 3 則
+    # ────────────────────────────────────────────────────────────────
+    tg_skipped = is_redundant_rerun(today_str)
+    if tg_skipped:
+        print(f"\n  ⏭️ 兜底排程重跑 (資料已是 {today_str}),跳過 Telegram 推播")
+        tg_result = None
+    else:
+        tg_result = send_telegram(build_daily_digest(latest_data, detected),
+                                    parse_mode='HTML')
+
+    # ────────────────────────────────────────────────────────────────
+    # Discord: 維持 v3.20 原行為 — 只在偵測到警報時推
+    # ────────────────────────────────────────────────────────────────
+    push_result = None
+    if not detected:
+        print("\n  📭 今日無異常,Discord 不推播")
+    else:
+        content_lines = [
+            f"📊 **Chip Radar 警報** · {today_str}",
+            f"偵測到 **{len(detected)}** 個異常訊號",
+            "",
+        ]
+        for sig in detected[:10]:  # 限制 10 個
+            emoji = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}.get(sig.get('severity'), '⚪')
+            content_lines.append(f"{emoji} **{sig['title']}**")
+            content_lines.append(f"   {sig['message']}")
+            content_lines.append("")
+        push_result = send_discord('\n'.join(content_lines))
 
     return {
         'detected': detected,
@@ -431,6 +612,8 @@ def run_alerts(latest_data: Dict[str, Any], insider_data: Optional[Dict] = None,
         # v3.54.0: Telegram 推播狀態 (跟 Discord 各自獨立)
         'pushed_telegram': tg_result is True,
         'pushed_telegram_test_mode': tg_result is None,
+        # v3.55.0: 是否因兜底重跑而跳過 (區分「沒推因為沒 token」vs「沒推因為重複」)
+        'telegram_skipped_rerun': tg_skipped,
     }
 
 
@@ -446,11 +629,17 @@ def _count_by_type(detected: List[Dict]) -> Dict[str, int]:
 #  CLI 測試
 # ════════════════════════════════════════════════════════════════════
 if __name__ == '__main__':
-    # Mock 資料測試
+    # Mock 資料測試 — 欄位刻意對齊 crawler.py raw_output 的真實形狀,
+    # 免得再出現 v3.55.0 修掉的那種「mock 有、生產沒有」的假通過。
     mock_data = {
-        'trade_date': '2026/04/30',
+        'trade_date': '20260430',
+        'crawled_at': '2026-04-30T21:23:11+08:00',
+        'stage': 'full',
+        'success': 81, 'failed': 0, 'empty': 0,
+        'quotes_count': 1842, 'institutional_count': 1795,
         'institutional_rankings': {
-            'foreign': {'total_net_lots': -7500, 'name': '外資'},
+            # build_inst_ranking() 回傳 buy/sell/total_net_lots 三個 key
+            'foreign': {'buy': [], 'sell': [], 'total_net_lots': -7500},
         },
         'futures_data': {
             'summary': {
@@ -461,8 +650,13 @@ if __name__ == '__main__':
         'limit_up_summary': {
             'limit_up_stocks': [{'code': str(i), 'name': f'股{i}'} for i in range(35)],
         },
+        'margin_maintenance_summary': {
+            'counts': {'healthy': 900, 'watch': 120, 'high_risk': 12, 'margin_call': 3},
+        },
     }
-    
+
     result = run_alerts(mock_data)
     print(f"\n總結: 偵測 {len(result['detected'])} 個訊號")
     print(f"  分類: {result['count_by_type']}")
+    print(f"\n{'═' * 60}\n每日 digest 預覽:\n{'═' * 60}")
+    print(build_daily_digest(mock_data, result['detected']))

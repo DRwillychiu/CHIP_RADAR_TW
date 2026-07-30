@@ -815,8 +815,15 @@ def main():
     def build_inst_ranking(field_key: str, top_n: int = 100):
         """從 institutional_map 建立某類法人排行"""
         rows = []
+        # v3.55.0 bugfix: 全市場淨買賣超 (張).
+        #   alerts.detect_foreign_extreme 一直讀 ['foreign']['total_net_lots'],
+        #   但本函式從沒產出過這個 key → 永遠取到 0 → 外資極端警報從未觸發
+        #   (只有 alerts.py __main__ 的 mock 資料自己捏了這個 key 才「會過」)。
+        #   排行榜只取 top_n,不能拿來加總,所以在這裡累加全部再回傳。
+        total_net = 0
         for code, info in institutional_map.items():
             net = info.get(field_key, 0) or 0
+            total_net += net
             if abs(net) < 1:
                 continue
             quote = daily_quotes_map.get(code, {})
@@ -831,7 +838,8 @@ def main():
         # 同時排正向（買超）和負向（賣超）
         rows_buy = sorted([r for r in rows if r["net_lot"] > 0], key=lambda x: -x["net_lot"])[:top_n]
         rows_sell = sorted([r for r in rows if r["net_lot"] < 0], key=lambda x: x["net_lot"])[:top_n]
-        return {"buy": rows_buy, "sell": rows_sell}
+        # v3.55.0: total_net_lots 為純新增欄位,前端只讀 buy/sell,不受影響
+        return {"buy": rows_buy, "sell": rows_sell, "total_net_lots": total_net}
     
     institutional_rankings = {
         "foreign": build_inst_ranking("foreign_net_lot"),
