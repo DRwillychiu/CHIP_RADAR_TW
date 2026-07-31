@@ -218,6 +218,191 @@ def build_disposal_message(trade_date: str) -> str:
 
 
 # ════════════════════════════════════════════════════════════════════
+#  處置股圖片渲染 (仿 attstock.tw 卡片風格)
+# ════════════════════════════════════════════════════════════════════
+
+_DISPOSAL_CSS = """
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0f172a;
+  font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+  color: #f1f5f9;
+  padding: 24px;
+}
+.hdr {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 20px; background: #1e293b;
+  border: 1px solid #334155; border-radius: 12px; margin-bottom: 16px;
+}
+.hdr-t { font-size: 20px; font-weight: 700; }
+.hdr-d { font-size: 13px; color: #94a3b8; }
+.sec { margin-bottom: 12px; }
+.sh {
+  padding: 8px 14px; border-radius: 8px; margin-bottom: 6px;
+  font-size: 13px; font-weight: 600;
+}
+.sh-d { background: rgba(239,68,68,0.12); color: #ef4444; border-left: 3px solid #ef4444; }
+.sh-1 { background: rgba(248,113,113,0.12); color: #f87171; border-left: 3px solid #f87171; }
+.sh-2 { background: rgba(251,191,36,0.12); color: #fbbf24; border-left: 3px solid #fbbf24; }
+.sr {
+  background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 4px;
+}
+.sr .code { font-size: 15px; font-weight: 700; color: #f1f5f9; min-width: 48px; }
+.sr .name {
+  font-size: 13px; color: #94a3b8; min-width: 64px; max-width: 80px;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 500; }
+.b-t { background: #312e81; color: #818cf8; }
+.b-p { background: #4c1d95; color: #a78bfa; }
+.tp {
+  font-size: 10px; padding: 1px 6px; border-radius: 4px;
+  background: rgba(251,146,60,0.15); color: #fb923c; font-weight: 500;
+}
+.price {
+  font-size: 15px; font-weight: 700; color: #f1f5f9;
+  min-width: 72px; text-align: right; margin-left: auto;
+}
+.chg { font-size: 12px; font-weight: 500; min-width: 64px; text-align: right; }
+.chg-u { color: #f87171; }
+.chg-d { color: #34d399; }
+.chg-f { color: #64748b; }
+.stats {
+  font-size: 11px; color: #64748b; min-width: 180px; text-align: right;
+}
+.stats em { color: #cbd5e1; font-style: normal; font-weight: 500; }
+.far { text-align: center; padding: 8px; font-size: 12px; color: #64748b; }
+.ft {
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid #334155;
+  font-size: 11px; color: #475569; text-align: center;
+}
+"""
+
+
+def _disposal_row_html(s: dict) -> str:
+    code = s.get('code', '')
+    name = s.get('name', '—')
+    stype = s.get('type', '')
+    market = s.get('market', '')
+    price = s.get('last_price')
+    chg = s.get('change_pct')
+    consecutive = s.get('consecutive_days')
+    count_30 = s.get('count_in_30d')
+    day_trade = s.get('day_trade_ratio')
+
+    b_cls = 'b-t' if market == 'TWSE' else 'b-p'
+    b_txt = '上市' if market == 'TWSE' else '上櫃'
+
+    if chg is not None and chg > 0:
+        c_cls, c_str = 'chg-u', f'+{chg:.1f}%'
+    elif chg is not None and chg < 0:
+        c_cls, c_str = 'chg-d', f'{chg:.1f}%'
+    else:
+        c_cls, c_str = 'chg-f', ('0.0%' if chg == 0 else '—')
+
+    sp = []
+    if consecutive:
+        sp.append(f'連<em>{consecutive}</em>日')
+    if count_30:
+        sp.append(f'30日<em>{count_30}</em>次')
+    if day_trade is not None:
+        sp.append(f'當沖<em>{day_trade:.0f}%</em>')
+    stats = ' · '.join(sp)
+    p_str = str(price) if price is not None else '—'
+
+    return (
+        f'<div class="sr">'
+        f'<span class="code">{code}</span>'
+        f'<span class="name">{name}</span>'
+        f'<span class="badge {b_cls}">{b_txt}</span>'
+        f'<span class="tp">{stype}</span>'
+        f'<span class="price">{p_str}</span>'
+        f'<span class="chg {c_cls}">{c_str}</span>'
+        f'<span class="stats">{stats}</span>'
+        f'</div>'
+    )
+
+
+def render_disposal_image(trade_date: str):
+    """Render disposal stocks to a PNG image in attstock.tw card style.
+    Returns the path to the generated PNG, or None on failure."""
+    disp_path = DATA_DIR / 'disposal_attstock.json'
+    if not disp_path.exists():
+        return None
+    try:
+        d = json.loads(disp_path.read_text(encoding='utf-8'))
+    except Exception:
+        return None
+
+    detail = d.get('detail') or []
+    if not detail:
+        return None
+
+    _BUCKETS = [
+        ('in_disposal', '⛔ 處置中', 'sh-d'),
+        ('1d', '🔴 最快下一交易日', 'sh-1'),
+        ('2d', '🟡 最快 2 個交易日', 'sh-2'),
+    ]
+
+    parts = []
+    n_sections = 0
+    for key, title, cls in _BUCKETS:
+        stocks = [x for x in detail if x.get('bucket') == key]
+        if not stocks:
+            continue
+        n_sections += 1
+        parts.append(f'<div class="sec"><div class="sh {cls}">'
+                     f'{title} ({len(stocks)} 檔)</div>')
+        for s in stocks:
+            parts.append(_disposal_row_html(s))
+        parts.append('</div>')
+
+    far = d.get('count_pending_3d_plus', 0)
+    if far:
+        parts.append(f'<div class="far">3 個交易日以上還有 {far} 檔</div>')
+
+    fetched = (d.get('fetched_at') or '')[11:16]
+    f_note = f' · {fetched} 更新' if fetched else ''
+    parts.append(
+        f'<div class="ft">資料: attstock.tw{f_note} · 僅供風險提示,非投資建議</div>'
+    )
+
+    html = (
+        '<!DOCTYPE html><html lang="zh-TW"><head><meta charset="utf-8">'
+        '<style>' + _DISPOSAL_CSS + '</style></head><body>'
+        f'<div class="hdr"><span class="hdr-t">⚠️ 潛在處置股雷達</span>'
+        f'<span class="hdr-d">{trade_date}</span></div>'
+        + '\n'.join(parts)
+        + '</body></html>'
+    )
+
+    height = 170 + n_sections * 46 + len(detail) * 48
+    if far:
+        height += 36
+
+    try:
+        from html2image import Html2Image
+        hti = Html2Image(
+            output_path=str(DATA_DIR),
+            custom_flags=['--force-device-scale-factor=2'],
+        )
+        out_name = 'disposal_card.png'
+        hti.screenshot(html_str=html, save_as=out_name, size=(800, height))
+        out_path = DATA_DIR / out_name
+        if out_path.exists() and out_path.stat().st_size > 1000:
+            print(f"  [Telegram] 處置股圖片已渲染 "
+                  f"({out_path.stat().st_size / 1024:.0f} KB, {len(detail)} 檔)")
+            return str(out_path)
+        print("  [Telegram] ⚠️ 圖片渲染結果異常")
+        return None
+    except Exception as e:
+        print(f"  [Telegram] ⚠️ 圖片渲染失敗: {e}")
+        return None
+
+
+# ════════════════════════════════════════════════════════════════════
 #  Telegram 送出 / 編輯
 # ════════════════════════════════════════════════════════════════════
 
@@ -317,6 +502,50 @@ def push_document(api: str, chat_id: str, caption: str,
     return {'message_id': new_mid}
 
 
+def push_photo(api: str, chat_id: str, label: str, photo_path: str,
+               caption: str, prev: dict, force_new: bool,
+               data_hash: str) -> dict:
+    """送出或編輯一則圖片訊息。回傳 {message_id, hash}。"""
+    import requests
+    mid = (prev or {}).get('message_id')
+
+    if not force_new and mid and (prev or {}).get('hash') == data_hash:
+        print(f"  [Telegram] · {label}資料未變,不動")
+        return {'message_id': mid, 'hash': data_hash}
+
+    if not force_new and mid:
+        media = json.dumps({'type': 'photo', 'media': 'attach://f',
+                            'caption': caption}, ensure_ascii=False)
+        with open(photo_path, 'rb') as fh:
+            r = requests.post(f"{api}/editMessageMedia",
+                              data={'chat_id': chat_id, 'message_id': mid,
+                                    'media': media},
+                              files={'f': ('disposal.png', fh)}, timeout=30)
+        if r.status_code == 200:
+            print(f"  [Telegram] ✎ {label}已更新 (msg {mid})")
+            return {'message_id': mid, 'hash': data_hash}
+        desc = ''
+        try:
+            desc = (r.json() or {}).get('description', '')
+        except Exception:
+            desc = r.text[:120]
+        if 'not modified' in desc:
+            print(f"  [Telegram] · {label}內容未變 (API 回報)")
+            return {'message_id': mid, 'hash': data_hash}
+        print(f"  [Telegram] ⚠️ {label}編輯失敗 ({desc[:80]}),改為重發")
+
+    with open(photo_path, 'rb') as fh:
+        r = requests.post(f"{api}/sendPhoto",
+                          data={'chat_id': chat_id, 'caption': caption},
+                          files={'photo': ('disposal.png', fh)}, timeout=30)
+    if r.status_code != 200:
+        print(f"  [Telegram] ✗ {label}推送失敗 HTTP {r.status_code}: {r.text[:200]}")
+        return {}
+    new_mid = ((r.json() or {}).get('result') or {}).get('message_id')
+    print(f"  [Telegram] ✓ {label}已推送 (msg {new_mid})")
+    return {'message_id': new_mid, 'hash': data_hash}
+
+
 # ════════════════════════════════════════════════════════════════════
 #  主流程
 # ════════════════════════════════════════════════════════════════════
@@ -389,7 +618,15 @@ def main() -> int:
         st['summary'] = summary_new
     data_changed = force_new or summary_new.get('hash') != summary_prev.get('hash')
 
-    if disposal:
+    disposal_img = render_disposal_image(d_fmt)
+    if disposal_img:
+        disp_hash = _hash(disposal) if disposal else ''
+        res = push_photo(api, chat_id, '處置股圖片', disposal_img,
+                         f"⚠️ 潛在處置股 · {d_fmt}",
+                         st.get('disposal') or {}, force_new, disp_hash)
+        if res:
+            st['disposal'] = res
+    elif disposal:
         res = push_text(api, chat_id, '處置股清單', disposal,
                         st.get('disposal') or {}, force_new)
         if res:
