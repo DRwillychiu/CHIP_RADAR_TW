@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-31T22:49:30.673949+08:00",
+  "generated_at": "2026-07-31T23:43:23.895826+08:00",
   "trade_date": "20260731",
   "pump_suspicion": [
     {
@@ -57,10 +57,10 @@
       "sell_lot": 1322,
       "buy_amt_wan": 2927,
       "daytrade_ratio": 0.73,
-      "amt_vs_median_x": 13.5,
+      "amt_vs_median_x": 13.7,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 73% (> 70%) + 漲停 + 買金額 2,927 萬 (中位數 216 萬 × 13.5)"
+      "reasoning": "當沖比 73% (> 70%) + 漲停 + 買金額 2,927 萬 (中位數 213 萬 × 13.7)"
     },
     {
       "stock_code": "3481",
@@ -736,10 +736,10 @@
       "sell_amt_wan": 125327,
       "avg_30d_sell_lot": 3567.8,
       "sell_vs_avg_x": 5.9,
-      "recent_5d_limit_up_count": 24,
+      "recent_5d_limit_up_count": 25,
       "rule": "C_distribution",
       "severity": "medium",
-      "reasoning": "當日賣 21,145 張 (30 天均 3568 張 × 5.9) + 近 5 天漲停 24 次"
+      "reasoning": "當日賣 21,145 張 (30 天均 3568 張 × 5.9) + 近 5 天漲停 25 次"
     },
     {
       "stock_code": "00991A",
@@ -770,21 +770,6 @@
       "rule": "C_distribution",
       "severity": "medium",
       "reasoning": "當日賣 36,774 張 (30 天均 6593 張 × 5.6) + 近 5 天漲停 25 次"
-    },
-    {
-      "stock_code": "00631L",
-      "stock_name": "元大台灣50正2",
-      "branch_code": "9A9g",
-      "branch_name": "永豐金-內湖",
-      "master": "陳族元",
-      "sell_lot": 1999,
-      "sell_amt_wan": 6737,
-      "avg_30d_sell_lot": 356.8,
-      "sell_vs_avg_x": 5.6,
-      "recent_5d_limit_up_count": 64,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 1,999 張 (30 天均 357 張 × 5.6) + 近 5 天漲停 64 次"
     },
     {
       "stock_code": "00981A",
@@ -865,8 +850,8 @@
   "summary": {
     "pump_count": 12,
     "wash_count": 30,
-    "distribution_count": 11,
-    "total": 53
+    "distribution_count": 10,
+    "total": 52
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
