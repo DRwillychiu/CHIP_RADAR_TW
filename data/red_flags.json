@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T00:30:40.821474+08:00",
+  "generated_at": "2026-08-01T01:24:23.284326+08:00",
   "trade_date": "20260731",
   "pump_suspicion": [
     {
@@ -12,10 +12,10 @@
       "sell_lot": 35949,
       "buy_amt_wan": 50706,
       "daytrade_ratio": 0.75,
-      "amt_vs_median_x": 49.3,
+      "amt_vs_median_x": 49.6,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 75% (> 70%) + 漲停 + 買金額 50,706 萬 (中位數 1,029 萬 × 49.3)"
+      "reasoning": "當沖比 75% (> 70%) + 漲停 + 買金額 50,706 萬 (中位數 1,022 萬 × 49.6)"
     },
     {
       "stock_code": "3481",
@@ -102,10 +102,10 @@
       "sell_lot": 157,
       "buy_amt_wan": 112054,
       "daytrade_ratio": 0.75,
-      "amt_vs_median_x": 16.2,
+      "amt_vs_median_x": 20.6,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 75% (> 70%) + 漲停 + 買金額 112,054 萬 (中位數 6,928 萬 × 16.2)"
+      "reasoning": "當沖比 75% (> 70%) + 漲停 + 買金額 112,054 萬 (中位數 5,442 萬 × 20.6)"
     },
     {
       "stock_code": "6488",
@@ -180,7 +180,7 @@
       "amt_vs_median_x": 15.5,
       "rule": "A_pump",
       "severity": "high",
-      "reasoning": "當沖比 99% (> 70%) + 漲停 + 買金額 32,525 萬 (中位數 2,101 萬 × 15.5)"
+      "reasoning": "當沖比 99% (> 70%) + 漲停 + 買金額 32,525 萬 (中位數 2,100 萬 × 15.5)"
     }
   ],
   "wash_trade": [
@@ -721,10 +721,10 @@
       "sell_amt_wan": 354148,
       "avg_30d_sell_lot": 25085.6,
       "sell_vs_avg_x": 5.4,
-      "recent_5d_limit_up_count": 63,
+      "recent_5d_limit_up_count": 64,
       "rule": "C_distribution",
       "severity": "medium",
-      "reasoning": "當日賣 135,809 張 (30 天均 25086 張 × 5.4) + 近 5 天漲停 63 次"
+      "reasoning": "當日賣 135,809 張 (30 天均 25086 張 × 5.4) + 近 5 天漲停 64 次"
     },
     {
       "stock_code": "0052",
@@ -772,6 +772,21 @@
       "reasoning": "當日賣 36,774 張 (30 天均 6593 張 × 5.6) + 近 5 天漲停 25 次"
     },
     {
+      "stock_code": "00631L",
+      "stock_name": "元大台灣50正2",
+      "branch_code": "9A9g",
+      "branch_name": "永豐金-內湖",
+      "master": "陳族元",
+      "sell_lot": 1999,
+      "sell_amt_wan": 6564,
+      "avg_30d_sell_lot": 356.8,
+      "sell_vs_avg_x": 5.6,
+      "recent_5d_limit_up_count": 64,
+      "rule": "C_distribution",
+      "severity": "medium",
+      "reasoning": "當日賣 1,999 張 (30 天均 357 張 × 5.6) + 近 5 天漲停 64 次"
+    },
+    {
       "stock_code": "00981A",
       "stock_name": "主動統一台股增長",
       "branch_code": "9600",
@@ -781,10 +796,10 @@
       "sell_amt_wan": 251887,
       "avg_30d_sell_lot": 16712.1,
       "sell_vs_avg_x": 5.8,
-      "recent_5d_limit_up_count": 63,
+      "recent_5d_limit_up_count": 64,
       "rule": "C_distribution",
       "severity": "medium",
-      "reasoning": "當日賣 96,498 張 (30 天均 16712 張 × 5.8) + 近 5 天漲停 63 次"
+      "reasoning": "當日賣 96,498 張 (30 天均 16712 張 × 5.8) + 近 5 天漲停 64 次"
     },
     {
       "stock_code": "00991A",
@@ -826,10 +841,10 @@
       "sell_amt_wan": 197158,
       "avg_30d_sell_lot": 8610.3,
       "sell_vs_avg_x": 8.8,
-      "recent_5d_limit_up_count": 63,
+      "recent_5d_limit_up_count": 64,
       "rule": "C_distribution",
       "severity": "medium",
-      "reasoning": "當日賣 75,853 張 (30 天均 8610 張 × 8.8) + 近 5 天漲停 63 次"
+      "reasoning": "當日賣 75,853 張 (30 天均 8610 張 × 8.8) + 近 5 天漲停 64 次"
     },
     {
       "stock_code": "00631L",
@@ -850,8 +865,8 @@
   "summary": {
     "pump_count": 12,
     "wash_count": 30,
-    "distribution_count": 10,
-    "total": 52
+    "distribution_count": 11,
+    "total": 53
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
