@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-07-26T15:02:33.214931",
-  "days_analyzed": 48,
+  "updated_at": "2026-08-02T14:59:59.718593",
+  "days_analyzed": 49,
   "summary": {
-    "mild_only_pct": 48.739495798319325,
+    "mild_only_pct": 47.41379310344828,
     "both_overlap_pct_of_quad": 23.552123552123554,
     "verdict": "部分獨立 — mild_up 大部分非 quad subset, 雙層仍有獨立信息"
   },
@@ -22,11 +22,11 @@
       "median_change": -0.83
     },
     "mild_up_only": {
-      "n": 58,
-      "hits": 18,
-      "hit_rate": 0.3103448275862069,
-      "mean_change": -2.200344827586205,
-      "median_change": -2.15
+      "n": 55,
+      "hits": 16,
+      "hit_rate": 0.2909090909090909,
+      "mean_change": -2.3439999999999985,
+      "median_change": -2.17
     }
   },
   "per_day": [
@@ -34,10 +34,10 @@
       "date": "20260508",
       "next_date": "20260511",
       "quad_n": 0,
-      "mild_n": 3,
+      "mild_n": 0,
       "intersection": 0,
       "quad_only": 0,
-      "mild_only": 3
+      "mild_only": 0
     },
     {
       "date": "20260511",
@@ -461,6 +461,15 @@
       "intersection": 0,
       "quad_only": 0,
       "mild_only": 6
+    },
+    {
+      "date": "20260727",
+      "next_date": "20260728",
+      "quad_n": 0,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 0
     }
   ]
 }
