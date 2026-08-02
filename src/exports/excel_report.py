@@ -667,14 +667,17 @@ def _write_header_row(ws: "Worksheet", row: int, header_label: str, include_mast
 
 
 # v3.72.7: histock fetch 統計 (P2 #5 — 監控 rate limit / block)
+# v3.72.10: 拆分 fetch_fail (fetch_histock_branch 回 None, 通常 HTTP/timeout/block)
+#           vs empty_buys (抓到 dict 但 buys 空, 真的沒資料)
 # 每次 build_day_sheet 開始清空, 結束 dump 到 stderr + 累加到 module-level 統計
 _HISTOCK_STATS = {
-    "attempted": 0,      # 呼叫次數
-    "success": 0,        # 成功抓到 buys
-    "stale_date": 0,     # v3.72.5 時效不符
-    "no_data": 0,        # 抓到但 empty
-    "http_error": 0,     # requests exception
-    "net_zero_or_neg": 0, # buys[0].net <= 0 (fix bug in this version)
+    "attempted": 0,       # 呼叫次數
+    "success": 0,         # 成功抓到 top #1 且 net>0
+    "stale_date": 0,      # v3.72.5 時效不符
+    "fetch_fail": 0,      # v3.72.10 fetch_histock_branch 回 None (HTTP/timeout/block)
+    "empty_buys": 0,      # v3.72.10 抓到 dict 但 buys 空 (真無資料)
+    "http_error": 0,      # Python 例外 (import fail 等)
+    "net_zero_or_neg": 0, # buys[0].net <= 0
 }
 
 
@@ -708,9 +711,17 @@ def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]],
     _HISTOCK_STATS["attempted"] += 1
     try:
         from src.audit.histock_branch_audit import fetch_histock_branch
-        data = fetch_histock_branch(stock_code, timeout=8, max_retries=1)
-        if not data or not data.get('buys'):
-            _HISTOCK_STATS["no_data"] += 1
+        # v3.72.10: 從 timeout=8/retry=1 加大到 timeout=15/retry=2
+        # 07-31 real-world 0/40 fail 主因是 GH Actions 冷連線 + histock 遠端 latency 超時
+        data = fetch_histock_branch(stock_code, timeout=15, max_retries=2)
+        if not data:
+            # v3.72.10: fetch_histock_branch 內部 catch 所有 exception 回 None
+            # 這裡分開統計 (區分「無法連線」vs「連線 OK 但 buys 空」)
+            _HISTOCK_STATS["fetch_fail"] += 1
+            cache[stock_code] = None
+            return None
+        if not data.get('buys'):
+            _HISTOCK_STATS["empty_buys"] += 1
             cache[stock_code] = None
             return None
         # v3.72.5: 時效 guard
@@ -924,19 +935,23 @@ def _write_histock_status_notice(ws: "Worksheet", row: int, stats: Dict[str, int
     net_neg = stats.get("net_zero_or_neg", 0)
     success_rate = int(success / attempted * 100)
 
+    # v3.72.10: 新分類 fetch_fail (HTTP/timeout/block) vs empty_buys (真無資料)
+    fetch_fail = stats.get("fetch_fail", 0)
+    empty = stats.get("empty_buys", stats.get("no_data", 0))  # backward-compat
     # 主因判定
     if success == 0:
         # 全 fail
-        if stale >= http_err and stale >= no_data:
-            reason = f"histock 資料仍是 T-1 (需等到當日盤後晚間 update)"
-        elif http_err >= no_data:
-            reason = f"histock 網站連線失敗 (rate limit / server down)"
+        if fetch_fail >= stale and fetch_fail >= empty and fetch_fail > 0:
+            reason = f"histock 網站抓取失敗 (timeout / block / server down, {fetch_fail} 次)"
+        elif stale >= empty:
+            reason = f"histock 資料仍是 T-1 (需等到當日盤後晚間 update, {stale} 次)"
         else:
-            reason = f"histock 分點榜無資料 (可能個股冷門)"
-        notice = f"⚠️ 本 Excel 無 top-buyer highlight — {reason} (histock: {attempted} 試, 0 success)"
+            reason = f"histock 分點榜真無資料 ({empty} 次, 可能個股冷門)"
+        notice = f"⚠️ 本 Excel 無 top-buyer highlight — {reason} | attempted={attempted}, success=0"
     else:
         # 部分 fail
-        notice = f"⚠️ 部分 top-buyer highlight 缺 (histock: {success}/{attempted} = {success_rate}% success | stale={stale} http_err={http_err} no_data={no_data})"
+        notice = (f"⚠️ 部分 top-buyer highlight 缺 (histock: {success}/{attempted} = "
+                  f"{success_rate}% success | fetch_fail={fetch_fail} stale={stale} empty={empty})")
 
     # 用 orange fill 讓警示醒目
     _write_notice_row(ws, row, notice)
@@ -949,15 +964,19 @@ def _write_histock_status_notice(ws: "Worksheet", row: int, stats: Dict[str, int
 def _write_histock_timestamp_footer(ws: "Worksheet", row: int, stats: Dict[str, int]) -> int:
     """Section 0 尾端加 histock 資料時間戳 (informational).
 
+    v3.72.10: 用 TW timezone (UTC+8), 修正 GH Actions 顯示 UTC 時間的 bug.
+
     Returns: 用了幾 rows.
     """
     attempted = stats.get("attempted", 0)
     if attempted == 0:
         return 0  # 沒 fetch → 不寫
     success = stats.get("success", 0)
-    from datetime import datetime as _dt
-    now = _dt.now().strftime("%Y-%m-%d %H:%M")
-    notice = f"ⓘ histock top-buyer 資料 fetched @ {now} | {success}/{attempted} success"
+    # v3.72.10: TW timezone (Asia/Taipei = UTC+8)
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    tw = _dt.now(_tz(_td(hours=8)))
+    now = tw.strftime("%Y-%m-%d %H:%M")
+    notice = f"ⓘ histock top-buyer 資料 fetched @ {now} TW | {success}/{attempted} success"
     c_d = ws.cell(row=row, column=1)
     c_d.value = notice
     c_d.font = Font(name=FONT_NAME, size=10, bold=False, italic=True, color="FFAAAAAA")
@@ -1011,14 +1030,15 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
     )
 
     # v3.72.7: dump histock fetch stats to stderr (監控 rate limit / block)
+    # v3.72.10: 增 fetch_fail / empty_buys 分類
     stats = _get_histock_stats()
     if stats["attempted"] > 0:
         success_rate = stats["success"] / stats["attempted"] * 100
         import sys as _sys
         print(f"[histock stats] {stats['attempted']} attempted "
               f"→ {stats['success']} success ({success_rate:.0f}%) | "
-              f"stale={stats['stale_date']} | no_data={stats['no_data']} | "
-              f"http_err={stats['http_error']} | net<=0={stats['net_zero_or_neg']}",
+              f"fetch_fail={stats.get('fetch_fail', 0)} | empty_buys={stats.get('empty_buys', 0)} | "
+              f"stale={stats['stale_date']} | http_err={stats['http_error']} | net<=0={stats['net_zero_or_neg']}",
               file=_sys.stderr)
         if success_rate < 50:
             print(f"⚠️ histock 成功率 {success_rate:.0f}% < 50% — 可能被 rate limit / 資料未 update", file=_sys.stderr)

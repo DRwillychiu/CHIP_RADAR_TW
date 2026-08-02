@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.72.9(2026-07-24) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.72.10(2026-08-02) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.72.9** | 7/24 | **P2 #6 前端 sniper card highlight 同步** — 新 sniper_top_buyer_enricher 於 crawler.py 注入 is_top_market_buyer 到 limit_up_details, index.html JS+CSS 顯示 👑 黃色 gradient (跟 Excel Section 0 一致) |
+| **v3.72.10** | 8/2 | **07-31 highlight 未顯示 3 個 root cause 修** — (1) timeout 8→15s max_retries 1→2 (GH runner 冷連線); (2) fetch_fail vs empty_buys 拆分 (原全塞 no_data 誤導); (3) TW timezone 修正 (UTC now→UTC+8, 原顯示 17:30 UTC = 01:30 TW 已修) |
+| v3.72.9 | 7/24 | P2 #6 前端 sniper card highlight 同步 — 新 sniper_top_buyer_enricher 於 crawler.py 注入 is_top_market_buyer 到 limit_up_details, index.html JS+CSS 顯示 👑 黃色 gradient (跟 Excel Section 0 一致) |
 | v3.72.8 | 7/24 | P0 #4 histock 全 fail 警示 row + P0 #8 時間戳 — Section 0 頂端橘色警示提示原因 (T-1/rate limit/net<=0), 尾端加 fetched@ 時間戳; P1 #3 撤回 (code re-inspect 證實 branch_code==top_bno 已直接匹配 MASTER_MAPPING, co_masters 不影響) |
 | v3.72.7 | 7/24 | histock rate limit 監控 + net<=0 bug fix — 加 fetch stats (attempted/success/stale/no_data/http_err/net<=0), stderr dump, 成功率<50%warn; 修 top.net<=0 誤判為 top #1 的 edge case |
 | v3.72.6 | 7/24 | 解決 v3.72.5 drift — user 確認 迷你哥/松山哥 3 分點 9217/9200/9600 全屬他 + 強森 9B2E co-share 張濬安, branches.py 加 co_masters, drift guard 現在 0 warning |

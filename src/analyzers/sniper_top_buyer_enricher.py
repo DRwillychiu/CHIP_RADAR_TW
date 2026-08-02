@@ -39,7 +39,7 @@ def enrich_sniper_top_buyer(
         stats:            histock fetch 統計 (attempted/success/stale/http_err/...)
         fetched_at:       ISO time
     """
-    from datetime import datetime
+    from datetime import datetime, timezone, timedelta
     try:
         from src.exports.excel_report import (
             _fetch_histock_top_buyer, _get_histock_stats, _reset_histock_stats,
@@ -90,8 +90,10 @@ def enrich_sniper_top_buyer(
     # 所以無法直接判 is_top. 只在 raw_output 加 top-level index 供前端 lookup.
 
     stats = _get_histock_stats()
+    # v3.72.10: TW timezone 明確化 (原本 datetime.now() 在 GH Actions 是 UTC)
+    tw = datetime.now(timezone(timedelta(hours=8)))
     return {
         "top_buyer_index": top_buyer_index,
         "stats": stats,
-        "fetched_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "fetched_at": tw.strftime("%Y-%m-%dT%H:%M:%S+08:00"),
     }
