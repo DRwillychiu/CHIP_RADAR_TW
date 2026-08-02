@@ -1327,6 +1327,7 @@ def main():
             branches_data=results,  # results = 56 個分點的 buys/sells
             trade_date=trade_date,
             output_dir=str(data_dir / "reports"),
+            limit_up_summary=limit_up_summary,  # v3.72.11 share single histock fetch
         )
         if excel_path:
             print(f"  [Excel 日報] 生成成功:{excel_path}")

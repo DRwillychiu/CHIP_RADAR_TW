@@ -989,7 +989,9 @@ def _write_histock_timestamp_footer(ws: "Worksheet", row: int, stats: Dict[str, 
 #  Build single-day sheet
 # ============================================================
 
-def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str):
+def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str,
+                    precomputed_top_buyer: Optional[Dict[str, str]] = None,
+                    precomputed_stats: Optional[Dict[str, int]] = None):
     """
     Build one sheet matching manual template.
 
@@ -997,6 +999,11 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
       ws: openpyxl Worksheet (will be populated, sheet title set externally)
       branches_data: list of branch dicts from crawler (each has code, name, buys, sells)
       trade_date: YYYYMMDD string (used only for fallback display)
+      precomputed_top_buyer: v3.72.11 — 若 crawler enricher 已 fetch histock, 直接用
+                            結果, 避免二次 fetch (省時間 + 避免 rate limit).
+                            None → build_day_sheet 自己 fetch (backward compat).
+      precomputed_stats: v3.72.11 — 對應 enricher 產出的 stats, 讓 warning row +
+                        timestamp footer 顯示 enricher 端的實際值.
 
     Returns:
       total_rows: number of rows written (1-indexed)
@@ -1008,26 +1015,36 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
         if c:
             by_code[c] = b
 
-    # v3.72.4: 先掃 sniper master 買的漲停股 → fetch histock 全市場 top #1 買方
-    # 這樣才是「該股全市場分點榜 #1」而不是「tracked branches 內 #1」
-    # v3.72.7: reset histock fetch stats (per build)
-    _reset_histock_stats()
-    sniper_stock_codes: set = set()
-    for master in MASTER_MAPPING:
-        if not _is_sniper_master(master["name"]):
-            continue
-        for branch_code, _ in master["branches"]:
-            bdata = by_code.get(branch_code, {})
-            for s in (bdata.get("buys") or []):
-                if s.get("is_limit_up") and (s.get("net_amt", 0) > 0 or s.get("net_lot", 0) > 0):
-                    scode = s.get("code")
-                    if scode and not _is_excluded_by_market_type(s):
-                        sniper_stock_codes.add(scode)
-    top_net_buyer: Dict[str, str] = _build_top_net_buyer_index(
-        branches_data,
-        sniper_stock_codes=sniper_stock_codes if sniper_stock_codes else None,
-        trade_date=trade_date,  # v3.72.5 時效 guard
-    )
+    # v3.72.11: 若 crawler enricher 已 fetch, 直接用 (share single fetch)
+    if precomputed_top_buyer is not None:
+        # 用 enricher 的結果, 不重 fetch. Stats 也用 enricher 端的.
+        top_net_buyer = precomputed_top_buyer
+        # Update _HISTOCK_STATS from precomputed_stats so warning/footer render correctly
+        _reset_histock_stats()
+        if precomputed_stats:
+            for k, v in precomputed_stats.items():
+                if k in _HISTOCK_STATS:
+                    _HISTOCK_STATS[k] = v
+    else:
+        # v3.72.4: fallback — 掃 sniper master 買的漲停股 → fetch histock 全市場 top #1
+        # v3.72.7: reset histock fetch stats (per build)
+        _reset_histock_stats()
+        sniper_stock_codes: set = set()
+        for master in MASTER_MAPPING:
+            if not _is_sniper_master(master["name"]):
+                continue
+            for branch_code, _ in master["branches"]:
+                bdata = by_code.get(branch_code, {})
+                for s in (bdata.get("buys") or []):
+                    if s.get("is_limit_up") and (s.get("net_amt", 0) > 0 or s.get("net_lot", 0) > 0):
+                        scode = s.get("code")
+                        if scode and not _is_excluded_by_market_type(s):
+                            sniper_stock_codes.add(scode)
+        top_net_buyer = _build_top_net_buyer_index(
+            branches_data,
+            sniper_stock_codes=sniper_stock_codes if sniper_stock_codes else None,
+            trade_date=trade_date,  # v3.72.5 時效 guard
+        )
 
     # v3.72.7: dump histock fetch stats to stderr (監控 rate limit / block)
     # v3.72.10: 增 fetch_fail / empty_buys 分類
@@ -3868,9 +3885,14 @@ def apply_pnl_color_scale(ws: "Worksheet", first_row: int, last_row: int, col_le
 
 
 def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
-                              trade_date: str):
+                              trade_date: str,
+                              limit_up_summary: Optional[Dict] = None):
     """v3.31.0: 開啟既有月檔 (若有) 或新建, add/update 該日 sheet, save back.
-    sheet 名 = trade_date (YYYYMMDD), 同日重跑會覆寫該 sheet, sheets 按日期 desc 排序."""
+    sheet 名 = trade_date (YYYYMMDD), 同日重跑會覆寫該 sheet, sheets 按日期 desc 排序.
+
+    v3.72.11: 若 limit_up_summary 有 sniper_top_buyer_index (crawler enricher 產),
+    傳給 build_day_sheet 避免二次 fetch histock.
+    """
     if monthly_path.exists():
         try:
             wb = load_workbook(str(monthly_path))
@@ -3888,9 +3910,19 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     if trade_date in wb.sheetnames:
         wb.remove(wb[trade_date])
 
+    # v3.72.11: 從 limit_up_summary 拿 precomputed histock 結果
+    precomputed_top = None
+    precomputed_stats = None
+    if limit_up_summary:
+        precomputed_top = limit_up_summary.get('sniper_top_buyer_index')
+        meta = limit_up_summary.get('sniper_top_buyer_meta') or {}
+        precomputed_stats = meta.get('stats')
+
     # 新建該日 sheet (build_day_sheet 在 ws 內 render 老闆版)
     ws = wb.create_sheet(title=trade_date)
-    total_rows = build_day_sheet(ws, branches_data, trade_date)
+    total_rows = build_day_sheet(ws, branches_data, trade_date,
+                                  precomputed_top_buyer=precomputed_top,
+                                  precomputed_stats=precomputed_stats)
     # v3.64.0: 拿掉 L 欄 ColorScaleRule (用戶反饋: master block 紅/淡綠 fill +
     # 色階重疊變糊, 改用 _font_pnl_pos/neg 字色 (深紅/深綠) 直接清楚)
 
@@ -4009,7 +4041,8 @@ def _update_latest_multi_sheet(latest_path: Path, branches_data: List[Dict],
 # ============================================================
 
 def generate_excel_report(branches_data: List[Dict], trade_date: str,
-                           output_dir: str = "data/reports") -> Optional[str]:
+                           output_dir: str = "data/reports",
+                           limit_up_summary: Optional[Dict] = None) -> Optional[str]:
     """
     Generate Excel daily report (mimics manual 「分點觀察」 layout).
 
@@ -4017,6 +4050,9 @@ def generate_excel_report(branches_data: List[Dict], trade_date: str,
       branches_data: list of branch dicts from crawler (with buys/sells)
       trade_date: trading day in YYYYMMDD format (e.g. '20260508')
       output_dir: output directory (default 'data/reports')
+      limit_up_summary: v3.72.11 — 若有 (crawler 已跑 sniper_top_buyer_enricher),
+                       其 sniper_top_buyer_index + meta.stats 會直接用, 避免二次
+                       fetch histock. None → excel_report 自己 fetch (backward compat).
 
     Returns:
       file path of the daily snapshot on success, None on failure.
@@ -4050,7 +4086,9 @@ def generate_excel_report(branches_data: List[Dict], trade_date: str,
 
     try:
         # 1. 月檔: 開啟既有 (若有) 或新建, add/update 該日 sheet
-        _update_monthly_workbook(monthly_path, branches_data, trade_date)
+        # v3.72.11: 傳 limit_up_summary 讓 build_day_sheet 可用 precomputed histock 結果
+        _update_monthly_workbook(monthly_path, branches_data, trade_date,
+                                 limit_up_summary=limit_up_summary)
 
         # 2. latest.xlsx = 當月月檔的 copy (前端下載按鈕指向不變)
         import shutil

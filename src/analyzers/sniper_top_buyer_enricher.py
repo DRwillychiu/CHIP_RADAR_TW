@@ -65,13 +65,22 @@ def enrich_sniper_top_buyer(
             if code:
                 sniper_stock_codes.add(code)
 
-    # Fetch histock (per unique stock)
+    # v3.72.11: Circuit breaker — 連續 3 次 fail 就 abort 剩餘 (防 histock down 拖垮 daily-full)
     top_buyer_index: Dict[str, str] = {}
     cache: Dict[str, Optional[str]] = {}
-    for code in sorted(sniper_stock_codes):  # deterministic order
+    consecutive_failures = 0
+    CIRCUIT_THRESHOLD = 3
+    aborted_after: Optional[int] = None
+    for i, code in enumerate(sorted(sniper_stock_codes)):
+        if consecutive_failures >= CIRCUIT_THRESHOLD:
+            aborted_after = i
+            break
         top_bno = _fetch_histock_top_buyer(code, cache, trade_date=trade_date)
         if top_bno:
             top_buyer_index[code] = top_bno
+            consecutive_failures = 0
+        else:
+            consecutive_failures += 1
 
     # Inject flag into sniper_ranking (per-branch view)
     for sn in sniper_ranking:
@@ -96,4 +105,6 @@ def enrich_sniper_top_buyer(
         "top_buyer_index": top_buyer_index,
         "stats": stats,
         "fetched_at": tw.strftime("%Y-%m-%dT%H:%M:%S+08:00"),
+        "circuit_break_after": aborted_after,  # v3.72.11 若 circuit breaker 觸發
+        "total_targets": len(sniper_stock_codes),
     }

@@ -296,6 +296,80 @@ check("部分 fail → 寫警示 (used=1)", used == 1)
 notice_val = ws5.cell(row=1, column=4).value
 check("警示含「部分 top-buyer」", "部分" in (notice_val or ""))
 
+# ─── 12.5 v3.72.11 build_day_sheet 用 precomputed (skip 二次 fetch) ───
+print("\n12.5 v3.72.11 build_day_sheet precomputed path (share single fetch)")
+from src.exports.excel_report import build_day_sheet
+
+sample_stock_v11 = {
+    "code": "6577", "name": "勁豐",
+    "buy_lot": 22, "sell_lot": 0,
+    "buy_amt": 200000, "sell_amt": 0,
+    "net_amt": 200000, "net_lot": 22,
+    "is_limit_up": True,
+}
+branches_data_v11 = [
+    {"code": "9A9S", "name": "永豐金-南京", "buys": [sample_stock_v11], "sells": []},
+]
+wb_v11 = Workbook()
+ws_v11 = wb_v11.active
+
+# Feed precomputed (enricher 已 fetch 過的結果)
+precomputed_top = {"6577": "9A9S"}
+precomputed_stats = {"attempted": 1, "success": 1, "stale_date": 0,
+                     "fetch_fail": 0, "empty_buys": 0,
+                     "http_error": 0, "net_zero_or_neg": 0}
+
+fetch_called = [False]
+def spy_fetch(code, timeout=15, max_retries=2):
+    fetch_called[0] = True
+    return None
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=spy_fetch):
+    build_day_sheet(ws_v11, branches_data_v11, "20260731",
+                     precomputed_top_buyer=precomputed_top,
+                     precomputed_stats=precomputed_stats)
+
+check("precomputed 傳入 → 不再呼叫 histock", fetch_called[0] is False)
+# 檢查 9A9S 6577 row 是否黃色
+for row in range(1, ws_v11.max_row + 1):
+    val_d = ws_v11.cell(row=row, column=4).value
+    if val_d and "6577" in str(val_d):
+        buy_lot = ws_v11.cell(row=row, column=5).value
+        if buy_lot == 22:  # 9A9S 的 row
+            fill = ws_v11.cell(row=row, column=4).fill
+            rgb = getattr(getattr(fill, 'fgColor', None), 'rgb', None)
+            check("precomputed → 6577 row 仍塗黃 (使用 precomputed_top_buyer)", rgb == YELLOW)
+            break
+
+# ─── 12.6 v3.72.11 enricher circuit breaker ───
+print("\n12.6 v3.72.11 enricher circuit breaker (連續 3 fail → abort)")
+from src.analyzers.sniper_top_buyer_enricher import enrich_sniper_top_buyer
+
+# 10 檔股票, 全部 fetch 都失敗 → 應在 3 檔後 circuit break
+limit_up_summary_cb = {
+    'sniper_ranking': [
+        {
+            'master': '蔣承翰',
+            'branch_code': '9A9S',
+            'branch_name': '永豐金-南京',
+            'limit_up_details': [
+                {'code': f'CB{i:02d}', 'name': f'Stock{i}', 'buy_amt': 100} for i in range(10)
+            ]
+        }
+    ]
+}
+fetch_count_cb = [0]
+def spy_fetch_fail(code, timeout=15, max_retries=2):
+    fetch_count_cb[0] += 1
+    return None  # 全 fail
+
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=spy_fetch_fail):
+    result_cb = enrich_sniper_top_buyer(limit_up_summary_cb, {"蔣承翰"}, trade_date="20260731")
+
+# 只有 3 檔被 fetch, 之後 abort
+check("Circuit breaker 觸發: 只 fetch 3 檔 (連續 3 fail abort)", fetch_count_cb[0] == 3)
+check("Circuit breaker after 記錄 abort 位置", result_cb.get('circuit_break_after') == 3)
+check("Total targets = 10", result_cb.get('total_targets') == 10)
+
 # ─── 12. v3.72.8 Bug #8 histock 時間戳 footer + v3.72.10 TW timezone ───
 print("\n12. v3.72.8 histock timestamp footer + v3.72.10 TW tz")
 wb6 = Workbook()
