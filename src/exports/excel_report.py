@@ -953,8 +953,20 @@ def _write_histock_status_notice(ws: "Worksheet", row: int, stats: Dict[str, int
         notice = (f"⚠️ 部分 top-buyer highlight 缺 (histock: {success}/{attempted} = "
                   f"{success_rate}% success | fetch_fail={fetch_fail} stale={stale} empty={empty})")
 
-    # 用 orange fill 讓警示醒目
-    _write_notice_row(ws, row, notice)
+    # v3.72.12: 修文字溢出 bug — 之前只寫 D 欄且無 merge, 文字視覺上跨到 A-G 很亂
+    # 改成 merge A:L + 值放 A + center align + 加粗
+    c_a = ws.cell(row=row, column=1)
+    c_a.value = notice
+    c_a.font = Font(name=FONT_NAME, size=FONT_SIZE, bold=True, italic=False, color="FF6B4300")
+    c_a.alignment = _align_center()
+    # E-L 清掉可能殘留的 default format
+    for ci in range(2, 13):
+        cc = ws.cell(row=row, column=ci)
+        cc.value = None
+        cc.alignment = _align_center()
+    # merge A:L 讓警示佔完整寬度 + 集中
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=12)
+    # 橘色 fill 套整 row (merge 後 A cell 主導, 但仍每欄 fill 確保視覺一致)
     orange_fill = PatternFill("solid", fgColor="FFFFECB3")  # 淺橘
     for ci in range(1, 13):
         ws.cell(row=row, column=ci).fill = orange_fill

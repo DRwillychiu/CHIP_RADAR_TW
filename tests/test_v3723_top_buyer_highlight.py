@@ -269,7 +269,7 @@ stats_fail = {"attempted": 3, "success": 0, "stale_date": 0, "fetch_fail": 3,
               "empty_buys": 0, "http_error": 0, "net_zero_or_neg": 0}
 used = _write_histock_status_notice(ws3, 1, stats_fail)
 check("全 fetch_fail → 寫警示 row (used=1)", used == 1)
-notice_val = ws3.cell(row=1, column=4).value
+notice_val = ws3.cell(row=1, column=1).value  # v3.72.12: 改到 A 欄 + merge A:L
 check("警示 notice 內容含「無 top-buyer」", "無 top-buyer" in (notice_val or ""))
 check("v3.72.10 診斷正確 (「timeout / block」關鍵字)",
       "timeout" in (notice_val or "") or "block" in (notice_val or ""))
@@ -293,7 +293,7 @@ stats_partial = {"attempted": 3, "success": 1, "stale_date": 1, "fetch_fail": 1,
                  "empty_buys": 0, "http_error": 0, "net_zero_or_neg": 0}
 used = _write_histock_status_notice(ws5, 1, stats_partial)
 check("部分 fail → 寫警示 (used=1)", used == 1)
-notice_val = ws5.cell(row=1, column=4).value
+notice_val = ws5.cell(row=1, column=1).value  # v3.72.12: A 欄
 check("警示含「部分 top-buyer」", "部分" in (notice_val or ""))
 
 # ─── 12.5 v3.72.11 build_day_sheet 用 precomputed (skip 二次 fetch) ───
