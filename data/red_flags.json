@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T22:48:58.761621+08:00",
+  "generated_at": "2026-08-04T01:41:26.578594+08:00",
   "trade_date": "20260803",
   "pump_suspicion": [
     {
@@ -57,10 +57,10 @@
       "sell_lot": 308,
       "buy_amt_wan": 5667,
       "daytrade_ratio": 0.75,
-      "amt_vs_median_x": 8.6,
+      "amt_vs_median_x": 8.3,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 75% (> 70%) + 漲停 + 買金額 5,667 萬 (中位數 663 萬 × 8.6)"
+      "reasoning": "當沖比 75% (> 70%) + 漲停 + 買金額 5,667 萬 (中位數 681 萬 × 8.3)"
     },
     {
       "stock_code": "2345",
@@ -229,23 +229,6 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9661 買 300 張 vs 980K 賣 421 張 (匹配 71%)"
-    },
-    {
-      "stock_code": "6770",
-      "stock_name": "力積電",
-      "buy_branch_code": "9A9g",
-      "buy_master": "陳族元",
-      "sell_branch_code": "980K",
-      "sell_master": "竹科強勢地緣",
-      "buy_lot": 369,
-      "sell_lot": 421,
-      "buy_amt_wan": 2023,
-      "sell_amt_wan": 2312,
-      "lot_match_ratio": 0.88,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9A9g 買 369 張 vs 980K 賣 421 張 (匹配 88%)"
     },
     {
       "stock_code": "6770",
@@ -603,6 +586,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9676 買 564 張 vs 9A9J 賣 784 張 (匹配 72%)"
+    },
+    {
+      "stock_code": "6770",
+      "stock_name": "力積電",
+      "buy_branch_code": "9676",
+      "buy_master": "謝孟恭(股癌)",
+      "sell_branch_code": "980K",
+      "sell_master": "竹科強勢地緣",
+      "buy_lot": 564,
+      "sell_lot": 421,
+      "buy_amt_wan": 3132,
+      "sell_amt_wan": 2312,
+      "lot_match_ratio": 0.75,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9676 買 564 張 vs 980K 賣 421 張 (匹配 75%)"
     }
   ],
   "distribution": [
