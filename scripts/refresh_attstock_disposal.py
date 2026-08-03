@@ -26,6 +26,63 @@ OUT = ROOT / os.environ.get('CHIP_RADAR_DATA_DIR', 'data') / 'disposal_attstock.
 URL = 'https://attstock.tw/api/stocks/risk'
 
 
+def _load_industry_map():
+    """讀 industry_map.json 取得 stock_industry 對照 (code → 產業名)."""
+    p = ROOT / os.environ.get('CHIP_RADAR_DATA_DIR', 'data') / 'industry_map.json'
+    if not p.exists():
+        return {}
+    try:
+        return json.loads(p.read_text(encoding='utf-8')).get('stock_industry', {})
+    except Exception:
+        return {}
+
+
+URL_DISPOSAL = 'https://attstock.tw/api/stocks/disposal'
+
+
+def _fetch_disposal_tracking(today_str):
+    """抓目前處置中清單, 回傳 tracking dict."""
+    try:
+        r = requests.get(URL_DISPOSAL, timeout=15, headers={'User-Agent': 'Mozilla/5.0'})
+        r.raise_for_status()
+        data = r.json()
+    except Exception as e:
+        print(f"  ⚠️ disposal tracking fetch failed: {e}")
+        return {}
+
+    if not isinstance(data, list):
+        return {}
+
+    stocks = []
+    new_today = []
+    expiring_today = []
+    expiring_soon = []
+
+    for s in data:
+        code = s.get('code', '')
+        name = s.get('name', '')
+        sd = s.get('disposal_start_date', '')
+        ed = s.get('disposal_end_date', '')
+        measures = s.get('disposal_measures', '')
+        entry = {'code': code, 'name': name, 'start': sd, 'end': ed, 'type': measures}
+        stocks.append(entry)
+        if sd == today_str:
+            new_today.append(entry)
+        if ed == today_str:
+            expiring_today.append(entry)
+        elif ed and ed > today_str and ed <= (datetime.datetime.now() + datetime.timedelta(days=7)).strftime('%Y-%m-%d'):
+            expiring_soon.append(entry)
+
+    expiring_soon.sort(key=lambda x: x.get('end', ''))
+    return {
+        'total': len(stocks),
+        'stocks': stocks,
+        'new_today': new_today,
+        'expiring_today': expiring_today,
+        'expiring_soon': expiring_soon,
+    }
+
+
 def main():
     print(f"fetch {URL}")
     try:
@@ -40,42 +97,50 @@ def main():
         print(f"  ✗ unexpected response shape")
         sys.exit(1)
 
-    in_disposal = []      # status='disposal' or similar
-    pending_1d = []        # minDaysToDisposal == 1
-    pending_2d = []        # v3.73.3: minDaysToDisposal == 2
-    pending_3d = []        # v3.73.3: minDaysToDisposal >= 3 (只留數量, 長尾 160+ 檔)
+    industry_map = _load_industry_map()
+    today_str = datetime.datetime.now().strftime('%Y-%m-%d')
+
+    in_disposal = []
+    pending_1d = []
+    pending_2d = []
+    pending_3d = []
     sample = []
-    detail = []            # v3.73.3: D-1/D-2 的完整明細 (Telegram 推播用)
+    detail = []
 
     for s in data:
         code = s.get('code')
         name = s.get('name', '—')
         if not code: continue
-        status = s.get('status') or ''
         analysis = s.get('analysis') or {}
         days_to_disp = analysis.get('minDaysToDisposal')
         disp_type = analysis.get('disposalType') or '—'
 
-        # 「正在處置」: 有 disposal_start_date 且 disposal_end_date >= 今天
         ds = s.get('disposal_start_date')
         de = s.get('disposal_end_date')
-        today_yyyymmdd = datetime.datetime.now().strftime('%Y-%m-%d')
-        is_in_disposal = bool(ds) and (not de or de >= today_yyyymmdd[:10])
+        is_in_disposal = bool(ds) and (not de or de >= today_str)
 
-        # v3.73.3: D-1 / D-2 存完整明細供推播使用
         def _detail_row(bucket):
             return {
                 'code': code,
                 'name': name,
-                'type': disp_type,                       # 5分盤 / 20分盤
-                'bucket': bucket,                        # in_disposal / 1d / 2d
+                'type': disp_type,
+                'bucket': bucket,
+                'industry': industry_map.get(code, ''),
                 'days_to_disposal': days_to_disp,
                 'consecutive_days': analysis.get('consecutiveDays'),
+                'consecutive_days_first': analysis.get('consecutiveDaysFirst'),
                 'count_in_10d': analysis.get('countIn10Days'),
                 'count_in_30d': analysis.get('countIn30Days'),
                 'duration': analysis.get('disposalDuration'),
+                'has_clause13': analysis.get('hasClause13InPeriod', False),
                 'last_price': s.get('last_price'),
+                'price_change': s.get('price_change'),
                 'change_pct': s.get('price_change_pct'),
+                'volume': s.get('volume'),
+                'turnover': s.get('turnover'),
+                'turnover_rate': s.get('turnover_rate'),
+                'foreign_buy': s.get('foreign_buy'),
+                'margin_ratio': s.get('margin_ratio'),
                 'day_trade_ratio': s.get('day_trade_ratio'),
                 'risk_score': s.get('risk_score'),
                 'market': s.get('market'),
@@ -96,10 +161,13 @@ def main():
             detail.append(_detail_row('2d'))
         elif days_to_disp is not None and days_to_disp >= 3:
             pending_3d.append(code)
+            bucket = f'{days_to_disp}d' if days_to_disp <= 5 else '6d+'
+            detail.append(_detail_row(bucket))
 
-    # 排序: 先按 bucket (處置中 → D-1 → D-2),再按風險分數高的在前
-    _order = {'in_disposal': 0, '1d': 1, '2d': 2}
+    _order = {'in_disposal': 0, '1d': 1, '2d': 2, '3d': 3, '4d': 4, '5d': 5, '6d+': 6}
     detail.sort(key=lambda x: (_order.get(x['bucket'], 9), -(x.get('risk_score') or 0)))
+
+    tracking = _fetch_disposal_tracking(today_str)
 
     out = {
         'fetched_at': datetime.datetime.now().isoformat(),
@@ -115,7 +183,9 @@ def main():
         'count_pending_2d': len(pending_2d),
         'count_pending_3d_plus': len(pending_3d),
         'codes_pending_2d': sorted(pending_2d),
-        'detail': detail,          # D-1 + D-2 完整明細 (約 38 筆)
+        'detail': detail,
+        # ── v3.73.6 新增 (處置進出追蹤) ──
+        'disposal_tracking': tracking,
     }
 
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
@@ -126,6 +196,10 @@ def main():
     print(f"    pending_2d  : {len(pending_2d)} → {sorted(pending_2d)[:5]}")
     print(f"    pending_3d+ : {len(pending_3d)} (只計數, 不列清單)")
     print(f"    detail 明細 : {len(detail)} 筆")
+    if tracking:
+        print(f"    tracking    : 處置中 {tracking.get('total',0)}, "
+              f"今日新進 {len(tracking.get('new_today',[]))}, "
+              f"今日出關 {len(tracking.get('expiring_today',[]))}")
 
 
 if __name__ == '__main__':

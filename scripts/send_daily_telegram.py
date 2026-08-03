@@ -226,107 +226,122 @@ _DISPOSAL_CSS = """
 body {
   background: #0f172a;
   font-family: 'Microsoft JhengHei', 'Segoe UI', sans-serif;
-  color: #f1f5f9;
-  padding: 24px;
+  color: #cbd5e1; padding: 24px;
 }
-.hdr {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 20px; background: #1e293b;
-  border: 1px solid #334155; border-radius: 12px; margin-bottom: 16px;
-}
-.hdr-t { font-size: 20px; font-weight: 700; }
-.hdr-d { font-size: 13px; color: #94a3b8; }
-.sec { margin-bottom: 12px; }
+.title-block { margin-bottom: 16px; }
+.title-sub { font-size: 11px; color: #64748b; letter-spacing: 1px; }
+.title-main { font-size: 22px; font-weight: 700; color: #f1f5f9; margin: 4px 0; }
+.title-info { font-size: 12px; color: #94a3b8; }
+.sec { margin-bottom: 14px; }
 .sh {
-  padding: 8px 14px; border-radius: 8px; margin-bottom: 6px;
-  font-size: 13px; font-weight: 600;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 14px; border-radius: 6px; margin-bottom: 6px;
+  font-size: 14px; font-weight: 700; border-left: 3px solid;
 }
-.sh-d { background: rgba(239,68,68,0.12); color: #ef4444; border-left: 3px solid #ef4444; }
-.sh-1 { background: rgba(248,113,113,0.12); color: #f87171; border-left: 3px solid #f87171; }
-.sh-2 { background: rgba(251,191,36,0.12); color: #fbbf24; border-left: 3px solid #fbbf24; }
+.sh-1 { background: rgba(248,113,113,0.1); color: #f87171; border-color: #f87171; }
+.sh-2 { background: rgba(251,191,36,0.1); color: #fbbf24; border-color: #fbbf24; }
+.sh-3 { background: rgba(96,165,250,0.1); color: #60a5fa; border-color: #60a5fa; }
+.sh-4 { background: rgba(167,139,250,0.1); color: #a78bfa; border-color: #a78bfa; }
+.sh-5 { background: rgba(148,163,184,0.1); color: #94a3b8; border-color: #94a3b8; }
+.sh .cnt { font-size: 13px; font-weight: 600; }
 .sr {
-  background: #1e293b; border: 1px solid #334155; border-radius: 10px;
-  padding: 10px 14px; margin-bottom: 4px;
-  display: flex; align-items: center; gap: 4px;
+  border-bottom: 1px solid #1e293b; padding: 10px 14px 10px 20px;
 }
-.sr .code { font-size: 15px; font-weight: 700; color: #f1f5f9; min-width: 48px; }
-.sr .name {
-  font-size: 13px; color: #94a3b8; min-width: 64px; max-width: 80px;
-  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+.sr-top { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-1 { background: #f87171; }
+.dot-2 { background: #fbbf24; }
+.dot-3 { background: #60a5fa; }
+.dot-4 { background: #a78bfa; }
+.dot-5 { background: #94a3b8; }
+.sr-name { font-size: 15px; font-weight: 700; color: #f1f5f9; }
+.sr-code { font-size: 14px; font-weight: 700; color: #94a3b8; }
+.sr-ind { font-size: 12px; color: #64748b; }
+.sr-type {
+  font-size: 11px; padding: 1px 8px; border-radius: 4px;
+  font-weight: 600; margin-left: auto;
 }
-.badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 500; }
-.b-t { background: #312e81; color: #818cf8; }
-.b-p { background: #4c1d95; color: #a78bfa; }
-.tp {
-  font-size: 10px; padding: 1px 6px; border-radius: 4px;
-  background: rgba(251,146,60,0.15); color: #fb923c; font-weight: 500;
+.tp-5 { background: rgba(248,113,113,0.15); color: #f87171; }
+.tp-20 { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.sr-detail {
+  font-size: 11px; color: #64748b; padding-left: 14px;
 }
-.price {
-  font-size: 15px; font-weight: 700; color: #f1f5f9;
-  min-width: 72px; text-align: right; margin-left: auto;
+.sr-detail em { color: #94a3b8; font-style: normal; }
+.trk {
+  margin-top: 16px; border-top: 1px solid #334155;
+  padding-top: 12px;
 }
-.chg { font-size: 12px; font-weight: 500; min-width: 64px; text-align: right; }
-.chg-u { color: #f87171; }
-.chg-d { color: #34d399; }
-.chg-f { color: #64748b; }
-.stats {
-  font-size: 11px; color: #64748b; min-width: 180px; text-align: right;
+.trk-title {
+  font-size: 14px; font-weight: 700; color: #f87171;
+  padding: 6px 14px; border-left: 3px solid #f87171;
+  background: rgba(248,113,113,0.08); border-radius: 4px;
+  margin-bottom: 8px;
 }
-.stats em { color: #cbd5e1; font-style: normal; font-weight: 500; }
+.trk-row { font-size: 12px; color: #94a3b8; padding: 3px 14px; }
+.trk-row b { color: #f1f5f9; font-weight: 600; }
+.trk-row .sub { color: #64748b; font-size: 11px; }
 .far { text-align: center; padding: 8px; font-size: 12px; color: #64748b; }
 .ft {
-  margin-top: 12px; padding-top: 10px; border-top: 1px solid #334155;
-  font-size: 11px; color: #475569; text-align: center;
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid #1e293b;
+  font-size: 10px; color: #475569; text-align: center;
 }
 """
 
 
-def _disposal_row_html(s: dict) -> str:
+def _disposal_row_html(s: dict, dot_cls: str) -> str:
     code = s.get('code', '')
     name = s.get('name', '—')
     stype = s.get('type', '')
-    market = s.get('market', '')
+    industry = s.get('industry', '')
     price = s.get('last_price')
     chg = s.get('change_pct')
+    p_change = s.get('price_change')
     consecutive = s.get('consecutive_days')
+    consec_first = s.get('consecutive_days_first')
+    count_10 = s.get('count_in_10d')
     count_30 = s.get('count_in_30d')
     day_trade = s.get('day_trade_ratio')
+    volume = s.get('volume')
 
-    b_cls = 'b-t' if market == 'TWSE' else 'b-p'
-    b_txt = '上市' if market == 'TWSE' else '上櫃'
+    tp_cls = 'tp-5' if '5' in stype else 'tp-20'
 
-    if chg is not None and chg > 0:
-        c_cls, c_str = 'chg-u', f'+{chg:.1f}%'
-    elif chg is not None and chg < 0:
-        c_cls, c_str = 'chg-d', f'{chg:.1f}%'
-    else:
-        c_cls, c_str = 'chg-f', ('0.0%' if chg == 0 else '—')
-
-    sp = []
+    detail_parts = []
+    if price is not None:
+        p_str = f'收盤${price}'
+        if chg is not None:
+            sign = '+' if chg > 0 else ''
+            p_str += f'({sign}{chg:.1f}%)'
+        detail_parts.append(p_str)
     if consecutive:
-        sp.append(f'連<em>{consecutive}</em>日')
+        cond = f'已連續{consecutive}日達標'
+        if consec_first:
+            cond += f'(第一款連{consec_first}日)'
+        detail_parts.append(cond)
     if count_30:
-        sp.append(f'30日<em>{count_30}</em>次')
-    if day_trade is not None:
-        sp.append(f'當沖<em>{day_trade:.0f}%</em>')
-    stats = ' · '.join(sp)
-    p_str = str(price) if price is not None else '—'
+        detail_parts.append(f'30日內{count_30}次')
+    if volume and volume > 10000:
+        v_str = f'{volume/10000:.1f}萬張' if volume >= 10000 else f'{volume}張'
+        detail_parts.append(f'量{v_str}')
+    if day_trade is not None and day_trade > 30:
+        detail_parts.append(f'當沖{day_trade:.0f}%')
+    detail_str = ' · '.join(detail_parts)
 
     return (
         f'<div class="sr">'
-        f'<span class="code">{code}</span>'
-        f'<span class="name">{name}</span>'
-        f'<span class="badge {b_cls}">{b_txt}</span>'
-        f'<span class="tp">{stype}</span>'
-        f'<span class="price">{p_str}</span>'
-        f'<span class="chg {c_cls}">{c_str}</span>'
-        f'<span class="stats">{stats}</span>'
+        f'<div class="sr-top">'
+        f'<span class="dot {dot_cls}"></span>'
+        f'<span class="sr-name">{name}</span>'
+        f'<span class="sr-code">{code}</span>'
+        f'<span class="sr-ind">{industry}</span>'
+        f'<span class="sr-type {tp_cls}">{stype}</span>'
+        f'</div>'
+        f'<div class="sr-detail">價格 · {detail_str}</div>'
         f'</div>'
     )
 
 
 def render_disposal_image(trade_date: str):
-    """Render disposal stocks to a PNG image in attstock.tw card style.
+    """Render disposal stocks to a PNG image matching attstock.tw layout.
     Returns the path to the generated PNG, or None on failure."""
     disp_path = DATA_DIR / 'disposal_attstock.json'
     if not disp_path.exists():
@@ -341,46 +356,83 @@ def render_disposal_image(trade_date: str):
         return None
 
     _BUCKETS = [
-        ('in_disposal', '⛔ 處置中', 'sh-d'),
-        ('1d', '🔴 最快下一交易日', 'sh-1'),
-        ('2d', '🟡 最快 2 個交易日', 'sh-2'),
+        ('1d', '最快下一交易日 即可能進處置', 'sh-1', 'dot-1'),
+        ('2d', '最快 2 個交易日', 'sh-2', 'dot-2'),
     ]
 
     parts = []
     n_sections = 0
-    for key, title, cls in _BUCKETS:
+    for key, title, sh_cls, dot_cls in _BUCKETS:
         stocks = [x for x in detail if x.get('bucket') == key]
         if not stocks:
             continue
         n_sections += 1
-        parts.append(f'<div class="sec"><div class="sh {cls}">'
-                     f'{title} ({len(stocks)} 檔)</div>')
+        parts.append(f'<div class="sec"><div class="sh {sh_cls}">'
+                     f'<span>{title}</span>'
+                     f'<span class="cnt">{len(stocks)} 檔</span></div>')
         for s in stocks:
-            parts.append(_disposal_row_html(s))
+            parts.append(_disposal_row_html(s, dot_cls))
         parts.append('</div>')
 
-    far = d.get('count_pending_3d_plus', 0)
-    if far:
-        parts.append(f'<div class="far">3 個交易日以上還有 {far} 檔</div>')
+    n_3d = len([x for x in detail if x.get('bucket') == '3d'])
+    if n_3d:
+        parts.append(f'<div class="far">3 個交易日以上還有 {n_3d} 檔</div>')
+
+    tracking = d.get('disposal_tracking') or {}
+    if tracking:
+        trk = ['<div class="trk"><div class="trk-title">處置進出追蹤</div>']
+        new_today = tracking.get('new_today', [])
+        exp_today = tracking.get('expiring_today', [])
+        exp_soon = tracking.get('expiring_soon', [])
+        total_disp = tracking.get('total', 0)
+
+        trk.append(f'<div class="trk-row">今日新進處置 (<b>{len(new_today)}</b>)'
+                   + (f' {", ".join(x["name"] + " " + x["code"] for x in new_today[:3])}'
+                      if new_today else ' (無)')
+                   + '</div>')
+        trk.append(f'<div class="trk-row">今日出關 (<b>{len(exp_today)}</b>)'
+                   + (f' {", ".join(x["name"] + " " + x["code"] for x in exp_today[:3])}'
+                      if exp_today else ' (無)')
+                   + '</div>')
+        if exp_soon:
+            soon_str = ', '.join(
+                f'{x["name"]} {x["code"]}(→{x.get("end","")})'
+                for x in exp_soon[:5])
+            trk.append(f'<div class="trk-row">處置中 (<b>{total_disp}</b>) '
+                       f'即將出關 {soon_str}'
+                       + (f' …等{len(exp_soon)}檔' if len(exp_soon) > 5 else '')
+                       + '</div>')
+        else:
+            trk.append(f'<div class="trk-row">處置中 (<b>{total_disp}</b>)</div>')
+        trk.append('</div>')
+        parts.extend(trk)
 
     fetched = (d.get('fetched_at') or '')[11:16]
     f_note = f' · {fetched} 更新' if fetched else ''
     parts.append(
-        f'<div class="ft">資料: attstock.tw{f_note} · 僅供風險提示,非投資建議</div>'
+        f'<div class="ft">僅供風險提示,非投資建議 · 資料: attstock.tw{f_note}</div>'
     )
 
     html = (
         '<!DOCTYPE html><html lang="zh-TW"><head><meta charset="utf-8">'
         '<style>' + _DISPOSAL_CSS + '</style></head><body>'
-        f'<div class="hdr"><span class="hdr-t">⚠️ 潛在處置股雷達</span>'
-        f'<span class="hdr-d">{trade_date}</span></div>'
+        '<div class="title-block">'
+        '<div class="title-sub">處置雷達 · DISPOSAL RADAR</div>'
+        f'<div class="title-main">當日潛在處置股</div>'
+        f'<div class="title-info">{trade_date} 盤後，'
+        f'1日內 {len([x for x in detail if x.get("bucket")=="1d"])} 檔 / '
+        f'2日內 {len([x for x in detail if x.get("bucket") in ("1d","2d")])} 檔</div>'
+        '</div>'
         + '\n'.join(parts)
         + '</body></html>'
     )
 
-    height = 170 + n_sections * 46 + len(detail) * 48
-    if far:
+    n_rendered = sum(1 for x in detail if x.get('bucket') in ('1d', '2d'))
+    height = 200 + n_sections * 46 + n_rendered * 62
+    if n_3d:
         height += 36
+    if tracking:
+        height += 120
 
     try:
         from html2image import Html2Image
