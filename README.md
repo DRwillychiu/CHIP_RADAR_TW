@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.72.12(2026-08-02) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.73.0(2026-08-04) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,7 +261,8 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
-| **v3.72.12** | 8/2 | **警示 row 視覺 bug 修** — 用戶截圖回報警示文字跨 A-G 溢出很亂; 修法: merge A:L + 值放 A1 + center align + bold (原本值只寫 D1 沒 merge → 相鄰空 cell 讓文字視覺 spill 亂) |
+| **v3.73.0** | 8/4 | **🔴 top-buyer 資料源換血: 富邦 zco.djhtm 取代 histock 當 primary** — 08-04 21:17 實測 histock 到 21:39 仍是 T-1 (2026/08/03) → 三個排程全拿過期資料 → 時效 guard 擋掉 → **永遠不會有 highlight**. 富邦 DJ 個股分點進出 21:17 就有當日資料且用相同分點代號系統 (b= 參數). 新 `src/fetchers/stock_branch_ranking.py`, histock 降 fallback |
+| v3.72.12 | 8/2 | **警示 row 視覺 bug 修** — 用戶截圖回報警示文字跨 A-G 溢出很亂; 修法: merge A:L + 值放 A1 + center align + bold (原本值只寫 D1 沒 merge → 相鄰空 cell 讓文字視覺 spill 亂) |
 | v3.72.11 | 8/2 | 30 天自動化 audit 修 P0 — (1) crawler enricher fetch 一次 → excel_report 讀 raw_output 免二次 fetch (省 50% histock 呼叫); (2) circuit breaker 連續 3 fail abort 剩餘 (防 histock down 拖垮 GH runner timeout); (3) stats 統一 (不再兩邊各自 reset 對不上) |
 | v3.72.10 | 8/2 | 07-31 highlight 未顯示 3 個 root cause 修 — (1) timeout 8→15s max_retries 1→2 (GH runner 冷連線); (2) fetch_fail vs empty_buys 拆分 (原全塞 no_data 誤導); (3) TW timezone 修正 (UTC now→UTC+8, 原顯示 17:30 UTC = 01:30 TW 已修) |
 | v3.72.9 | 7/24 | P2 #6 前端 sniper card highlight 同步 — 新 sniper_top_buyer_enricher 於 crawler.py 注入 is_top_market_buyer 到 limit_up_details, index.html JS+CSS 顯示 👑 黃色 gradient (跟 Excel Section 0 一致) |

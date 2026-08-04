@@ -674,10 +674,13 @@ _HISTOCK_STATS = {
     "attempted": 0,       # 呼叫次數
     "success": 0,         # 成功抓到 top #1 且 net>0
     "stale_date": 0,      # v3.72.5 時效不符
-    "fetch_fail": 0,      # v3.72.10 fetch_histock_branch 回 None (HTTP/timeout/block)
+    "fetch_fail": 0,      # v3.72.10 fetch 回 None (HTTP/timeout/block)
     "empty_buys": 0,      # v3.72.10 抓到 dict 但 buys 空 (真無資料)
     "http_error": 0,      # Python 例外 (import fail 等)
     "net_zero_or_neg": 0, # buys[0].net <= 0
+    # v3.73.0: 來源拆分 (富邦 primary / histock fallback)
+    "fubon_success": 0,   # 富邦 zco.djhtm 成功 (當日資料)
+    "histock_success": 0, # histock fallback 成功
 }
 
 
@@ -709,10 +712,40 @@ def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]],
     if stock_code in cache:
         return cache[stock_code]
     _HISTOCK_STATS["attempted"] += 1
+
+    # ─────────────────────────────────────────────────────────────
+    # v3.73.0 PRIMARY: 富邦 DJ zco.djhtm (個股分點進出)
+    # 動機: 2026-08-04 實測 histock 在 21:39 TW 仍是 T-1 資料, 我們三個排程
+    #       (21:17/22:37/23:47) 全部拿不到當日 → 時效 guard 擋掉 → 永遠沒 highlight.
+    #       富邦 21:17 就有當日資料, 且用跟 branches.py 相同的分點代號系統.
+    # ─────────────────────────────────────────────────────────────
+    try:
+        from src.fetchers.stock_branch_ranking import fetch_stock_branch_ranking
+        fb = fetch_stock_branch_ranking(stock_code, timeout=15, max_retries=2)
+        if fb and fb.get("buys"):
+            fb_date = (fb.get("date") or "").replace("/", "")
+            if trade_date and fb_date and fb_date != trade_date:
+                pass   # 富邦也過期 → 落到 histock fallback
+            else:
+                top = fb["buys"][0]
+                if int(top.get("net", 0) or 0) > 0:
+                    top_bno = top.get("bno")
+                    _HISTOCK_STATS["success"] += 1
+                    _HISTOCK_STATS["fubon_success"] += 1
+                    cache[stock_code] = top_bno
+                    return top_bno
+                _HISTOCK_STATS["net_zero_or_neg"] += 1
+                cache[stock_code] = None
+                return None
+    except Exception:
+        pass   # 富邦壞掉 → 落到 histock fallback
+
+    # ─────────────────────────────────────────────────────────────
+    # FALLBACK: histock (v3.72.4-12 原路徑)
+    # ─────────────────────────────────────────────────────────────
     try:
         from src.audit.histock_branch_audit import fetch_histock_branch
         # v3.72.10: 從 timeout=8/retry=1 加大到 timeout=15/retry=2
-        # 07-31 real-world 0/40 fail 主因是 GH Actions 冷連線 + histock 遠端 latency 超時
         data = fetch_histock_branch(stock_code, timeout=15, max_retries=2)
         if not data:
             # v3.72.10: fetch_histock_branch 內部 catch 所有 exception 回 None
@@ -740,6 +773,7 @@ def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]],
             return None
         top_bno = top.get('bno')
         _HISTOCK_STATS["success"] += 1
+        _HISTOCK_STATS["histock_success"] += 1   # v3.73.0 來源標記
         cache[stock_code] = top_bno
         return top_bno
     except Exception:
@@ -940,18 +974,20 @@ def _write_histock_status_notice(ws: "Worksheet", row: int, stats: Dict[str, int
     empty = stats.get("empty_buys", stats.get("no_data", 0))  # backward-compat
     # 主因判定
     if success == 0:
-        # 全 fail
+        # 全 fail (v3.73.0: 富邦 primary + histock fallback 都失敗才會到這)
         if fetch_fail >= stale and fetch_fail >= empty and fetch_fail > 0:
-            reason = f"histock 網站抓取失敗 (timeout / block / server down, {fetch_fail} 次)"
+            reason = f"富邦 + histock 雙來源皆抓取失敗 (timeout / block, {fetch_fail} 次)"
         elif stale >= empty:
-            reason = f"histock 資料仍是 T-1 (需等到當日盤後晚間 update, {stale} 次)"
+            reason = f"雙來源資料皆仍是 T-1 ({stale} 次, 需等盤後 update)"
         else:
-            reason = f"histock 分點榜真無資料 ({empty} 次, 可能個股冷門)"
+            reason = f"分點榜真無資料 ({empty} 次, 可能個股冷門)"
         notice = f"⚠️ 本 Excel 無 top-buyer highlight — {reason} | attempted={attempted}, success=0"
     else:
         # 部分 fail
-        notice = (f"⚠️ 部分 top-buyer highlight 缺 (histock: {success}/{attempted} = "
-                  f"{success_rate}% success | fetch_fail={fetch_fail} stale={stale} empty={empty})")
+        fubon_n = stats.get("fubon_success", 0)
+        histock_n = stats.get("histock_success", 0)
+        notice = (f"⚠️ 部分 top-buyer highlight 缺 ({success}/{attempted} = {success_rate}% success"
+                  f" | 富邦={fubon_n} histock={histock_n} | fail={fetch_fail} stale={stale} empty={empty})")
 
     # v3.72.12: 修文字溢出 bug — 之前只寫 D 欄且無 merge, 文字視覺上跨到 A-G 很亂
     # 改成 merge A:L + 值放 A + center align + 加粗
@@ -988,7 +1024,11 @@ def _write_histock_timestamp_footer(ws: "Worksheet", row: int, stats: Dict[str, 
     from datetime import datetime as _dt, timezone as _tz, timedelta as _td
     tw = _dt.now(_tz(_td(hours=8)))
     now = tw.strftime("%Y-%m-%d %H:%M")
-    notice = f"ⓘ histock top-buyer 資料 fetched @ {now} TW | {success}/{attempted} success"
+    fubon_n = stats.get("fubon_success", 0)
+    histock_n = stats.get("histock_success", 0)
+    src = f"富邦{fubon_n}/histock{histock_n}" if (fubon_n or histock_n) else "無"
+    notice = (f"ⓘ top-buyer 資料 fetched @ {now} TW | {success}/{attempted} success"
+              f" | 來源: {src}")
     c_d = ws.cell(row=row, column=1)
     c_d.value = notice
     c_d.font = Font(name=FONT_NAME, size=10, bold=False, italic=True, color="FFAAAAAA")

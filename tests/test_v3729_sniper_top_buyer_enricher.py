@@ -19,6 +19,14 @@ from unittest.mock import patch
 
 from src.analyzers.sniper_top_buyer_enricher import enrich_sniper_top_buyer
 
+# v3.73.0: 富邦成為 primary 來源. 本檔全部驗 histock fallback 路徑,
+# 全域 patch 富邦回 None 確保 deterministic (不打真實網路).
+_fubon_patcher = patch(
+    "src.fetchers.stock_branch_ranking.fetch_stock_branch_ranking",
+    return_value=None,
+)
+_fubon_patcher.start()
+
 pass_count = 0
 fail_count = 0
 def check(label, cond):
