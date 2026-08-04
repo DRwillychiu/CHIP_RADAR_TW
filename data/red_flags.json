@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-05T00:41:10.438987+08:00",
+  "generated_at": "2026-08-05T01:35:52.892597+08:00",
   "trade_date": "20260804",
   "pump_suspicion": [
     {
@@ -35,6 +35,21 @@
     {
       "stock_code": "2408",
       "stock_name": "南亞科",
+      "branch_code": "9100",
+      "branch_name": "群益金鼎證券",
+      "master": "張濬安(航海王)",
+      "buy_lot": 1996,
+      "sell_lot": 1566,
+      "buy_amt_wan": 87019,
+      "daytrade_ratio": 0.78,
+      "amt_vs_median_x": 3.6,
+      "rule": "A_pump",
+      "severity": "medium",
+      "reasoning": "當沖比 78% (> 70%) + 漲停 + 買金額 87,019 萬 (中位數 24,418 萬 × 3.6)"
+    },
+    {
+      "stock_code": "2408",
+      "stock_name": "南亞科",
       "branch_code": "9600",
       "branch_name": "富邦證券",
       "master": "富邦證券",
@@ -42,10 +57,10 @@
       "sell_lot": 4445,
       "buy_amt_wan": 241675,
       "daytrade_ratio": 0.8,
-      "amt_vs_median_x": 7.7,
+      "amt_vs_median_x": 9.9,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 80% (> 70%) + 漲停 + 買金額 241,675 萬 (中位數 31,550 萬 × 7.7)"
+      "reasoning": "當沖比 80% (> 70%) + 漲停 + 買金額 241,675 萬 (中位數 24,418 萬 × 9.9)"
     },
     {
       "stock_code": "3665",
@@ -57,10 +72,10 @@
       "sell_lot": 270,
       "buy_amt_wan": 80644,
       "daytrade_ratio": 0.77,
-      "amt_vs_median_x": 11.8,
+      "amt_vs_median_x": 11.9,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 77% (> 70%) + 漲停 + 買金額 80,644 萬 (中位數 6,851 萬 × 11.8)"
+      "reasoning": "當沖比 77% (> 70%) + 漲停 + 買金額 80,644 萬 (中位數 6,775 萬 × 11.9)"
     },
     {
       "stock_code": "6770",
@@ -728,10 +743,10 @@
     }
   ],
   "summary": {
-    "pump_count": 7,
+    "pump_count": 8,
     "wash_count": 30,
     "distribution_count": 7,
-    "total": 44
+    "total": 45
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
