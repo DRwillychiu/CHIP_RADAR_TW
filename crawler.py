@@ -786,13 +786,21 @@ def main():
             'fetched_at': enrich_result.get('fetched_at'),
             'stats': enrich_result.get('stats', {}),
         }
-        n_top = len(enrich_result['top_buyer_index'])
+        # v3.73.1: 原 log 把「抓到榜單的檔數」誤寫成「他拿 #1 的檔數」, 改成分開列
+        top_index = enrich_result['top_buyer_index']
         stats = enrich_result.get('stats', {})
         att = stats.get('attempted', 0)
         succ = stats.get('success', 0)
         if att > 0:
-            print(f"  🌟 sniper top-buyer enrich: {succ}/{att} success | "
-                  f"{n_top} stocks matched (蔣承翰為 top #1)")
+            from src.core.branches import get_branches_by_master as _gbm
+            sniper_bnos = {b['code'] for m in SNIPER_MASTERS
+                           for b in _gbm(m, include_disabled=False)}
+            n_is_top = sum(1 for bno in top_index.values() if bno in sniper_bnos)
+            fubon_n = stats.get('fubon_success', 0)
+            histock_n = stats.get('histock_success', 0)
+            print(f"  🌟 sniper top-buyer enrich: {succ}/{att} 檔取得榜單 "
+                  f"(富邦{fubon_n}/histock{histock_n}) | "
+                  f"其中 {n_is_top} 檔 {'/'.join(sorted(SNIPER_MASTERS))} 為全市場買超 #1")
     except Exception as _e:
         print(f"  [sniper_top_buyer_enricher] 失敗 (不影響主流程): {_e}")
     
