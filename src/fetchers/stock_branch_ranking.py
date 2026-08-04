@@ -115,10 +115,12 @@ def parse_fubon_stock_page(html: str, stock_code: str = "") -> Optional[Dict[str
         tds = _TD_RE.findall(row_html)
         if len(tds) < 10:
             continue
-        bnos = _BNO_RE.findall(row_html)
-        # 每 row 應有 2 個 <a> (買超側 + 賣超側)
-        buy_bno = bnos[0] if len(bnos) >= 1 else ""
-        sell_bno = bnos[1] if len(bnos) >= 2 else ""
+        # v3.73.0: bno 從各自的 <TD> 內抽 (不能用整 row findall 再取 index —
+        # 買賣側筆數不對稱時, 若買超側為空會把賣超側 bno 誤配給買超側)
+        _bm = _BNO_RE.search(tds[0])
+        buy_bno = _bm.group(1) if _bm else ""
+        _sm = _BNO_RE.search(tds[5])
+        sell_bno = _sm.group(1) if _sm else ""
 
         buy_name = _clean(tds[0])
         if buy_name and buy_bno:

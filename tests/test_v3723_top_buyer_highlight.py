@@ -489,6 +489,19 @@ check("parser: buys[0].net = 22", parsed and parsed["buys"][0]["net"] == 22)
 check("parser: sells[0].bno = 9800 + net 存負值",
       parsed and parsed["sells"][0]["bno"] == "9800" and parsed["sells"][0]["net"] == -8)
 
+# 13e: 買賣側筆數不對稱 → bno 不可錯配 (v3.73.0 parser fix)
+ASYM = '''2026/08/04
+<TR>
+<TD class="t4t1" nowrap>&nbsp;</TD>
+<TD class="t3n1"></TD><TD class="t3n1"></TD><TD class="t3n1"></TD><TD class="t3n1"></TD>
+<TD class="t4t1" nowrap><a href="?a=X&b=9800&BHID=9800">元大證券</a></TD>
+<TD class="t3n1">1</TD><TD class="t3n1">9</TD><TD class="t3n1">8</TD><TD class="t3n1">3%</TD>
+</tr>'''
+pa = parse_fubon_stock_page(ASYM, "X")
+check("parser: 買超側空 → buys 不誤收賣方 bno", pa is not None and pa["buys"] == [])
+check("parser: 買超側空 → sells 仍正確 (9800)",
+      pa is not None and pa["sells"] and pa["sells"][0]["bno"] == "9800")
+
 # ─── 總結 ───
 print(f"\n{'─' * 60}")
 print(f"整體: {pass_count} pass / {fail_count} fail")
