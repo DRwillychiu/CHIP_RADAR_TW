@@ -3810,26 +3810,154 @@
       "hits": 3,
       "hit_rate": 0.2727,
       "mean_change": -1.93
+    },
+    {
+      "date": "20260803",
+      "next_date": "20260804",
+      "q5_direction": "偏多",
+      "q5_confidence": 81.7,
+      "taifex_change": null,
+      "vol_spike_masters": [
+        "蔣承翰"
+      ],
+      "quad_picks": [
+        {
+          "code": "2308",
+          "name": "台達電",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 2.53,
+          "hit": true,
+          "leader_pct": 0.566,
+          "excess_return": null,
+          "failure_reasons": []
+        },
+        {
+          "code": "6770",
+          "name": "力積電",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.87,
+          "hit": true,
+          "leader_pct": 0.341,
+          "excess_return": null,
+          "failure_reasons": []
+        },
+        {
+          "code": "2330",
+          "name": "台積電",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -2.11,
+          "hit": false,
+          "leader_pct": 0.357,
+          "excess_return": null,
+          "failure_reasons": [
+            "TAIEX 資料缺, 歸因不全"
+          ]
+        },
+        {
+          "code": "2303",
+          "name": "聯電",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 0.42,
+          "hit": true,
+          "leader_pct": 0.327,
+          "excess_return": null,
+          "failure_reasons": []
+        },
+        {
+          "code": "6488",
+          "name": "環球晶",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.93,
+          "hit": true,
+          "leader_pct": 0.212,
+          "excess_return": null,
+          "failure_reasons": []
+        },
+        {
+          "code": "1303",
+          "name": "南亞",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 3.33,
+          "hit": true,
+          "leader_pct": 0.355,
+          "excess_return": null,
+          "failure_reasons": []
+        },
+        {
+          "code": "2360",
+          "name": "致茂",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -1.79,
+          "hit": false,
+          "leader_pct": 0.566,
+          "excess_return": null,
+          "failure_reasons": [
+            "假共識 (領頭獨佔 ≥50%)"
+          ]
+        },
+        {
+          "code": "4958",
+          "name": "臻鼎-KY",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 5.34,
+          "hit": true,
+          "leader_pct": 0.711,
+          "excess_return": null,
+          "failure_reasons": []
+        },
+        {
+          "code": "8299",
+          "name": "群聯",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 3.41,
+          "hit": true,
+          "leader_pct": 0.453,
+          "excess_return": null,
+          "failure_reasons": []
+        }
+      ],
+      "n": 9,
+      "hits": 7,
+      "hit_rate": 0.7778,
+      "mean_change": 3.44
     }
   ],
   "rolling_30d": {
-    "trigger_days": 2,
-    "n": 21,
-    "hits": 5,
-    "hit_rate": 0.2381,
-    "mean_change": -2.24
+    "trigger_days": 3,
+    "n": 30,
+    "hits": 12,
+    "hit_rate": 0.4,
+    "mean_change": -0.54
   },
   "rolling_all": {
-    "trigger_days": 25,
-    "n": 249,
-    "hits": 129,
-    "hit_rate": 0.5181,
-    "mean_change": 1.19
+    "trigger_days": 26,
+    "n": 258,
+    "hits": 136,
+    "hit_rate": 0.5271,
+    "mean_change": 1.27
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.5181,
-    "delta_pp": -27.1
+    "actual_hit_rate": 0.5271,
+    "delta_pp": -26.2
   },
-  "updated_at": "2026-08-03T17:48:53.973292"
+  "updated_at": "2026-08-04T13:34:47.410671"
 }

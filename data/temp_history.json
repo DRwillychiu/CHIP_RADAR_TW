@@ -1,40 +1,7 @@
 {
-  "updated_at": "2026-08-04T01:45:58.860717+08:00",
+  "updated_at": "2026-08-04T21:31:43.448126+08:00",
   "count": 60,
   "history": [
-    {
-      "date": "20260508",
-      "score": 60,
-      "signals": [
-        {
-          "name": "外資現貨",
-          "score": 10,
-          "level": "neutral"
-        },
-        {
-          "name": "外資期貨",
-          "score": 0,
-          "level": "extreme-bear"
-        },
-        {
-          "name": "P/C Ratio",
-          "score": 20,
-          "level": "extreme-bull"
-        },
-        {
-          "name": "分點漲停",
-          "score": 20,
-          "level": "extreme-bull"
-        },
-        {
-          "name": "融資熱度",
-          "score": 10,
-          "level": "neutral"
-        }
-      ],
-      "next_day_change_pct": 0.45,
-      "taiex_change_pct": 0.79
-    },
     {
       "date": "20260511",
       "score": 57,
@@ -3414,6 +3381,63 @@
       ],
       "taiex_index": null,
       "taiex_change_pct": null,
+      "next_day_change_pct": 0.62
+    },
+    {
+      "date": "20260804",
+      "score": 64,
+      "signals": [
+        {
+          "name": "外資現貨",
+          "score": 20,
+          "level": "extreme-bull",
+          "value": 249827
+        },
+        {
+          "name": "外資期貨",
+          "score": 0,
+          "level": "extreme-bear",
+          "value": -87627
+        },
+        {
+          "name": "P/C Ratio",
+          "score": 15,
+          "level": "bull",
+          "value": 1.0256
+        },
+        {
+          "name": "分點漲停",
+          "score": 20,
+          "level": "extreme-bull",
+          "value": 70
+        },
+        {
+          "name": "融資熱度",
+          "score": 5,
+          "level": "bear",
+          "value": 63.79
+        },
+        {
+          "name": "法人共識",
+          "score": 20,
+          "level": "extreme-bull",
+          "value": {
+            "foreign_net": 249827,
+            "trust_net": 53430
+          }
+        },
+        {
+          "name": "結算日壓力",
+          "score": 10,
+          "level": "neutral",
+          "value": {
+            "days_to_settle": 15,
+            "foreign_eq_oi": -87627
+          }
+        }
+      ],
+      "taiex_index": 43386.41,
+      "taiex_change_pct": 0.62,
       "next_day_change_pct": null
     }
   ],
