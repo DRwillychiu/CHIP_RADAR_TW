@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T22:03:29.633369+08:00",
+  "generated_at": "2026-08-04T22:50:32.790369+08:00",
   "trade_date": "20260804",
   "pump_suspicion": [
     {
@@ -35,21 +35,6 @@
     {
       "stock_code": "2408",
       "stock_name": "南亞科",
-      "branch_code": "9100",
-      "branch_name": "群益金鼎證券",
-      "master": "張濬安(航海王)",
-      "buy_lot": 1996,
-      "sell_lot": 1566,
-      "buy_amt_wan": 87019,
-      "daytrade_ratio": 0.78,
-      "amt_vs_median_x": 3.6,
-      "rule": "A_pump",
-      "severity": "medium",
-      "reasoning": "當沖比 78% (> 70%) + 漲停 + 買金額 87,019 萬 (中位數 24,418 萬 × 3.6)"
-    },
-    {
-      "stock_code": "2408",
-      "stock_name": "南亞科",
       "branch_code": "9600",
       "branch_name": "富邦證券",
       "master": "富邦證券",
@@ -57,10 +42,10 @@
       "sell_lot": 4445,
       "buy_amt_wan": 241675,
       "daytrade_ratio": 0.8,
-      "amt_vs_median_x": 9.9,
+      "amt_vs_median_x": 7.7,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 80% (> 70%) + 漲停 + 買金額 241,675 萬 (中位數 24,418 萬 × 9.9)"
+      "reasoning": "當沖比 80% (> 70%) + 漲停 + 買金額 241,675 萬 (中位數 31,550 萬 × 7.7)"
     },
     {
       "stock_code": "3665",
@@ -740,43 +725,13 @@
       "rule": "C_distribution",
       "severity": "medium",
       "reasoning": "當日賣 520 張 (30 天均 100 張 × 5.2) + 近 5 天漲停 124 次"
-    },
-    {
-      "stock_code": "2301",
-      "stock_name": "光寶科",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 371,
-      "sell_amt_wan": 618,
-      "avg_30d_sell_lot": 33.2,
-      "sell_vs_avg_x": 11.2,
-      "recent_5d_limit_up_count": 154,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 371 張 (30 天均 33 張 × 11.2) + 近 5 天漲停 154 次"
-    },
-    {
-      "stock_code": "00685L",
-      "stock_name": "群益臺灣加權正2",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 3287,
-      "sell_amt_wan": 369,
-      "avg_30d_sell_lot": 446.5,
-      "sell_vs_avg_x": 7.4,
-      "recent_5d_limit_up_count": 64,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 3,287 張 (30 天均 446 張 × 7.4) + 近 5 天漲停 64 次"
     }
   ],
   "summary": {
-    "pump_count": 8,
+    "pump_count": 7,
     "wash_count": 30,
-    "distribution_count": 9,
-    "total": 47
+    "distribution_count": 7,
+    "total": 44
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
