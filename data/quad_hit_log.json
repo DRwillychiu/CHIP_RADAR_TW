@@ -1,148 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260512",
-      "next_date": "20260513",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": 0.26,
-      "vol_spike_masters": [
-        "布哥/n_nchang",
-        "張濬安(航海王)",
-        "迷你哥/松山哥",
-        "陳族元"
-      ],
-      "quad_picks": [
-        {
-          "code": "8299",
-          "name": "群聯",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "張濬安(航海王)",
-            "迷你哥/松山哥",
-            "陳族元"
-          ],
-          "next_change_pct": -3.85,
-          "hit": false,
-          "leader_pct": 0.254,
-          "excess_return": -4.11,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2883",
-          "name": "凱基金",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 1.62,
-          "hit": true,
-          "leader_pct": 0.248,
-          "excess_return": 1.36,
-          "failure_reasons": []
-        },
-        {
-          "code": "2308",
-          "name": "台達電",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "張濬安(航海王)",
-            "迷你哥/松山哥",
-            "陳族元"
-          ],
-          "next_change_pct": -1.37,
-          "hit": false,
-          "leader_pct": 0.411,
-          "excess_return": -1.63,
-          "failure_reasons": [
-            "alpha noise (個股無系統性原因)"
-          ]
-        },
-        {
-          "code": "2337",
-          "name": "旺宏",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "張濬安(航海王)",
-            "迷你哥/松山哥",
-            "陳族元"
-          ],
-          "next_change_pct": 9.8,
-          "hit": true,
-          "leader_pct": 0.229,
-          "excess_return": 9.54,
-          "failure_reasons": []
-        },
-        {
-          "code": "3105",
-          "name": "穩懋",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "張濬安(航海王)",
-            "陳族元"
-          ],
-          "next_change_pct": -3.22,
-          "hit": false,
-          "leader_pct": 0.197,
-          "excess_return": -3.48,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "迷你哥/松山哥",
-            "陳族元"
-          ],
-          "next_change_pct": -1.55,
-          "hit": false,
-          "leader_pct": 0.622,
-          "excess_return": -1.81,
-          "failure_reasons": [
-            "假共識 (領頭獨佔 ≥50%)"
-          ]
-        },
-        {
-          "code": "2887",
-          "name": "台新新光金",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "迷你哥/松山哥",
-            "陳族元"
-          ],
-          "next_change_pct": 0.65,
-          "hit": true,
-          "leader_pct": 0.234,
-          "excess_return": 0.39,
-          "failure_reasons": []
-        },
-        {
-          "code": "5289",
-          "name": "宜鼎",
-          "matched_masters": [
-            "迷你哥/松山哥",
-            "陳族元"
-          ],
-          "next_change_pct": -1.67,
-          "hit": false,
-          "leader_pct": 0.287,
-          "excess_return": -1.93,
-          "failure_reasons": [
-            "alpha noise (個股無系統性原因)"
-          ]
-        }
-      ],
-      "n": 8,
-      "hits": 3,
-      "hit_rate": 0.375,
-      "mean_change": 0.05
-    },
-    {
       "date": "20260520",
       "next_date": "20260521",
       "q5_direction": "偏多",
@@ -3948,16 +3806,16 @@
     "mean_change": -0.54
   },
   "rolling_all": {
-    "trigger_days": 26,
-    "n": 258,
-    "hits": 136,
-    "hit_rate": 0.5271,
-    "mean_change": 1.27
+    "trigger_days": 25,
+    "n": 250,
+    "hits": 133,
+    "hit_rate": 0.532,
+    "mean_change": 1.31
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.5271,
-    "delta_pp": -26.2
+    "actual_hit_rate": 0.532,
+    "delta_pp": -25.7
   },
-  "updated_at": "2026-08-05T17:28:42.696601"
+  "updated_at": "2026-08-06T13:36:14.951955"
 }

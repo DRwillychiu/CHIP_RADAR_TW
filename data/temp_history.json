@@ -1,64 +1,7 @@
 {
-  "updated_at": "2026-08-06T01:26:35.274329+08:00",
+  "updated_at": "2026-08-06T21:33:14.902451+08:00",
   "count": 60,
   "history": [
-    {
-      "date": "20260512",
-      "score": 57,
-      "signals": [
-        {
-          "name": "外資現貨",
-          "score": 10,
-          "level": "neutral",
-          "value": 0
-        },
-        {
-          "name": "外資期貨",
-          "score": 0,
-          "level": "extreme-bear",
-          "value": -52450
-        },
-        {
-          "name": "P/C Ratio",
-          "score": 20,
-          "level": "extreme-bull",
-          "value": 1.6165
-        },
-        {
-          "name": "分點漲停",
-          "score": 20,
-          "level": "extreme-bull",
-          "value": 53
-        },
-        {
-          "name": "融資熱度",
-          "score": 10,
-          "level": "neutral",
-          "value": 0.0
-        },
-        {
-          "name": "法人共識",
-          "score": 10,
-          "level": "neutral",
-          "value": {
-            "foreign_net": 0,
-            "trust_net": 0
-          }
-        },
-        {
-          "name": "結算日壓力",
-          "score": 10,
-          "level": "neutral",
-          "value": {
-            "days_to_settle": 8,
-            "foreign_eq_oi": -52450
-          }
-        }
-      ],
-      "taiex_index": 41790.06,
-      "taiex_change_pct": 0.0,
-      "next_day_change_pct": 0.26
-    },
     {
       "date": "20260513",
       "score": 57,
@@ -3436,6 +3379,63 @@
       ],
       "taiex_index": 43360.66,
       "taiex_change_pct": -0.06,
+      "next_day_change_pct": 2.88
+    },
+    {
+      "date": "20260806",
+      "score": 57,
+      "signals": [
+        {
+          "name": "外資現貨",
+          "score": 15,
+          "level": "bull",
+          "value": 35721
+        },
+        {
+          "name": "外資期貨",
+          "score": 0,
+          "level": "extreme-bear",
+          "value": -90946
+        },
+        {
+          "name": "P/C Ratio",
+          "score": 15,
+          "level": "bull",
+          "value": 1.0977
+        },
+        {
+          "name": "分點漲停",
+          "score": 20,
+          "level": "extreme-bull",
+          "value": 30
+        },
+        {
+          "name": "融資熱度",
+          "score": 0,
+          "level": "extreme-bear",
+          "value": 93.13
+        },
+        {
+          "name": "法人共識",
+          "score": 20,
+          "level": "extreme-bull",
+          "value": {
+            "foreign_net": 35721,
+            "trust_net": 22841
+          }
+        },
+        {
+          "name": "結算日壓力",
+          "score": 10,
+          "level": "neutral",
+          "value": {
+            "days_to_settle": 13,
+            "foreign_eq_oi": -90946
+          }
+        }
+      ],
+      "taiex_index": 44611.6,
+      "taiex_change_pct": 2.88,
       "next_day_change_pct": null
     }
   ],
