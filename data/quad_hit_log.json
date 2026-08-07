@@ -3796,26 +3796,164 @@
       "hits": 7,
       "hit_rate": 0.7778,
       "mean_change": 3.44
+    },
+    {
+      "date": "20260806",
+      "next_date": "20260807",
+      "q5_direction": "偏多",
+      "q5_confidence": 82.1,
+      "taifex_change": -0.48,
+      "vol_spike_masters": [
+        "布哥/n_nchang"
+      ],
+      "quad_picks": [
+        {
+          "code": "6770",
+          "name": "力積電",
+          "matched_masters": [
+            "布哥/n_nchang"
+          ],
+          "next_change_pct": -1.65,
+          "hit": false,
+          "leader_pct": 0.395,
+          "excess_return": -1.17,
+          "failure_reasons": [
+            "alpha noise (個股無系統性原因)"
+          ]
+        },
+        {
+          "code": "2327",
+          "name": "國巨*",
+          "matched_masters": [
+            "布哥/n_nchang"
+          ],
+          "next_change_pct": -5.26,
+          "hit": false,
+          "leader_pct": 0.326,
+          "excess_return": -4.78,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "2330",
+          "name": "台積電",
+          "matched_masters": [
+            "布哥/n_nchang"
+          ],
+          "next_change_pct": 0.21,
+          "hit": true,
+          "leader_pct": 0.663,
+          "excess_return": 0.69,
+          "failure_reasons": []
+        },
+        {
+          "code": "3105",
+          "name": "穩懋",
+          "matched_masters": [
+            "布哥/n_nchang"
+          ],
+          "next_change_pct": -4.19,
+          "hit": false,
+          "leader_pct": 0.285,
+          "excess_return": -3.71,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "3231",
+          "name": "緯創",
+          "matched_masters": [
+            "布哥/n_nchang"
+          ],
+          "next_change_pct": -3.17,
+          "hit": false,
+          "leader_pct": 0.304,
+          "excess_return": -2.69,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "2887",
+          "name": "台新新光金",
+          "matched_masters": [
+            "布哥/n_nchang"
+          ],
+          "next_change_pct": 1.88,
+          "hit": true,
+          "leader_pct": 0.677,
+          "excess_return": 2.36,
+          "failure_reasons": []
+        },
+        {
+          "code": "6274",
+          "name": "台燿",
+          "matched_masters": [
+            "布哥/n_nchang"
+          ],
+          "next_change_pct": -5.88,
+          "hit": false,
+          "leader_pct": 0.426,
+          "excess_return": -5.4,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "2454",
+          "name": "聯發科",
+          "matched_masters": [
+            "布哥/n_nchang"
+          ],
+          "next_change_pct": -0.51,
+          "hit": false,
+          "leader_pct": 0.421,
+          "excess_return": -0.03,
+          "failure_reasons": [
+            "alpha noise (個股無系統性原因)"
+          ]
+        },
+        {
+          "code": "6147",
+          "name": "頎邦",
+          "matched_masters": [
+            "布哥/n_nchang"
+          ],
+          "next_change_pct": -2.98,
+          "hit": false,
+          "leader_pct": 0.308,
+          "excess_return": -2.5,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        }
+      ],
+      "n": 9,
+      "hits": 2,
+      "hit_rate": 0.2222,
+      "mean_change": -2.39
     }
   ],
   "rolling_30d": {
-    "trigger_days": 3,
-    "n": 30,
-    "hits": 12,
-    "hit_rate": 0.4,
-    "mean_change": -0.54
+    "trigger_days": 4,
+    "n": 39,
+    "hits": 14,
+    "hit_rate": 0.359,
+    "mean_change": -0.96
   },
   "rolling_all": {
-    "trigger_days": 25,
-    "n": 250,
-    "hits": 133,
-    "hit_rate": 0.532,
-    "mean_change": 1.31
+    "trigger_days": 26,
+    "n": 259,
+    "hits": 135,
+    "hit_rate": 0.5212,
+    "mean_change": 1.18
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.532,
-    "delta_pp": -25.7
+    "actual_hit_rate": 0.5212,
+    "delta_pp": -26.8
   },
-  "updated_at": "2026-08-06T15:52:05.892556"
+  "updated_at": "2026-08-07T14:43:16.580161"
 }
