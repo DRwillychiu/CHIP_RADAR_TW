@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-07T22:38:19.576360+08:00",
+  "generated_at": "2026-08-07T22:49:35.558667+08:00",
   "trade_date": "20260807",
   "pump_suspicion": [],
   "wash_trade": [
@@ -1056,6 +1056,21 @@
       "reasoning": "當日賣 1,642 張 (30 天均 321 張 × 5.1) + 近 5 天漲停 37 次"
     },
     {
+      "stock_code": "00685L",
+      "stock_name": "群益臺灣加權正2",
+      "branch_code": "9A9G",
+      "branch_name": "永豐金-天母",
+      "master": "永豐天母(老錢)",
+      "sell_lot": 2242,
+      "sell_amt_wan": 2468,
+      "avg_30d_sell_lot": 444.9,
+      "sell_vs_avg_x": 5.0,
+      "recent_5d_limit_up_count": 64,
+      "rule": "C_distribution",
+      "severity": "medium",
+      "reasoning": "當日賣 2,242 張 (30 天均 445 張 × 5.0) + 近 5 天漲停 64 次"
+    },
+    {
       "stock_code": "2441",
       "stock_name": "超豐",
       "branch_code": "1360",
@@ -1119,8 +1134,8 @@
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 40,
-    "total": 70
+    "distribution_count": 41,
+    "total": 71
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
