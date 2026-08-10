@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T23:46:01.293837+08:00",
+  "generated_at": "2026-08-11T00:45:50.069944+08:00",
   "trade_date": "20260810",
   "pump_suspicion": [
     {
@@ -532,6 +532,21 @@
   ],
   "distribution": [
     {
+      "stock_code": "6226",
+      "stock_name": "光鼎",
+      "branch_code": "9A9g",
+      "branch_name": "永豐金-內湖",
+      "master": "陳族元",
+      "sell_lot": 248,
+      "sell_amt_wan": 531,
+      "avg_30d_sell_lot": 34.0,
+      "sell_vs_avg_x": 7.3,
+      "recent_5d_limit_up_count": 16,
+      "rule": "C_distribution",
+      "severity": "medium",
+      "reasoning": "當日賣 248 張 (30 天均 34 張 × 7.3) + 近 5 天漲停 16 次"
+    },
+    {
       "stock_code": "6531",
       "stock_name": "愛普*",
       "branch_code": "585c",
@@ -595,8 +610,8 @@
   "summary": {
     "pump_count": 1,
     "wash_count": 30,
-    "distribution_count": 4,
-    "total": 35
+    "distribution_count": 5,
+    "total": 36
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
