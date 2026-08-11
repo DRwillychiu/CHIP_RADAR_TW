@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-11T22:50:02.147712+08:00",
+  "generated_at": "2026-08-11T23:45:38.862254+08:00",
   "trade_date": "20260811",
   "pump_suspicion": [
     {
@@ -12,10 +12,10 @@
       "sell_lot": 791,
       "buy_amt_wan": 60540,
       "daytrade_ratio": 0.84,
-      "amt_vs_median_x": 22.6,
+      "amt_vs_median_x": 18.5,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 84% (> 70%) + 漲停 + 買金額 60,540 萬 (中位數 2,676 萬 × 22.6)"
+      "reasoning": "當沖比 84% (> 70%) + 漲停 + 買金額 60,540 萬 (中位數 3,280 萬 × 18.5)"
     },
     {
       "stock_code": "2492",
@@ -42,10 +42,10 @@
       "sell_lot": 537,
       "buy_amt_wan": 37960,
       "daytrade_ratio": 0.91,
-      "amt_vs_median_x": 14.2,
+      "amt_vs_median_x": 11.6,
       "rule": "A_pump",
       "severity": "high",
-      "reasoning": "當沖比 91% (> 70%) + 漲停 + 買金額 37,960 萬 (中位數 2,676 萬 × 14.2)"
+      "reasoning": "當沖比 91% (> 70%) + 漲停 + 買金額 37,960 萬 (中位數 3,280 萬 × 11.6)"
     },
     {
       "stock_code": "8358",
@@ -259,7 +259,7 @@
       "buy_lot": 92,
       "sell_lot": 122,
       "buy_amt_wan": 1642,
-      "sell_amt_wan": 2165,
+      "sell_amt_wan": 2172,
       "lot_match_ratio": 0.75,
       "same_master": false,
       "rule": "B_wash",
@@ -344,7 +344,7 @@
       "buy_lot": 143,
       "sell_lot": 122,
       "buy_amt_wan": 2546,
-      "sell_amt_wan": 2165,
+      "sell_amt_wan": 2172,
       "lot_match_ratio": 0.85,
       "same_master": false,
       "rule": "B_wash",
@@ -412,7 +412,7 @@
       "buy_lot": 137,
       "sell_lot": 122,
       "buy_amt_wan": 2429,
-      "sell_amt_wan": 2165,
+      "sell_amt_wan": 2172,
       "lot_match_ratio": 0.89,
       "same_master": false,
       "rule": "B_wash",
