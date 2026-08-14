@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T22:48:38.418710+08:00",
+  "generated_at": "2026-08-14T23:36:41.821177+08:00",
   "trade_date": "20260814",
   "pump_suspicion": [
     {
@@ -607,21 +607,6 @@
       "reasoning": "當日賣 241 張 (30 天均 44 張 × 5.5) + 近 5 天漲停 93 次"
     },
     {
-      "stock_code": "2492",
-      "stock_name": "華新科",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 102,
-      "sell_amt_wan": 3083,
-      "avg_30d_sell_lot": 19.0,
-      "sell_vs_avg_x": 5.4,
-      "recent_5d_limit_up_count": 93,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 102 張 (30 天均 19 張 × 5.4) + 近 5 天漲停 93 次"
-    },
-    {
       "stock_code": "2324",
       "stock_name": "仁寶",
       "branch_code": "1440",
@@ -640,8 +625,8 @@
   "summary": {
     "pump_count": 4,
     "wash_count": 30,
-    "distribution_count": 4,
-    "total": 38
+    "distribution_count": 3,
+    "total": 37
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
