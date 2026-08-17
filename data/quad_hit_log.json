@@ -1,94 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260521",
-      "next_date": "20260522",
-      "q5_direction": "偏多",
-      "q5_confidence": 70.3,
-      "taifex_change": 5.61,
-      "vol_spike_masters": [
-        "陳律師"
-      ],
-      "quad_picks": [
-        {
-          "code": "3443",
-          "name": "創意",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": 1.48,
-          "hit": true,
-          "leader_pct": 0.48,
-          "excess_return": -4.13,
-          "failure_reasons": []
-        },
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": 1.12,
-          "hit": true,
-          "leader_pct": 0.305,
-          "excess_return": -4.49,
-          "failure_reasons": []
-        },
-        {
-          "code": "2337",
-          "name": "旺宏",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": 6.03,
-          "hit": true,
-          "leader_pct": 0.204,
-          "excess_return": 0.42,
-          "failure_reasons": []
-        },
-        {
-          "code": "2455",
-          "name": "全新",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": 9.96,
-          "hit": true,
-          "leader_pct": 0.25,
-          "excess_return": 4.35,
-          "failure_reasons": []
-        },
-        {
-          "code": "6531",
-          "name": "愛普*",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": 9.93,
-          "hit": true,
-          "leader_pct": 0.225,
-          "excess_return": 4.32,
-          "failure_reasons": []
-        },
-        {
-          "code": "2344",
-          "name": "華邦電",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": 9.65,
-          "hit": true,
-          "leader_pct": 0.313,
-          "excess_return": 4.04,
-          "failure_reasons": []
-        }
-      ],
-      "n": 6,
-      "hits": 6,
-      "hit_rate": 1.0,
-      "mean_change": 6.36
-    },
-    {
       "date": "20260522",
       "next_date": "20260525",
       "q5_direction": "偏多",
@@ -3914,26 +3826,184 @@
       "hits": 4,
       "hit_rate": 0.5714,
       "mean_change": 1.99
+    },
+    {
+      "date": "20260814",
+      "next_date": "20260817",
+      "q5_direction": "偏多",
+      "q5_confidence": 95,
+      "taifex_change": -0.46,
+      "vol_spike_masters": [
+        "蔣承翰"
+      ],
+      "quad_picks": [
+        {
+          "code": "8299",
+          "name": "群聯",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 0.24,
+          "hit": true,
+          "leader_pct": 0.183,
+          "excess_return": 0.7,
+          "failure_reasons": []
+        },
+        {
+          "code": "2303",
+          "name": "聯電",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 0.41,
+          "hit": true,
+          "leader_pct": 0.418,
+          "excess_return": 0.87,
+          "failure_reasons": []
+        },
+        {
+          "code": "2327",
+          "name": "國巨*",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -2.25,
+          "hit": false,
+          "leader_pct": 0.351,
+          "excess_return": -1.79,
+          "failure_reasons": [
+            "alpha noise (個股無系統性原因)"
+          ]
+        },
+        {
+          "code": "6182",
+          "name": "合晶",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.87,
+          "hit": true,
+          "leader_pct": 0.258,
+          "excess_return": 10.33,
+          "failure_reasons": []
+        },
+        {
+          "code": "2449",
+          "name": "京元電子",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 0.61,
+          "hit": true,
+          "leader_pct": 0.258,
+          "excess_return": 1.07,
+          "failure_reasons": []
+        },
+        {
+          "code": "2492",
+          "name": "華新科",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -3.64,
+          "hit": false,
+          "leader_pct": 0.268,
+          "excess_return": -3.18,
+          "failure_reasons": [
+            "個股弱勢 (跑輸大盤 >2pp)"
+          ]
+        },
+        {
+          "code": "2317",
+          "name": "鴻海",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -1.73,
+          "hit": false,
+          "leader_pct": 0.354,
+          "excess_return": -1.27,
+          "failure_reasons": [
+            "alpha noise (個股無系統性原因)"
+          ]
+        },
+        {
+          "code": "2002",
+          "name": "中鋼",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -0.79,
+          "hit": false,
+          "leader_pct": 0.567,
+          "excess_return": -0.33,
+          "failure_reasons": [
+            "假共識 (領頭獨佔 ≥50%)"
+          ]
+        },
+        {
+          "code": "8358",
+          "name": "金居",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": -2.1,
+          "hit": false,
+          "leader_pct": 0.269,
+          "excess_return": -1.64,
+          "failure_reasons": [
+            "alpha noise (個股無系統性原因)"
+          ]
+        },
+        {
+          "code": "2618",
+          "name": "長榮航",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 4.76,
+          "hit": true,
+          "leader_pct": 0.186,
+          "excess_return": 5.22,
+          "failure_reasons": []
+        },
+        {
+          "code": "2330",
+          "name": "台積電",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 0.21,
+          "hit": true,
+          "leader_pct": 0.53,
+          "excess_return": 0.67,
+          "failure_reasons": []
+        }
+      ],
+      "n": 11,
+      "hits": 6,
+      "hit_rate": 0.5455,
+      "mean_change": 0.51
     }
   ],
   "rolling_30d": {
     "trigger_days": 5,
-    "n": 46,
-    "hits": 18,
-    "hit_rate": 0.3913,
-    "mean_change": -0.52
+    "n": 47,
+    "hits": 22,
+    "hit_rate": 0.4681,
+    "mean_change": 0.16
   },
   "rolling_all": {
     "trigger_days": 26,
-    "n": 257,
+    "n": 262,
     "hits": 131,
-    "hit_rate": 0.5097,
-    "mean_change": 1.08
+    "hit_rate": 0.5,
+    "mean_change": 0.94
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.5097,
-    "delta_pp": -27.9
+    "actual_hit_rate": 0.5,
+    "delta_pp": -28.9
   },
-  "updated_at": "2026-08-14T16:53:12.326367"
+  "updated_at": "2026-08-17T13:35:57.091591"
 }
