@@ -1,109 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260522",
-      "next_date": "20260525",
-      "q5_direction": "偏多",
-      "q5_confidence": 80.6,
-      "taifex_change": null,
-      "vol_spike_masters": [
-        "Tradow",
-        "蔣承翰",
-        "陳律師",
-        "陳族元"
-      ],
-      "quad_picks": [
-        {
-          "code": "6147",
-          "name": "頎邦",
-          "matched_masters": [
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": 9.98,
-          "hit": true,
-          "leader_pct": 0.232,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2892",
-          "name": "第一金",
-          "matched_masters": [
-            "蔣承翰",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": 0.18,
-          "hit": true,
-          "leader_pct": 0.735,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2890",
-          "name": "永豐金",
-          "matched_masters": [
-            "Tradow",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": -0.52,
-          "hit": false,
-          "leader_pct": 0.182,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "3481",
-          "name": "群創",
-          "matched_masters": [
-            "Tradow",
-            "蔣承翰",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": 9.97,
-          "hit": true,
-          "leader_pct": 0.512,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": 9.65,
-          "hit": true,
-          "leader_pct": 0.188,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "8299",
-          "name": "群聯",
-          "matched_masters": [
-            "Tradow",
-            "陳族元"
-          ],
-          "next_change_pct": 2.06,
-          "hit": true,
-          "leader_pct": 0.265,
-          "excess_return": null,
-          "failure_reasons": []
-        }
-      ],
-      "n": 6,
-      "hits": 5,
-      "hit_rate": 0.8333,
-      "mean_change": 5.22
-    },
-    {
       "date": "20260526",
       "next_date": "20260527",
       "q5_direction": "偏多",
@@ -3994,16 +3891,16 @@
     "mean_change": 0.16
   },
   "rolling_all": {
-    "trigger_days": 26,
-    "n": 262,
-    "hits": 131,
-    "hit_rate": 0.5,
-    "mean_change": 0.94
+    "trigger_days": 25,
+    "n": 256,
+    "hits": 126,
+    "hit_rate": 0.4922,
+    "mean_change": 0.84
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.5,
-    "delta_pp": -28.9
+    "actual_hit_rate": 0.4922,
+    "delta_pp": -29.7
   },
-  "updated_at": "2026-08-17T16:18:49.877502"
+  "updated_at": "2026-08-18T13:36:01.586960"
 }
