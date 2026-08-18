@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T22:11:27.165134+08:00",
+  "generated_at": "2026-08-18T22:49:12.068720+08:00",
   "trade_date": "20260818",
   "pump_suspicion": [
     {
@@ -19,23 +19,6 @@
     }
   ],
   "wash_trade": [
-    {
-      "stock_code": "3105",
-      "stock_name": "穩懋",
-      "buy_branch_code": "9B25",
-      "buy_master": "民哥",
-      "sell_branch_code": "9A9g",
-      "sell_master": "陳族元",
-      "buy_lot": 76,
-      "sell_lot": 87,
-      "buy_amt_wan": 3054,
-      "sell_amt_wan": 3370,
-      "lot_match_ratio": 0.87,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9B25 買 76 張 vs 9A9g 賣 87 張 (匹配 87%)"
-    },
     {
       "stock_code": "3105",
       "stock_name": "穩懋",
@@ -141,6 +124,23 @@
     {
       "stock_code": "3105",
       "stock_name": "穩懋",
+      "buy_branch_code": "9B25",
+      "buy_master": "民哥",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 76,
+      "sell_lot": 87,
+      "buy_amt_wan": 3054,
+      "sell_amt_wan": 1344,
+      "lot_match_ratio": 0.87,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9B25 買 76 張 vs 9A9G 賣 87 張 (匹配 87%)"
+    },
+    {
+      "stock_code": "3105",
+      "stock_name": "穩懋",
       "buy_branch_code": "779Z",
       "buy_master": "張濬安(航海王)",
       "sell_branch_code": "9307",
@@ -171,23 +171,6 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "779Z 買 50 張 vs 918e 賣 68 張 (匹配 74%)"
-    },
-    {
-      "stock_code": "3105",
-      "stock_name": "穩懋",
-      "buy_branch_code": "984K",
-      "buy_master": "強森",
-      "sell_branch_code": "9A9g",
-      "sell_master": "陳族元",
-      "buy_lot": 86,
-      "sell_lot": 87,
-      "buy_amt_wan": 3210,
-      "sell_amt_wan": 3370,
-      "lot_match_ratio": 0.99,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "984K 買 86 張 vs 9A9g 賣 87 張 (匹配 99%)"
     },
     {
       "stock_code": "3105",
@@ -294,19 +277,19 @@
     {
       "stock_code": "3105",
       "stock_name": "穩懋",
-      "buy_branch_code": "9647",
-      "buy_master": "竹科主力分點",
-      "sell_branch_code": "9A9g",
-      "sell_master": "陳族元",
-      "buy_lot": 74,
+      "buy_branch_code": "984K",
+      "buy_master": "強森",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 86,
       "sell_lot": 87,
-      "buy_amt_wan": 2774,
-      "sell_amt_wan": 3370,
-      "lot_match_ratio": 0.85,
+      "buy_amt_wan": 3210,
+      "sell_amt_wan": 1344,
+      "lot_match_ratio": 0.99,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9647 買 74 張 vs 9A9g 賣 87 張 (匹配 85%)"
+      "reasoning": "984K 買 86 張 vs 9A9G 賣 87 張 (匹配 99%)"
     },
     {
       "stock_code": "3105",
@@ -413,19 +396,19 @@
     {
       "stock_code": "3105",
       "stock_name": "穩懋",
-      "buy_branch_code": "8563",
-      "buy_master": "大牌分析師",
-      "sell_branch_code": "9A9g",
-      "sell_master": "陳族元",
-      "buy_lot": 98,
+      "buy_branch_code": "9647",
+      "buy_master": "竹科主力分點",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 74,
       "sell_lot": 87,
-      "buy_amt_wan": 3663,
-      "sell_amt_wan": 3370,
-      "lot_match_ratio": 0.89,
+      "buy_amt_wan": 2774,
+      "sell_amt_wan": 1344,
+      "lot_match_ratio": 0.85,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "8563 買 98 張 vs 9A9g 賣 87 張 (匹配 89%)"
+      "reasoning": "9647 買 74 張 vs 9A9G 賣 87 張 (匹配 85%)"
     },
     {
       "stock_code": "3105",
@@ -511,6 +494,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "8563 買 98 張 vs 9A9S 賣 96 張 (匹配 98%)"
+    },
+    {
+      "stock_code": "3105",
+      "stock_name": "穩懋",
+      "buy_branch_code": "8563",
+      "buy_master": "大牌分析師",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 98,
+      "sell_lot": 87,
+      "buy_amt_wan": 3663,
+      "sell_amt_wan": 1344,
+      "lot_match_ratio": 0.89,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "8563 買 98 張 vs 9A9G 賣 87 張 (匹配 89%)"
     },
     {
       "stock_code": "3105",
