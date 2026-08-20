@@ -1,187 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260526",
-      "next_date": "20260527",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.1,
-      "taifex_change": null,
-      "vol_spike_masters": [
-        "張濬安(航海王)",
-        "陳律師",
-        "陳族元"
-      ],
-      "quad_picks": [
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": 9.96,
-          "hit": true,
-          "leader_pct": 0.618,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2454",
-          "name": "聯發科",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": 8.79,
-          "hit": true,
-          "leader_pct": 0.489,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": 6.05,
-          "hit": true,
-          "leader_pct": 0.357,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2409",
-          "name": "友達",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": -0.91,
-          "hit": false,
-          "leader_pct": 0.238,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2356",
-          "name": "英業達",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": -0.96,
-          "hit": false,
-          "leader_pct": 0.532,
-          "excess_return": null,
-          "failure_reasons": [
-            "假共識 (領頭獨佔 ≥50%)"
-          ]
-        },
-        {
-          "code": "2002",
-          "name": "中鋼",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": -2.05,
-          "hit": false,
-          "leader_pct": 0.249,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "6116",
-          "name": "彩晶",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": 6.23,
-          "hit": true,
-          "leader_pct": 0.32,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2353",
-          "name": "宏��",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師"
-          ],
-          "next_change_pct": -1.57,
-          "hit": false,
-          "leader_pct": 0.244,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2324",
-          "name": "仁寶",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": -0.6,
-          "hit": false,
-          "leader_pct": 0.298,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": 1.32,
-          "hit": true,
-          "leader_pct": 0.331,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "3481",
-          "name": "群創",
-          "matched_masters": [
-            "張濬安(航海王)",
-            "陳律師",
-            "陳族元"
-          ],
-          "next_change_pct": 9.85,
-          "hit": true,
-          "leader_pct": 0.255,
-          "excess_return": null,
-          "failure_reasons": []
-        }
-      ],
-      "n": 11,
-      "hits": 6,
-      "hit_rate": 0.5455,
-      "mean_change": 3.28
-    },
-    {
       "date": "20260527",
       "next_date": "20260528",
       "q5_direction": "偏多",
@@ -3891,16 +3710,16 @@
     "mean_change": 0.16
   },
   "rolling_all": {
-    "trigger_days": 25,
-    "n": 256,
-    "hits": 126,
-    "hit_rate": 0.4922,
-    "mean_change": 0.84
+    "trigger_days": 24,
+    "n": 245,
+    "hits": 120,
+    "hit_rate": 0.4898,
+    "mean_change": 0.73
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4922,
-    "delta_pp": -29.7
+    "actual_hit_rate": 0.4898,
+    "delta_pp": -29.9
   },
-  "updated_at": "2026-08-19T16:25:08.118208"
+  "updated_at": "2026-08-20T13:38:30.587593"
 }
