@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T22:14:04.223940+08:00",
+  "generated_at": "2026-08-21T22:50:47.557874+08:00",
   "trade_date": "20260821",
   "pump_suspicion": [
     {
@@ -364,15 +364,32 @@
       "buy_master": "永豐天母(老錢)",
       "sell_branch_code": "9666",
       "sell_master": "民哥",
-      "buy_lot": 143,
+      "buy_lot": 134,
       "sell_lot": 135,
-      "buy_amt_wan": 1530,
+      "buy_amt_wan": 1436,
       "sell_amt_wan": 1339,
-      "lot_match_ratio": 0.94,
+      "lot_match_ratio": 0.99,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9G 買 143 張 vs 9666 賣 135 張 (匹配 94%)"
+      "reasoning": "9A9G 買 134 張 vs 9666 賣 135 張 (匹配 99%)"
+    },
+    {
+      "stock_code": "3441",
+      "stock_name": "聯一光",
+      "buy_branch_code": "9A9G",
+      "buy_master": "永豐天母(老錢)",
+      "sell_branch_code": "700V",
+      "sell_master": "竹科主力分點",
+      "buy_lot": 134,
+      "sell_lot": 94,
+      "buy_amt_wan": 1436,
+      "sell_amt_wan": 944,
+      "lot_match_ratio": 0.7,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9A9G 買 134 張 vs 700V 賣 94 張 (匹配 70%)"
     },
     {
       "stock_code": "3441",
@@ -381,15 +398,15 @@
       "buy_master": "永豐天母(老錢)",
       "sell_branch_code": "9307",
       "sell_master": "謝明彧大哥(華南永昌)",
-      "buy_lot": 143,
+      "buy_lot": 134,
       "sell_lot": 165,
-      "buy_amt_wan": 1530,
+      "buy_amt_wan": 1436,
       "sell_amt_wan": 1684,
-      "lot_match_ratio": 0.87,
+      "lot_match_ratio": 0.81,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9G 買 143 張 vs 9307 賣 165 張 (匹配 87%)"
+      "reasoning": "9A9G 買 134 張 vs 9307 賣 165 張 (匹配 81%)"
     },
     {
       "stock_code": "3441",
@@ -526,23 +543,6 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "8450 買 989 張 vs 8888 賣 860 張 (匹配 87%)"
-    },
-    {
-      "stock_code": "2484",
-      "stock_name": "希華",
-      "buy_branch_code": "1470",
-      "buy_master": "摩根士丹利",
-      "sell_branch_code": "8888",
-      "sell_master": "國泰敦南(散戶混合)",
-      "buy_lot": 1200,
-      "sell_lot": 860,
-      "buy_amt_wan": 9180,
-      "sell_amt_wan": 6607,
-      "lot_match_ratio": 0.72,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "1470 買 1200 張 vs 8888 賣 860 張 (匹配 72%)"
     }
   ],
   "distribution": [],
