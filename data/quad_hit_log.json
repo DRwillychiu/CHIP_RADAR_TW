@@ -1,189 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260527",
-      "next_date": "20260528",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": 1.68,
-      "vol_spike_masters": [
-        "Tradow",
-        "民哥"
-      ],
-      "quad_picks": [
-        {
-          "code": "3481",
-          "name": "群創",
-          "matched_masters": [
-            "民哥"
-          ],
-          "next_change_pct": -7.57,
-          "hit": false,
-          "leader_pct": 0.438,
-          "excess_return": -9.25,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2449",
-          "name": "京元電子",
-          "matched_masters": [
-            "民哥"
-          ],
-          "next_change_pct": 1.43,
-          "hit": true,
-          "leader_pct": 0.245,
-          "excess_return": -0.25,
-          "failure_reasons": []
-        },
-        {
-          "code": "4958",
-          "name": "臻鼎-KY",
-          "matched_masters": [
-            "Tradow",
-            "民哥"
-          ],
-          "next_change_pct": -8.65,
-          "hit": false,
-          "leader_pct": 0.249,
-          "excess_return": -10.33,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2337",
-          "name": "旺宏",
-          "matched_masters": [
-            "Tradow",
-            "民哥"
-          ],
-          "next_change_pct": 2.89,
-          "hit": true,
-          "leader_pct": 0.27,
-          "excess_return": 1.21,
-          "failure_reasons": []
-        },
-        {
-          "code": "2382",
-          "name": "廣達",
-          "matched_masters": [
-            "民哥"
-          ],
-          "next_change_pct": -1.12,
-          "hit": false,
-          "leader_pct": 0.517,
-          "excess_return": -2.8,
-          "failure_reasons": [
-            "假共識 (領頭獨佔 ≥50%)",
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "8299",
-          "name": "群聯",
-          "matched_masters": [
-            "民哥"
-          ],
-          "next_change_pct": -1.21,
-          "hit": false,
-          "leader_pct": 0.39,
-          "excess_return": -2.89,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2312",
-          "name": "金寶",
-          "matched_masters": [
-            "Tradow",
-            "民哥"
-          ],
-          "next_change_pct": 0.94,
-          "hit": true,
-          "leader_pct": 0.184,
-          "excess_return": -0.74,
-          "failure_reasons": []
-        },
-        {
-          "code": "2409",
-          "name": "友達",
-          "matched_masters": [
-            "Tradow",
-            "民哥"
-          ],
-          "next_change_pct": -2.75,
-          "hit": false,
-          "leader_pct": 0.283,
-          "excess_return": -4.43,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "Tradow",
-            "民哥"
-          ],
-          "next_change_pct": 5.85,
-          "hit": true,
-          "leader_pct": 0.467,
-          "excess_return": 4.17,
-          "failure_reasons": []
-        },
-        {
-          "code": "2313",
-          "name": "華通",
-          "matched_masters": [
-            "Tradow",
-            "民哥"
-          ],
-          "next_change_pct": -8.16,
-          "hit": false,
-          "leader_pct": 0.272,
-          "excess_return": -9.84,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "1402",
-          "name": "遠東新",
-          "matched_masters": [
-            "Tradow",
-            "民哥"
-          ],
-          "next_change_pct": 5.76,
-          "hit": true,
-          "leader_pct": 0.459,
-          "excess_return": 4.08,
-          "failure_reasons": []
-        },
-        {
-          "code": "3105",
-          "name": "穩懋",
-          "matched_masters": [
-            "Tradow"
-          ],
-          "next_change_pct": -5.71,
-          "hit": false,
-          "leader_pct": 0.279,
-          "excess_return": -7.39,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        }
-      ],
-      "n": 12,
-      "hits": 5,
-      "hit_rate": 0.4167,
-      "mean_change": -1.53
-    },
-    {
       "date": "20260528",
       "next_date": "20260529",
       "q5_direction": "偏多",
@@ -3710,16 +3527,16 @@
     "mean_change": 0.16
   },
   "rolling_all": {
-    "trigger_days": 24,
-    "n": 245,
-    "hits": 120,
-    "hit_rate": 0.4898,
-    "mean_change": 0.73
+    "trigger_days": 23,
+    "n": 233,
+    "hits": 115,
+    "hit_rate": 0.4936,
+    "mean_change": 0.84
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4898,
-    "delta_pp": -29.9
+    "actual_hit_rate": 0.4936,
+    "delta_pp": -29.5
   },
-  "updated_at": "2026-08-20T16:28:17.305363"
+  "updated_at": "2026-08-21T13:36:39.727638"
 }
