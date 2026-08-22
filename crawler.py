@@ -946,9 +946,27 @@ def main():
                     stock_history = json.load(f)
             except Exception:
                 pass
-        print(f"\n[融資維持率] 計算個股市場估算維持率 (30日均價反推)...")
+        # v3.74.0: 公司行動 (除權息/減資/面額變更分割/現增) → 還原因子
+        # 30 日均價窗口若跨過這類事件, 未還原會得到無意義的均價
+        # (寶雅 5904 分割: 均價 475 vs 實際 77 → 維持率 26% 誤判斷頭)
+        corp_actions = None
+        try:
+            from src.fetchers.corporate_actions import build_action_map
+            ca = build_action_map(stock_history, months=3)
+            corp_actions = ca.get('actions')
+            ca_path = Path(data_dir) / 'corporate_actions.json'
+            with open(ca_path, 'w', encoding='utf-8') as f:
+                json.dump(ca, f, ensure_ascii=False, indent=2)
+            st = ca.get('stats', {})
+            print(f"  [公司行動] {len(corp_actions or {})} 檔有事件 "
+                  f"(官方 {st.get('official',0)} / 偵測 {st.get('inferred',0)}) → corporate_actions.json")
+        except Exception as _ce:
+            print(f"  ⚠️ 公司行動抓取失敗: {_ce} (維持率將退回未校正模式)")
+
+        print(f"\n[融資維持率] 計算個股市場估算維持率 (30日均價反推, 已做公司行動還原)...")
         margin_maint_inject = margin_maintenance.inject_maintenance_into_stocks(
-            results, margin_all, daily_quotes_map, stock_history)
+            results, margin_all, daily_quotes_map, stock_history,
+            corporate_actions=corp_actions)
         margin_maint_summary = margin_maint_inject.get('summary')
         counts = (margin_maint_summary or {}).get('counts', {})
         print(f"  ✓ 注入 {margin_maint_inject['computed']} 筆分點個股維持率")

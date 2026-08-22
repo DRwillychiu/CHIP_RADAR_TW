@@ -1,6 +1,6 @@
 """
 ========================================================================
-Module: margin_maintenance.py  (v3.37.0)
+Module: margin_maintenance.py  (v3.37.0, v3.74.0 加公司行動校正)
 個股「市場平均融資維持率」估算 + 風險分級
 
 ⚠️ 資料限制與業界估算法 (誠實揭露):
@@ -9,6 +9,11 @@ Module: margin_maintenance.py  (v3.37.0)
 
 公式 (本模組):
   estimated_cost  = N_DAYS_AVG_CLOSE   # 假設融資建倉均勻分布於近 N 天
+  ⚠️ v3.74.0: 均價前先做「公司行動還原」— 窗口跨過除權息/減資/面額變更(分割)/
+     現增時, 原始收盤有尺度斷層, 直接平均會得到無意義的數字.
+     實例: 寶雅 5904 於 20260810 做 1:10 分割, 未校正時 30 日均價 = 475.4
+     (720 元時代與 79 元時代混算) → 維持率 26% 誤判斷頭, 實際約 164% 健康.
+     全市場掃描: 131 檔窗內有跳空, 48 檔風險分級被算錯 (皆為假警報方向).
   required_close  = estimated_cost × 0.6 × 1.20   # 維持率 120% 斷頭價
   maintenance     = today_close ÷ (estimated_cost × 0.6) × 100%
 
@@ -67,11 +72,24 @@ EX_DIV_DROP_PCT = 7.0
 
 def compute_n_day_avg_close(code: str,
                               stock_history: Optional[Dict[str, Any]],
-                              n_days: int = N_DAYS_AVG) -> Optional[float]:
+                              n_days: int = N_DAYS_AVG,
+                              corporate_actions: Optional[Dict[str, Any]] = None
+                              ) -> Optional[Dict[str, Any]]:
     """從 stock_history.json 取近 N 天收盤均價 (用作融資成本估算).
 
-    stock_history 格式 (v3.33+): {'stocks': {code: {'daily': {date: {close, ...}}}}}
-    回傳: 均價 (元) 或 None (資料不足)"""
+    v3.74.0: 公司行動自動校正 —
+      窗口若跨過除權息/減資/面額變更(分割)/現增, 原始收盤價會有尺度斷層,
+      直接平均會得到毫無意義的數字 (寶雅 5904 分割後均價 475 vs 實際 77,
+      維持率被算成 26% 誤判斷頭).
+      → 用 corporate_actions 的 factor 把事件前價格還原到現行尺度後再平均.
+      → 單日資料錯誤 (一去一回的尖刺) 直接排除, 不納入平均.
+
+    Args:
+      corporate_actions: {code: [action,...]} from corporate_actions.build_action_map
+
+    回傳: {'avg': float, 'adjusted': bool, 'action': dict|None,
+           'n_used': int, 'excluded_bad_days': int}  或 None (資料不足)
+    """
     if not stock_history:
         return None
     stocks = stock_history.get('stocks', {}) or {}
@@ -79,16 +97,42 @@ def compute_n_day_avg_close(code: str,
     daily = rec.get('daily', {}) or {}
     if not daily:
         return None
-    # 取最近 N 天 (按日期降冪)
+
     dates_sorted = sorted(daily.keys(), reverse=True)[:n_days]
-    closes = []
-    for d in dates_sorted:
-        c = (daily[d] or {}).get('close')
-        if c and c > 0:
-            closes.append(float(c))
+    if not dates_sorted:
+        return None
+    window = {d: daily[d] for d in dates_sorted}
+
+    acts = (corporate_actions or {}).get(code) or []
+    action_in_window = None
+    closes_map: Dict[str, float] = {}
+    bad_days: List[str] = []
+
+    try:
+        from src.fetchers.corporate_actions import (
+            adjust_closes, latest_action_within, detect_bad_price_days,
+        )
+        action_in_window = latest_action_within(acts, dates_sorted)
+        # 壞資料日用完整序列判斷 (需要前後各一天), 再交集到窗口
+        bad_days = [d for d in detect_bad_price_days(daily) if d in window]
+        closes_map = adjust_closes(window, acts)
+    except Exception:
+        # 還原模組不可用 → 退回原始行為 (至少不 crash)
+        closes_map = {d: float((window[d] or {}).get('close') or 0)
+                      for d in window}
+        closes_map = {d: c for d, c in closes_map.items() if c > 0}
+
+    closes = [c for d, c in closes_map.items() if d not in set(bad_days) and c > 0]
     if len(closes) < max(5, n_days // 6):   # 至少 5 天或 1/6 樣本
         return None
-    return sum(closes) / len(closes)
+
+    return {
+        'avg': sum(closes) / len(closes),
+        'adjusted': bool(action_in_window),
+        'action': action_in_window,
+        'n_used': len(closes),
+        'excluded_bad_days': len(bad_days),
+    }
 
 
 def detect_ex_dividend(today_close: float,
@@ -163,6 +207,7 @@ def inject_maintenance_into_stocks(
     margin_all: Dict[str, Dict[str, Any]],
     daily_quotes_map: Dict[str, Dict[str, Any]],
     stock_history: Optional[Dict[str, Any]] = None,
+    corporate_actions: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """注入個股維持率到 branches[].buys/sells 各 stock dict.
 
@@ -190,7 +235,7 @@ def inject_maintenance_into_stocks(
                     m = cache[code]
                 else:
                     m = _compute_for_code(code, margin_all, daily_quotes_map,
-                                          stock_history)
+                                          stock_history, corporate_actions)
                     cache[code] = m
                 if m:
                     stock.update(m)
@@ -200,7 +245,7 @@ def inject_maintenance_into_stocks(
 
     # 全市場排行: 從 margin_all 計所有股票 (給 tab 08 / tab 15 用)
     market_summary = _compute_market_summary(margin_all, daily_quotes_map,
-                                              stock_history)
+                                              stock_history, corporate_actions)
 
     return {
         'computed': computed,
@@ -214,7 +259,9 @@ def inject_maintenance_into_stocks(
 def _compute_for_code(code: str,
                        margin_all: Dict[str, Dict[str, Any]],
                        daily_quotes_map: Dict[str, Dict[str, Any]],
-                       stock_history: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+                       stock_history: Optional[Dict[str, Any]],
+                       corporate_actions: Optional[Dict[str, Any]] = None
+                       ) -> Optional[Dict[str, Any]]:
     m_rec = margin_all.get(code)
     if not m_rec:
         return None
@@ -224,14 +271,31 @@ def _compute_for_code(code: str,
     if not today_close:
         return None
     margin_bal = m_rec.get('margin_balance', 0) or 0
-    estimated_cost = compute_n_day_avg_close(code, stock_history)
-    return compute_stock_maintenance(float(today_close), margin_bal,
-                                      estimated_cost, prev_close)
+    ci = compute_n_day_avg_close(code, stock_history,
+                                 corporate_actions=corporate_actions)
+    if not ci:
+        return None
+    r = compute_stock_maintenance(float(today_close), margin_bal,
+                                  ci['avg'], prev_close)
+    if r:
+        # v3.74.0: 揭露成本基準是否經公司行動校正 (供 UI 標示)
+        r['cost_adjusted_for_corp_action'] = ci['adjusted']
+        r['cost_n_days_used'] = ci['n_used']
+        if ci['excluded_bad_days']:
+            r['cost_excluded_bad_days'] = ci['excluded_bad_days']
+        act = ci.get('action')
+        if act:
+            r['corp_action'] = {
+                'date': act.get('date'), 'type': act.get('type'),
+                'factor': act.get('factor'), 'confidence': act.get('confidence'),
+            }
+    return r
 
 
 def _compute_market_summary(margin_all: Dict[str, Dict[str, Any]],
                               daily_quotes_map: Dict[str, Dict[str, Any]],
-                              stock_history: Optional[Dict[str, Any]]
+                              stock_history: Optional[Dict[str, Any]],
+                              corporate_actions: Optional[Dict[str, Any]] = None
                               ) -> Dict[str, Any]:
     """全市場維持率分布: 健康/警戒/高風險/斷頭數量 + Top 高風險清單."""
     counts = {'healthy': 0, 'watch': 0, 'high_risk': 0, 'margin_call': 0,
@@ -248,12 +312,13 @@ def _compute_market_summary(margin_all: Dict[str, Dict[str, Any]],
         if not today_close:
             counts['insufficient_data'] += 1
             continue
-        estimated_cost = compute_n_day_avg_close(code, stock_history)
-        if not estimated_cost:
+        ci = compute_n_day_avg_close(code, stock_history,
+                                     corporate_actions=corporate_actions)
+        if not ci:
             counts['insufficient_data'] += 1
             continue
         r = compute_stock_maintenance(float(today_close), margin_bal,
-                                       estimated_cost, q_rec.get('prev_close'))
+                                       ci['avg'], q_rec.get('prev_close'))
         if r:
             counts[r['margin_risk_level']] += 1
             if r['margin_risk_level'] in ('high_risk', 'margin_call'):

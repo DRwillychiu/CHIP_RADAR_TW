@@ -43,18 +43,23 @@ def mk_sh(daily_data):
 # ─────────────────────────────────────────────────────────────────────
 print("\n[Case 1] compute_n_day_avg_close 公式")
 sh = mk_sh({'2330': {f'2026060{i}': 1000+i*10 for i in range(1, 10)}})
-avg = mm.compute_n_day_avg_close('2330', sh, n_days=9)
+r1 = mm.compute_n_day_avg_close('2330', sh, n_days=9)
 expected = sum(1000+i*10 for i in range(1,10)) / 9   # = 1050
+# v3.74.0: 回傳型別 float → dict {'avg','adjusted','action','n_used',...}
+check("回傳 dict 含 avg (v3.74.0 契約)", isinstance(r1, dict) and 'avg' in r1, f"got {type(r1)}")
+avg = r1['avg']
 check("9 天均價 = 1050", abs(avg - 1050) < 0.1, f"got {avg}")
+check("無公司行動 → adjusted=False", r1['adjusted'] is False)
+check("n_used = 9", r1['n_used'] == 9, f"got {r1['n_used']}")
 
 print("[Case 2] None close / 0 close 自動排除")
 # 需 ≥ max(5, 30//6) = 5 個有效樣本 → 給 6 個 (其中 2 個壞)
 sh2 = mk_sh({'X': {'20260601': 100, '20260602': 0, '20260603': 110,
                      '20260604': 120, '20260605': 130, '20260606': 140}})
 sh2['stocks']['X']['daily']['20260602'] = {'close': None}
-avg2 = mm.compute_n_day_avg_close('X', sh2)
+r2 = mm.compute_n_day_avg_close('X', sh2)
 # (100+110+120+130+140) / 5 = 120
-check("排除 None+0 後均價 120", avg2 == 120.0, f"got {avg2}")
+check("排除 None+0 後均價 120", r2 and r2['avg'] == 120.0, f"got {r2}")
 
 print("[Case 3] 資料不足 → None")
 sh3 = mk_sh({'Y': {'20260601': 100}})
