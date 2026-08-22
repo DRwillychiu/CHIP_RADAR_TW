@@ -13,7 +13,7 @@
 #
 # ⚠️ 改值前必跑: pytest test_v3380_settlement_tz.py test_v3370_margin_maintenance.py test_v3371_tdcc_holdings.py
 
-algo_version: "3.74.0"
+algo_version: "3.74.1"
 frozen_date: "2026-06-19"
 frozen_by: "DRwillychiu via institutional roadmap Sprint 3 + C2 Phase B"
 
@@ -69,6 +69,7 @@ disposal_holdings:
 margin_maintenance:
   n_days_avg: 30                       # 30 天均價當融資成本估算
   margin_rate: 0.6                     # 融資成數 (60%)
+  disposal_margin_rate: 0.5            # v3.74.1 處置股融資成數 (50%), 用 0.6 會低估維持率 17%
   min_balance_lots: 100                # 餘額最低門檻
   ex_div_drop_pct: 7.0                 # 除權息跳空門檻
   thresholds_healthy: 150.0            # ≥150% 健康

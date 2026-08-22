@@ -963,10 +963,21 @@ def main():
         except Exception as _ce:
             print(f"  ⚠️ 公司行動抓取失敗: {_ce} (維持率將退回未校正模式)")
 
+        # v3.74.1: 處置股融資成數 0.5 (非 0.6) — 用 0.6 會低估維持率約 17%
+        disposal_codes = set()
+        try:
+            from src.fetchers.disposal_fetcher import get_disposal_map
+            dm = get_disposal_map(str(data_dir)) or {}
+            disposal_codes = set((dm.get('sets') or {}).get('active') or [])
+            if disposal_codes:
+                print(f"  [處置股] {len(disposal_codes)} 檔處置中 → 維持率改用成數 0.5")
+        except Exception as _de:
+            print(f"  ⚠️ 處置股清單讀取失敗: {_de} (全部沿用成數 0.6)")
+
         print(f"\n[融資維持率] 計算個股市場估算維持率 (30日均價反推, 已做公司行動還原)...")
         margin_maint_inject = margin_maintenance.inject_maintenance_into_stocks(
             results, margin_all, daily_quotes_map, stock_history,
-            corporate_actions=corp_actions)
+            corporate_actions=corp_actions, disposal_codes=disposal_codes)
         margin_maint_summary = margin_maint_inject.get('summary')
         counts = (margin_maint_summary or {}).get('counts', {})
         print(f"  ✓ 注入 {margin_maint_inject['computed']} 筆分點個股維持率")
@@ -1052,6 +1063,8 @@ def main():
             daily_quotes_map=daily_quotes_map,
             industry_map=industry_map,
             branches_results=results,
+            # v3.74.1: 累積每日融資餘額 → 30 天後可改用融資加權成本算維持率
+            margin_all=locals().get('margin_all'),
         )
     except Exception as e:
         print(f"  ⚠️ 歷史累積失敗: {e}(不影響主流程)")

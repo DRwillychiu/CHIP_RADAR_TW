@@ -215,6 +215,7 @@ def update_history(
     daily_quotes_map: Dict[str, Dict[str, Any]],
     industry_map: Dict[str, Any],
     branches_results: Optional[list] = None,
+    margin_all: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
     更新歷史資料檔,注入當日個股收盤、產業平均、大盤指數
@@ -225,6 +226,9 @@ def update_history(
         daily_quotes_map: {code: {close, change_pct, ...}}
         industry_map: industry_classifier 的對照表
         branches_results: 分點爬蟲結果 (拿 stock_name 用)
+        margin_all: v3.74.1 融資融券 {code: {margin_balance, ...}}
+                    → 每日存 margin_balance, 累積 30 天後可改用
+                      「融資餘額加權成本」取代單純均價 (更貼近真實建倉成本)
     
     Returns:
         更新後的 history 物件
@@ -273,10 +277,20 @@ def update_history(
         if not history["stocks"][code].get("industry") and stock2ind.get(code):
             history["stocks"][code]["industry"] = stock2ind[code]
 
-        history["stocks"][code]["daily"][trade_date] = {
+        rec_day = {
             "close": round(close, 2),
             "change_pct": round(change_pct, 2),
         }
+        # v3.74.1: 累積融資餘額 (張) — 為「融資餘額加權成本」鋪路
+        # 現行 estimated_cost = 近 30 日單純均價, 假設融資均勻分布於 30 天;
+        # 實際上融資常集中在特定幾天建倉, 該假設會產生偏差
+        # (實測誤差中位數 6pp, >20pp 佔 11%).
+        # 有了每日餘額後可算: Σ(close × Δbalance) / Σ(Δbalance) — 真正的加權成本.
+        if margin_all:
+            mb = (margin_all.get(code) or {}).get("margin_balance")
+            if mb is not None:
+                rec_day["margin_balance"] = int(mb)
+        history["stocks"][code]["daily"][trade_date] = rec_day
     
     print(f"  ✓ 累積 {len(daily_quotes_map)} 檔個股 ({added_stocks} 檔新增)")
     

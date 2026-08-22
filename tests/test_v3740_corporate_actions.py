@@ -143,6 +143,33 @@ check("code 不存在 → None", mm.compute_n_day_avg_close('NOPE', sh) is None)
 sh9 = {'stocks': {'Y': {'daily': mk({'20260601': 100})}}}
 check("樣本不足 → None", mm.compute_n_day_avg_close('Y', sh9) is None)
 
+# ─── 10. v3.74.1 處置股融資成數 0.5 ───
+print("")
+print("[10] v3.74.1 處置股融資成數 (0.5 vs 一般 0.6)")
+cost, today = 100.0, 70.0
+n = mm.compute_stock_maintenance(today, 5000, cost, is_disposal=False)
+d = mm.compute_stock_maintenance(today, 5000, cost, is_disposal=True)
+check("一般股用成數 0.6", n and n['margin_rate_used'] == 0.6)
+check("處置股用成數 0.5", d and d['margin_rate_used'] == 0.5)
+check("處置股維持率 = 一般股 × 1.2",
+      abs(d['margin_maintenance_ratio'] / n['margin_maintenance_ratio'] - 1.2) < 0.01,
+      f"got {d['margin_maintenance_ratio']/n['margin_maintenance_ratio']:.3f}")
+check("同一檔: 一般判斷頭 / 處置判警戒 (原本風險被低估)",
+      n['margin_risk_level'] == 'margin_call' and d['margin_risk_level'] == 'watch',
+      f"got {n['margin_risk_level']} / {d['margin_risk_level']}")
+check("is_disposal_stock 旗標正確", d['is_disposal_stock'] is True and n['is_disposal_stock'] is False)
+e = mm.compute_stock_maintenance(today, 5000, cost, margin_rate=0.4, is_disposal=True)
+check("顯式 margin_rate 覆寫 is_disposal", e and e['margin_rate_used'] == 0.4)
+
+# ─── 11. v3.74.1 融資餘額累積 (為加權成本鋪路) ───
+print("")
+print("[11] v3.74.1 stock_history 累積 margin_balance")
+import src.fetchers.history as hist
+import inspect
+sig = inspect.signature(hist.update_history)
+check("update_history 有 margin_all 參數", 'margin_all' in sig.parameters)
+check("margin_all 預設 None (向後相容)", sig.parameters['margin_all'].default is None)
+
 print(f"\n{'='*58}")
 print(f"test_v3740_corporate_actions: {P} PASS / {F} FAIL")
 sys.exit(0 if F == 0 else 1)

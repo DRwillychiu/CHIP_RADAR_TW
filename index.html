@@ -3857,7 +3857,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="點 📋 更新看版本歷史">Chip Radar v3.74.0</div>
+      <div class="logo-en" title="點 📋 更新看版本歷史">Chip Radar v3.74.1</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -5644,8 +5644,13 @@ function renderHoldingsTab() {
       <button onclick="(function(){const tables=document.querySelectorAll('#holdings-container table');if(tables.length>=2){tableToCSV(tables[1],'tdcc_movers');}else{alert('TDCC movers 表格未生成');}})()" style="padding:6px 12px;background:rgba(63,185,80,0.12);border:1px solid rgba(63,185,80,0.4);border-radius:6px;color:#3fb950;cursor:pointer;font-size:12px;" title="匯出 TDCC 大戶 movers CSV">📥 TDCC CSV</button>
     </div>
     <div style="font-size:11px;color:var(--text-3);margin-bottom:14px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.3);padding:10px 12px;border-radius:6px;">
-      ⚠️ <strong>誠實揭露</strong>:本頁所有「融資維持率」是<strong>市場平均估算</strong> (用近 30 日均價 × 0.6 反推融資成本)
-      ,非真實個人帳戶維持率。個人實際維持率需查券商系統 (整戶計算 + 真實成本)。本估算定位:大盤系統性風險指標。
+      ⚠️ <strong>誠實揭露</strong>:本頁所有「融資維持率」是<strong>個股層級的市場平均估算</strong>
+      (用近 30 日均價 × 融資成數反推融資成本),<strong>不是</strong>你的個人帳戶維持率。<br>
+      • 券商追繳看的是「<strong>整戶擔保維持率</strong>」— 你所有融資部位加總算一個數,單一檔破線不等於會被追繳,反之亦然。個人實際數字請查券商系統。<br>
+      • 本估算定位:<strong>市場斷頭賣壓掃描</strong>(哪些股票有系統性賣壓,不論持有人是誰)。<br>
+      • <strong>v3.74.0</strong>:30 日均價窗若跨過除權息/減資/面額變更(分割)/現增,已自動做<strong>公司行動還原</strong>後再平均
+      (未校正時尺度斷層會造成嚴重誤判,如 1:10 分割會把健康股算成斷頭區);單日資料錯誤亦已排除。標記 🔧 者為已校正。<br>
+      • <strong>v3.74.1</strong>:處置中個股改用<strong>融資成數 0.5</strong>(一般股 0.6),標記 ⚠️處 者為處置股。
     </div>`;
 
   // ────── 1. 融資維持率全市場分布 ──────
@@ -5702,7 +5707,7 @@ function renderHoldingsTab() {
           <td style="padding:4px 6px;">${s.name || ''} <span class="jump-stock" onclick="jumpToStockTrace('${s.code}')" style="color:var(--brand);text-decoration:underline dotted;cursor:pointer;" title="跳到個股追蹤">${s.code}</span></td>
           <td style="padding:4px 6px;text-align:right;color:${color};font-weight:700;">${s.ratio}%</td>
           <td style="padding:4px 6px;text-align:right;">${s.today_close}</td>
-          <td style="padding:4px 6px;text-align:right;color:var(--text-3);">${s.estimated_cost}</td>
+          <td style="padding:4px 6px;text-align:right;color:var(--text-3);">${s.estimated_cost}${s.cost_adjusted_for_corp_action ? ' <span title="30日均價已做公司行動還原(除權息/減資/分割/現增)" style="color:#60a5fa;">🔧</span>' : ''}${s.is_disposal_stock ? ' <span title="處置股,融資成數採 0.5" style="color:#fbbf24;">⚠️處</span>' : ''}</td>
           <td style="padding:4px 6px;text-align:right;color:var(--text-3);">${(s.margin_balance||0).toLocaleString()} 張</td>
           <td style="padding:4px 6px;">${icon}</td>
         </tr>`;

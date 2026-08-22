@@ -49,6 +49,11 @@ N_DAYS_AVG = 30           # 用近 N 天收盤均價當融資成本估算
 MARGIN_RATE = 0.6
 INITIAL_MAINT = 1.667     # 初始維持率 = 1/MARGIN_RATE ≈ 166.67%
 
+# v3.74.1: 處置股融資成數 — 主管機關列管期間成數調降
+# 用 0.6 算處置股會**低估**維持率約 17% (0.5/0.6 = 0.833) → 假警報方向
+# 蔣承翰等 sniper 專抓漲停, 漲停股極易進處置 → 此路徑使用頻率高
+DISPOSAL_MARGIN_RATE = 0.5
+
 # P1-6: 風險分級門檻 (%) 法源 — TWSE「整戶擔保維持率」規定
 # 健康 ≥150%: 一般操作區間
 # 警戒 130-150%: 接近追繳線, 風險偵測區
@@ -147,7 +152,9 @@ def detect_ex_dividend(today_close: float,
 def compute_stock_maintenance(today_close: float,
                                 margin_balance_lots: int,
                                 estimated_cost: Optional[float],
-                                prev_close: Optional[float] = None
+                                prev_close: Optional[float] = None,
+                                margin_rate: Optional[float] = None,
+                                is_disposal: bool = False
                                 ) -> Optional[Dict[str, Any]]:
     """計算單一個股的市場估算維持率 + 風險分級.
 
@@ -168,7 +175,10 @@ def compute_stock_maintenance(today_close: float,
     # 擔保品市值 = 今日收盤 × 餘額張數 × 1000
     # 維持率 = 擔保品市值 / 融資金額 = today / (avg_cost × MARGIN_RATE)
     # P0-5: ZeroDivisionError 防守 (估算成本 = 0 / MARGIN_RATE 配置錯, 都會炸)
-    denom = estimated_cost * MARGIN_RATE
+    # v3.74.1: 處置股融資成數降至 0.5 (未指定 margin_rate 時依 is_disposal 自動選)
+    rate = margin_rate if margin_rate else (
+        DISPOSAL_MARGIN_RATE if is_disposal else MARGIN_RATE)
+    denom = estimated_cost * rate
     if denom <= 0:
         return None
     maintenance = (today_close / denom) * 100
@@ -199,6 +209,8 @@ def compute_stock_maintenance(today_close: float,
         'estimated_cost': round(estimated_cost, 2),
         'maintenance_method': f'{N_DAYS_AVG}d_avg_close',
         'margin_stale_due_to_ex_div': stale,
+        'margin_rate_used': rate,                  # v3.74.1 揭露用了哪個成數
+        'is_disposal_stock': bool(is_disposal),
     }
 
 
@@ -208,6 +220,7 @@ def inject_maintenance_into_stocks(
     daily_quotes_map: Dict[str, Dict[str, Any]],
     stock_history: Optional[Dict[str, Any]] = None,
     corporate_actions: Optional[Dict[str, Any]] = None,
+    disposal_codes: Optional[set] = None,
 ) -> Dict[str, Any]:
     """注入個股維持率到 branches[].buys/sells 各 stock dict.
 
@@ -235,7 +248,8 @@ def inject_maintenance_into_stocks(
                     m = cache[code]
                 else:
                     m = _compute_for_code(code, margin_all, daily_quotes_map,
-                                          stock_history, corporate_actions)
+                                          stock_history, corporate_actions,
+                                          disposal_codes)
                     cache[code] = m
                 if m:
                     stock.update(m)
@@ -245,7 +259,8 @@ def inject_maintenance_into_stocks(
 
     # 全市場排行: 從 margin_all 計所有股票 (給 tab 08 / tab 15 用)
     market_summary = _compute_market_summary(margin_all, daily_quotes_map,
-                                              stock_history, corporate_actions)
+                                              stock_history, corporate_actions,
+                                              disposal_codes)
 
     return {
         'computed': computed,
@@ -260,7 +275,8 @@ def _compute_for_code(code: str,
                        margin_all: Dict[str, Dict[str, Any]],
                        daily_quotes_map: Dict[str, Dict[str, Any]],
                        stock_history: Optional[Dict[str, Any]],
-                       corporate_actions: Optional[Dict[str, Any]] = None
+                       corporate_actions: Optional[Dict[str, Any]] = None,
+                       disposal_codes: Optional[set] = None
                        ) -> Optional[Dict[str, Any]]:
     m_rec = margin_all.get(code)
     if not m_rec:
@@ -276,7 +292,8 @@ def _compute_for_code(code: str,
     if not ci:
         return None
     r = compute_stock_maintenance(float(today_close), margin_bal,
-                                  ci['avg'], prev_close)
+                                  ci['avg'], prev_close,
+                                  is_disposal=code in (disposal_codes or set()))
     if r:
         # v3.74.0: 揭露成本基準是否經公司行動校正 (供 UI 標示)
         r['cost_adjusted_for_corp_action'] = ci['adjusted']
@@ -295,7 +312,8 @@ def _compute_for_code(code: str,
 def _compute_market_summary(margin_all: Dict[str, Dict[str, Any]],
                               daily_quotes_map: Dict[str, Dict[str, Any]],
                               stock_history: Optional[Dict[str, Any]],
-                              corporate_actions: Optional[Dict[str, Any]] = None
+                              corporate_actions: Optional[Dict[str, Any]] = None,
+                              disposal_codes: Optional[set] = None
                               ) -> Dict[str, Any]:
     """全市場維持率分布: 健康/警戒/高風險/斷頭數量 + Top 高風險清單."""
     counts = {'healthy': 0, 'watch': 0, 'high_risk': 0, 'margin_call': 0,
@@ -318,7 +336,8 @@ def _compute_market_summary(margin_all: Dict[str, Dict[str, Any]],
             counts['insufficient_data'] += 1
             continue
         r = compute_stock_maintenance(float(today_close), margin_bal,
-                                       ci['avg'], q_rec.get('prev_close'))
+                                       ci['avg'], q_rec.get('prev_close'),
+                                       is_disposal=code in (disposal_codes or set()))
         if r:
             counts[r['margin_risk_level']] += 1
             if r['margin_risk_level'] in ('high_risk', 'margin_call'):
@@ -330,6 +349,10 @@ def _compute_market_summary(margin_all: Dict[str, Dict[str, Any]],
                     'margin_balance': margin_bal,
                     'today_close': today_close,
                     'estimated_cost': r['estimated_cost'],
+                    # v3.74.0/1: 供前端標記 🔧 已校正 / ⚠️處 處置股
+                    'cost_adjusted_for_corp_action': ci.get('adjusted', False),
+                    'is_disposal_stock': r.get('is_disposal_stock', False),
+                    'margin_rate_used': r.get('margin_rate_used', MARGIN_RATE),
                 })
 
     # 按維持率升冪 (最危險在前)
