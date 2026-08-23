@@ -1,105 +1,60 @@
 {
-  "updated_at": "2026-08-16T14:19:17.103714",
+  "updated_at": "2026-08-23T14:20:29.786845",
   "days_analyzed": 50,
   "summary": {
-    "mild_only_pct": 54.347826086956516,
-    "both_overlap_pct_of_quad": 25.2,
-    "verdict": "部分獨立 — mild_up 大部分非 quad subset, 雙層仍有獨立信息"
+    "mild_only_pct": 64.33566433566433,
+    "both_overlap_pct_of_quad": 22.566371681415927,
+    "verdict": "雙層獨立 — mild_up 大部分非 quad subset, 維持雙層 sub-banner 合理"
   },
   "buckets": {
     "quad_only": {
-      "n": 187,
-      "hits": 98,
-      "hit_rate": 0.5240641711229946,
-      "mean_change": 1.4975935828877005,
-      "median_change": 0.44
+      "n": 175,
+      "hits": 86,
+      "hit_rate": 0.49142857142857144,
+      "mean_change": 1.0281714285714285,
+      "median_change": 0.0
     },
     "both": {
-      "n": 63,
-      "hits": 26,
-      "hit_rate": 0.4126984126984127,
-      "mean_change": -0.7919047619047611,
-      "median_change": -1.34
+      "n": 51,
+      "hits": 22,
+      "hit_rate": 0.43137254901960786,
+      "mean_change": -0.6172549019607846,
+      "median_change": -0.83
     },
     "mild_up_only": {
-      "n": 75,
-      "hits": 28,
-      "hit_rate": 0.37333333333333335,
-      "mean_change": -0.9189333333333342,
-      "median_change": -0.95
+      "n": 92,
+      "hits": 29,
+      "hit_rate": 0.31521739130434784,
+      "mean_change": -1.2944565217391302,
+      "median_change": -1.745
     }
   },
   "per_day": [
     {
-      "date": "20260521",
-      "next_date": "20260522",
-      "quad_n": 6,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 6,
-      "mild_only": 0
-    },
-    {
-      "date": "20260522",
-      "next_date": "20260525",
-      "quad_n": 6,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 6,
-      "mild_only": 0
-    },
-    {
-      "date": "20260525",
-      "next_date": "20260526",
-      "quad_n": 0,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 0
-    },
-    {
-      "date": "20260526",
-      "next_date": "20260527",
-      "quad_n": 11,
-      "mild_n": 2,
-      "intersection": 2,
-      "quad_only": 9,
-      "mild_only": 0
-    },
-    {
-      "date": "20260527",
-      "next_date": "20260528",
-      "quad_n": 12,
-      "mild_n": 6,
-      "intersection": 6,
-      "quad_only": 6,
-      "mild_only": 0
-    },
-    {
       "date": "20260528",
       "next_date": "20260529",
       "quad_n": 12,
-      "mild_n": 3,
-      "intersection": 3,
-      "quad_only": 9,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 12,
       "mild_only": 0
     },
     {
       "date": "20260529",
       "next_date": "20260601",
       "quad_n": 9,
-      "mild_n": 3,
-      "intersection": 3,
-      "quad_only": 6,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 9,
       "mild_only": 0
     },
     {
       "date": "20260601",
       "next_date": "20260602",
       "quad_n": 11,
-      "mild_n": 2,
-      "intersection": 2,
-      "quad_only": 9,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 11,
       "mild_only": 0
     },
     {
@@ -479,6 +434,51 @@
       "intersection": 0,
       "quad_only": 0,
       "mild_only": 4
+    },
+    {
+      "date": "20260814",
+      "next_date": "20260817",
+      "quad_n": 11,
+      "mild_n": 5,
+      "intersection": 4,
+      "quad_only": 7,
+      "mild_only": 1
+    },
+    {
+      "date": "20260817",
+      "next_date": "20260818",
+      "quad_n": 0,
+      "mild_n": 9,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 9
+    },
+    {
+      "date": "20260818",
+      "next_date": "20260819",
+      "quad_n": 0,
+      "mild_n": 4,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 4
+    },
+    {
+      "date": "20260819",
+      "next_date": "20260820",
+      "quad_n": 0,
+      "mild_n": 1,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 1
+    },
+    {
+      "date": "20260820",
+      "next_date": "20260821",
+      "quad_n": 0,
+      "mild_n": 2,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 2
     }
   ]
 }
