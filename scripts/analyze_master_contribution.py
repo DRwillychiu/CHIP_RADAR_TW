@@ -29,6 +29,27 @@ OUT = ROOT / 'data' / 'master_contribution.json'
 sys.path.insert(0, str(ROOT / 'src'))
 from exports.excel_report import TRACKED_MASTERS, PREMIUM_MASTERS
 
+# v3.75.0 稽核修正:
+#   (a) 單位統一 — 原本 baseline.hit_rate 是分數(0.51) 但 per_master.hr_with 是
+#       百分比(83.3), 同一份 JSON 兩種單位, 下游必踩雷. 全部統一為百分比 (_pct 後綴).
+#   (b) 加 updated_at / source_updated_at — 原本無時間戳, 過期而不自知.
+#       (實測發現此檔 baseline n=257 但 quad_hit_log 已是 233, 即已過期)
+#   (c) 樣本門檻 — 原本 n=8~12 也直接下「輔助/拖後腿」判定.
+#       n=12 的 83.3% 其實是 10/12, Wilson CI 約 [55%, 95%], 寬到無判別力.
+MIN_N_FOR_VERDICT = 20      # 低於此只標「樣本不足」, 不下判定
+
+def _wilson_pct(hits, n, z=1.96):
+    """回傳 (lo%, hi%) — Wilson 95% 信賴區間, 單位為百分比."""
+    if n <= 0:
+        return (None, None)
+    import math
+    p = hits / n
+    d = 1 + z * z / n
+    c = p + z * z / (2 * n)
+    m = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n))
+    return (round((c - m) / d * 100, 1), round((c + m) / d * 100, 1))
+
+
 qhl = json.loads(QHL.read_text(encoding='utf-8'))
 trigger_days = qhl.get('trigger_days', [])
 all_picks = []
@@ -57,9 +78,14 @@ for m in sorted(TRACKED_MASTERS):
     delta_pp = hr_with - hr_without
     is_premium = m in PREMIUM_MASTERS
 
-    # Verdict
+    hits_with = sum(p['hit'] for p in picks_with)
+    ci_lo, ci_hi = _wilson_pct(hits_with, n_with)
+
+    # Verdict — v3.75.0 加樣本門檻, 樣本不足不下判定
     if n_with == 0:
         verdict = '未貢獻'
+    elif n_with < MIN_N_FOR_VERDICT:
+        verdict = f'樣本不足 (n={n_with}<{MIN_N_FOR_VERDICT})'
     elif contrib_pct >= 30 and delta_pp > 0:
         verdict = '核心 alpha'
     elif delta_pp < -5:
@@ -71,21 +97,26 @@ for m in sorted(TRACKED_MASTERS):
 
     rows.append({
         'master': m, 'is_premium': is_premium,
-        'contrib_pct': contrib_pct, 'n_with': n_with,
-        'hr_with': hr_with, 'hr_without': hr_without,
+        'contrib_pct_pct': contrib_pct, 'n_with': n_with, 'hits_with': hits_with,
+        'hr_with_pct': hr_with, 'hr_without_pct': hr_without,
+        'ci_lo_pct': ci_lo, 'ci_hi_pct': ci_hi,
         'delta_pp': delta_pp, 'verdict': verdict,
+        'verdict_reliable': n_with >= MIN_N_FOR_VERDICT,
     })
 
 # Sort: contribution desc
-rows.sort(key=lambda r: -r['contrib_pct'])
+rows.sort(key=lambda r: -r['contrib_pct_pct'])
 
 # Print table
-print(f"{'Master':<22} {'⭐⭐':<3} {'貢獻%':>6} {'n_with':>7} {'hit%':>5} {'no_M %':>7} {'Δpp':>6}  Verdict")
-print('-' * 80)
+print(f"{'Master':<22} {'⭐⭐':<3} {'貢獻%':>6} {'n':>5} {'hit%':>6} {'Wilson95%':>15} {'no_M%':>7} {'Δpp':>7}  Verdict")
+print('-' * 108)
 for r in rows:
     star = '⭐⭐' if r['is_premium'] else '  '
-    print(f"  {r['master']:<20} {star:<3} {r['contrib_pct']:>5.1f}% {r['n_with']:>7} "
-          f"{r['hr_with']:>4.0f}% {r['hr_without']:>6.0f}% {r['delta_pp']:>+5.1f}pp  {r['verdict']}")
+    ci = (f"[{r['ci_lo_pct']:.0f},{r['ci_hi_pct']:.0f}]"
+          if r['ci_lo_pct'] is not None else '—')
+    print(f"  {r['master']:<20} {star:<3} {r['contrib_pct_pct']:>5.1f}% {r['n_with']:>5} "
+          f"{r['hr_with_pct']:>5.1f}% {ci:>15} {r['hr_without_pct']:>6.1f}% "
+          f"{r['delta_pp']:>+6.1f}pp  {r['verdict']}")
 
 # Summary by verdict
 print("\n=== Summary by verdict ===")
@@ -97,8 +128,20 @@ for v in ['核心 alpha', '輔助', '中性', '拖後腿', '未貢獻']:
         print(f"  {v}: {verdicts[v]} 位 → {', '.join(names)}")
 
 # Write
+from datetime import datetime, timezone, timedelta
+_tw = datetime.now(timezone(timedelta(hours=8)))
+_base_lo, _base_hi = _wilson_pct(total_hits, total_n)
 out_data = {
-    'baseline': {'n': total_n, 'hits': total_hits, 'hit_rate': total_hr},
+    # v3.75.0: 全面改用 _pct 後綴, 單位一律百分比 (不再分數/百分比混用)
+    'schema_version': 2,
+    'updated_at': _tw.strftime('%Y-%m-%dT%H:%M:%S+08:00'),
+    'source_updated_at': qhl.get('updated_at'),      # 來源 quad_hit_log 的時間
+    'min_n_for_verdict': MIN_N_FOR_VERDICT,
+    'baseline': {
+        'n': total_n, 'hits': total_hits,
+        'hit_rate_pct': round(total_hr * 100, 1),
+        'ci_lo_pct': _base_lo, 'ci_hi_pct': _base_hi,
+    },
     'per_master': rows,
     'summary_counts': dict(verdicts),
 }

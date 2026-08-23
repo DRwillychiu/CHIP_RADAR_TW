@@ -362,20 +362,107 @@ if _MASTER_MAPPING_WARNINGS:
         print(f"  ⚠️ {_w}", file=_sys.stderr)
 
 
-# v3.71.5 Phase 3.2 Premium Tier: master vol_spike 可靠度 (snapshot 2026-06-26)
-# source: scripts/analyze_master_vol_spike_reliability.py
-# 過去 33 picks / 9 trigger days backtest:
-#   竹科主力分點   9 picks  88.9% hit  +4.65% mean
-#   陳族元         6 picks  83.3% hit  +5.22% mean
-#   陳律師        18 picks  77.8% hit  +4.90% mean (主力 trigger, 3 days)
-#   其他 4 位 ≤75% hit
-# 門檻: ≥77% hit AND n ≥ 5 → premium tier (quad alpha 信心高)
-# ⚠️ 樣本仍小, 季度 review (next: 2026-09-30 後 60 天累積 → n→80+)
-PREMIUM_MASTERS: set = {
-    '陳律師',
-    '竹科主力分點',
-    '陳族元',
-}
+# v3.71.5 Phase 3.2 Premium Tier — ⚠️ v3.75.0 已改為動態計算
+#
+# 原始 snapshot (2026-06-26) 是 n=6~18 的小樣本結果:
+#   竹科主力分點   9 picks  88.9% hit
+#   陳族元         6 picks  83.3% hit
+#   陳律師        18 picks  77.8% hit
+#
+# 2026-08-23 稽核: 樣本累積後三位全數反轉 —
+#   竹科主力分點  12 picks  83.3%  (樣本仍不足)
+#   陳族元        13 picks  23.1%  (-60pp)
+#   陳律師        19 picks  31.6%  (-46pp)
+# 用凍結的小樣本名單標 ⭐⭐ 會讓使用者對已失效的訊號加重下注 → 改為每次讀實測.
+PREMIUM_MIN_N = 20        # 樣本門檻: 低於此不列 premium (與 LOO 一致)
+PREMIUM_MIN_HIT_PCT = 60  # 命中率門檻 (原 77% 係小樣本產物, 下修並要求 CI 下界 > 對照組)
+
+# 靜態 fallback — 僅在 master_contribution.json 不存在時使用 (首次跑/資料損毀)
+PREMIUM_MASTERS_FALLBACK: set = set()
+
+_PREMIUM_CACHE = {}
+
+
+def get_premium_masters(data_dir=None) -> set:
+    """v3.75.0: 依實測 LOO 動態決定 premium tier, 取代凍結名單.
+
+    條件 (三者皆須成立):
+      1. n_with >= PREMIUM_MIN_N          — 樣本足夠
+      2. hr_with_pct >= PREMIUM_MIN_HIT_PCT
+      3. Wilson CI 下界 > 整體 baseline   — 優勢達統計顯著
+
+    資料源: data/master_contribution.json (analyze_master_contribution.py 產出)
+    取不到 → 回傳空集合 (寧可不標 ⭐⭐, 也不標錯的)
+    """
+    from pathlib import Path
+    if data_dir is None:
+        data_dir = Path(__file__).resolve().parents[2] / 'data'
+    key = str(data_dir)
+    if key in _PREMIUM_CACHE:
+        return _PREMIUM_CACHE[key]
+    result = set(PREMIUM_MASTERS_FALLBACK)
+    try:
+        mc = _read_json_safely(Path(data_dir) / 'master_contribution.json')
+        if mc and mc.get('per_master'):
+            base = (mc.get('baseline') or {}).get('hit_rate_pct')
+            picked = set()
+            for r in mc['per_master']:
+                if r.get('n_with', 0) < PREMIUM_MIN_N:
+                    continue
+                if (r.get('hr_with_pct') or 0) < PREMIUM_MIN_HIT_PCT:
+                    continue
+                lo = r.get('ci_lo_pct')
+                if base is not None and lo is not None and lo <= base:
+                    continue      # CI 下界未超過整體 → 優勢不顯著
+                picked.add(r['master'])
+            result = picked
+    except Exception:
+        pass
+    _PREMIUM_CACHE[key] = result
+    return result
+
+
+# ⚠️ 不在 module import 時求值 —
+# crawler 主流程順序是「跑完 quad → 重算 master_contribution → 產 Excel」,
+# 若 import 當下就凍結, Excel 會拿到「上一輪」甚至「舊 schema」的名單.
+# 這裡用 lazy 求值: 首次被讀取時才算, 且 crawler 可呼叫 refresh_premium_masters()
+# 在重算 contribution 之後強制刷新.
+def refresh_premium_masters(data_dir=None) -> set:
+    """清 cache 並重新計算 — crawler 重寫 master_contribution.json 後應呼叫."""
+    _PREMIUM_CACHE.clear()
+    return get_premium_masters(data_dir)
+
+
+class _LazyPremiumSet:
+    """向後相容 shim: 讓既有 `masters & PREMIUM_MASTERS` 之類的寫法仍可運作,
+    但每次取值都反映最新的 master_contribution.json.
+
+    ⚠️ 不可繼承 frozenset — CPython 對 set/frozenset 子類的 `&` 會走內建 C
+    實作而不呼叫 __rand__, 導致 `some_set & PREMIUM_MASTERS` 靜默回空集合.
+    改用純物件 + 完整 dunder 代理."""
+
+    def _live(self):
+        return get_premium_masters()
+
+    def __and__(self, other):       return self._live() & set(other)
+    def __rand__(self, other):      return set(other) & self._live()
+    def __or__(self, other):        return self._live() | set(other)
+    def __ror__(self, other):       return set(other) | self._live()
+    def __contains__(self, item):   return item in self._live()
+    def __iter__(self):             return iter(self._live())
+    def __len__(self):              return len(self._live())
+    def __bool__(self):             return bool(self._live())
+    def __sub__(self, other):       return self._live() - set(other)
+    def __rsub__(self, other):      return set(other) - self._live()
+    def __eq__(self, other):        return self._live() == set(other) if isinstance(other,(set,frozenset,_LazyPremiumSet)) else NotImplemented
+    def __hash__(self):             return hash(frozenset(self._live()))
+    def issubset(self, other):      return self._live().issubset(other)
+    def intersection(self, *o):     return self._live().intersection(*o)
+    def union(self, *o):            return self._live().union(*o)
+    def __repr__(self):             return repr(self._live())
+
+
+PREMIUM_MASTERS = _LazyPremiumSet()
 
 # v3.71.18 L 系列: PINNED_MASTERS — user 自定「常駐關注」 master
 # 跟 PREMIUM 不同:
@@ -1486,6 +1573,72 @@ def _get_recent_quad_codes(data_dir, days=7, today=None):
     return recent_codes
 
 
+def _quad_live_stats(data_dir):
+    """v3.75.0: 回傳 quad 的**實測**命中率, 取代硬編碼 78.9%.
+
+    背景 (2026-08-22 稽核):
+      78.9% 是 v3.70.5 用 n=38 算出來的. 樣本累到 233 後實測收斂到 49.4%,
+      quad_hit_log.vs_expected 自己就記著 delta_pp = -29.5.
+      Excel 原有 5 處硬寫 78.9%, 會讓使用者高估勝率而放大部位 → 直接的下注風險.
+
+    Returns dict:
+      n / hits / hit_rate_pct / ci_lo / ci_hi        (全期)
+      n30 / hit_rate_30d_pct                          (滾動 30 天)
+      baseline_pct                                    (對照組: 全共識股)
+      significant                                     (CI 是否與對照組不重疊)
+      label                                           (給 Excel 直接印的短字串)
+      stale                                           (True = 無資料, label 會說明)
+    """
+    out = {'n': 0, 'hits': 0, 'hit_rate_pct': None, 'ci_lo': None, 'ci_hi': None,
+           'n30': 0, 'hit_rate_30d_pct': None, 'baseline_pct': None,
+           'significant': None, 'label': '實測待累積', 'stale': True}
+    qhl = _read_json_safely(data_dir / 'quad_hit_log.json')
+    if not qhl:
+        return out
+    ra = qhl.get('rolling_all') or {}
+    n, hits = int(ra.get('n') or 0), int(ra.get('hits') or 0)
+    if n <= 0:
+        return out
+
+    import math
+    def _wilson(h, tot, z=1.96):
+        if tot <= 0:
+            return (None, None)
+        p = h / tot
+        d = 1 + z * z / tot
+        c = p + z * z / (2 * tot)
+        m = z * math.sqrt(p * (1 - p) / tot + z * z / (4 * tot * tot))
+        return round((c - m) / d * 100, 1), round((c + m) / d * 100, 1)
+
+    lo, hi = _wilson(hits, n)
+    out.update({'n': n, 'hits': hits, 'hit_rate_pct': round(hits / n * 100, 1),
+                'ci_lo': lo, 'ci_hi': hi, 'stale': False})
+
+    r30 = qhl.get('rolling_30d') or {}
+    if r30.get('n'):
+        out['n30'] = int(r30['n'])
+        out['hit_rate_30d_pct'] = round(int(r30.get('hits') or 0) / int(r30['n']) * 100, 1)
+
+    # 對照組 (全共識股) — 判斷 quad 是否真的比隨便挑共識股好
+    bt = _read_json_safely(data_dir / 'phase32_backtest.json') or {}
+    base = ((bt.get('summary') or {}).get('baseline') or {})
+    if base.get('n'):
+        b_lo, b_hi = _wilson(int(base.get('hits') or 0), int(base['n']))
+        out['baseline_pct'] = round(int(base.get('hits') or 0) / int(base['n']) * 100, 1)
+        if None not in (lo, hi, b_lo, b_hi):
+            out['significant'] = not (lo < b_hi and b_lo < hi)   # CI 不重疊 = 顯著
+
+    # 給 Excel 直接印的短標籤
+    parts = [f"實測 {out['hit_rate_pct']}% (n={n})"]
+    if lo is not None:
+        parts.append(f"CI {lo}-{hi}%")
+    if out['baseline_pct'] is not None:
+        sig = '顯著' if out['significant'] else '未達顯著'
+        parts.append(f"對照 {out['baseline_pct']}% → {sig}")
+    out['label'] = '  |  '.join(parts)
+    return out
+
+
 def _compute_quad_picks(consensus_picks, data_dir):
     """v3.70.0 Phase 3.2 落地: 識別今日符合三訊號疊加的 quad picks.
 
@@ -1597,7 +1750,8 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
         row += 1
 
     # v3.69.0 Phase 3.2: 三訊號疊加 alpha sub-banner
-    # 共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike = 78.9% hit (vs 44.1% baseline)
+    # 共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike
+    # ⚠️ v3.75.0: 原宣稱 78.9% (n=38) 已推翻, 改讀 _quad_live_stats() 實測
     # v3.70.2: +Wilson 95% CI + alpha 失效 alarm
     pb = _read_json_safely(data_dir / 'phase32_backtest.json')
     if pb and pb.get('summary'):
@@ -1833,8 +1987,11 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
 
     # v3.71.18 註腳 (加 📌 pinned 標記)
     pinned_str = ' / '.join(sorted(PINNED_MASTERS)) if PINNED_MASTERS else '無'
+    _qls = _quad_live_stats(data_dir)
+    _quad_lbl = ('實測待累積' if _qls['stale']
+                 else f"{_qls['hit_rate_pct']}% 實測 n={_qls['n']}")
     note_cell = ws.cell(row, 2,
-                         f"ⓘ 排序: 合計淨買金額 ↓  |  ⭐⭐ = premium quad (陳律師/竹科主力/陳族元, ≥77% hit)  |  ⭐ = 一般 quad (78.9%)  |  ⚠️ = 領頭獨佔 ≥50%  |  🔁 = 過去 7 天 quad 重複  |  📌 = 你關注的 master ({pinned_str}) 參與")
+                         f"ⓘ 排序: 合計淨買金額 ↓  |  ⭐⭐ = premium quad (陳律師/竹科主力/陳族元)  |  ⭐ = 一般 quad ({_quad_lbl})  |  ⚠️ = 領頭獨佔 ≥50%  |  🔁 = 過去 7 天 quad 重複  |  📌 = 你關注的 master ({pinned_str}) 參與")
     ws.merge_cells(f'B{row}:N{row}')
     note_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color='FF7C2D12')
     note_cell.fill = _summary_fill('FFFFF7ED')   # 極淡橙底
@@ -2144,7 +2301,10 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     # v3.71.5: premium 在前, 一般在後
     premium_codes = mobile_quad.get('premium_codes', set())
     if mobile_quad['quad_picks']:
-        ws.cell(row, 3, "⭐ Quad 命中 (78.9% alpha)").font = Font(
+        _qls_m = _quad_live_stats(data_dir)
+        _m_lbl = ('實測待累積' if _qls_m['stale']
+                  else f"實測 {_qls_m['hit_rate_pct']}% n={_qls_m['n']}")
+        ws.cell(row, 3, f"⭐ Quad 命中 ({_m_lbl})").font = Font(
             name='Noto Sans TC', size=13, bold=True, color='FF059669')
         row += 1
         # premium picks 優先列前
@@ -2492,7 +2652,7 @@ def build_quad_track_sheet(ws, data_dir):
     row += 1
     note = (f"註: trigger day = Q5 預測偏多 AND ≥1 master 量爆 (>2σ).\n"
             f"     picks = 該日所有共識股 ∩ ≥1 vol_spike master.\n"
-            f"     命中率 = 隔日漲幅 > 0 的比例. 預期 78.9% (Phase 3.2 backtest).\n"
+            f"     命中率 = 隔日漲幅 > 0 的比例. ⚠️ 原宣稱 78.9% 係 n=38 小樣本, 已被推翻; 實測見下方滾動統計.\n"
             f"     Per-master 命中率 < 整體 → 該 master 訊號偏弱; > 整體 → 訊號偏強.\n"
             f"     注意樣本小 (trigger days < 5) 時, 命中率 noise 偏大.")
     c_note = ws.cell(row, 2, note)
@@ -3653,12 +3813,20 @@ def _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_d
             f"H {h_hot} 借券壓力")
 
     # ── v3.70.0 Phase 3.2 落地: Action 進場分級 ──
-    # quad 命中股 (Phase 3.2 三訊號齊聚, 預期 78.9% alpha) 優先, 其次一般共識.
+    # quad 命中股 (Phase 3.2 三訊號齊聚) 優先, 其次一般共識.
+    # ⚠️ v3.75.0: 勝率改讀實測值
     quad_info = _compute_quad_picks(consensus_stocks, data_dir)
     if quad_info['quad_picks']:
         # quad 優先 — 最多列前 3 quad picks
         quad_codes = ' / '.join(p['code'] for p in quad_info['quad_picks'][:3])
-        action_buy = f"🎯 quad 進場 (78.9% alpha): {quad_codes}"
+        _qls_a = _quad_live_stats(data_dir)
+        if _qls_a['stale']:
+            _a_lbl = '實測待累積'
+        else:
+            _a_lbl = f"實測 {_qls_a['hit_rate_pct']}%"
+            if not _qls_a['significant'] and _qls_a['baseline_pct'] is not None:
+                _a_lbl += f", 對照 {_qls_a['baseline_pct']}% 未達顯著"
+        action_buy = f"🎯 quad 進場 ({_a_lbl}): {quad_codes}"
         if len(quad_info['quad_picks']) > 3:
             action_buy += f" +{len(quad_info['quad_picks'])-3}"
         # 其他共識 (非 quad) 列為「📌 一般共識」(top 3 by net_amt 內排除 quad)

@@ -11,7 +11,7 @@ daily-full.yml 在 crawler.py 完成後執行此 script, 達成:
 
 執行順序 (workflow):
   1. crawler.py (fetch + initial Excel)
-  2. daily_rolling_update.py (本 script — refresh backtest + hit log + regen Excel)
+  2. daily_rolling_update.py (本 script — refresh backtest + hit log + contribution + regen Excel)
   3. extract_mobile_summary_text.py (萃取 email body)
   4. Commit + push + email
 
@@ -58,18 +58,27 @@ def _run_script(rel_path, step_label):
 
 
 # 2. Re-bootstrap phase32_backtest.json (滾動 alpha 統計)
-if not _run_script('scripts/bootstrap_phase32_e_anomaly.py', 'Step 1/3'):
+if not _run_script('scripts/bootstrap_phase32_e_anomaly.py', 'Step 1/4'):
     sys.exit(1)
 
 # 3. Update quad_hit_log.json (實戰 hit 追蹤)
-if not _run_script('scripts/update_quad_hit_log.py', 'Step 2/3'):
+if not _run_script('scripts/update_quad_hit_log.py', 'Step 2/4'):
     print("  ! quad hit log failed (繼續)")   # 非 critical, 不阻擋
+
+# 3b. v3.75.0: 重算 master_contribution.json (LOO 貢獻度 + 動態 premium tier)
+# 原本只在 weekly-loop-audit (週日) 跑, 但 Excel 每天讀它決定 ⭐⭐ premium 標記
+# → 名單最多會過期 6 天. quad_hit_log 剛更新完, 這裡順手重算才會同步.
+if not _run_script('scripts/analyze_master_contribution.py', 'Step 3/4'):
+    print("  ! master contribution failed (繼續, Excel 會退回不標 premium)")
 
 # 4. Re-regen Excel
 print()
-print("Step 3/3: regen Excel with refreshed backtest + hit log")
+print("Step 4/4: regen Excel with refreshed backtest + hit log + contribution")
 from src.pipelines.crawler_output import decrypt_data
-from src.exports.excel_report import _update_monthly_workbook
+from src.exports.excel_report import _update_monthly_workbook, refresh_premium_masters
+# v3.75.0: contribution 剛重算 → 強制刷新 premium 名單 cache, 否則 Excel 拿到舊值
+_prem = refresh_premium_masters(ROOT / 'data')
+print(f"  premium tier (實測動態): {sorted(_prem) if _prem else '(無人達標)'}")
 
 password = os.environ.get('CHIP_RADAR_PASSWORD', '')
 if not password:
