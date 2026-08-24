@@ -1,170 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260528",
-      "next_date": "20260529",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.1,
-      "taifex_change": -1.4,
-      "vol_spike_masters": [
-        "林滄海"
-      ],
-      "quad_picks": [
-        {
-          "code": "2454",
-          "name": "聯發科",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": -2.27,
-          "hit": false,
-          "leader_pct": 0.216,
-          "excess_return": -0.87,
-          "failure_reasons": [
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "2308",
-          "name": "台達電",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": 2.3,
-          "hit": true,
-          "leader_pct": 0.388,
-          "excess_return": 3.7,
-          "failure_reasons": []
-        },
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": 2.61,
-          "hit": true,
-          "leader_pct": 0.251,
-          "excess_return": 4.01,
-          "failure_reasons": []
-        },
-        {
-          "code": "2344",
-          "name": "華邦電",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": 9.72,
-          "hit": true,
-          "leader_pct": 0.198,
-          "excess_return": 11.12,
-          "failure_reasons": []
-        },
-        {
-          "code": "2313",
-          "name": "華通",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": 9.85,
-          "hit": true,
-          "leader_pct": 0.164,
-          "excess_return": 11.25,
-          "failure_reasons": []
-        },
-        {
-          "code": "1303",
-          "name": "南亞",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": 8.4,
-          "hit": true,
-          "leader_pct": 0.242,
-          "excess_return": 9.8,
-          "failure_reasons": []
-        },
-        {
-          "code": "9105",
-          "name": "泰金寶-DR",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": 3.41,
-          "hit": true,
-          "leader_pct": 0.214,
-          "excess_return": 4.81,
-          "failure_reasons": []
-        },
-        {
-          "code": "8046",
-          "name": "南電",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": -0.24,
-          "hit": false,
-          "leader_pct": 0.375,
-          "excess_return": 1.16,
-          "failure_reasons": [
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "3443",
-          "name": "創意",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": 1.74,
-          "hit": true,
-          "leader_pct": 0.493,
-          "excess_return": 3.14,
-          "failure_reasons": []
-        },
-        {
-          "code": "3481",
-          "name": "群創",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": 9.91,
-          "hit": true,
-          "leader_pct": 0.212,
-          "excess_return": 11.31,
-          "failure_reasons": []
-        },
-        {
-          "code": "6274",
-          "name": "台燿",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": 9.74,
-          "hit": true,
-          "leader_pct": 0.374,
-          "excess_return": 11.14,
-          "failure_reasons": []
-        },
-        {
-          "code": "6239",
-          "name": "力成",
-          "matched_masters": [
-            "林滄海"
-          ],
-          "next_change_pct": 6.01,
-          "hit": true,
-          "leader_pct": 0.67,
-          "excess_return": 7.41,
-          "failure_reasons": []
-        }
-      ],
-      "n": 12,
-      "hits": 10,
-      "hit_rate": 0.8333,
-      "mean_change": 5.1
-    },
-    {
       "date": "20260529",
       "next_date": "20260601",
       "q5_direction": "偏多",
@@ -3520,23 +3356,23 @@
     }
   ],
   "rolling_30d": {
-    "trigger_days": 5,
-    "n": 47,
-    "hits": 22,
-    "hit_rate": 0.4681,
-    "mean_change": 0.16
+    "trigger_days": 4,
+    "n": 36,
+    "hits": 19,
+    "hit_rate": 0.5278,
+    "mean_change": 0.8
   },
   "rolling_all": {
-    "trigger_days": 23,
-    "n": 233,
-    "hits": 115,
-    "hit_rate": 0.4936,
-    "mean_change": 0.84
+    "trigger_days": 22,
+    "n": 221,
+    "hits": 105,
+    "hit_rate": 0.4751,
+    "mean_change": 0.61
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4936,
-    "delta_pp": -29.5
+    "actual_hit_rate": 0.4751,
+    "delta_pp": -31.4
   },
-  "updated_at": "2026-08-21T16:24:52.130733"
+  "updated_at": "2026-08-24T13:41:33.883150"
 }
