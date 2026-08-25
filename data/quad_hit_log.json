@@ -1,158 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260529",
-      "next_date": "20260601",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": null,
-      "vol_spike_masters": [
-        "民哥",
-        "蔣承翰",
-        "迷你哥/松山哥"
-      ],
-      "quad_picks": [
-        {
-          "code": "3443",
-          "name": "創意",
-          "matched_masters": [
-            "民哥",
-            "蔣承翰",
-            "迷你哥/松山哥"
-          ],
-          "next_change_pct": -0.32,
-          "hit": false,
-          "leader_pct": 0.245,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "3042",
-          "name": "晶技",
-          "matched_masters": [
-            "民哥",
-            "蔣承翰",
-            "迷你哥/松山哥"
-          ],
-          "next_change_pct": -6.03,
-          "hit": false,
-          "leader_pct": 0.387,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "3711",
-          "name": "日月光投控",
-          "matched_masters": [
-            "民哥",
-            "蔣承翰",
-            "迷你哥/松山哥"
-          ],
-          "next_change_pct": -1.64,
-          "hit": false,
-          "leader_pct": 0.195,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "6770",
-          "name": "力積電",
-          "matched_masters": [
-            "民哥",
-            "蔣承翰",
-            "迷你哥/松山哥"
-          ],
-          "next_change_pct": -1.92,
-          "hit": false,
-          "leader_pct": 0.3,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2454",
-          "name": "聯發科",
-          "matched_masters": [
-            "民哥",
-            "蔣承翰",
-            "迷你哥/松山哥"
-          ],
-          "next_change_pct": 5.68,
-          "hit": true,
-          "leader_pct": 0.297,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "民哥",
-            "蔣承翰",
-            "迷你哥/松山哥"
-          ],
-          "next_change_pct": 7.05,
-          "hit": true,
-          "leader_pct": 0.398,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "民哥",
-            "蔣承翰",
-            "迷你哥/松山哥"
-          ],
-          "next_change_pct": 1.04,
-          "hit": true,
-          "leader_pct": 0.255,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "6442",
-          "name": "光聖",
-          "matched_masters": [
-            "民哥",
-            "蔣承翰"
-          ],
-          "next_change_pct": 2.17,
-          "hit": true,
-          "leader_pct": 0.425,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "3037",
-          "name": "欣興",
-          "matched_masters": [
-            "蔣承翰",
-            "迷你哥/松山哥"
-          ],
-          "next_change_pct": -0.47,
-          "hit": false,
-          "leader_pct": 0.726,
-          "excess_return": null,
-          "failure_reasons": [
-            "假共識 (領頭獨佔 ≥50%)"
-          ]
-        }
-      ],
-      "n": 9,
-      "hits": 4,
-      "hit_rate": 0.4444,
-      "mean_change": 0.62
-    },
-    {
       "date": "20260601",
       "next_date": "20260602",
       "q5_direction": "偏多",
@@ -3363,16 +3211,16 @@
     "mean_change": 0.8
   },
   "rolling_all": {
-    "trigger_days": 22,
-    "n": 221,
-    "hits": 105,
-    "hit_rate": 0.4751,
+    "trigger_days": 21,
+    "n": 212,
+    "hits": 101,
+    "hit_rate": 0.4764,
     "mean_change": 0.61
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4751,
-    "delta_pp": -31.4
+    "actual_hit_rate": 0.4764,
+    "delta_pp": -31.3
   },
-  "updated_at": "2026-08-24T16:35:49.482788"
+  "updated_at": "2026-08-25T13:35:45.565054"
 }
