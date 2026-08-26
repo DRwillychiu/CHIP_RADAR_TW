@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T00:17:11.633237+08:00",
+  "generated_at": "2026-08-27T00:51:09.532280+08:00",
   "trade_date": "20260826",
   "pump_suspicion": [
     {
@@ -590,43 +590,12 @@
       "reasoning": "9B2a 買 111 張 vs 9A9g 賣 80 張 (匹配 72%)"
     }
   ],
-  "distribution": [
-    {
-      "stock_code": "5425",
-      "stock_name": "台半",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 565,
-      "sell_amt_wan": 5458,
-      "avg_30d_sell_lot": 37.7,
-      "sell_vs_avg_x": 15.0,
-      "recent_5d_limit_up_count": 28,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 565 張 (30 天均 38 張 × 15.0) + 近 5 天漲停 28 次"
-    },
-    {
-      "stock_code": "2301",
-      "stock_name": "光寶科",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 236,
-      "sell_amt_wan": 7245,
-      "avg_30d_sell_lot": 37.3,
-      "sell_vs_avg_x": 6.3,
-      "recent_5d_limit_up_count": 69,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 236 張 (30 天均 37 張 × 6.3) + 近 5 天漲停 69 次"
-    }
-  ],
+  "distribution": [],
   "summary": {
     "pump_count": 5,
     "wash_count": 30,
-    "distribution_count": 2,
-    "total": 37
+    "distribution_count": 0,
+    "total": 35
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
