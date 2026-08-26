@@ -1,6 +1,6 @@
 {
  "trade_date": "20260826",
- "updated_at": "2026-08-26T22:23:09.439088+08:00",
+ "updated_at": "2026-08-26T22:55:42.821627+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -5012,26 +5012,13 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1188,
-   "watch": 48,
-   "high_risk": 1,
+   "healthy": 1196,
+   "watch": 41,
+   "high_risk": 0,
    "margin_call": 0,
    "insufficient_data": 978
   },
-  "high_risk_stocks": [
-   {
-    "code": "3609",
-    "name": "三一東林",
-    "ratio": 129.6,
-    "risk_level": "high_risk",
-    "margin_balance": 4042,
-    "today_close": 19.35,
-    "estimated_cost": 24.88,
-    "cost_adjusted_for_corp_action": false,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   }
-  ],
+  "high_risk_stocks": [],
   "thresholds": {
    "healthy": "≥150%",
    "watch": "130-150%",
