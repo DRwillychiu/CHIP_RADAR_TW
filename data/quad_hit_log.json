@@ -1,146 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260602",
-      "next_date": "20260603",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": null,
-      "vol_spike_masters": [
-        "張濬安(航海王)"
-      ],
-      "quad_picks": [
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 2.97,
-          "hit": true,
-          "leader_pct": 0.341,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "3711",
-          "name": "日月光投控",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 1.15,
-          "hit": true,
-          "leader_pct": 0.328,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "3481",
-          "name": "群創",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 16.47,
-          "hit": true,
-          "leader_pct": 0.435,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": -9.69,
-          "hit": false,
-          "leader_pct": 0.368,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2454",
-          "name": "聯發科",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 5.45,
-          "hit": true,
-          "leader_pct": 0.619,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "4979",
-          "name": "華星光",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 1.11,
-          "hit": true,
-          "leader_pct": 0.47,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "8358",
-          "name": "金居",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 1.15,
-          "hit": true,
-          "leader_pct": 0.337,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "3037",
-          "name": "欣興",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": -5.21,
-          "hit": false,
-          "leader_pct": 0.188,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "8046",
-          "name": "南電",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 6.6,
-          "hit": true,
-          "leader_pct": 0.239,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "9105",
-          "name": "泰金寶-DR",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 31.25,
-          "hit": true,
-          "leader_pct": 0.17,
-          "excess_return": null,
-          "failure_reasons": []
-        }
-      ],
-      "n": 10,
-      "hits": 8,
-      "hit_rate": 0.8,
-      "mean_change": 5.12
-    },
-    {
       "date": "20260603",
       "next_date": "20260604",
       "q5_direction": "偏多",
@@ -3053,16 +2913,16 @@
     "mean_change": 0.8
   },
   "rolling_all": {
-    "trigger_days": 20,
-    "n": 201,
-    "hits": 95,
-    "hit_rate": 0.4726,
-    "mean_change": 0.47
+    "trigger_days": 19,
+    "n": 191,
+    "hits": 87,
+    "hit_rate": 0.4555,
+    "mean_change": 0.22
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4726,
-    "delta_pp": -31.6
+    "actual_hit_rate": 0.4555,
+    "delta_pp": -33.4
   },
-  "updated_at": "2026-08-26T16:58:22.507673"
+  "updated_at": "2026-08-27T13:37:54.650806"
 }
