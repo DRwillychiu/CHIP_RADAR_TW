@@ -1,6 +1,6 @@
 {
- "trade_date": "20260827",
- "updated_at": "2026-08-28T08:50:14.360354+08:00",
+ "trade_date": "20260828",
+ "updated_at": "2026-08-28T21:34:30.647229+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -1952,7 +1952,8 @@
     "short_quota": 48955,
     "short_usage": 0.51,
     "offsetting": 0,
-    "margin_short_ratio": 3.12
+    "margin_short_ratio": 3.12,
+    "industry": "通信網路業"
    },
    {
     "code": "5314",
@@ -3385,7 +3386,8 @@
     "short_quota": 26250,
     "short_usage": 0.01,
     "offsetting": 81,
-    "margin_short_ratio": 0.08
+    "margin_short_ratio": 0.08,
+    "industry": "電子零組件業"
    },
    {
     "code": "1314",
@@ -5015,57 +5017,33 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1648,
-   "watch": 99,
-   "high_risk": 4,
+   "healthy": 1181,
+   "watch": 28,
+   "high_risk": 2,
    "margin_call": 0,
-   "insufficient_data": 464
+   "insufficient_data": 1004
   },
   "high_risk_stocks": [
    {
-    "code": "2413",
-    "name": "環科",
-    "ratio": 124.9,
+    "code": "4556",
+    "name": "旭然",
+    "ratio": 127.3,
     "risk_level": "high_risk",
-    "margin_balance": 4182,
-    "today_close": 43.75,
-    "estimated_cost": 58.37,
-    "cost_adjusted_for_corp_action": true,
+    "margin_balance": 622,
+    "today_close": 70.6,
+    "estimated_cost": 92.46,
+    "cost_adjusted_for_corp_action": false,
     "is_disposal_stock": false,
     "margin_rate_used": 0.6
    },
    {
-    "code": "2483",
-    "name": "百容",
-    "ratio": 126.6,
+    "code": "3609",
+    "name": "三一東林",
+    "ratio": 128.8,
     "risk_level": "high_risk",
-    "margin_balance": 1929,
-    "today_close": 36.45,
-    "estimated_cost": 47.99,
-    "cost_adjusted_for_corp_action": true,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   },
-   {
-    "code": "2233",
-    "name": "宇隆",
-    "ratio": 129.5,
-    "risk_level": "high_risk",
-    "margin_balance": 3536,
-    "today_close": 174.5,
-    "estimated_cost": 224.54,
-    "cost_adjusted_for_corp_action": true,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   },
-   {
-    "code": "4807",
-    "name": "日成-KY",
-    "ratio": 129.8,
-    "risk_level": "high_risk",
-    "margin_balance": 1135,
-    "today_close": 27.65,
-    "estimated_cost": 35.49,
+    "margin_balance": 4098,
+    "today_close": 18.8,
+    "estimated_cost": 24.33,
     "cost_adjusted_for_corp_action": false,
     "is_disposal_stock": false,
     "margin_rate_used": 0.6

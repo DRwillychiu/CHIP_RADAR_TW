@@ -1,182 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260603",
-      "next_date": "20260604",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": null,
-      "vol_spike_masters": [
-        "大牌分析師",
-        "布哥/n_nchang"
-      ],
-      "quad_picks": [
-        {
-          "code": "2344",
-          "name": "華邦電",
-          "matched_masters": [
-            "大牌分析師",
-            "布哥/n_nchang"
-          ],
-          "next_change_pct": 13.61,
-          "hit": true,
-          "leader_pct": 0.178,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2324",
-          "name": "仁寶",
-          "matched_masters": [
-            "大牌分析師",
-            "布哥/n_nchang"
-          ],
-          "next_change_pct": 15.4,
-          "hit": true,
-          "leader_pct": 0.167,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "大牌分析師",
-            "布哥/n_nchang"
-          ],
-          "next_change_pct": -13.49,
-          "hit": false,
-          "leader_pct": 0.155,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "8299",
-          "name": "群聯",
-          "matched_masters": [
-            "大牌分析師"
-          ],
-          "next_change_pct": 0.19,
-          "hit": true,
-          "leader_pct": 0.21,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "大牌分析師",
-            "布哥/n_nchang"
-          ],
-          "next_change_pct": 0.68,
-          "hit": true,
-          "leader_pct": 0.358,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2337",
-          "name": "旺宏",
-          "matched_masters": [
-            "大牌分析師",
-            "布哥/n_nchang"
-          ],
-          "next_change_pct": -6.01,
-          "hit": false,
-          "leader_pct": 0.169,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "3105",
-          "name": "穩懋",
-          "matched_masters": [
-            "大牌分析師"
-          ],
-          "next_change_pct": -7.5,
-          "hit": false,
-          "leader_pct": 0.456,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2409",
-          "name": "友達",
-          "matched_masters": [
-            "大牌分析師"
-          ],
-          "next_change_pct": 27.17,
-          "hit": true,
-          "leader_pct": 0.771,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "大牌分析師",
-            "布哥/n_nchang"
-          ],
-          "next_change_pct": 1.27,
-          "hit": true,
-          "leader_pct": 0.682,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "3260",
-          "name": "威剛",
-          "matched_masters": [
-            "布哥/n_nchang"
-          ],
-          "next_change_pct": 10.36,
-          "hit": true,
-          "leader_pct": 0.257,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "8358",
-          "name": "金居",
-          "matched_masters": [
-            "布哥/n_nchang"
-          ],
-          "next_change_pct": -7.07,
-          "hit": false,
-          "leader_pct": 0.199,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2408",
-          "name": "南亞科",
-          "matched_masters": [
-            "大牌分析師",
-            "布哥/n_nchang"
-          ],
-          "next_change_pct": 13.83,
-          "hit": true,
-          "leader_pct": 0.286,
-          "excess_return": null,
-          "failure_reasons": []
-        }
-      ],
-      "n": 12,
-      "hits": 8,
-      "hit_rate": 0.6667,
-      "mean_change": 4.04
-    },
-    {
       "date": "20260604",
       "next_date": "20260605",
       "q5_direction": "偏多",
@@ -2913,16 +2737,16 @@
     "mean_change": 0.8
   },
   "rolling_all": {
-    "trigger_days": 19,
-    "n": 191,
-    "hits": 87,
-    "hit_rate": 0.4555,
-    "mean_change": 0.22
+    "trigger_days": 18,
+    "n": 179,
+    "hits": 79,
+    "hit_rate": 0.4413,
+    "mean_change": -0.03
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4555,
-    "delta_pp": -33.4
+    "actual_hit_rate": 0.4413,
+    "delta_pp": -34.8
   },
-  "updated_at": "2026-08-28T00:54:47.466938"
+  "updated_at": "2026-08-28T13:38:13.890405"
 }
