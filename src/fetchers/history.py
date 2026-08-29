@@ -100,12 +100,28 @@ def _fetch_taiex_index(expected_trade_date: str = None,
             r.encoding = 'utf-8'
             data = json.loads(r.text)
 
-            # v3.27.3: 檢查回傳資料的 Date (MI_INDEX 每筆都有 Date 欄位)
+            # v3.27.3: 檢查回傳資料的日期
+            # ⚠️ v3.76.0 修: 原本寫 data[0].get('Date') — 但 MI_INDEX 是
+            #    **中文欄位名「日期」**, 不是英文 'Date'.
+            #    (對照: STOCK_DAY_ALL / TPEx daily 才是英文 'Date', 那兩處寫法正確)
+            #    → response_date 永遠是 '', 下面 `and response_date` 短路,
+            #      整個 stale guard 自 v3.27.3 起從未執行過一次.
+            #    後果: TWSE 尚未更新當日資料時 API 回前一交易日, 我們照樣寫入
+            #      history["market"][trade_date], 把昨天的指數貼上今天的標籤.
+            #      實測 55 筆 market 有 43 筆 (78%) 慢一天, 且 quote_date 全空.
+            #      連帶 temp_history.next_day_change_pct 60 筆中 47 筆記成
+            #      「訊號當日」而非「隔日」漲跌 → Q5 命中率評分全部失真.
             response_date = ""
             if isinstance(data, list) and data:
-                response_date = (data[0].get('Date') or '').strip()
+                row0 = data[0]
+                response_date = (row0.get('日期') or row0.get('Date') or '').strip()
+            if expected_roc and not response_date:
+                # v3.76.0: 拿不到日期就不能保證新鮮度 → 寧可不寫, 不寫錯的
+                print(f"    ⚠️ TAIEX MI_INDEX 回傳無日期欄位 (keys={list((data[0] if isinstance(data, list) and data else {}).keys())[:6]}) "
+                      f"→ 無法驗證新鮮度, 跳過本次更新")
+                return None
             if expected_roc and response_date and response_date != expected_roc:
-                print(f"    ⚠️ TAIEX MI_INDEX stale: 回傳 Date={response_date} ≠ 預期 {expected_roc} "
+                print(f"    ⚠️ TAIEX MI_INDEX stale: 回傳日期={response_date} ≠ 預期 {expected_roc} "
                       f"(today {expected_trade_date}) → 跳過本次更新,維持上次資料")
                 return None
 
