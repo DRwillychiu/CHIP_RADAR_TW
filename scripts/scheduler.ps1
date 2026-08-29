@@ -109,9 +109,12 @@ $schedule = @(
     #   前一天的處置資料;本機提前抓,當天的 Excel 就吃得到當天處置清單。
     #   send_daily_telegram.py 自己用 marker 檔去重 (同一 trade_date 只推一次),
     #   所以 22:37 / 23:47 兜底跑到那步會自動跳過,不會重複推。
-    @{ time="21:17"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py") }
-    @{ time="22:37"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py") }
-    @{ time="23:47"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py") }
+    # v3.74.1: push_disposal_telegram.py = 處置股圖卡,借 disposal-watch 產圖後推 TG。
+    #   本專案不自己畫 (v3.74.0 移除) — 兩邊各畫一份會得到兩張對不上的圖。
+    #   同樣自帶去重 (同報表日改為編輯原訊息),兜底重跑不洗版。
+    @{ time="21:17"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py", "python scripts/push_disposal_telegram.py") }
+    @{ time="22:37"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py", "python scripts/push_disposal_telegram.py --fallback") }
+    @{ time="23:47"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py", "python scripts/push_disposal_telegram.py --fallback") }
 
     # ── margin-refresh.yml: 融資融券 7-layer defense ──
     @{ time="22:30"; days=$WEEKDAY_1_5; job="margin";       cmd="python crawler.py"; env=@{CHIP_RADAR_STAGE="margin_only"} }

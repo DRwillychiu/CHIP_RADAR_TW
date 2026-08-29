@@ -17,3 +17,10 @@ local_data/
 scripts/.server.pid
 scripts/.certs/
 .venv/
+
+# v3.74.1: 借跑 disposal-watch 的工作副本 (scripts/push_disposal_telegram.py)
+# 正常會在 finally 清掉,但 crash / --keep 時會殘留;排程用 local_data 已被
+# 上面涵蓋,這裡是給手動執行 (DATA_DIR=data) 兜底
+.disposal_watch_run/
+.disposal_watch.zip
+.tg_disposal_push
