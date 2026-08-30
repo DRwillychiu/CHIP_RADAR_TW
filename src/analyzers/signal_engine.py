@@ -159,6 +159,50 @@ def _signal_weight(name: str, sig_data: Dict) -> float:
     return 0.0  # 其他信號 (含信號 2 等被 KILLED) 維持 0 權重
 
 
+# ════════════════════════════════════════════════════════════════════
+#  v3.78.0 溫度計方向判定 — alpha 實測結論 (2026-08-30)
+# ════════════════════════════════════════════════════════════════════
+#  ⚠️ infer_market_direction 的 direction / confidence_pct **不是可交易訊號**.
+#     用 160 天乾淨資料 (official 119 + v3.76.0 重建 temp 41) 實測後確認:
+#
+#  結構性問題: 160 天裡只喊過 2 次偏空, net_weight 值域 -0.148 ~ +0.855,
+#              負值僅 7 天. **一個幾乎不會站到空方的系統, 在配對命中率上
+#              數學上不可能勝過無腦全多** — 兩邊在它出手時永遠同一邊.
+#              實測 Δ 剛好 +0.0pp / p=1.000 (全期 n=129, train 94, test 35 三段皆是).
+#
+#  選擇能力: 說偏多的日子平均漲跌 vs 全期平均
+#              全期 -0.032% (z=-0.19) / out-of-sample test -0.310% (z=-0.79)
+#              → 不只沒挑到好日子, OOS 還挑到比平均更差的.
+#
+#  重設計嘗試: 9 個候選規則, 依預先宣告準則在 train 選出最佳者,
+#              train z=+1.82 → test z=+0.38. 典型過擬合衰減.
+#              (train z=1.82 本身在 9 次比較下也未達顯著)
+#
+#  換 horizon: t+1/t+2/t+3/t+5/t+10 全測, 現行系統 z ∈ [-0.84, +0.12].
+#              問題不在「問錯 horizon」.
+#
+#  → 保留數值顯示 (籌碼溫度本身有描述價值), 但**不得當方向預測使用**.
+#     完整證據: docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md
+#     重啟條件: 見該文件「什麼情況下該重新評估」
+ALPHA_VERDICT = {
+    'verdict': 'no_measurable_edge',
+    'evaluated_at': '2026-08-30',
+    'sample_days': 160,
+    'sample_range': ['20251229', '20260827'],
+    'data_sources': ['signal_history_official.json', 'temp_history.json (v3.76.0 realigned)'],
+    'directional_alpha_pp': 0.0,          # vs 無腦全多, 配對
+    'directional_p': 1.000,
+    'selection_alpha_pct_full': -0.032,   # 偏多日平均 - 全期平均
+    'selection_alpha_pct_oos': -0.310,    # out-of-sample
+    'short_calls_in_sample': 2,           # 160 天只喊過 2 次偏空 ← 結構性主因
+    'redesign_candidates_tested': 9,
+    'best_candidate_train_z': 1.82,
+    'best_candidate_test_z': 0.38,
+    'horizons_tested': [1, 2, 3, 5, 10],
+    'doc': 'docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md',
+}
+
+
 def infer_market_direction(temp_signals: List[Dict]) -> Dict[str, Any]:
     """從溫度計 signals 推 TAIEX 明日方向 + 信心.
 
@@ -204,7 +248,11 @@ def infer_market_direction(temp_signals: List[Dict]) -> Dict[str, Any]:
 
     return {
         'direction': direction,
+        # ⚠️ confidence_pct 是 net_weight 的線性換算, **不是實測命中率**.
+        #    v3.78.0 實測: 此方向判定相對無腦全多 Δ +0.0pp. 勿當勝率解讀.
         'confidence_pct': round(conf_pct, 1),
+        'confidence_is_measured_alpha': False,
+        'alpha_verdict': ALPHA_VERDICT,
         'net_weight': round(net, 4),
         'contributing': contributing,
         'ignored': ignored,
@@ -328,13 +376,10 @@ def generate_daily_signal(raw_output: Dict, temp_result: Dict, trade_date: str) 
     stocks = top_focus_stocks(raw_output, top_n=3)
 
     # 3. headline (簡短描述)
-    if market['confidence_pct'] >= 70:
-        conf_word = '高'
-    elif market['confidence_pct'] >= 60:
-        conf_word = '中'
-    else:
-        conf_word = '低'
-    headline = f"{market['direction']} 信心{market['confidence_pct']}% ({conf_word}信心) · {len(stocks)} 檔個股關注"
+    # v3.78.0: 原本寫「偏多 信心78% (高信心)」— 那個數字是 net_weight 換算,
+    # 不是實測命中率, 讀起來卻像勝率. 實測 Δ+0.0pp 後不再這樣呈現.
+    headline = (f"籌碼偏向{market['direction']} (強度{market['net_weight']:+.2f}, "
+                f"非預測訊號) · {len(stocks)} 檔個股關注")
 
     return {
         'date': trade_date,

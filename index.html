@@ -3857,7 +3857,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="點 📋 更新看版本歷史">Chip Radar v3.77.0</div>
+      <div class="logo-en" title="點 📋 更新看版本歷史">Chip Radar v3.78.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -6600,6 +6600,19 @@ function renderChipTemperature() {
         <span class="chip-temp-score-max">/100</span>
         <span class="chip-temp-score-verdict">${verdict}</span>
       </span>
+    </div>
+
+    <!-- v3.78.0: 方向判定退役揭露 — 160 天實測 Δ+0.0pp, 不可當預測訊號讀 -->
+    <div style="margin:8px 0 4px;padding:8px 10px;border-radius:6px;
+                background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.25);
+                font-size:11px;line-height:1.6;color:var(--text-2);">
+      <b style="color:#fcd34d;">⚠️ 這是描述,不是預測</b> —
+      160 天乾淨資料實測,本溫度計的方向判定相對「無腦全多」<b>Δ +0.0pp</b>
+      (p=1.000);選擇能力在 out-of-sample 為 <b>-0.31%</b>。
+      主因是 160 天裡只喊過 2 次偏空,幾乎不站空方就不可能勝過全多。
+      9 個重設計候選在 OOS 全部衰減,t+1~t+10 各 horizon 也都沒有 edge。
+      <b>請把下面的數值當作「今天籌碼長什麼樣」,不要當作明日方向。</b>
+      <span style="color:var(--text-3);">(v3.78.0 · 詳見 repo docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md)</span>
     </div>
     
     <!-- v3.17.4: 視覺化線性溫度計 -->

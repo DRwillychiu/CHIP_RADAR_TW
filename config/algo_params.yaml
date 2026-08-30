@@ -13,7 +13,7 @@
 #
 # ⚠️ 改值前必跑: pytest test_v3380_settlement_tz.py test_v3370_margin_maintenance.py test_v3371_tdcc_holdings.py
 
-algo_version: "3.77.0"
+algo_version: "3.78.0"
 frozen_date: "2026-06-19"
 frozen_by: "DRwillychiu via institutional roadmap Sprint 3 + C2 Phase B"
 
@@ -91,18 +91,25 @@ tdcc_holdings:
 # ════════════════════════════════════════════════════════════════════
 # ⚠️ v3.27 拍腦袋初值, 7 信號未經完整回測; backtester Phase B 待補
 chip_temperature:
-  status: "pending_calibration"        # 標記未校準
-  calibration_target_date: "2026-09-01"  # Q3 結束前完成
-  # v3.71.22 L2 audit (36-day window) 揭穿 4/5 signal 崩盤:
-  #   外資現貨 100% neutral (v3.71.20 修 key mismatch bug 後 待驗證)
-  #   外資期貨 100% extreme-bear (現閾值對長期空頭市場失效)
-  #   P/C Ratio 75% extreme-bull (現閾值 1.3 低於實際 median 1.418)
-  #   分點漲停 100% extreme-bull (現閾值 8 vs 實際 min 13, 差 10 倍量級)
-  #   融資熱度 100% neutral (v3.71.20 修 key mismatch 待驗證)
-  # 建議新閾值 (P20/P40/P60/P80, 需累積 60+ 天樣本後 recalibrate):
-  #   外資期貨: [-51000, -60000, -66000, -70000]
-  #   P/C Ratio: [1.68, 1.56, 1.35, 1.28]
-  #   分點漲停: [80, 58, 39, 30]
+  # v3.78.0 (2026-08-30) 方向判定 alpha 實測結論 — 詳見
+  # docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md
+  status: "retired_as_direction_signal"
+  retired_date: "2026-08-30"
+  retired_reason: >
+    160 天乾淨資料實測: 方向判定相對無腦全多 Δ +0.0pp (p=1.000, 全期/train/test 三段皆是).
+    結構性主因是 160 天只喊過 2 次偏空 — 幾乎不站空方的系統在配對命中率上不可能勝過全多.
+    選擇能力同樣不成立 (全期 -0.032% z=-0.19, OOS -0.310% z=-0.79).
+    9 個重設計候選在 OOS 全部衰減 (最佳者 train z=1.82 → test z=0.38).
+    t+1~t+10 全 horizon 測過, z 皆在 [-0.84, +0.12].
+    → 數值保留顯示 (籌碼溫度有描述價值), 但不得當方向預測使用.
+  # ⚠️ 以下閾值**刻意不動**. 理由: 既然方向判定已退役, 改閾值只會讓
+  #    「看起來有在維護」但實際沒有改變任何結論. 若未來重啟 (見 verdict 文件
+  #    的重啟條件), 屆時要用當時的資料重新校準, 而不是沿用現在這組猜測值.
+  #    已知錯位 (留作重啟時的起點):
+  #      外資期貨 [30000,10000,-10000,-30000] vs 實際 60 天值域 -90,946 ~ -60,275
+  #                → 全部落在同一區, score 恆 0 (它同時也是 KILLED_SIGNALS 成員)
+  #      分點漲停 [8,4,1,0] vs 實際值域 3 ~ 166 (差一個量級)
+  #      P/C Ratio [1.3,1.0,0.8,0.6] vs 實際值域 0.79 ~ 1.90
   signals:
     foreign_cash:        [50000, 10000, -10000, -50000]
     foreign_futures_eq:  [30000, 10000, -10000, -30000]
