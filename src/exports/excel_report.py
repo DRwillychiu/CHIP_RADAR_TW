@@ -374,95 +374,23 @@ if _MASTER_MAPPING_WARNINGS:
 #   陳族元        13 picks  23.1%  (-60pp)
 #   陳律師        19 picks  31.6%  (-46pp)
 # 用凍結的小樣本名單標 ⭐⭐ 會讓使用者對已失效的訊號加重下注 → 改為每次讀實測.
-PREMIUM_MIN_N = 20        # 樣本門檻: 低於此不列 premium (與 LOO 一致)
-PREMIUM_MIN_HIT_PCT = 60  # 命中率門檻 (原 77% 係小樣本產物, 下修並要求 CI 下界 > 對照組)
-
-# 靜態 fallback — 僅在 master_contribution.json 不存在時使用 (首次跑/資料損毀)
-PREMIUM_MASTERS_FALLBACK: set = set()
-
-_PREMIUM_CACHE = {}
-
-
-def get_premium_masters(data_dir=None) -> set:
-    """v3.75.0: 依實測 LOO 動態決定 premium tier, 取代凍結名單.
-
-    條件 (三者皆須成立):
-      1. n_with >= PREMIUM_MIN_N          — 樣本足夠
-      2. hr_with_pct >= PREMIUM_MIN_HIT_PCT
-      3. Wilson CI 下界 > 整體 baseline   — 優勢達統計顯著
-
-    資料源: data/master_contribution.json (analyze_master_contribution.py 產出)
-    取不到 → 回傳空集合 (寧可不標 ⭐⭐, 也不標錯的)
-    """
-    from pathlib import Path
-    if data_dir is None:
-        data_dir = Path(__file__).resolve().parents[2] / 'data'
-    key = str(data_dir)
-    if key in _PREMIUM_CACHE:
-        return _PREMIUM_CACHE[key]
-    result = set(PREMIUM_MASTERS_FALLBACK)
-    try:
-        mc = _read_json_safely(Path(data_dir) / 'master_contribution.json')
-        if mc and mc.get('per_master'):
-            base = (mc.get('baseline') or {}).get('hit_rate_pct')
-            picked = set()
-            for r in mc['per_master']:
-                if r.get('n_with', 0) < PREMIUM_MIN_N:
-                    continue
-                if (r.get('hr_with_pct') or 0) < PREMIUM_MIN_HIT_PCT:
-                    continue
-                lo = r.get('ci_lo_pct')
-                if base is not None and lo is not None and lo <= base:
-                    continue      # CI 下界未超過整體 → 優勢不顯著
-                picked.add(r['master'])
-            result = picked
-    except Exception:
-        pass
-    _PREMIUM_CACHE[key] = result
-    return result
-
-
-# ⚠️ 不在 module import 時求值 —
-# crawler 主流程順序是「跑完 quad → 重算 master_contribution → 產 Excel」,
-# 若 import 當下就凍結, Excel 會拿到「上一輪」甚至「舊 schema」的名單.
-# 這裡用 lazy 求值: 首次被讀取時才算, 且 crawler 可呼叫 refresh_premium_masters()
-# 在重算 contribution 之後強制刷新.
-def refresh_premium_masters(data_dir=None) -> set:
-    """清 cache 並重新計算 — crawler 重寫 master_contribution.json 後應呼叫."""
-    _PREMIUM_CACHE.clear()
-    return get_premium_masters(data_dir)
-
-
-class _LazyPremiumSet:
-    """向後相容 shim: 讓既有 `masters & PREMIUM_MASTERS` 之類的寫法仍可運作,
-    但每次取值都反映最新的 master_contribution.json.
-
-    ⚠️ 不可繼承 frozenset — CPython 對 set/frozenset 子類的 `&` 會走內建 C
-    實作而不呼叫 __rand__, 導致 `some_set & PREMIUM_MASTERS` 靜默回空集合.
-    改用純物件 + 完整 dunder 代理."""
-
-    def _live(self):
-        return get_premium_masters()
-
-    def __and__(self, other):       return self._live() & set(other)
-    def __rand__(self, other):      return set(other) & self._live()
-    def __or__(self, other):        return self._live() | set(other)
-    def __ror__(self, other):       return set(other) | self._live()
-    def __contains__(self, item):   return item in self._live()
-    def __iter__(self):             return iter(self._live())
-    def __len__(self):              return len(self._live())
-    def __bool__(self):             return bool(self._live())
-    def __sub__(self, other):       return self._live() - set(other)
-    def __rsub__(self, other):      return set(other) - self._live()
-    def __eq__(self, other):        return self._live() == set(other) if isinstance(other,(set,frozenset,_LazyPremiumSet)) else NotImplemented
-    def __hash__(self):             return hash(frozenset(self._live()))
-    def issubset(self, other):      return self._live().issubset(other)
-    def intersection(self, *o):     return self._live().intersection(*o)
-    def union(self, *o):            return self._live().union(*o)
-    def __repr__(self):             return repr(self._live())
-
-
-PREMIUM_MASTERS = _LazyPremiumSet()
+# v3.79.0: 定義已移到 src/core/master_tiers.py (唯一真相來源).
+# 這裡只 re-export 保持向後相容 —
+# 原本這段跟 crawler.py / audit / bootstrap_multiday_backtest 各有一份,
+# 已實際漂移到零交集 (詳見 master_tiers.py 檔頭).
+try:
+    from src.core.master_tiers import (
+        PREMIUM_MIN_N, PREMIUM_MIN_HIT_PCT, PREMIUM_MASTERS_FALLBACK,
+        get_premium_masters, refresh_premium_masters,
+        PREMIUM_MASTERS, _LazyPremiumSet,
+        _PREMIUM_CACHE,      # 同一個 dict 物件 — 既有 er._PREMIUM_CACHE.clear() 仍有效
+    )
+except ImportError:                       # src/ 已在 sys.path 的情境
+    from core.master_tiers import (       # type: ignore
+        PREMIUM_MIN_N, PREMIUM_MIN_HIT_PCT, PREMIUM_MASTERS_FALLBACK,
+        get_premium_masters, refresh_premium_masters,
+        PREMIUM_MASTERS, _LazyPremiumSet, _PREMIUM_CACHE,
+    )
 
 # v3.71.18 L 系列: PINNED_MASTERS — user 自定「常駐關注」 master
 # 跟 PREMIUM 不同:

@@ -776,8 +776,9 @@ def main():
     # 為前端 sniper card 提供「該股當日全市場買超#1」黃色 highlight 資料
     try:
         from src.analyzers.sniper_top_buyer_enricher import enrich_sniper_top_buyer
-        # SNIPER_MASTER_WHITELIST 定義在 excel_report, 這裡直接寫死 (跟 excel 一致)
-        SNIPER_MASTERS = {"蔣承翰"}
+        # v3.79.0: 原本這裡寫死 {"蔣承翰"}, 但 audit 另有一份 4 人的 SNIPER_MASTERS
+        # → 同名不同內容, 已分歧. 現統一由 master_tiers 提供, 且名稱經驗證.
+        from src.core.master_tiers import TOP_BUYER_HIGHLIGHT_MASTERS as SNIPER_MASTERS
         enrich_result = enrich_sniper_top_buyer(
             limit_up_summary, SNIPER_MASTERS, trade_date=trade_date)
         # 存 top-level 給前端 / 其他 consumer lookup
