@@ -83,6 +83,16 @@ jobs:
           python scripts/analyze_pinned_master_alpha.py
         continue-on-error: true
 
+      # ⚠️ v3.77.0 — 上游 API 欄位漂移偵測
+      # 起因: v3.76.0 揭穿 stale guard 讀錯欄位名 (寫 'Date', MI_INDEX 實際是「日期」)
+      # → guard 從未執行, 55 筆大盤資料 43 筆日期慢一天, 卻完全沒有任何錯誤訊號.
+      # 這類錯誤唯一能主動抓到的方式, 就是定期拿真 API 比對「程式碼讀的欄位還在不在」.
+      # 每週一次即可 (欄位名不會天天變), 失敗會讓這步變紅.
+      - name: API 欄位漂移稽核
+        run: |
+          echo "🔬 上游 API 欄位名 vs 程式碼讀取欄位 比對"
+          python scripts/audit_api_fields.py
+
       - name: Commit results
         run: |
           git config --local user.email "actions@github.com"

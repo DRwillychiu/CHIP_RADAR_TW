@@ -39,6 +39,13 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 
+# v3.77.0: Windows 主控台預設 cp950, 印 emoji 會 UnicodeEncodeError —
+# 本檔在 GH Actions (UTF-8) 正常但本機手動跑一定炸, 導致無法在本機驗證心跳.
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 TW_TZ = timezone(timedelta(hours=8))
 
 # Thresholds (hours)
@@ -122,6 +129,78 @@ def check_freshness(crawled_at: Optional[str],
     return 'PASS', f'資料 {age_h:.1f}h 前 (週末/假日範圍內,正常){td_str}', age_h
 
 
+# ════════════════════════════════════════════════════════════════════
+#  v3.77.0 資料自我一致性檢查 (純本機, 不打網路)
+# ════════════════════════════════════════════════════════════════════
+#  起因: v3.76.0 揭穿 stock_history.market 有 78% 的紀錄日期慢一天 —
+#  TWSE 尚未更新時 API 回前一交易日, 被貼上今天的標籤寫入.
+#  這類錯誤**不會拋例外、workflow 不會變紅、資料看起來完全正常**,
+#  無人值守跑一個月會累積到無法回溯.
+#
+#  唯一能主動抓到它的方法: 每筆資料自帶來源日期戳, 並檢查它與 key 是否一致.
+#  v3.76.0 起 market 每筆都寫 quote_date (民國), 這裡就是那道驗證.
+
+def check_data_integrity(stock_history_path: str = 'data/stock_history.json'
+                         ) -> Dict[str, Any]:
+    """market 日期自我一致性 — 回 {'verdict', 'issues', 'stats'}.
+
+    FAIL 條件 (靜默資料汙染, 必須擋):
+      · 有紀錄缺 quote_date        → 無法驗證新鮮度, 等同 v3.76.0 前的狀態
+      · quote_date 與 key 日期不符 → 日期錯位本體
+    WARN 條件:
+      · market 最新日 < 個股最新日 → 大盤落後個股 (可能又遇到 TWSE 未更新)
+    """
+    p = Path(stock_history_path)
+    if not p.exists():
+        return {'verdict': 'PASS', 'issues': [], 'stats': {'note': 'stock_history 不存在, 跳過'}}
+    try:
+        sh = json.loads(p.read_text(encoding='utf-8'))
+    except Exception as e:
+        return {'verdict': 'WARN', 'issues': [f'stock_history 解析失敗: {type(e).__name__}'],
+                'stats': {}}
+
+    market = sh.get('market') or {}
+    issues, missing_qd, misaligned = [], [], []
+    for d, v in market.items():
+        qd = str((v or {}).get('quote_date') or '')
+        if not qd:
+            missing_qd.append(d)
+            continue
+        if len(qd) == 7 and f'{int(qd[:3]) + 1911}{qd[3:]}' != d:
+            misaligned.append(f'{d}(quote={qd})')
+
+    if missing_qd:
+        issues.append(f'market {len(missing_qd)} 筆缺 quote_date — 無法驗證新鮮度: '
+                      f'{missing_qd[:5]}')
+    if misaligned:
+        issues.append(f'market {len(misaligned)} 筆日期錯位 (key ≠ quote_date): '
+                      f'{misaligned[:5]}')
+
+    verdict = 'FAIL' if issues else 'PASS'
+
+    # 大盤 vs 個股 最新日落差 (軟性)
+    stocks = sh.get('stocks') or {}
+    stock_dates = set()
+    for rec in list(stocks.values())[:50]:
+        stock_dates |= set((rec or {}).get('daily') or {})
+    if market and stock_dates:
+        m_last, s_last = max(market), max(stock_dates)
+        if m_last < s_last:
+            issues.append(f'大盤最新 {m_last} 落後個股最新 {s_last} — 疑 TWSE 未更新')
+            if verdict == 'PASS':
+                verdict = 'WARN'
+
+    return {
+        'verdict': verdict,
+        'issues': issues,
+        'stats': {
+            'market_records': len(market),
+            'missing_quote_date': len(missing_qd),
+            'misaligned': len(misaligned),
+        },
+    }
+
+
 def load_latest_metadata(latest_path: str) -> Dict[str, Any]:
     """讀 latest.json 外層明文 metadata (不解密)。"""
     with open(latest_path, 'r', encoding='utf-8') as f:
@@ -163,6 +242,17 @@ def run_check(latest_path: str = 'data/latest.json',
             'trade_date': meta['trade_date'],
             'age_hours': round(age_h, 2),
         }
+
+    # v3.77.0: 疊加資料自我一致性檢查 (日期錯位這類靜默汙染)
+    integ = check_data_integrity()
+    result['data_integrity'] = integ
+    if integ['verdict'] == 'FAIL':
+        result['verdict'] = 'FAIL'
+        result['message'] = (result['message'] + ' | 資料完整性 FAIL: '
+                             + '; '.join(integ['issues']))
+    elif integ['verdict'] == 'WARN' and result['verdict'] == 'PASS':
+        result['verdict'] = 'WARN'
+        result['message'] = result['message'] + ' | ' + '; '.join(integ['issues'])
 
     if output_path:
         out = Path(output_path)

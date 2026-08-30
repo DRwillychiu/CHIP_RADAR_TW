@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.76.0(2026-08-28) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.77.0(2026-08-30) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,6 +261,7 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
+| **v3.77.0** | 8/30 | **🛡️ P0 資料信任度掃尾 — 讓同類靜默錯誤下次會自己叫** — ① 下游影響清單: 4 條 market 消費路徑逐一用官方 FMTQIK 驗證, **權重體系完全乾淨**(`backtest_results.json` 116/116 正確、`signal_history_official.json` 18/18 正確)→ 不需重跑; 唯一污染是 Q5 命中判定(已於 v3.76.0 修). ② 同類錯誤掃描: 新 `audit_api_fields.py` probe **13 端點 → 0 CRITICAL**; 確認 institutional.py 的 `.get('Date')` 寫法正確(那兩支 API 真的是英文欄位), 融資兩支語言相反但 margin.py 兩邊都對. ③ 結構性防護: heartbeat 加 `check_data_integrity`(每日 2 次/純本機/錯位即 FAIL) + weekly 加 API 欄位漂移稽核; 另補 Phase B **資料源分歧守門**(CLI 預設與 production 實際來源不同, 會靜默換掉權重基礎). 新測 25 PASS 直接餵 v3.76.0 前的真實壞狀態驗證守門會擋. 全套回歸 267 case 全過 |
 | **v3.76.0** | 8/28 | **🔴 大盤指數日期錯位修復 (欄位名 bug)** — `_fetch_taiex_index` stale guard 寫 `.get('Date')` 但 MI_INDEX 是中文「日期」→ response_date 永遠空 → guard 自 v3.27.3 起**從未執行過**. TWSE 未更新時 API 回前一交易日仍被寫成當日 → market 55 筆中 **43 筆(78%) 慢一天**, temp_history.next_day_change_pct 60 筆中 **47 筆記成訊號當日而非隔日**. 用 TWSE FMTQIK 官方重建 (修 43 / 補 5 交易日 / temp 修 53). **Q5 用乾淨資料重測: 55.8% vs 無腦全多 55.8%, Δ+0.0pp** — 先前 67.3% vs 63.3% (+4.1pp) 的優勢是污染假象. 未受影響: 個股收盤 (英文 Date 寫法正確, 2330/2317 各 42 筆零錯位) / Phase B 權重源 (119 筆 0 錯位) |
 | **v3.75.0** | 8/23 | **🔴 quad 78.9% 被推翻 + premium tier 動態化** — 稽核發現 quad_hit_log.vs_expected 自記 expected 78.9% vs actual 49.4% (n=233, delta −29.5pp), Wilson CI [43.0,55.7] 與對照組 [39.3,47.0] 重疊即**優勢未達統計顯著**, 且 phase32 best=[] 空. Excel 5 處硬寫 78.9% 全改讀 `_quad_live_stats()` 實測. PREMIUM_MASTERS 原為 n=6~18 小樣本凍結名單, 實測反轉 (陳族元 83.3%→23.1%, 陳律師 77.8%→31.6%) → 改動態三條件 (n≥20 + hit≥60% + CI下界>baseline). LOO 加樣本門檻 n<20 標「樣本不足」不下判定; master_contribution 補 updated_at + 單位統一 (_pct); contribution 從週日 cron 拉進 daily pipeline (原最多過期 6 天) |
 | **v3.74.1** | 8/21 | **處置股成數 0.5 + UI 定位強化 + 融資餘額開始累積** — (1) 處置股融資成數改 0.5(原寫死 0.6 會低估維持率 17%,漲停股極易進處置故此路徑高頻);(2) Tab 15 揭露補「整戶 vs 個股」差異 + 逐列 🔧已校正 / ⚠️處 標記;(3) stock_history 每日存 margin_balance,累積 30 天後可改用「融資餘額加權成本」取代單純均價(現行誤差中位數 6pp) |
