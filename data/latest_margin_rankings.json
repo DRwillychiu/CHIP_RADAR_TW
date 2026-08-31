@@ -1,6 +1,6 @@
 {
- "trade_date": "20260828",
- "updated_at": "2026-08-29T08:23:04.291531+08:00",
+ "trade_date": "20260831",
+ "updated_at": "2026-08-31T21:32:28.457425+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -3437,7 +3437,8 @@
     "short_quota": 13294,
     "short_usage": 0.35,
     "offsetting": 107,
-    "margin_short_ratio": 1.51
+    "margin_short_ratio": 1.51,
+    "industry": "數位雲端"
    },
    {
     "code": "6147",
@@ -5016,46 +5017,58 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1657,
-   "watch": 88,
+   "healthy": 1143,
+   "watch": 43,
    "high_risk": 3,
-   "margin_call": 0,
-   "insufficient_data": 467
+   "margin_call": 1,
+   "insufficient_data": 1025
   },
   "high_risk_stocks": [
    {
-    "code": "2413",
-    "name": "環科",
-    "ratio": 127.0,
-    "risk_level": "high_risk",
-    "margin_balance": 4182,
-    "today_close": 43.85,
-    "estimated_cost": 57.55,
-    "cost_adjusted_for_corp_action": true,
+    "code": "4747",
+    "name": "強生*",
+    "ratio": 89.5,
+    "risk_level": "margin_call",
+    "margin_balance": 1572,
+    "today_close": 27.35,
+    "estimated_cost": 50.95,
+    "cost_adjusted_for_corp_action": false,
     "is_disposal_stock": false,
     "margin_rate_used": 0.6
    },
    {
-    "code": "2483",
-    "name": "百容",
-    "ratio": 128.8,
+    "code": "3609",
+    "name": "三一東林",
+    "ratio": 121.6,
     "risk_level": "high_risk",
-    "margin_balance": 2079,
-    "today_close": 36.6,
-    "estimated_cost": 47.37,
-    "cost_adjusted_for_corp_action": true,
+    "margin_balance": 4068,
+    "today_close": 17.55,
+    "estimated_cost": 24.04,
+    "cost_adjusted_for_corp_action": false,
     "is_disposal_stock": false,
     "margin_rate_used": 0.6
    },
    {
     "code": "4556",
     "name": "旭然",
-    "ratio": 129.0,
+    "ratio": 127.5,
     "risk_level": "high_risk",
     "margin_balance": 623,
-    "today_close": 70.6,
+    "today_close": 69.8,
     "estimated_cost": 91.22,
     "cost_adjusted_for_corp_action": false,
+    "is_disposal_stock": false,
+    "margin_rate_used": 0.6
+   },
+   {
+    "code": "6715",
+    "name": "嘉基",
+    "ratio": 128.7,
+    "risk_level": "high_risk",
+    "margin_balance": 6733,
+    "today_close": 318.5,
+    "estimated_cost": 412.56,
+    "cost_adjusted_for_corp_action": true,
     "is_disposal_stock": false,
     "margin_rate_used": 0.6
    }

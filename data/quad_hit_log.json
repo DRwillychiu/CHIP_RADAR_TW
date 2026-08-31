@@ -1,186 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260604",
-      "next_date": "20260605",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": null,
-      "vol_spike_masters": [
-        "陳律師"
-      ],
-      "quad_picks": [
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": 3.53,
-          "hit": true,
-          "leader_pct": 0.268,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": 4.7,
-          "hit": true,
-          "leader_pct": 0.341,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2313",
-          "name": "華通",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": -0.55,
-          "hit": false,
-          "leader_pct": 0.341,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "8299",
-          "name": "群聯",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": -1.29,
-          "hit": false,
-          "leader_pct": 0.191,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2409",
-          "name": "友達",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": -7.35,
-          "hit": false,
-          "leader_pct": 0.262,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2408",
-          "name": "南亞科",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": -7.73,
-          "hit": false,
-          "leader_pct": 0.231,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2317",
-          "name": "鴻海",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": -4.72,
-          "hit": false,
-          "leader_pct": 0.298,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2344",
-          "name": "華邦電",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": -9.79,
-          "hit": false,
-          "leader_pct": 0.4,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2324",
-          "name": "仁寶",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": -4.83,
-          "hit": false,
-          "leader_pct": 0.301,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "3231",
-          "name": "緯創",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": -4.76,
-          "hit": false,
-          "leader_pct": 0.258,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2353",
-          "name": "宏��",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": -3.08,
-          "hit": false,
-          "leader_pct": 0.257,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "3481",
-          "name": "群創",
-          "matched_masters": [
-            "陳律師"
-          ],
-          "next_change_pct": -3.76,
-          "hit": false,
-          "leader_pct": 0.357,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        }
-      ],
-      "n": 12,
-      "hits": 2,
-      "hit_rate": 0.1667,
-      "mean_change": -3.3
-    },
-    {
       "date": "20260608",
       "next_date": "20260609",
       "q5_direction": "偏多",
@@ -2737,16 +2557,16 @@
     "mean_change": 0.8
   },
   "rolling_all": {
-    "trigger_days": 18,
-    "n": 179,
-    "hits": 79,
-    "hit_rate": 0.4413,
-    "mean_change": -0.03
+    "trigger_days": 17,
+    "n": 167,
+    "hits": 77,
+    "hit_rate": 0.4611,
+    "mean_change": 0.2
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4413,
-    "delta_pp": -34.8
+    "actual_hit_rate": 0.4611,
+    "delta_pp": -32.8
   },
-  "updated_at": "2026-08-29T00:27:18.618976"
+  "updated_at": "2026-08-31T13:36:59.102888"
 }

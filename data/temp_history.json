@@ -1,67 +1,7 @@
 {
-  "updated_at": "2026-08-29T08:23:12.079897+08:00",
+  "updated_at": "2026-08-31T21:32:36.501111+08:00",
   "count": 60,
   "history": [
-    {
-      "date": "20260604",
-      "score": 57,
-      "signals": [
-        {
-          "name": "外資現貨",
-          "score": 10,
-          "level": "neutral",
-          "value": 0
-        },
-        {
-          "name": "外資期貨",
-          "score": 0,
-          "level": "extreme-bear",
-          "value": -70367
-        },
-        {
-          "name": "P/C Ratio",
-          "score": 20,
-          "level": "extreme-bull",
-          "value": 1.4041
-        },
-        {
-          "name": "分點漲停",
-          "score": 20,
-          "level": "extreme-bull",
-          "value": 128
-        },
-        {
-          "name": "融資熱度",
-          "score": 10,
-          "level": "neutral",
-          "value": 0.0
-        },
-        {
-          "name": "法人共識",
-          "score": 10,
-          "level": "neutral",
-          "value": {
-            "foreign_net": 0,
-            "trust_net": 0
-          }
-        },
-        {
-          "name": "結算日壓力",
-          "score": 10,
-          "level": "neutral",
-          "value": {
-            "days_to_settle": 13,
-            "foreign_eq_oi": -70367
-          }
-        }
-      ],
-      "taiex_index": null,
-      "taiex_change_pct": 0.0,
-      "next_day_change_pct": -1.33,
-      "next_day_close": 45070.94,
-      "next_date": "20260605",
-      "next_day_source": "twse_fmtqik_official_v3.76.0"
-    },
     {
       "date": "20260605",
       "score": 57,
@@ -3486,6 +3426,63 @@
       "taiex_index": 46331.45,
       "taiex_change_pct": 0.77,
       "next_day_change_pct": null
+    },
+    {
+      "date": "20260831",
+      "score": 64,
+      "signals": [
+        {
+          "name": "外資現貨",
+          "score": 20,
+          "level": "extreme-bull",
+          "value": 332598
+        },
+        {
+          "name": "外資期貨",
+          "score": 0,
+          "level": "extreme-bear",
+          "value": -82909
+        },
+        {
+          "name": "P/C Ratio",
+          "score": 10,
+          "level": "neutral",
+          "value": 0.9612
+        },
+        {
+          "name": "分點漲停",
+          "score": 20,
+          "level": "extreme-bull",
+          "value": 16
+        },
+        {
+          "name": "融資熱度",
+          "score": 10,
+          "level": "neutral",
+          "value": 26.99
+        },
+        {
+          "name": "法人共識",
+          "score": 20,
+          "level": "extreme-bull",
+          "value": {
+            "foreign_net": 332598,
+            "trust_net": 16226
+          }
+        },
+        {
+          "name": "結算日壓力",
+          "score": 10,
+          "level": "neutral",
+          "value": {
+            "days_to_settle": 16,
+            "foreign_eq_oi": -82909
+          }
+        }
+      ],
+      "taiex_index": null,
+      "taiex_change_pct": null,
+      "next_day_change_pct": null
     }
   ],
   "_calibration_meta": {
@@ -3529,6 +3526,5 @@
     },
     "last_calibrated_at": null,
     "note": "raw 'value' per signal + taiex_change_pct + next_day_change_pct are the 3 fields v3.28 calibration needs. signal_audit.py 可 inspect."
-  },
-  "next_day_realigned_at": "2026-08-29T20:06:07+08:00"
+  }
 }
