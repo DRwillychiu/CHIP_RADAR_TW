@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-01T03:43:07.480289+08:00",
+  "generated_at": "2026-09-01T04:32:16.411924+08:00",
   "trade_date": "20260831",
   "pump_suspicion": [
     {
@@ -605,28 +605,13 @@
       "rule": "C_distribution",
       "severity": "medium",
       "reasoning": "當日賣 1,422 張 (30 天均 216 張 × 6.6) + 近 5 天漲停 60 次"
-    },
-    {
-      "stock_code": "2455",
-      "stock_name": "全新",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 139,
-      "sell_amt_wan": 6620,
-      "avg_30d_sell_lot": 11.8,
-      "sell_vs_avg_x": 11.8,
-      "recent_5d_limit_up_count": 82,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 139 張 (30 天均 12 張 × 11.8) + 近 5 天漲停 82 次"
     }
   ],
   "summary": {
     "pump_count": 4,
     "wash_count": 30,
-    "distribution_count": 3,
-    "total": 37
+    "distribution_count": 2,
+    "total": 36
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
