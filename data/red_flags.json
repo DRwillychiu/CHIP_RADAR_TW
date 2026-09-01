@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-02T01:34:44.770186+08:00",
+  "generated_at": "2026-09-02T02:08:01.126524+08:00",
   "trade_date": "20260901",
   "pump_suspicion": [
     {
@@ -27,10 +27,10 @@
       "sell_lot": 897,
       "buy_amt_wan": 66865,
       "daytrade_ratio": 0.7,
-      "amt_vs_median_x": 15.6,
+      "amt_vs_median_x": 17.5,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 70% (> 70%) + 漲停 + 買金額 66,865 萬 (中位數 4,273 萬 × 15.6)"
+      "reasoning": "當沖比 70% (> 70%) + 漲停 + 買金額 66,865 萬 (中位數 3,830 萬 × 17.5)"
     },
     {
       "stock_code": "6669",
@@ -409,6 +409,40 @@
     {
       "stock_code": "2408",
       "stock_name": "南亞科",
+      "buy_branch_code": "9A9g",
+      "buy_master": "陳族元",
+      "sell_branch_code": "779Z",
+      "sell_master": "張濬安(航海王)",
+      "buy_lot": 56,
+      "sell_lot": 73,
+      "buy_amt_wan": 2893,
+      "sell_amt_wan": 3784,
+      "lot_match_ratio": 0.77,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9A9g 買 56 張 vs 779Z 賣 73 張 (匹配 77%)"
+    },
+    {
+      "stock_code": "2408",
+      "stock_name": "南亞科",
+      "buy_branch_code": "9A9g",
+      "buy_master": "陳族元",
+      "sell_branch_code": "9B2n",
+      "sell_master": "巨人傑",
+      "buy_lot": 56,
+      "sell_lot": 67,
+      "buy_amt_wan": 2893,
+      "sell_amt_wan": 3473,
+      "lot_match_ratio": 0.84,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9A9g 買 56 張 vs 9B2n 賣 67 張 (匹配 84%)"
+    },
+    {
+      "stock_code": "2408",
+      "stock_name": "南亞科",
       "buy_branch_code": "8450",
       "buy_master": "陳律師",
       "sell_branch_code": "779Z",
@@ -524,40 +558,6 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9B2r 買 101 張 vs 700c 賣 111 張 (匹配 91%)"
-    },
-    {
-      "stock_code": "2408",
-      "stock_name": "南亞科",
-      "buy_branch_code": "9B2r",
-      "buy_master": "強森",
-      "sell_branch_code": "9B2a",
-      "sell_master": "Tradow",
-      "buy_lot": 101,
-      "sell_lot": 117,
-      "buy_amt_wan": 5313,
-      "sell_amt_wan": 6298,
-      "lot_match_ratio": 0.86,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9B2r 買 101 張 vs 9B2a 賣 117 張 (匹配 86%)"
-    },
-    {
-      "stock_code": "2408",
-      "stock_name": "南亞科",
-      "buy_branch_code": "9B2r",
-      "buy_master": "強森",
-      "sell_branch_code": "7003",
-      "sell_master": "劉子豪",
-      "buy_lot": 101,
-      "sell_lot": 110,
-      "buy_amt_wan": 5313,
-      "sell_amt_wan": 5721,
-      "lot_match_ratio": 0.92,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9B2r 買 101 張 vs 7003 賣 110 張 (匹配 92%)"
     }
   ],
   "distribution": [],
