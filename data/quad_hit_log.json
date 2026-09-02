@@ -1,118 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260608",
-      "next_date": "20260609",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.1,
-      "taifex_change": -3.48,
-      "vol_spike_masters": [
-        "巨人傑"
-      ],
-      "quad_picks": [
-        {
-          "code": "2454",
-          "name": "聯發科",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 9.95,
-          "hit": true,
-          "leader_pct": 0.351,
-          "excess_return": 13.43,
-          "failure_reasons": []
-        },
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 9.99,
-          "hit": true,
-          "leader_pct": 0.48,
-          "excess_return": 13.47,
-          "failure_reasons": []
-        },
-        {
-          "code": "8299",
-          "name": "群聯",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 4.89,
-          "hit": true,
-          "leader_pct": 0.568,
-          "excess_return": 8.37,
-          "failure_reasons": []
-        },
-        {
-          "code": "2317",
-          "name": "鴻海",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 2.97,
-          "hit": true,
-          "leader_pct": 0.316,
-          "excess_return": 6.45,
-          "failure_reasons": []
-        },
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 0.44,
-          "hit": true,
-          "leader_pct": 0.66,
-          "excess_return": 3.92,
-          "failure_reasons": []
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 5.37,
-          "hit": true,
-          "leader_pct": 0.424,
-          "excess_return": 8.85,
-          "failure_reasons": []
-        },
-        {
-          "code": "2308",
-          "name": "台達電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 7.1,
-          "hit": true,
-          "leader_pct": 0.24,
-          "excess_return": 10.58,
-          "failure_reasons": []
-        },
-        {
-          "code": "2449",
-          "name": "京元電子",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 0.87,
-          "hit": true,
-          "leader_pct": 0.168,
-          "excess_return": 4.35,
-          "failure_reasons": []
-        }
-      ],
-      "n": 8,
-      "hits": 8,
-      "hit_rate": 1.0,
-      "mean_change": 5.2
-    },
-    {
       "date": "20260609",
       "next_date": "20260610",
       "q5_direction": "偏多",
@@ -2547,26 +2435,190 @@
       "hits": 6,
       "hit_rate": 0.5455,
       "mean_change": 0.51
+    },
+    {
+      "date": "20260901",
+      "next_date": "20260902",
+      "q5_direction": "偏多",
+      "q5_confidence": 95,
+      "taifex_change": null,
+      "vol_spike_masters": [
+        "巨人傑"
+      ],
+      "quad_picks": [
+        {
+          "code": "2408",
+          "name": "南亞科",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": 0.0,
+          "hit": false,
+          "leader_pct": 0.152,
+          "excess_return": null,
+          "failure_reasons": [
+            "flat close (隔日收 = 今日收, 真實現象)"
+          ]
+        },
+        {
+          "code": "2344",
+          "name": "華邦電",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": 1.7,
+          "hit": true,
+          "leader_pct": 0.159,
+          "excess_return": null,
+          "failure_reasons": []
+        },
+        {
+          "code": "6770",
+          "name": "力積電",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": -0.56,
+          "hit": false,
+          "leader_pct": 0.188,
+          "excess_return": null,
+          "failure_reasons": [
+            "TAIEX 資料缺, 歸因不全"
+          ]
+        },
+        {
+          "code": "3450",
+          "name": "聯鈞",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": -3.68,
+          "hit": false,
+          "leader_pct": 0.405,
+          "excess_return": null,
+          "failure_reasons": [
+            "TAIEX 資料缺, 歸因不全"
+          ]
+        },
+        {
+          "code": "1303",
+          "name": "南亞",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": 1.28,
+          "hit": true,
+          "leader_pct": 0.239,
+          "excess_return": null,
+          "failure_reasons": []
+        },
+        {
+          "code": "6446",
+          "name": "藥華藥",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": -0.38,
+          "hit": false,
+          "leader_pct": 0.513,
+          "excess_return": null,
+          "failure_reasons": [
+            "假共識 (領頭獨佔 ≥50%)"
+          ]
+        },
+        {
+          "code": "3006",
+          "name": "晶豪科",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": 1.08,
+          "hit": true,
+          "leader_pct": 0.369,
+          "excess_return": null,
+          "failure_reasons": []
+        },
+        {
+          "code": "8299",
+          "name": "群聯",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": -2.82,
+          "hit": false,
+          "leader_pct": 0.317,
+          "excess_return": null,
+          "failure_reasons": [
+            "TAIEX 資料缺, 歸因不全"
+          ]
+        },
+        {
+          "code": "8358",
+          "name": "金居",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": -4.37,
+          "hit": false,
+          "leader_pct": 0.241,
+          "excess_return": null,
+          "failure_reasons": [
+            "TAIEX 資料缺, 歸因不全"
+          ]
+        },
+        {
+          "code": "2368",
+          "name": "金像電",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": -4.08,
+          "hit": false,
+          "leader_pct": 0.616,
+          "excess_return": null,
+          "failure_reasons": [
+            "假共識 (領頭獨佔 ≥50%)"
+          ]
+        },
+        {
+          "code": "8046",
+          "name": "南電",
+          "matched_masters": [
+            "巨人傑"
+          ],
+          "next_change_pct": -2.04,
+          "hit": false,
+          "leader_pct": 0.572,
+          "excess_return": null,
+          "failure_reasons": [
+            "假共識 (領頭獨佔 ≥50%)"
+          ]
+        }
+      ],
+      "n": 11,
+      "hits": 3,
+      "hit_rate": 0.2727,
+      "mean_change": -1.26
     }
   ],
   "rolling_30d": {
-    "trigger_days": 4,
-    "n": 36,
-    "hits": 19,
-    "hit_rate": 0.5278,
-    "mean_change": 0.8
+    "trigger_days": 5,
+    "n": 47,
+    "hits": 22,
+    "hit_rate": 0.4681,
+    "mean_change": 0.32
   },
   "rolling_all": {
     "trigger_days": 17,
-    "n": 167,
-    "hits": 77,
-    "hit_rate": 0.4611,
-    "mean_change": 0.2
+    "n": 170,
+    "hits": 72,
+    "hit_rate": 0.4235,
+    "mean_change": -0.13
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4611,
-    "delta_pp": -32.8
+    "actual_hit_rate": 0.4235,
+    "delta_pp": -36.6
   },
-  "updated_at": "2026-09-01T19:11:22.710477"
+  "updated_at": "2026-09-02T13:38:01.383566"
 }
