@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T22:49:08.104165+08:00",
+  "generated_at": "2026-09-04T01:16:12.286173+08:00",
   "trade_date": "20260903",
   "pump_suspicion": [],
   "wash_trade": [
@@ -516,11 +516,26 @@
   ],
   "distribution": [
     {
+      "stock_code": "3026",
+      "stock_name": "禾伸堂",
+      "branch_code": "9A9G",
+      "branch_name": "永豐金-天母",
+      "master": "永豐天母(老錢)",
+      "sell_lot": 107,
+      "sell_amt_wan": 6827,
+      "avg_30d_sell_lot": 19.0,
+      "sell_vs_avg_x": 5.6,
+      "recent_5d_limit_up_count": 39,
+      "rule": "C_distribution",
+      "severity": "medium",
+      "reasoning": "當日賣 107 張 (30 天均 19 張 × 5.6) + 近 5 天漲停 39 次"
+    },
+    {
       "stock_code": "3019",
       "stock_name": "亞光",
-      "branch_code": "9A9g",
-      "branch_name": "永豐金-內湖",
-      "master": "陳族元",
+      "branch_code": "9A9G",
+      "branch_name": "永豐金-天母",
+      "master": "永豐天母(老錢)",
       "sell_lot": 120,
       "sell_amt_wan": 1716,
       "avg_30d_sell_lot": 23.0,
@@ -534,8 +549,8 @@
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 1,
-    "total": 31
+    "distribution_count": 2,
+    "total": 32
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
