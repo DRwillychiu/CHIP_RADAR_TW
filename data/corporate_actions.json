@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-03T21:29:04.101331+08:00",
+  "updated_at": "2026-09-03T22:49:00.895710+08:00",
   "actions": {
     "1563": [
       {
@@ -1311,19 +1311,6 @@
         "bad_data_dates": []
       }
     ],
-    "2424": [
-      {
-        "date": "20260618",
-        "type": "detected_gap",
-        "pre_price": 12.0,
-        "post_price": 10.6,
-        "factor": 1.132075,
-        "confidence": "inferred",
-        "raw_move_pct": -11.67,
-        "source": "price_series",
-        "bad_data_dates": []
-      }
-    ],
     "2427": [
       {
         "date": "20260702",
@@ -1407,6 +1394,19 @@
         "factor": 0.874341,
         "confidence": "inferred",
         "raw_move_pct": 14.37,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
+    "2438": [
+      {
+        "date": "20260903",
+        "type": "detected_gap",
+        "pre_price": 18.15,
+        "post_price": 22.05,
+        "factor": 0.823129,
+        "confidence": "inferred",
+        "raw_move_pct": 21.49,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -1894,17 +1894,6 @@
     ],
     "3041": [
       {
-        "date": "20260615",
-        "type": "detected_gap",
-        "pre_price": 23.65,
-        "post_price": 27.0,
-        "factor": 0.875926,
-        "confidence": "inferred",
-        "raw_move_pct": 14.16,
-        "source": "price_series",
-        "bad_data_dates": []
-      },
-      {
         "date": "20260720",
         "type": "detected_gap",
         "pre_price": 26.4,
@@ -2249,7 +2238,6 @@
         "raw_move_pct": -18.73,
         "source": "price_series",
         "bad_data_dates": [
-          "20260611",
           "20260615"
         ]
       }
@@ -4105,17 +4093,6 @@
     ],
     "6885": [
       {
-        "date": "20260611",
-        "type": "detected_gap",
-        "pre_price": 26.1,
-        "post_price": 22.95,
-        "factor": 1.137255,
-        "confidence": "inferred",
-        "raw_move_pct": -12.07,
-        "source": "price_series",
-        "bad_data_dates": []
-      },
-      {
         "date": "20260826",
         "type": "detected_gap",
         "pre_price": 20.35,
@@ -4969,7 +4946,7 @@
   },
   "stats": {
     "official": 25,
-    "inferred": 373,
-    "merged_dup": 4
+    "inferred": 371,
+    "merged_dup": 6
   }
 }
