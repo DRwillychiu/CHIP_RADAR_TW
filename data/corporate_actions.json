@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-04T03:04:58.187589+08:00",
+  "updated_at": "2026-09-04T21:29:40.134755+08:00",
   "actions": {
     "1563": [
       {
@@ -10,50 +10,6 @@
         "factor": 0.779589,
         "confidence": "official",
         "source": "TWSE_TWTAUU"
-      }
-    ],
-    "4543": [
-      {
-        "date": "20260825",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.05,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "4554": [
-      {
-        "date": "20260825",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.15,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "4768": [
-      {
-        "date": "20260825",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.015,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "6752": [
-      {
-        "date": "20260825",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.03,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
       }
     ],
     "3128": [
@@ -389,6 +345,19 @@
         "factor": 1.152542,
         "confidence": "inferred",
         "raw_move_pct": -13.24,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
+    "4554": [
+      {
+        "date": "20260825",
+        "type": "detected_gap",
+        "pre_price": 32.75,
+        "post_price": 28.3,
+        "factor": 1.157244,
+        "confidence": "inferred",
+        "raw_move_pct": -13.59,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -4945,8 +4914,8 @@
     ]
   },
   "stats": {
-    "official": 25,
-    "inferred": 371,
-    "merged_dup": 6
+    "official": 21,
+    "inferred": 372,
+    "merged_dup": 5
   }
 }

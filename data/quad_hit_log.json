@@ -1,159 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260610",
-      "next_date": "20260611",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": -3.31,
-      "vol_spike_masters": [
-        "張濬安(航海王)"
-      ],
-      "quad_picks": [
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 0.0,
-          "hit": false,
-          "leader_pct": 0.292,
-          "excess_return": 3.31,
-          "failure_reasons": [
-            "flat close (隔日收 = 今日收, 真實現象)",
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "2308",
-          "name": "台達電",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": -1.82,
-          "hit": false,
-          "leader_pct": 0.199,
-          "excess_return": 1.49,
-          "failure_reasons": [
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "2317",
-          "name": "鴻海",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": -1.71,
-          "hit": false,
-          "leader_pct": 0.223,
-          "excess_return": 1.6,
-          "failure_reasons": [
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 2.81,
-          "hit": true,
-          "leader_pct": 0.445,
-          "excess_return": 6.12,
-          "failure_reasons": []
-        },
-        {
-          "code": "6770",
-          "name": "力積電",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 0.0,
-          "hit": false,
-          "leader_pct": 0.165,
-          "excess_return": 3.31,
-          "failure_reasons": [
-            "flat close (隔日收 = 今日收, 真實現象)",
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 5.49,
-          "hit": true,
-          "leader_pct": 0.215,
-          "excess_return": 8.8,
-          "failure_reasons": []
-        },
-        {
-          "code": "3017",
-          "name": "奇鋐",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": -1.06,
-          "hit": false,
-          "leader_pct": 0.215,
-          "excess_return": 2.25,
-          "failure_reasons": [
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "2449",
-          "name": "京元電子",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 0.0,
-          "hit": false,
-          "leader_pct": 0.213,
-          "excess_return": 3.31,
-          "failure_reasons": [
-            "flat close (隔日收 = 今日收, 真實現象)",
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "2454",
-          "name": "聯發科",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": -1.68,
-          "hit": false,
-          "leader_pct": 0.314,
-          "excess_return": 1.63,
-          "failure_reasons": [
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "2409",
-          "name": "友達",
-          "matched_masters": [
-            "張濬安(航海王)"
-          ],
-          "next_change_pct": 0.87,
-          "hit": true,
-          "leader_pct": 0.248,
-          "excess_return": 4.18,
-          "failure_reasons": []
-        }
-      ],
-      "n": 10,
-      "hits": 3,
-      "hit_rate": 0.3,
-      "mean_change": 0.29
-    },
-    {
       "date": "20260612",
       "next_date": "20260615",
       "q5_direction": "偏多",
@@ -2428,16 +2275,16 @@
     "mean_change": -0.42
   },
   "rolling_all": {
-    "trigger_days": 16,
-    "n": 159,
-    "hits": 71,
-    "hit_rate": 0.4465,
-    "mean_change": 0.19
+    "trigger_days": 15,
+    "n": 149,
+    "hits": 68,
+    "hit_rate": 0.4564,
+    "mean_change": 0.18
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4465,
-    "delta_pp": -34.2
+    "actual_hit_rate": 0.4564,
+    "delta_pp": -33.3
   },
-  "updated_at": "2026-09-03T19:12:19.744857"
+  "updated_at": "2026-09-04T13:37:58.618680"
 }
