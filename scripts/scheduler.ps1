@@ -109,12 +109,23 @@ $schedule = @(
     #   前一天的處置資料;本機提前抓,當天的 Excel 就吃得到當天處置清單。
     #   send_daily_telegram.py 自己用 marker 檔去重 (同一 trade_date 只推一次),
     #   所以 22:37 / 23:47 兜底跑到那步會自動跳過,不會重複推。
-    # v3.74.1: push_disposal_telegram.py = 處置股圖卡,借 disposal-watch 產圖後推 TG。
-    #   本專案不自己畫 (v3.74.0 移除) — 兩邊各畫一份會得到兩張對不上的圖。
-    #   同樣自帶去重 (同報表日改為編輯原訊息),兜底重跑不洗版。
+    # v3.75.0: push_disposal_telegram.py = 處置股圖卡,下載 disposal-watch 的雲端
+    #   artifact 後推 TG (四張一組 media group)。本專案不自己畫、也不再本機重跑
+    #   上游管線 (v3.74.x 的借跑在 attstock 封 IP 後整整壞了四天且靜默無感)。
+    #   21:17 這班的 crawler 要跑約 19 分鐘,實際執行落在 21:37 左右,
+    #   雲端 21:20-21:25 已上傳完 artifact,時序來得及。
+    #   自帶去重 (同一 artifact 不重推、同報表日改為編輯原訊息),兜底重跑不洗版。
     @{ time="21:17"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py", "python scripts/push_disposal_telegram.py") }
-    @{ time="22:37"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py", "python scripts/push_disposal_telegram.py --fallback") }
-    @{ time="23:47"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py", "python scripts/push_disposal_telegram.py --fallback") }
+    @{ time="22:37"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py", "python scripts/push_disposal_telegram.py") }
+    @{ time="23:47"; days=$WEEKDAY_1_5; job="daily-full"; pre=@("python scripts/refresh_attstock_disposal.py"); cmd="python crawler.py"; post=@("python scripts/daily_rolling_update.py", "python scripts/send_daily_telegram.py", "python scripts/push_disposal_telegram.py") }
+
+    # ── v3.75.0: Telegram 指令輪詢 ──
+    #   手機打 /refresh 就重抓 disposal-watch 的 artifact 並更新既有訊息。
+    #   every=2 (每 2 分鐘) 而非固定時刻 —— 指令要能隨時下,列 720 個時刻不現實。
+    #   quiet: 沒收到指令時完全不寫 log,否則一天 720 次會把有用的紀錄淹掉。
+    #   telegram_poll.py 自帶鎖檔,前一次還沒跑完時不會重入 (Telegram 對同一
+    #   個 bot 同時 getUpdates 會回 409)。
+    @{ every=2; days=@(0,1,2,3,4,5,6); job="tg-poll"; quiet=$true; detached=$true; cmd="python scripts/telegram_poll.py" }
 
     # ── margin-refresh.yml: 融資融券 7-layer defense ──
     @{ time="22:30"; days=$WEEKDAY_1_5; job="margin";       cmd="python crawler.py"; env=@{CHIP_RADAR_STAGE="margin_only"} }
@@ -157,7 +168,14 @@ $hhmm = $now.ToString("HH:mm")
 $dow = [int]$now.DayOfWeek  # Sun=0, Mon=1, ..., Sat=6
 
 # ── Find matching jobs ──
-$matched = $schedule | Where-Object { $_.time -eq $hhmm -and $_.days -contains $dow }
+# v3.75.0: 除了固定時刻 (time),再支援每 N 分鐘 (every)。Telegram 指令輪詢
+#   需要高頻檢查,列 720 個固定時刻不現實。
+$matched = $schedule | Where-Object {
+    $_.days -contains $dow -and (
+        ($_.time -and $_.time -eq $hhmm) -or
+        ($_.every -and ($now.Minute % $_.every) -eq 0)
+    )
+}
 
 if (-not $matched -or $matched.Count -eq 0) { exit 0 }
 
@@ -198,8 +216,33 @@ print('YES' if in_window else 'NO')
         }
     }
 
-    Add-Content -Path $logFile -Value "[$timestamp] [$jobName] START: $cmd" -Encoding UTF8
+    # v3.75.0: quiet job (每 2 分鐘的指令輪詢) 沒事時完全不寫 log ——
+    #   一天 720 次 x 3 行會把真正有用的紀錄淹掉。有輸出或非 0 離開碼才記。
+    $quiet = [bool]$entry.quiet
+    if (-not $quiet) {
+        Add-Content -Path $logFile -Value "[$timestamp] [$jobName] START: $cmd" -Encoding UTF8
+    }
     $startTime = Get-Date
+
+    # v3.75.0: detached job —— 丟出去就不等它跑完。
+    #   本工作的 MultipleInstances 是 IgnoreNew: 同步等待任何長工作,都會讓
+    #   後續每一分鐘的觸發被丟掉。實證: 21:30 settlement 在 8/24~8/28 一次都
+    #   沒跑過,因為 21:17 daily-full 佔住排程器到 21:36。
+    #   tg-poll 的網路呼叫實測 1.2-4.4 秒、最壞 15 秒,雖然還不到一分鐘,但
+    #   Task Scheduler 本身延遲時仍可能壓到下一分鐘的固定時刻 job。改成丟出去
+    #   就走,佔用降到毫秒級 —— 結構上不可能吃掉別的 job。
+    #   代價: 拿不到輸出與離開碼,所以 telegram_poll.py 自己寫 .tg_worker.log。
+    if ($entry.detached) {
+        $parts = $cmd -split ' ', 2
+        try {
+            Start-Process -FilePath $parts[0] -ArgumentList $parts[1] `
+                          -WorkingDirectory $projectRoot -WindowStyle Hidden
+        } catch {
+            Add-Content -Path $logFile -Value "[$timestamp] [$jobName] DETACH FAILED: $_" -Encoding UTF8
+            Write-ExecutionRecord -JobName $jobName -Command $cmd -Status "EXCEPTION" -ErrorMsg "$_"
+        }
+        continue
+    }
 
     # ── v3.73.1: pre 步驟 (爬蟲之前) ──
     # 每個獨立執行,失敗不中斷 — 等同 daily-full.yml 的 continue-on-error
@@ -238,14 +281,16 @@ print('YES' if in_window else 'NO')
         $output = & cmd /c "cd /d `"$projectRoot`" && $cmd" 2>&1
         $exitCode = $LASTEXITCODE
         $duration = [math]::Round(((Get-Date) - $startTime).TotalMinutes, 1)
-        $status = if ($exitCode -eq 0) { "OK" } else { "FAIL (exit $exitCode)" }
-        Add-Content -Path $logFile -Value "[$timestamp] [$jobName] $status (${duration} min)" -Encoding UTF8
-
         $lastLines = ($output | Select-Object -Last 5) -join " | "
-        Add-Content -Path $logFile -Value "[$timestamp] [$jobName] Output: $lastLines" -Encoding UTF8
+        # quiet job 順利跑完又沒有輸出 = 什麼事都沒發生,不留痕跡
+        if (-not ($quiet -and $exitCode -eq 0 -and [string]::IsNullOrWhiteSpace($lastLines))) {
+            $status = if ($exitCode -eq 0) { "OK" } else { "FAIL (exit $exitCode)" }
+            Add-Content -Path $logFile -Value "[$timestamp] [$jobName] $status (${duration} min)" -Encoding UTF8
+            Add-Content -Path $logFile -Value "[$timestamp] [$jobName] Output: $lastLines" -Encoding UTF8
 
-        $recStatus = if ($exitCode -eq 0) { "OK" } else { "FAIL" }
-        Write-ExecutionRecord -JobName $jobName -Command $cmd -Status $recStatus -ExitCode $exitCode -DurationMin $duration -OutputTail $lastLines
+            $recStatus = if ($exitCode -eq 0) { "OK" } else { "FAIL" }
+            Write-ExecutionRecord -JobName $jobName -Command $cmd -Status $recStatus -ExitCode $exitCode -DurationMin $duration -OutputTail $lastLines
+        }
     } catch {
         $duration = [math]::Round(((Get-Date) - $startTime).TotalMinutes, 1)
         Add-Content -Path $logFile -Value "[$timestamp] [$jobName] EXCEPTION (${duration} min): $_" -Encoding UTF8
