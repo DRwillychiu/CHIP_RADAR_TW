@@ -1,13 +1,14 @@
 """v3.74.0: 本機排程跑完後,把「📱 手機摘要」+ latest.xlsx 推到 Telegram。
 同一個交易日內重跑改為「編輯既有訊息」而非重發。
 
-⚠️ 處置股不在這裡 — 由 disposal-watch 專案負責 (v3.74.0 起)。
+⚠️ 處置股不在這裡 — 由 scripts/push_disposal_telegram.py 負責 (v3.74.0 起)。
   這支腳本曾自行渲染處置股圖卡,但那是重造輪子: disposal-watch
   (github.com/DRwillychiu/disposal-watch) 早就有完整管線 —
   attstock 撈取 → 反解觸發價 / MoneyDJ 概念標籤 / 快照差集算進出關 /
   命中率回測 → Pillow 產圖 → 寄 Email,排程同為台灣 21:17。
-  現在它會把同一張 當日重點.png 直接推 Telegram,兩邊資料保證一致。
   這裡再畫一份只會得到兩個版本的處置股,故整段移除。
+  v3.75.0 起圖卡改由 push_disposal_telegram.py 下載該專案的雲端 artifact
+  (四張一組),不在本機重算;收件對象預設跟這支一樣走 TELEGRAM_CHAT_ID。
   → data/disposal_attstock.json 仍由 refresh_attstock_disposal.py 更新,
     因為 excel_report.py 出報表還要讀它 (不是給 Telegram 用的)。
 
@@ -19,16 +20,25 @@
   而後面幾次的資料可能更完整 (實測 21:17 抓到 76 分點、22:37 抓到 77)。
   重發會洗版,單純跳過又拿不到更新後的數字 → 折衷是原地編輯。
 
+多目標 (v3.75.0):
+  TELEGRAM_CHAT_ID 可用逗號分隔多個對象,例如「私訊,群組」都要收同一份。
+  message_id 是「該 chat 專屬」的,拿 A chat 的 id 去 B chat 編輯會直接失敗,
+  所以狀態必須按 chat_id 分開存 (見下方 targets)。
+
 狀態檔 local_data/.tg_last_push (JSON):
   {"trade_date": "20260730",
-   "summary":  {"message_id": 123, "hash": "..."},
-   "document": {"message_id": 125, "hash": "..."}}
-  相容舊版純文字格式 (只有 trade_date,無 message_id → 該次改為重發)。
+   "targets": {
+     "987654321":  {"summary": {"message_id": 123, "hash": "..."},
+                     "document": {"message_id": 125, "hash": "..."}},
+     "-1001234567890": {"summary": {...}, "document": {...}}}}
+  相容兩種舊格式:
+    v3.73.1-3 純文字 (只有 trade_date,無 message_id → 該次改為重發)
+    v3.73.4-  summary/document 放在頂層 → 自動歸給第一個 chat_id
   舊狀態檔殘留的 "disposal" 鍵不再讀寫,無害。
 
 用法:
     python scripts/send_daily_telegram.py            # 正常 (新發 or 更新)
-    python scripts/send_daily_telegram.py --force    # 一律當新的重發
+    python scripts/send_daily_telegram.py --force    # 略過「內容未變」短路,硬更新一次
     python scripts/send_daily_telegram.py --dry-run  # 只印不推
 
 token 來源 (優先序): 環境變數 → 專案根目錄 .env
@@ -48,17 +58,6 @@ sys.path.insert(0, str(ROOT))
 FORCE = '--force' in sys.argv
 DRY_RUN = '--dry-run' in sys.argv
 
-DATA_DIR = ROOT / os.environ.get('CHIP_RADAR_DATA_DIR', 'data')
-XLSX = DATA_DIR / 'reports' / 'latest.xlsx'
-LATEST = DATA_DIR / 'latest.json'
-STATE = DATA_DIR / '.tg_last_push'
-
-MOBILE_SHEET = '📱 手機摘要'
-
-
-# ════════════════════════════════════════════════════════════════════
-#  基礎工具
-# ════════════════════════════════════════════════════════════════════
 
 def load_dotenv_into_env() -> None:
     """把 .env 的值補進 os.environ (不覆蓋既有的) — 對齊 scheduler.ps1:14-26."""
@@ -74,6 +73,23 @@ def load_dotenv_into_env() -> None:
         if v and not os.environ.get(k):
             os.environ[k] = v
 
+
+# 必須在算 DATA_DIR 之前載入: 排程執行時 scheduler.ps1 已設好
+# CHIP_RADAR_DATA_DIR (=local_data),手動執行則只有 .env 有。晚一步載入
+# 會讓兩種跑法讀到不同的資料夾與狀態檔,同一天可能因此重發一次。
+load_dotenv_into_env()
+
+DATA_DIR = ROOT / os.environ.get('CHIP_RADAR_DATA_DIR', 'data')
+XLSX = DATA_DIR / 'reports' / 'latest.xlsx'
+LATEST = DATA_DIR / 'latest.json'
+STATE = DATA_DIR / '.tg_last_push'
+
+MOBILE_SHEET = '📱 手機摘要'
+
+
+# ════════════════════════════════════════════════════════════════════
+#  基礎工具
+# ════════════════════════════════════════════════════════════════════
 
 def _hash(s: str) -> str:
     return hashlib.sha256(s.encode('utf-8')).hexdigest()[:16]
@@ -118,6 +134,36 @@ def save_state(st: dict) -> None:
         print(f"  [Telegram] ⚠️ 狀態檔寫入失敗 (下次可能重發): {e}")
 
 
+def chat_ids() -> list:
+    """TELEGRAM_CHAT_ID 支援逗號分隔多個對象 (私訊 + 群組都要收同一份)。
+
+    順序有意義: 第一個是「主要對象」,舊狀態檔的頂層 summary/document
+    會歸給它 (見 migrate_targets)。
+    """
+    raw = os.environ.get('TELEGRAM_CHAT_ID', '')
+    return [c.strip() for c in raw.split(',') if c.strip()]
+
+
+def migrate_targets(st: dict, ids: list) -> dict:
+    """把舊的頂層 summary/document 搬進 targets[<第一個 chat_id>]。
+
+    不搬的話,加了第二個目標之後主要對象會被當成「全新目標」而重發一次,
+    等於洗版 —— 而那正是 v3.73.4 引入 message_id 想避免的事。
+    """
+    tg = st.get('targets')
+    if isinstance(tg, dict):
+        return tg
+    tg = {}
+    legacy = {k: st[k] for k in ('summary', 'document')
+              if isinstance(st.get(k), dict)}
+    if legacy and ids:
+        tg[ids[0]] = legacy
+    st['targets'] = tg
+    for k in ('summary', 'document'):
+        st.pop(k, None)
+    return tg
+
+
 def extract_mobile_summary() -> str:
     """抓 latest.xlsx 的手機摘要 sheet → 純文字 (邏輯同 extract_mobile_summary_text.py)."""
     from openpyxl import load_workbook
@@ -150,18 +196,23 @@ def extract_mobile_summary() -> str:
 # ════════════════════════════════════════════════════════════════════
 
 def push_text(api: str, chat_id: str, label: str, text: str,
-              prev: dict, force_new: bool) -> dict:
+              prev: dict, force_new: bool, force: bool = False) -> dict:
     """送出或編輯一則文字訊息。回傳新的 {message_id, hash}。
 
     內容沒變 → 完全不打 API (Telegram 也會回 400 message is not modified)。
     有 message_id 且內容有變 → editMessageText。
     編輯失敗 (訊息被刪 / 過舊) → 退回重發,不讓使用者漏掉更新。
+
+    force_new 與 force 是兩件事:
+      force_new = 這個 chat 沒有可編輯的舊訊息 (換日 / 新增的目標) → 發新的
+      force     = --force,略過「內容未變」的短路,硬打一次編輯。
+                  用於手動重送: 你剛修好上游資料,hash 卻可能碰巧沒變。
     """
     import requests
     h = _hash(text)
     mid = (prev or {}).get('message_id')
 
-    if not force_new and mid and (prev or {}).get('hash') == h:
+    if not force and not force_new and mid and (prev or {}).get('hash') == h:
         print(f"  [Telegram] · {label}內容未變,不動")
         return {'message_id': mid, 'hash': h}
 
@@ -196,7 +247,8 @@ def push_text(api: str, chat_id: str, label: str, text: str,
 
 
 def push_document(api: str, chat_id: str, caption: str,
-                  prev: dict, force_new: bool, data_changed: bool) -> dict:
+                  prev: dict, force_new: bool, data_changed: bool,
+                  force: bool = False) -> dict:
     """送出或替換 Excel 附件。
 
     Excel 每次 regen 內部時間戳都會變,檔案 hash 一定不同,拿來當判斷基準
@@ -211,7 +263,7 @@ def push_document(api: str, chat_id: str, caption: str,
     mid = (prev or {}).get('message_id')
     size_kb = XLSX.stat().st_size / 1024
 
-    if not force_new and mid and not data_changed:
+    if not force and not force_new and mid and not data_changed:
         print(f"  [Telegram] · Excel 資料未變,不動")
         return prev
 
@@ -250,11 +302,10 @@ def push_document(api: str, chat_id: str, caption: str,
 # ════════════════════════════════════════════════════════════════════
 
 def main() -> int:
-    load_dotenv_into_env()
     token = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
-    chat_id = os.environ.get('TELEGRAM_CHAT_ID', '').strip()
+    ids = chat_ids()
 
-    if not DRY_RUN and (not token or not chat_id):
+    if not DRY_RUN and (not token or not ids):
         print("  [Telegram] TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID 未設,跳過推播")
         print("             (見 docs/TELEGRAM_BOT_SETUP.md)")
         return 0
@@ -279,6 +330,7 @@ def main() -> int:
 
     if DRY_RUN:
         print(f"  [DRY RUN] trade_date={trade_date}, 摘要 {len(summary)} 字元")
+        print(f"  [DRY RUN] 收件對象 {len(ids)}: {', '.join(ids) or '(未設)'}")
         print(f"  [DRY RUN] Excel: {XLSX} ({XLSX.stat().st_size / 1024:,.0f} KB)")
         print('─' * 55)
         print(summary)
@@ -287,36 +339,51 @@ def main() -> int:
 
     # ── 判斷是「新的一天」還是「同一天重跑」 ──
     st = load_state()
-    same_day = (not FORCE) and st.get('trade_date') == trade_date
+    # 刻意不看 FORCE: --force 的意思是「重新推一次」,不是「重貼一份新的」。
+    # 同一交易日仍走原地更新,編輯失敗才由 push_text/push_document 退回重發。
+    same_day = st.get('trade_date') == trade_date
     if not same_day:
-        st = {'trade_date': trade_date}      # 換日 (或 --force) → 全部當新的發
-        reason = '強制重發' if FORCE else f'新交易日 {trade_date}'
-        print(f"  [Telegram] {reason} → 發送新訊息")
+        st = {'trade_date': trade_date, 'targets': {}}       # 換日 → 全部當新的發
+        print(f"  [Telegram] 新交易日 {trade_date} → 發送新訊息")
     else:
-        # 舊版 (v3.73.1-3) 狀態檔只有 trade_date、沒有 message_id,無從編輯。
+        how = '強制更新原訊息' if FORCE else '有異動則更新原訊息'
+        print(f"  [Telegram] {trade_date} 今日已推過 → {how}")
+
+    targets = migrate_targets(st, ids)
+    if same_day and not targets:
+        # 舊版 (v3.73.1-3) 狀態檔只有 trade_date、沒有任何 message_id,無從編輯。
         # 此時「重發」會洗版、「跳過」只是少一次更新 → 選跳過,較不擾人。
         # 隔天換日就會寫入新格式,之後都能正常編輯。
-        if not any(isinstance(st.get(k), dict) and st[k].get('message_id')
-                   for k in ('summary', 'document')):
-            print(f"  [Telegram] {trade_date} 今日已推過,但狀態檔為舊格式"
-                  f"(無 message_id 可編輯) → 本次跳過,明日起正常更新")
-            return 0
-        print(f"  [Telegram] {trade_date} 今日已推過 → 有異動則更新原訊息")
+        print(f"  [Telegram] {trade_date} 今日已推過,但狀態檔為舊格式"
+              f"(無 message_id 可編輯) → 本次跳過,明日起正常更新")
+        return 0
 
     api = f"https://api.telegram.org/bot{token}"
-    force_new = not same_day
-
-    summary_prev = st.get('summary') or {}
-    summary_new = push_text(api, chat_id, '手機摘要', summary, summary_prev, force_new)
-    if summary_new:
-        st['summary'] = summary_new
-    data_changed = force_new or summary_new.get('hash') != summary_prev.get('hash')
-
     caption = f"📋 Chip Radar · {d_fmt} 完整報表"
-    res_doc = push_document(api, chat_id, caption, st.get('document') or {},
-                            force_new, data_changed)
-    if res_doc:
-        st['document'] = res_doc
+
+    for cid in ids:
+        tgt = targets.get(cid) or {}
+        # 今天才加進來的目標 (例如新增群組) 在本日還沒有自己的 message_id,
+        # 必須當新的發 —— 沿用 same_day 會讓它整天都收不到東西。
+        force_new = (not same_day) or not tgt
+
+        summary_prev = tgt.get('summary') or {}
+        summary_new = push_text(api, cid, f'手機摘要→{cid}', summary,
+                                summary_prev, force_new, FORCE)
+        if summary_new:
+            tgt['summary'] = summary_new
+        data_changed = (force_new or FORCE
+                        or summary_new.get('hash') != summary_prev.get('hash'))
+
+        res_doc = push_document(api, cid, caption, tgt.get('document') or {},
+                                force_new, data_changed, FORCE)
+        if res_doc:
+            tgt['document'] = res_doc
+
+        targets[cid] = tgt
+        # 每個目標推完就存: 中途某個 chat 失敗 (被踢出群組之類) 時,
+        # 前面成功的 message_id 不會跟著丟掉而在下次重發。
+        save_state(st)
 
     save_state(st)
     return 0

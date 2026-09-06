@@ -24,3 +24,9 @@ scripts/.certs/
 .disposal_watch_run/
 .disposal_watch.zip
 .tg_disposal_push
+# v3.75.0: telegram_poll.py 的狀態 (已讀 offset / chat 名冊 / 兩個鎖 / 工人日誌)
+.tg_poll_offset
+.tg_chats.json
+.tg_poll.lock
+.tg_work.lock
+.tg_worker.log
