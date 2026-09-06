@@ -7,8 +7,14 @@
 
 為什麼是輪詢,不是常駐 daemon 或 webhook:
   webhook 需要公開網址,家用電腦沒有。常駐 daemon 是多一個要監控、會默默
-  掛掉、要自動重啟的東西。scheduler.ps1 本來就每分鐘在跑,掛一個 2 分鐘的
-  job 幾乎零成本 —— 而且它掛掉時整條排程也掛了,少一個獨立的故障點。
+  掛掉、要自動重啟的東西。改由 scheduler.ps1 每分鐘起一個、聽 55 秒就結束
+  —— 效果等同常駐,但掛掉 60 秒內自己就回來,不必另外監控。
+
+指令為什麼是即時的:
+  用長輪詢 (getUpdates 帶 timeout),連線掛著不放,訊息一到 Telegram 就立刻
+  回傳。不是「每分鐘問一次」而是「幾乎一直在聽」,這是 Telegram 官方推薦
+  bot 用的方式。收到訊息後**繼續聽完剩餘時間**而不是直接結束,否則連下兩個
+  指令時第二個要等到下一分鐘才有人聽。
 
 ★ 為什麼拆成「輪詢」與「工人」兩段 (這是安全關鍵):
   ChipRadar_Scheduler 這個 Windows 排程工作的 MultipleInstances 政策是
@@ -16,11 +22,13 @@
   的 21:30 settlement 從來沒執行過,就是被 21:17 daily-full (約 19 分鐘)
   整段吃掉的。
 
-  所以輪詢器**絕對不能同步跑長工作**: /refresh 要 60-90 秒,萬一壓到
-  21:17 那一分鐘,當天的 daily-full 就整個不會跑 (固定時刻只比對那一分鐘)。
+  所以輪詢器**絕對不能被同步等待**: 它自己要掛 55 秒聽訊息,/refresh 的
+  重抓又要 60-90 秒。壓到 21:17 那一分鐘,當天的 daily-full 就整個不會跑
+  (固定時刻只比對那一分鐘)。
 
-  改成: 輪詢器只做「問一次 + 記 offset + 把工作丟出去」,永遠 1 秒內結束;
-  真正的重抓由 --run 以**分離行程**執行,不佔住排程器。
+  兩層都拆開:
+    scheduler.ps1 用 detached 起輪詢器 -> 排程器佔用 8-83 毫秒
+    輪詢器用分離行程起工人 (--run)    -> 輪詢器不被重抓拖住,繼續聽指令
   分離時 stdin/stdout/stderr 一律導向 DEVNULL —— 否則 cmd /c 會等管道關閉,
   等於白拆。
 
@@ -32,7 +40,7 @@
 
 為什麼要記 offset:
   Telegram 幫每個 bot 保管一個「未讀信箱」。輪詢器必須把訊息**拿走並標記
-  已讀**,否則每 2 分鐘都會重新看到同一條 /refresh 而重複執行。
+  已讀**,否則會重新看到同一條 /refresh 而重複執行。
 
 副作用與補償:
   訊息被拿走之後,push_disposal_telegram.py --list-chats 原本用的 getUpdates
@@ -54,7 +62,7 @@
   選單不見了 (換裝置、清聊天記錄) 打 /menu 重裝。
 
 用法:
-    python scripts/telegram_poll.py              # 排程每 2 分鐘呼叫一次
+    python scripts/telegram_poll.py              # 排程每分鐘呼叫,聽 55 秒
     python scripts/telegram_poll.py --setup-menu # 安裝選單 (一次就好)
     python scripts/telegram_poll.py --status     # 只印狀態,不消費 update
     python scripts/telegram_poll.py --run refresh   # 工人 (由輪詢器自動啟動)
@@ -106,8 +114,15 @@ POLL_LOCK = DATA_DIR / '.tg_poll.lock'
 WORK_LOCK = DATA_DIR / '.tg_work.lock'
 WORKER_LOG = DATA_DIR / '.tg_worker.log'
 
-# 輪詢只做「問一次 + 丟工作」,1 秒內結束。2 分鐘還沒放開一定是死了。
-POLL_STALE_SEC = 120
+# 長輪詢: getUpdates 掛著不放,訊息一到就立刻回傳 (Telegram 官方推薦的用法)。
+#   早期版本用短輪詢 (timeout=0) 每 2 分鐘問一次,因為當時輪詢是同步跑在
+#   排程器裡,掛 50 秒會佔住它。改成分離行程後這個限制就不存在了。
+# POLL_BUDGET_SEC: 這個行程總共聽多久。排程每分鐘叫一次,聽 55 秒 -> 分鐘
+#   之間只剩幾秒空窗。收到訊息後**繼續聽完剩餘時間**而不是直接結束,
+#   否則連下兩個指令時,第二個要等到下一分鐘才有人聽。
+POLL_BUDGET_SEC = 55
+LONG_POLL_SEC = 25          # 單次 getUpdates 掛多久 (要小於 budget 才能循環)
+POLL_STALE_SEC = 120        # > POLL_BUDGET_SEC,健康的輪詢器不會被誤判成殘骸
 # 工人最久 = 2 個子行程 x RUN_TIMEOUT。留足餘裕,免得還活著就被判定成殘骸
 # 而讓第二個工人同時開跑 (兩個一起編輯同一批訊息會很難看)。
 RUN_TIMEOUT = 600
@@ -434,48 +449,60 @@ def main() -> int:
         return 0
     try:
         import requests
-        offset = load_offset()
-        params = {'timeout': 0, 'limit': 50}
-        if offset:
-            params['offset'] = offset
-        # timeout 壓在 15 秒: 輪詢是排程器同步呼叫的,網路卡住等於佔住排程器。
-        # every=2 只在偶數分鐘跑,15 秒不可能延伸到下一分鐘的觸發窗口;
-        # 就算 Task Scheduler 本身延遲了幾十秒才叫起來,也還有餘裕。
-        r = requests.get(f"{api}/getUpdates", params=params, timeout=15)
-        if r.status_code != 200:
-            _wlog(f"getUpdates HTTP {r.status_code}: {r.text[:200]}")
-            return 0
-        updates = (r.json() or {}).get('result') or []
-        if not updates:
-            return 0
+        deadline = time.time() + POLL_BUDGET_SEC
+        while True:
+            remaining = deadline - time.time()
+            if remaining < 3:       # 剩不到 3 秒不值得再掛一次,交給下一分鐘
+                break
+            offset = load_offset()
+            params = {'timeout': int(min(LONG_POLL_SEC, remaining - 2)),
+                      'limit': 50}
+            if offset:
+                params['offset'] = offset
+            # 長輪詢: 連線掛著,訊息一到就回傳。requests 的 timeout 必須比
+            # Telegram 的 timeout 大,否則正常的等待會被誤判成連線逾時。
+            try:
+                r = requests.get(f"{api}/getUpdates", params=params,
+                                 timeout=params['timeout'] + 10)
+            except requests.Timeout:
+                continue            # 網路慢,不是錯誤,再掛一次
+            if r.status_code != 200:
+                _wlog(f"getUpdates HTTP {r.status_code}: {r.text[:200]}")
+                break
+            touch(POLL_LOCK)        # 長時間持有,讓鎖保持新鮮
+            updates = (r.json() or {}).get('result') or []
+            if not updates:
+                continue            # 這輪沒訊息,把剩下的時間繼續聽
 
-        jobs, last_id = [], offset
-        for u in updates:
-            last_id = max(last_id, int(u.get('update_id') or 0))
-            msg = u.get('message') or u.get('edited_message') or {}
-            chat = msg.get('chat') or {}
-            remember_chat(chat)
-            if str(chat.get('id')) != admin:
-                # 群組 / 其他人 —— 忽略且不回應。回應等於告訴對方這裡吃指令。
-                continue
-            text = (msg.get('text') or '').strip()
-            # 只理會斜線指令。否則跟 bot 隨口聊一句都會收到「不認得」。
-            if not text.startswith('/'):
-                continue
-            cmd = text.split()[0].split('@')[0].lower()          # /refresh@Bot → /refresh
-            jobs.append((cmd, ALIASES.get(cmd)))
+            jobs, last_id = [], offset
+            for u in updates:
+                last_id = max(last_id, int(u.get('update_id') or 0))
+                msg = u.get('message') or u.get('edited_message') or {}
+                chat = msg.get('chat') or {}
+                remember_chat(chat)
+                if str(chat.get('id')) != admin:
+                    # 群組 / 其他人 —— 忽略且不回應。回應等於告訴對方這裡吃指令。
+                    continue
+                text = (msg.get('text') or '').strip()
+                # 只理會斜線指令。否則跟 bot 隨口聊一句都會收到「不認得」。
+                if not text.startswith('/'):
+                    continue
+                cmd = text.split()[0].split('@')[0].lower()      # /refresh@Bot → /refresh
+                jobs.append((cmd, ALIASES.get(cmd)))
 
-        # 先存 offset 再丟工作: 指令跑到一半當掉時,重開機不該再跑一次。
-        # 寧可漏一次 (你再打一次就好) 也不要重複推播。
-        save_offset(last_id + 1)
+            # 先存 offset 再丟工作: 指令跑到一半當掉時,重開機不該再跑一次。
+            # 寧可漏一次 (你再打一次就好) 也不要重複推播。
+            save_offset(last_id + 1)
 
-        # 同一批裡連打好幾次同一個指令只做一次
-        for cmd, name in dict.fromkeys(jobs):
-            _wlog(f"收到指令 {cmd}")
-            if name:
-                spawn_worker(name)
-            else:
-                _send(admin, f"不認得 {cmd}\n\n{HELP}")
+            # 同一批裡連打好幾次同一個指令只做一次
+            for cmd, name in dict.fromkeys(jobs):
+                _wlog(f"收到指令 {cmd}")
+                if name:
+                    spawn_worker(name)
+                else:
+                    _send(admin, f"不認得 {cmd}\n\n{HELP}")
+            # 刻意不 break: 處理完繼續聽完剩餘時間。直接結束的話,連下兩個
+            # 指令時第二個要等到下一分鐘才有人聽 —— 那正是要修掉的延遲。
     except Exception as e:
         _wlog(f"輪詢未預期錯誤: {e.__class__.__name__}: {e}")
     finally:

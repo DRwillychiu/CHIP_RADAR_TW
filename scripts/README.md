@@ -50,7 +50,8 @@
 - `send_daily_telegram.py` — 推手機摘要 + `latest.xlsx`,同交易日重跑改為編輯原訊息
 - `push_disposal_telegram.py` — 推處置股圖卡 × 4 (media group)。圖來自
   disposal-watch 的雲端 artifact,本機不重算也不畫。`--list-chats` 可查群組 id
-- `telegram_poll.py` — 每 2 分鐘輪詢指令 (`scheduler.ps1` 的 `every=2` + `detached` job)。
+- `telegram_poll.py` — 長輪詢指令 (`scheduler.ps1` 的 `every=1` + `detached` job,
+  每分鐘起一個、聽 55 秒,指令 1-2 秒內就有反應)。
   手機下 `/refresh` 就重抓 artifact 並更新既有訊息;只認管理者私訊,群組不回應。
   `--setup-menu` 裝輸入框旁的藍色選單 (setMyCommands,裝一次就好)
 

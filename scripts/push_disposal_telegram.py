@@ -490,7 +490,7 @@ def list_chats() -> int:
     """列出 bot 看得到的 chat,給設定收件對象用。
 
     優先讀 telegram_poll.py 維護的名冊: 輪詢器必須把 update「拿走並標記已讀」
-    (否則每 2 分鐘會重跑同一條指令),之後直接呼叫 getUpdates 就看不到東西了。
+    (否則會重跑同一條指令),之後直接呼叫 getUpdates 就看不到東西了。
     名冊反而比 getUpdates 好用 —— getUpdates 只保留約 24 小時,名冊是永久的。
 
     名冊還不存在 (輪詢器沒跑過) 才退回 getUpdates,讓首次設定仍然可用。

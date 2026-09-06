@@ -121,11 +121,14 @@ $schedule = @(
 
     # ── v3.75.0: Telegram 指令輪詢 ──
     #   手機打 /refresh 就重抓 disposal-watch 的 artifact 並更新既有訊息。
-    #   every=2 (每 2 分鐘) 而非固定時刻 —— 指令要能隨時下,列 720 個時刻不現實。
-    #   quiet: 沒收到指令時完全不寫 log,否則一天 720 次會把有用的紀錄淹掉。
-    #   telegram_poll.py 自帶鎖檔,前一次還沒跑完時不會重入 (Telegram 對同一
-    #   個 bot 同時 getUpdates 會回 409)。
-    @{ every=2; days=@(0,1,2,3,4,5,6); job="tg-poll"; quiet=$true; detached=$true; cmd="python scripts/telegram_poll.py" }
+    #   every=1: 每分鐘起一個輪詢器,它用長輪詢聽 55 秒後結束 —— 分鐘之間
+    #   只剩幾秒空窗,指令幾乎即時。(不是「每分鐘打一次 API」,是「幾乎一直
+    #   掛著等」,這是 Telegram 官方推薦 bot 用的方式。)
+    #   quiet: 沒收到指令時完全不寫 log,否則一天 1440 次會淹掉有用的紀錄。
+    #   detached: 不等它跑完 —— 它本來就要活 55 秒,同步等待會吃掉整分鐘的觸發。
+    #   telegram_poll.py 自帶鎖檔,不會重入 (Telegram 對同一個 bot 同時
+    #   getUpdates 會回 409)。
+    @{ every=1; days=@(0,1,2,3,4,5,6); job="tg-poll"; quiet=$true; detached=$true; cmd="python scripts/telegram_poll.py" }
 
     # ── margin-refresh.yml: 融資融券 7-layer defense ──
     @{ time="22:30"; days=$WEEKDAY_1_5; job="margin";       cmd="python crawler.py"; env=@{CHIP_RADAR_STAGE="margin_only"} }
@@ -216,8 +219,8 @@ print('YES' if in_window else 'NO')
         }
     }
 
-    # v3.75.0: quiet job (每 2 分鐘的指令輪詢) 沒事時完全不寫 log ——
-    #   一天 720 次 x 3 行會把真正有用的紀錄淹掉。有輸出或非 0 離開碼才記。
+    # v3.75.0: quiet job (每分鐘的指令輪詢) 沒事時完全不寫 log ——
+    #   一天 1440 次 x 3 行會把真正有用的紀錄淹掉。有輸出或非 0 離開碼才記。
     $quiet = [bool]$entry.quiet
     if (-not $quiet) {
         Add-Content -Path $logFile -Value "[$timestamp] [$jobName] START: $cmd" -Encoding UTF8
@@ -228,9 +231,8 @@ print('YES' if in_window else 'NO')
     #   本工作的 MultipleInstances 是 IgnoreNew: 同步等待任何長工作,都會讓
     #   後續每一分鐘的觸發被丟掉。實證: 21:30 settlement 在 8/24~8/28 一次都
     #   沒跑過,因為 21:17 daily-full 佔住排程器到 21:36。
-    #   tg-poll 的網路呼叫實測 1.2-4.4 秒、最壞 15 秒,雖然還不到一分鐘,但
-    #   Task Scheduler 本身延遲時仍可能壓到下一分鐘的固定時刻 job。改成丟出去
-    #   就走,佔用降到毫秒級 —— 結構上不可能吃掉別的 job。
+    #   tg-poll 用長輪詢,自己就要活 55 秒,同步等待必然吃掉整分鐘的觸發。
+    #   改成丟出去就走,佔用降到毫秒級 —— 結構上不可能吃掉別的 job。
     #   代價: 拿不到輸出與離開碼,所以 telegram_poll.py 自己寫 .tg_worker.log。
     if ($entry.detached) {
         $parts = $cmd -split ' ', 2
