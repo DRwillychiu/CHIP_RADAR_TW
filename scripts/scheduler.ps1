@@ -1,4 +1,4 @@
-# =====================================================================
+﻿# =====================================================================
 # Chip Radar TW - Local Scheduler (called every minute by Task Scheduler)
 # =====================================================================
 # Mirrors the GitHub Actions cron schedules for local Windows execution.
@@ -167,26 +167,88 @@ $schedule = @(
 
 # ── Check current time ──
 $now = Get-Date
-$hhmm = $now.ToString("HH:mm")
-$dow = [int]$now.DayOfWeek  # Sun=0, Mon=1, ..., Sat=6
+
+# =====================================================================
+# v3.75.1: 補跑被吃掉的分鐘
+# =====================================================================
+# 本工作的 MultipleInstances 政策是 IgnoreNew —— 前一次還在跑時,下一分鐘的
+# 觸發會被「直接丟掉」,不排隊也不延後。而排程比對的是「執行當下幾點」,
+# 所以錯過的那一分鐘永遠不會再被看到。
+#
+# 實證: 21:30 的 settlement job 在 2026-08-24~08-28 一次都沒執行過 —— 被
+# 21:17 daily-full (crawler 約 19 分鐘) 佔住排程器到 21:38 整段吃掉。
+#
+# 修法: 記住上次處理到哪一分鐘,下次啟動時把中間漏掉的分鐘補跑。
+#
+# 三道安全閥 (缺一不可):
+#   1. 上限 $CATCHUP_MAX_MIN。關機/休眠一整夜後開機,不補跑 —— 否則會把
+#      整晚的排程一次全部引爆。超過上限就當作「機器沒開」,只跑當下這分鐘。
+#   2. every 型 job 不補跑。它是週期性的,漏一次下一分鐘就補上;補跑會讓
+#      20 個漏掉的分鐘同時炸出 20 個輪詢器。
+#   3. 日期用「那一分鐘當下」的星期判斷,不是用 now —— 跨午夜補跑時
+#      星期會不一樣。
+#
+# 狀態檔先寫再執行: 中途當掉時寧可漏跑,也不要下次又整批重來。
+# =====================================================================
+$CATCHUP_MAX_MIN = 30
+$lastMinFile = Join-Path $logsDir ".scheduler_last_min"
+
+$lastMin = $null
+try {
+    if (Test-Path $lastMinFile) {
+        $raw = (Get-Content $lastMinFile -Raw).Trim()
+        $lastMin = [datetime]::ParseExact($raw, 'yyyy-MM-dd HH:mm', $null)
+    }
+} catch { $lastMin = $null }
+
+$slots = @()
+if ($lastMin) {
+    $gap = [int]($now - $lastMin).TotalMinutes
+    if ($gap -gt 1 -and $gap -le $CATCHUP_MAX_MIN) {
+        for ($i = 1; $i -lt $gap; $i++) { $slots += $lastMin.AddMinutes($i) }
+    } elseif ($gap -gt $CATCHUP_MAX_MIN) {
+        Add-Content -Path $logFile -Encoding UTF8 -Value (
+            "[$($now.ToString('yyyy-MM-dd HH:mm:ss'))] [scheduler] 距上次執行 $gap 分鐘," +
+            "超過補跑上限 $CATCHUP_MAX_MIN 分 — 視為關機/休眠,不補跑")
+    }
+}
+$slots += $now      # 當下這一分鐘一定要處理
+
+try { Set-Content -Path $lastMinFile -Value $now.ToString('yyyy-MM-dd HH:mm') -Encoding UTF8 } catch { }
 
 # ── Find matching jobs ──
 # v3.75.0: 除了固定時刻 (time),再支援每 N 分鐘 (every)。Telegram 指令輪詢
-#   需要高頻檢查,列 720 個固定時刻不現實。
-$matched = $schedule | Where-Object {
-    $_.days -contains $dow -and (
-        ($_.time -and $_.time -eq $hhmm) -or
-        ($_.every -and ($now.Minute % $_.every) -eq 0)
-    )
+#   需要高頻檢查,列 1440 個固定時刻不現實。
+$matched = @()
+foreach ($slot in $slots) {
+    $slotHHmm = $slot.ToString("HH:mm")
+    $slotDow  = [int]$slot.DayOfWeek        # Sun=0, Mon=1, ..., Sat=6
+    $isNow    = ($slot -eq $now)
+    foreach ($e in $schedule) {
+        if ($e.days -notcontains $slotDow) { continue }
+        if ($e.time -and $e.time -eq $slotHHmm) {
+            $matched += @{ entry = $e; catchup = (-not $isNow); slot = $slotHHmm }
+        } elseif ($isNow -and $e.every -and ($slot.Minute % $e.every) -eq 0) {
+            # every 型只在當下這分鐘比對 —— 見上方安全閥 2
+            $matched += @{ entry = $e; catchup = $false; slot = $slotHHmm }
+        }
+    }
 }
 
 if (-not $matched -or $matched.Count -eq 0) { exit 0 }
 
 # ── Execute matched jobs ──
-foreach ($entry in $matched) {
-    $jobName = $entry.job
+foreach ($item in $matched) {
+    $entry = $item.entry
+    $jobName = $entry.job          # 保持乾淨: 這個值會進 JSONL 的 job 欄位
     $cmd = $entry.cmd
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+
+    # 補跑的話另外記一行,不要把標籤混進 job 名稱而破壞既有的 log 分析
+    if ($item.catchup) {
+        Add-Content -Path $logFile -Encoding UTF8 -Value `
+            "[$timestamp] [$jobName] CATCHUP: 補跑被排程器吃掉的 $($item.slot)"
+    }
 
     # Settlement window check
     if ($entry.settlement_only) {
