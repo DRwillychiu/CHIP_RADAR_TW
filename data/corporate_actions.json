@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-05T02:46:31.243067+08:00",
+  "updated_at": "2026-09-07T21:29:08.176545+08:00",
   "actions": {
     "1563": [
       {
@@ -10,94 +10,6 @@
         "factor": 0.779589,
         "confidence": "official",
         "source": "TWSE_TWTAUU"
-      }
-    ],
-    "3128": [
-      {
-        "date": "20260826",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.06,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "6612": [
-      {
-        "date": "20260826",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.10077,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "4303": [
-      {
-        "date": "20260827",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.4,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "4707": [
-      {
-        "date": "20260827",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.025,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "5287": [
-      {
-        "date": "20260827",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.090001,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "5289": [
-      {
-        "date": "20260827",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.019923,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "7728": [
-      {
-        "date": "20260827",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.01,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "8932": [
-      {
-        "date": "20260828",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.19216,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
       }
     ],
     "2937": [
@@ -358,6 +270,19 @@
         "factor": 1.152542,
         "confidence": "inferred",
         "raw_move_pct": -13.24,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
+    "4303": [
+      {
+        "date": "20260827",
+        "type": "detected_gap",
+        "pre_price": 54.6,
+        "post_price": 42.1,
+        "factor": 1.296912,
+        "confidence": "inferred",
+        "raw_move_pct": -22.89,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -4862,8 +4787,8 @@
     ]
   },
   "stats": {
-    "official": 21,
-    "inferred": 368,
-    "merged_dup": 5
+    "official": 13,
+    "inferred": 369,
+    "merged_dup": 4
   }
 }

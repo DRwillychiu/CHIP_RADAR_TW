@@ -1,5 +1,5 @@
 {
- "count": 82,
+ "count": 79,
  "by_code": {
   "00400A": {
    "ex_date": "20260907",
@@ -302,13 +302,6 @@
    "cash_dividend": 0.09872,
    "stock_dividend_pct": 0.0
   },
-  "1203": {
-   "ex_date": "20260903",
-   "name": "味王",
-   "type": "息",
-   "cash_dividend": 1.0,
-   "stock_dividend_pct": 0.0
-  },
   "1438": {
    "ex_date": "20260909",
    "name": "三地開發",
@@ -421,13 +414,6 @@
    "cash_dividend": 3.2,
    "stock_dividend_pct": 0.0
   },
-  "3661": {
-   "ex_date": "20260903",
-   "name": "世芯-KY",
-   "type": "息",
-   "cash_dividend": 32.551656,
-   "stock_dividend_pct": 0.0
-  },
   "3706": {
    "ex_date": "20260909",
    "name": "神達",
@@ -461,6 +447,13 @@
    "name": "乙盛-KY",
    "type": "息",
    "cash_dividend": 2.2,
+   "stock_dividend_pct": 0.0
+  },
+  "5258": {
+   "ex_date": "20260923",
+   "name": "虹堡",
+   "type": "息",
+   "cash_dividend": 1.007326,
    "stock_dividend_pct": 0.0
   },
   "5306": {
@@ -524,20 +517,6 @@
    "name": "台鎔科技",
    "type": "息",
    "cash_dividend": 0.533326,
-   "stock_dividend_pct": 0.0
-  },
-  "7780": {
-   "ex_date": "20260903",
-   "name": "大研生醫*",
-   "type": "息",
-   "cash_dividend": 0.116588,
-   "stock_dividend_pct": 0.0
-  },
-  "8466": {
-   "ex_date": "20260903",
-   "name": "美吉吉-KY",
-   "type": "息",
-   "cash_dividend": 0.301938,
    "stock_dividend_pct": 0.0
   },
   "8473": {
@@ -638,7 +617,8 @@
   "20260923": [
    "00930",
    "1808",
-   "2542"
+   "2542",
+   "5258"
   ],
   "20260915": [
    "00936",
@@ -656,12 +636,6 @@
    "3622",
    "8473",
    "9933"
-  ],
-  "20260903": [
-   "1203",
-   "3661",
-   "7780",
-   "8466"
   ],
   "20260909": [
    "1438",
@@ -1272,6 +1246,14 @@
    "stock_dividend_pct": 0.0
   },
   {
+   "code": "5258",
+   "ex_date": "20260923",
+   "name": "虹堡",
+   "type": "息",
+   "cash_dividend": 1.007326,
+   "stock_dividend_pct": 0.0
+  },
+  {
    "code": "2109",
    "ex_date": "20260929",
    "name": "華豐",
@@ -1286,8 +1268,32 @@
    "type": "息",
    "cash_dividend": 5.0,
    "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "2614",
+   "ex_date": "20261006",
+   "name": "東森",
+   "type": "權息",
+   "cash_dividend": 0.4,
+   "stock_dividend_pct": 0.08
+  },
+  {
+   "code": "6108",
+   "ex_date": "20261007",
+   "name": "競國",
+   "type": "息",
+   "cash_dividend": 1.0,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "6947",
+   "ex_date": "20261007",
+   "name": "台鎔科技",
+   "type": "息",
+   "cash_dividend": 0.533326,
+   "stock_dividend_pct": 0.0
   }
  ],
- "fetched_at": "2026-09-05T02:01:46.796196+08:00",
+ "fetched_at": "2026-09-07T21:35:09.744331+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }
