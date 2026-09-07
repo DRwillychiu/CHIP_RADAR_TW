@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T03:03:00.359821+08:00",
+  "generated_at": "2026-09-08T03:36:03.269864+08:00",
   "trade_date": "20260907",
   "pump_suspicion": [
     {
@@ -27,10 +27,10 @@
       "sell_lot": 15068,
       "buy_amt_wan": 243232,
       "daytrade_ratio": 0.87,
-      "amt_vs_median_x": 4.8,
+      "amt_vs_median_x": 6.0,
       "rule": "A_pump",
       "severity": "high",
-      "reasoning": "當沖比 87% (> 70%) + 漲停 + 買金額 243,232 萬 (中位數 50,255 萬 × 4.8)"
+      "reasoning": "當沖比 87% (> 70%) + 漲停 + 買金額 243,232 萬 (中位數 40,642 萬 × 6.0)"
     },
     {
       "stock_code": "8039",
@@ -577,21 +577,6 @@
       "reasoning": "當日賣 230 張 (30 天均 44 張 × 5.3) + 近 5 天漲停 62 次"
     },
     {
-      "stock_code": "2454",
-      "stock_name": "聯發科",
-      "branch_code": "9A9G",
-      "branch_name": "永豐金-天母",
-      "master": "永豐天母(老錢)",
-      "sell_lot": 230,
-      "sell_amt_wan": 106410,
-      "avg_30d_sell_lot": 45.4,
-      "sell_vs_avg_x": 5.1,
-      "recent_5d_limit_up_count": 62,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 230 張 (30 天均 45 張 × 5.1) + 近 5 天漲停 62 次"
-    },
-    {
       "stock_code": "6669",
       "stock_name": "緯穎",
       "branch_code": "1360",
@@ -610,8 +595,8 @@
   "summary": {
     "pump_count": 3,
     "wash_count": 30,
-    "distribution_count": 3,
-    "total": 36
+    "distribution_count": 2,
+    "total": 35
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
