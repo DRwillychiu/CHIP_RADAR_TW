@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T02:15:39.810558+08:00",
+  "generated_at": "2026-09-09T03:11:17.783326+08:00",
   "trade_date": "20260908",
   "pump_suspicion": [],
   "wash_trade": [
@@ -365,6 +365,23 @@
       "stock_name": "華邦電",
       "buy_branch_code": "9B25",
       "buy_master": "民哥",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 233,
+      "sell_lot": 268,
+      "buy_amt_wan": 4382,
+      "sell_amt_wan": 5049,
+      "lot_match_ratio": 0.87,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9B25 買 233 張 vs 9A9G 賣 268 張 (匹配 87%)"
+    },
+    {
+      "stock_code": "2344",
+      "stock_name": "華邦電",
+      "buy_branch_code": "9B25",
+      "buy_master": "民哥",
       "sell_branch_code": "1040",
       "sell_master": "臺銀證券",
       "buy_lot": 233,
@@ -495,23 +512,6 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "8880 買 609 張 vs 9A8F 賣 665 張 (匹配 92%)"
-    },
-    {
-      "stock_code": "2344",
-      "stock_name": "華邦電",
-      "buy_branch_code": "8880",
-      "buy_master": "陳族元",
-      "sell_branch_code": "9647",
-      "sell_master": "竹科主力分點",
-      "buy_lot": 609,
-      "sell_lot": 486,
-      "buy_amt_wan": 11514,
-      "sell_amt_wan": 9172,
-      "lot_match_ratio": 0.8,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "8880 買 609 張 vs 9647 賣 486 張 (匹配 80%)"
     }
   ],
   "distribution": [
