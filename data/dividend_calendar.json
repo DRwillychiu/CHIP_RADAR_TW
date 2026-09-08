@@ -1,5 +1,5 @@
 {
- "count": 79,
+ "count": 83,
  "by_code": {
   "00400A": {
    "ex_date": "20260907",
@@ -288,6 +288,13 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
+  "01004T": {
+   "ex_date": "20260930",
+   "name": "土銀富邦R2",
+   "type": "息",
+   "cash_dividend": 0.221074,
+   "stock_dividend_pct": 0.0
+  },
   "01009T": {
    "ex_date": "20260915",
    "name": "王道圓滿R1",
@@ -308,6 +315,13 @@
    "type": "權息",
    "cash_dividend": 0.2,
    "stock_dividend_pct": 0.08
+  },
+  "1442": {
+   "ex_date": "20260923",
+   "name": "名軒",
+   "type": "息",
+   "cash_dividend": 2.4,
+   "stock_dividend_pct": 0.0
   },
   "1466": {
    "ex_date": "20260907",
@@ -342,6 +356,13 @@
    "name": "華豐",
    "type": "息",
    "cash_dividend": 0.5,
+   "stock_dividend_pct": 0.0
+  },
+  "2323": {
+   "ex_date": "20261001",
+   "name": "中環",
+   "type": "息",
+   "cash_dividend": 0.2,
    "stock_dividend_pct": 0.0
   },
   "2330": {
@@ -519,6 +540,13 @@
    "cash_dividend": 0.533326,
    "stock_dividend_pct": 0.0
   },
+  "7631": {
+   "ex_date": "20260929",
+   "name": "聚賢研發-創",
+   "type": "息",
+   "cash_dividend": 0.8,
+   "stock_dividend_pct": 0.0
+  },
   "8473": {
    "ex_date": "20260908",
    "name": "山林水",
@@ -616,6 +644,7 @@
   ],
   "20260923": [
    "00930",
+   "1442",
    "1808",
    "2542",
    "5258"
@@ -637,6 +666,9 @@
    "8473",
    "9933"
   ],
+  "20260930": [
+   "01004T"
+  ],
   "20260909": [
    "1438",
    "3059",
@@ -652,7 +684,12 @@
    "9906"
   ],
   "20260929": [
-   "2109"
+   "2109",
+   "7631"
+  ],
+  "20261001": [
+   "2323",
+   "9927"
   ],
   "20261006": [
    "2614"
@@ -663,44 +700,9 @@
   "20261007": [
    "6108",
    "6947"
-  ],
-  "20261001": [
-   "9927"
   ]
  },
  "upcoming_30d": [
-  {
-   "code": "00400A",
-   "ex_date": "20260907",
-   "name": "主動國泰動能高息",
-   "type": "息",
-   "cash_dividend": 0.12,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "01010T",
-   "ex_date": "20260907",
-   "name": "京城樂富R1",
-   "type": "息",
-   "cash_dividend": 0.09872,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "1466",
-   "ex_date": "20260907",
-   "name": "聚隆",
-   "type": "息",
-   "cash_dividend": 0.2,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "6533",
-   "ex_date": "20260907",
-   "name": "晶心科",
-   "type": "權",
-   "cash_dividend": 0.0,
-   "stock_dividend_pct": 0.0
-  },
   {
    "code": "00940",
    "ex_date": "20260908",
@@ -1230,6 +1232,14 @@
    "stock_dividend_pct": 0.0
   },
   {
+   "code": "1442",
+   "ex_date": "20260923",
+   "name": "名軒",
+   "type": "息",
+   "cash_dividend": 2.4,
+   "stock_dividend_pct": 0.0
+  },
+  {
    "code": "1808",
    "ex_date": "20260923",
    "name": "潤隆",
@@ -1259,6 +1269,30 @@
    "name": "華豐",
    "type": "息",
    "cash_dividend": 0.5,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "7631",
+   "ex_date": "20260929",
+   "name": "聚賢研發-創",
+   "type": "息",
+   "cash_dividend": 0.8,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "01004T",
+   "ex_date": "20260930",
+   "name": "土銀富邦R2",
+   "type": "息",
+   "cash_dividend": 0.221074,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "2323",
+   "ex_date": "20261001",
+   "name": "中環",
+   "type": "息",
+   "cash_dividend": 0.2,
    "stock_dividend_pct": 0.0
   },
   {
@@ -1294,6 +1328,6 @@
    "stock_dividend_pct": 0.0
   }
  ],
- "fetched_at": "2026-09-07T21:35:09.744331+08:00",
+ "fetched_at": "2026-09-08T21:36:37.113126+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }

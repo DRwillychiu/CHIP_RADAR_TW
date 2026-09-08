@@ -1,108 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260612",
-      "next_date": "20260615",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": 2.36,
-      "vol_spike_masters": [
-        "巨人傑"
-      ],
-      "quad_picks": [
-        {
-          "code": "6669",
-          "name": "緯穎",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 1.03,
-          "hit": true,
-          "leader_pct": 0.342,
-          "excess_return": -1.33,
-          "failure_reasons": []
-        },
-        {
-          "code": "8021",
-          "name": "尖點",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": -3.07,
-          "hit": false,
-          "leader_pct": 0.195,
-          "excess_return": -5.43,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "3042",
-          "name": "晶技",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 8.46,
-          "hit": true,
-          "leader_pct": 0.65,
-          "excess_return": 6.1,
-          "failure_reasons": []
-        },
-        {
-          "code": "6274",
-          "name": "台燿",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 9.79,
-          "hit": true,
-          "leader_pct": 0.661,
-          "excess_return": 7.43,
-          "failure_reasons": []
-        },
-        {
-          "code": "3008",
-          "name": "大立光",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 9.95,
-          "hit": true,
-          "leader_pct": 0.662,
-          "excess_return": 7.59,
-          "failure_reasons": []
-        },
-        {
-          "code": "2383",
-          "name": "台光電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 4.14,
-          "hit": true,
-          "leader_pct": 0.475,
-          "excess_return": 1.78,
-          "failure_reasons": []
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 5.99,
-          "hit": true,
-          "leader_pct": 0.374,
-          "excess_return": 3.63,
-          "failure_reasons": []
-        }
-      ],
-      "n": 7,
-      "hits": 6,
-      "hit_rate": 0.8571,
-      "mean_change": 5.18
-    },
-    {
       "date": "20260616",
       "next_date": "20260617",
       "q5_direction": "偏多",
@@ -2275,16 +2173,16 @@
     "mean_change": 0.19
   },
   "rolling_all": {
-    "trigger_days": 15,
-    "n": 149,
-    "hits": 68,
-    "hit_rate": 0.4564,
-    "mean_change": 0.18
+    "trigger_days": 14,
+    "n": 142,
+    "hits": 62,
+    "hit_rate": 0.4366,
+    "mean_change": -0.06
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4564,
-    "delta_pp": -33.3
+    "actual_hit_rate": 0.4366,
+    "delta_pp": -35.2
   },
-  "updated_at": "2026-09-07T19:41:29.901558"
+  "updated_at": "2026-09-08T13:39:55.457819"
 }
