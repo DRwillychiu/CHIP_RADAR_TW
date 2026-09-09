@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T22:49:50.615022+08:00",
+  "generated_at": "2026-09-10T01:23:21.701231+08:00",
   "trade_date": "20260909",
   "pump_suspicion": [
     {
@@ -27,10 +27,10 @@
       "sell_lot": 437,
       "buy_amt_wan": 2153,
       "daytrade_ratio": 0.86,
-      "amt_vs_median_x": 5.6,
+      "amt_vs_median_x": 6.0,
       "rule": "A_pump",
       "severity": "high",
-      "reasoning": "當沖比 86% (> 70%) + 漲停 + 買金額 2,153 萬 (中位數 387 萬 × 5.6)"
+      "reasoning": "當沖比 86% (> 70%) + 漲停 + 買金額 2,153 萬 (中位數 357 萬 × 6.0)"
     }
   ],
   "wash_trade": [
@@ -84,6 +84,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9B25 買 77 張 vs 9661 賣 74 張 (匹配 96%)"
+    },
+    {
+      "stock_code": "1303",
+      "stock_name": "南亞",
+      "buy_branch_code": "9B25",
+      "buy_master": "民哥",
+      "sell_branch_code": "9A9g",
+      "sell_master": "陳族元",
+      "buy_lot": 77,
+      "sell_lot": 100,
+      "buy_amt_wan": 1838,
+      "sell_amt_wan": 2365,
+      "lot_match_ratio": 0.77,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9B25 買 77 張 vs 9A9g 賣 100 張 (匹配 77%)"
     },
     {
       "stock_code": "1303",
@@ -209,6 +226,23 @@
       "stock_name": "南亞",
       "buy_branch_code": "9658",
       "buy_master": "林滄海",
+      "sell_branch_code": "9A9g",
+      "sell_master": "陳族元",
+      "buy_lot": 134,
+      "sell_lot": 100,
+      "buy_amt_wan": 3181,
+      "sell_amt_wan": 2365,
+      "lot_match_ratio": 0.75,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9658 買 134 張 vs 9A9g 賣 100 張 (匹配 75%)"
+    },
+    {
+      "stock_code": "1303",
+      "stock_name": "南亞",
+      "buy_branch_code": "9658",
+      "buy_master": "林滄海",
       "sell_branch_code": "9B2a",
       "sell_master": "Tradow",
       "buy_lot": 134,
@@ -271,6 +305,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9658 買 134 張 vs 585U 賣 145 張 (匹配 92%)"
+    },
+    {
+      "stock_code": "1303",
+      "stock_name": "南亞",
+      "buy_branch_code": "920F",
+      "buy_master": "張濬安(航海王)",
+      "sell_branch_code": "9A9g",
+      "sell_master": "陳族元",
+      "buy_lot": 139,
+      "sell_lot": 100,
+      "buy_amt_wan": 3335,
+      "sell_amt_wan": 2365,
+      "lot_match_ratio": 0.72,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "920F 買 139 張 vs 9A9g 賣 100 張 (匹配 72%)"
     },
     {
       "stock_code": "1303",
@@ -492,57 +543,6 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "984K 買 66 張 vs 7000 賣 65 張 (匹配 98%)"
-    },
-    {
-      "stock_code": "1303",
-      "stock_name": "南亞",
-      "buy_branch_code": "989N",
-      "buy_master": "強森",
-      "sell_branch_code": "779Z",
-      "sell_master": "張濬安(航海王)",
-      "buy_lot": 63,
-      "sell_lot": 77,
-      "buy_amt_wan": 1518,
-      "sell_amt_wan": 1826,
-      "lot_match_ratio": 0.82,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "989N 買 63 張 vs 779Z 賣 77 張 (匹配 82%)"
-    },
-    {
-      "stock_code": "1303",
-      "stock_name": "南亞",
-      "buy_branch_code": "989N",
-      "buy_master": "強森",
-      "sell_branch_code": "961M",
-      "sell_master": "張濬安(航海王)",
-      "buy_lot": 63,
-      "sell_lot": 58,
-      "buy_amt_wan": 1518,
-      "sell_amt_wan": 1379,
-      "lot_match_ratio": 0.92,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "989N 買 63 張 vs 961M 賣 58 張 (匹配 92%)"
-    },
-    {
-      "stock_code": "1303",
-      "stock_name": "南亞",
-      "buy_branch_code": "989N",
-      "buy_master": "強森",
-      "sell_branch_code": "9661",
-      "sell_master": "陳族元",
-      "buy_lot": 63,
-      "sell_lot": 74,
-      "buy_amt_wan": 1518,
-      "sell_amt_wan": 1760,
-      "lot_match_ratio": 0.85,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "989N 買 63 張 vs 9661 賣 74 張 (匹配 85%)"
     }
   ],
   "distribution": [],
