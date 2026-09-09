@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T02:09:44.430221+08:00",
+  "generated_at": "2026-09-10T03:03:08.244477+08:00",
   "trade_date": "20260909",
   "pump_suspicion": [
     {
@@ -27,10 +27,10 @@
       "sell_lot": 437,
       "buy_amt_wan": 2153,
       "daytrade_ratio": 0.86,
-      "amt_vs_median_x": 6.0,
+      "amt_vs_median_x": 6.6,
       "rule": "A_pump",
       "severity": "high",
-      "reasoning": "當沖比 86% (> 70%) + 漲停 + 買金額 2,153 萬 (中位數 357 萬 × 6.0)"
+      "reasoning": "當沖比 86% (> 70%) + 漲停 + 買金額 2,153 萬 (中位數 328 萬 × 6.6)"
     }
   ],
   "wash_trade": [
@@ -209,6 +209,23 @@
       "stock_name": "南亞",
       "buy_branch_code": "9B25",
       "buy_master": "民哥",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 77,
+      "sell_lot": 100,
+      "buy_amt_wan": 1838,
+      "sell_amt_wan": 2365,
+      "lot_match_ratio": 0.77,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9B25 買 77 張 vs 9A9G 賣 100 張 (匹配 77%)"
+    },
+    {
+      "stock_code": "1303",
+      "stock_name": "南亞",
+      "buy_branch_code": "9B25",
+      "buy_master": "民哥",
       "sell_branch_code": "7000",
       "sell_master": "兆豐證券",
       "buy_lot": 77,
@@ -309,6 +326,23 @@
     {
       "stock_code": "1303",
       "stock_name": "南亞",
+      "buy_branch_code": "9658",
+      "buy_master": "林滄海",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 134,
+      "sell_lot": 100,
+      "buy_amt_wan": 3181,
+      "sell_amt_wan": 2365,
+      "lot_match_ratio": 0.75,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9658 買 134 張 vs 9A9G 賣 100 張 (匹配 75%)"
+    },
+    {
+      "stock_code": "1303",
+      "stock_name": "南亞",
       "buy_branch_code": "920F",
       "buy_master": "張濬安(航海王)",
       "sell_branch_code": "9A9g",
@@ -390,6 +424,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "920F 買 139 張 vs 585U 賣 145 張 (匹配 96%)"
+    },
+    {
+      "stock_code": "1303",
+      "stock_name": "南亞",
+      "buy_branch_code": "920F",
+      "buy_master": "張濬安(航海王)",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 139,
+      "sell_lot": 100,
+      "buy_amt_wan": 3335,
+      "sell_amt_wan": 2365,
+      "lot_match_ratio": 0.72,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "920F 買 139 張 vs 9A9G 賣 100 張 (匹配 72%)"
     },
     {
       "stock_code": "1303",
@@ -492,57 +543,6 @@
       "rule": "B_wash",
       "severity": "high",
       "reasoning": "984K 買 66 張 vs 9215 賣 69 張 (匹配 96%) 且同 master '強森'"
-    },
-    {
-      "stock_code": "1303",
-      "stock_name": "南亞",
-      "buy_branch_code": "984K",
-      "buy_master": "強森",
-      "sell_branch_code": "884F",
-      "sell_master": "Krenz(再多一位數本人)",
-      "buy_lot": 66,
-      "sell_lot": 74,
-      "buy_amt_wan": 1558,
-      "sell_amt_wan": 1750,
-      "lot_match_ratio": 0.89,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "984K 買 66 張 vs 884F 賣 74 張 (匹配 89%)"
-    },
-    {
-      "stock_code": "1303",
-      "stock_name": "南亞",
-      "buy_branch_code": "984K",
-      "buy_master": "強森",
-      "sell_branch_code": "9307",
-      "sell_master": "謝明彧大哥(華南永昌)",
-      "buy_lot": 66,
-      "sell_lot": 81,
-      "buy_amt_wan": 1558,
-      "sell_amt_wan": 1942,
-      "lot_match_ratio": 0.81,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "984K 買 66 張 vs 9307 賣 81 張 (匹配 81%)"
-    },
-    {
-      "stock_code": "1303",
-      "stock_name": "南亞",
-      "buy_branch_code": "984K",
-      "buy_master": "強森",
-      "sell_branch_code": "7000",
-      "sell_master": "兆豐證券",
-      "buy_lot": 66,
-      "sell_lot": 65,
-      "buy_amt_wan": 1558,
-      "sell_amt_wan": 1541,
-      "lot_match_ratio": 0.98,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "984K 買 66 張 vs 7000 賣 65 張 (匹配 98%)"
     }
   ],
   "distribution": [],
