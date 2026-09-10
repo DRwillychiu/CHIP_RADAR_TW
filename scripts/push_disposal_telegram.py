@@ -274,12 +274,20 @@ def collect_cards():
 
 
 def _report_date() -> str:
-    """從 當日重點.txt 首行取報表日 — 格式: 當日潛在處置股重點 ｜ YYYY-MM-DD 盤後"""
+    """從 當日重點.txt 取報表日 — 標題行格式: 當日潛在處置股重點 ｜ YYYY-MM-DD 盤後
+
+    只認標題行,不是「第一個長得像日期的東西」: 上游手動執行 (workflow_dispatch)
+    時會在檔頭插入三行「※ 優化中 ‧ 預覽版 / ※ 2026-09-10 21:54 台北 手動執行 /
+    ※ 非當日...」,第二行也有日期但那是執行時刻,不是報表資料日 —— 跨午夜補跑時
+    兩者會差一天。v3.75.0 只讀第一行,遇到預覽版整個解析不到 (2026-09-10 實例)。
+    """
     try:
-        first = (WORK / TXT_NAME).read_text(encoding='utf-8-sig').splitlines()[0]
-        for tok in first.replace('｜', ' ').split():
-            if len(tok) == 10 and tok[4] == '-' and tok[7] == '-':
-                return tok
+        for line in (WORK / TXT_NAME).read_text(encoding='utf-8-sig').splitlines()[:10]:
+            if '處置股重點' not in line:
+                continue
+            for tok in line.replace('｜', ' ').split():
+                if len(tok) == 10 and tok[4] == '-' and tok[7] == '-':
+                    return tok
     except Exception:
         pass
     return ''
