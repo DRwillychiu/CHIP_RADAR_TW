@@ -1,132 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260616",
-      "next_date": "20260617",
-      "q5_direction": "偏多",
-      "q5_confidence": 70.3,
-      "taifex_change": 0.91,
-      "vol_spike_masters": [
-        "強森",
-        "陳律師"
-      ],
-      "quad_picks": [
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "強森",
-            "陳律師"
-          ],
-          "next_change_pct": 3.58,
-          "hit": true,
-          "leader_pct": 0.257,
-          "excess_return": 2.67,
-          "failure_reasons": []
-        },
-        {
-          "code": "3665",
-          "name": "貿聯-KY",
-          "matched_masters": [
-            "強森",
-            "陳律師"
-          ],
-          "next_change_pct": -1.42,
-          "hit": false,
-          "leader_pct": 0.268,
-          "excess_return": -2.33,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "3406",
-          "name": "玉晶光",
-          "matched_masters": [
-            "強森",
-            "陳律師"
-          ],
-          "next_change_pct": -2.96,
-          "hit": false,
-          "leader_pct": 0.351,
-          "excess_return": -3.87,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "3189",
-          "name": "景碩",
-          "matched_masters": [
-            "強森",
-            "陳律師"
-          ],
-          "next_change_pct": 9.97,
-          "hit": true,
-          "leader_pct": 0.45,
-          "excess_return": 9.06,
-          "failure_reasons": []
-        },
-        {
-          "code": "3026",
-          "name": "禾伸堂",
-          "matched_masters": [
-            "強森"
-          ],
-          "next_change_pct": 9.94,
-          "hit": true,
-          "leader_pct": 0.357,
-          "excess_return": 9.03,
-          "failure_reasons": []
-        },
-        {
-          "code": "6770",
-          "name": "力積電",
-          "matched_masters": [
-            "強森",
-            "陳律師"
-          ],
-          "next_change_pct": -1.13,
-          "hit": false,
-          "leader_pct": 0.28,
-          "excess_return": -2.04,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2404",
-          "name": "漢唐",
-          "matched_masters": [
-            "強森",
-            "陳律師"
-          ],
-          "next_change_pct": 2.81,
-          "hit": true,
-          "leader_pct": 0.246,
-          "excess_return": 1.9,
-          "failure_reasons": []
-        },
-        {
-          "code": "2409",
-          "name": "友達",
-          "matched_masters": [
-            "強森",
-            "陳律師"
-          ],
-          "next_change_pct": 9.83,
-          "hit": true,
-          "leader_pct": 0.362,
-          "excess_return": 8.92,
-          "failure_reasons": []
-        }
-      ],
-      "n": 8,
-      "hits": 5,
-      "hit_rate": 0.625,
-      "mean_change": 3.83
-    },
-    {
       "date": "20260618",
       "next_date": "20260622",
       "q5_direction": "偏多",
@@ -2166,23 +2040,23 @@
     }
   ],
   "rolling_30d": {
-    "trigger_days": 3,
-    "n": 29,
-    "hits": 13,
-    "hit_rate": 0.4483,
-    "mean_change": 0.19
+    "trigger_days": 2,
+    "n": 22,
+    "hits": 9,
+    "hit_rate": 0.4091,
+    "mean_change": -0.38
   },
   "rolling_all": {
-    "trigger_days": 14,
-    "n": 142,
-    "hits": 62,
-    "hit_rate": 0.4366,
-    "mean_change": -0.06
+    "trigger_days": 13,
+    "n": 134,
+    "hits": 57,
+    "hit_rate": 0.4254,
+    "mean_change": -0.29
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4366,
-    "delta_pp": -35.2
+    "actual_hit_rate": 0.4254,
+    "delta_pp": -36.4
   },
-  "updated_at": "2026-09-09T19:10:47.741477"
+  "updated_at": "2026-09-10T17:21:43.555729"
 }

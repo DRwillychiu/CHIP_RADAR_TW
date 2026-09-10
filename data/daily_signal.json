@@ -1,11 +1,11 @@
 {
-  "date": "20260909",
-  "generated_at": "2026-09-09T19:05:39.108634",
+  "date": "20260910",
+  "generated_at": "2026-09-10T17:16:47.394808",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "籌碼偏向偏多 (強度+0.51, 非預測訊號) · 3 檔個股關注",
+  "headline": "籌碼偏向中性 (強度-0.04, 非預測訊號) · 3 檔個股關注",
   "market_direction": {
-    "direction": "偏多",
-    "confidence_pct": 95,
+    "direction": "中性",
+    "confidence_pct": 46.5,
     "confidence_is_measured_alpha": false,
     "alpha_verdict": {
       "verdict": "no_measurable_edge",
@@ -36,14 +36,8 @@
       ],
       "doc": "docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md"
     },
-    "net_weight": 0.513,
+    "net_weight": -0.035,
     "contributing": [
-      {
-        "name": "外資現貨",
-        "level": "extreme-bull",
-        "weight": 0.202,
-        "sign": "bull"
-      },
       {
         "name": "P/C Ratio",
         "level": "neutral",
@@ -55,66 +49,57 @@
         "level": "extreme-bull",
         "weight": 0.083,
         "sign": "bull"
-      },
-      {
-        "name": "融資熱度",
-        "level": "bull",
-        "weight": 0.196,
-        "sign": "bull"
-      },
-      {
-        "name": "法人共識",
-        "level": "extreme-bull",
-        "weight": 0.15,
-        "sign": "bull"
       }
     ],
     "ignored": [
+      "外資現貨",
       "外資期貨",
+      "融資熱度",
+      "法人共識",
       "結算日壓力"
     ]
   },
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "1409",
-      "name": "新纖",
-      "change_pct": 9.82,
+      "code": "5314",
+      "name": "世紀*",
+      "change_pct": 9.99,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 712457,
-      "total_buy_amt_yi": 7.12,
+      "total_buy_amt_K": 783284,
+      "total_buy_amt_yi": 7.83,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.82%, 共淨買 7.12 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.99%, 共淨買 7.83 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "8996",
-      "name": "高力",
-      "change_pct": 9.8,
+      "code": "6173",
+      "name": "信昌電",
+      "change_pct": 9.87,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 3294390,
-      "total_buy_amt_yi": 32.94,
+      "total_buy_amt_K": 1602756,
+      "total_buy_amt_yi": 16.03,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.8%, 共淨買 32.94 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.87%, 共淨買 16.03 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 3,
-      "code": "6505",
-      "name": "台塑化",
-      "change_pct": 9.92,
+      "code": "3016",
+      "name": "嘉晶",
+      "change_pct": 10.0,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 1750776,
-      "total_buy_amt_yi": 17.51,
+      "total_buy_amt_K": 750679,
+      "total_buy_amt_yi": 7.51,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.92%, 共淨買 17.51 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 10.0%, 共淨買 7.51 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],
