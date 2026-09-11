@@ -1,6 +1,6 @@
 {
- "trade_date": "20260910",
- "updated_at": "2026-09-11T16:12:29.663642+08:00",
+ "trade_date": "20260911",
+ "updated_at": "2026-09-11T21:38:06.366530+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -5012,62 +5012,13 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1144,
-   "watch": 140,
-   "high_risk": 3,
-   "margin_call": 1,
-   "insufficient_data": 929
+   "healthy": 1161,
+   "watch": 77,
+   "high_risk": 0,
+   "margin_call": 0,
+   "insufficient_data": 979
   },
-  "high_risk_stocks": [
-   {
-    "code": "2483",
-    "name": "百容",
-    "ratio": 111.9,
-    "risk_level": "margin_call",
-    "margin_balance": 2036,
-    "today_close": 30.1,
-    "estimated_cost": 44.83,
-    "cost_adjusted_for_corp_action": true,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   },
-   {
-    "code": "2233",
-    "name": "宇隆",
-    "ratio": 124.2,
-    "risk_level": "high_risk",
-    "margin_balance": 3304,
-    "today_close": 164.0,
-    "estimated_cost": 220.08,
-    "cost_adjusted_for_corp_action": true,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   },
-   {
-    "code": "3257",
-    "name": "虹冠電",
-    "ratio": 128.1,
-    "risk_level": "high_risk",
-    "margin_balance": 2314,
-    "today_close": 46.7,
-    "estimated_cost": 60.77,
-    "cost_adjusted_for_corp_action": false,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   },
-   {
-    "code": "6994",
-    "name": "富威電力",
-    "ratio": 128.2,
-    "risk_level": "high_risk",
-    "margin_balance": 3064,
-    "today_close": 29.35,
-    "estimated_cost": 38.17,
-    "cost_adjusted_for_corp_action": true,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   }
-  ],
+  "high_risk_stocks": [],
   "thresholds": {
    "healthy": "≥150%",
    "watch": "130-150%",
