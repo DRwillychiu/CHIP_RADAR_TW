@@ -1,21 +1,21 @@
 {
-  "generated_at": "2026-09-11T02:53:16.550848+08:00",
+  "generated_at": "2026-09-11T16:08:16.908982+08:00",
   "trade_date": "20260910",
   "pump_suspicion": [
     {
-      "stock_code": "6173",
-      "stock_name": "信昌電",
+      "stock_code": "3441",
+      "stock_name": "聯一光",
       "branch_code": "9268",
       "branch_name": "凱基-台北",
       "master": "凱基台北(當沖高手聚集)",
-      "buy_lot": 1547,
-      "sell_lot": 1148,
-      "buy_amt_wan": 45643,
-      "daytrade_ratio": 0.74,
-      "amt_vs_median_x": 7.7,
+      "buy_lot": 1994,
+      "sell_lot": 1671,
+      "buy_amt_wan": 33103,
+      "daytrade_ratio": 0.84,
+      "amt_vs_median_x": 10.9,
       "rule": "A_pump",
       "severity": "medium",
-      "reasoning": "當沖比 74% (> 70%) + 漲停 + 買金額 45,643 萬 (中位數 5,955 萬 × 7.7)"
+      "reasoning": "當沖比 84% (> 70%) + 漲停 + 買金額 33,103 萬 (中位數 3,038 萬 × 10.9)"
     }
   ],
   "wash_trade": [
@@ -60,15 +60,15 @@
       "buy_master": "林滄海",
       "sell_branch_code": "961M",
       "sell_master": "張濬安(航海王)",
-      "buy_lot": 93,
-      "sell_lot": 70,
+      "buy_lot": 100,
+      "sell_lot": 75,
       "buy_amt_wan": 3118,
       "sell_amt_wan": 2348,
       "lot_match_ratio": 0.75,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9658 買 93 張 vs 961M 賣 70 張 (匹配 75%)"
+      "reasoning": "9658 買 100 張 vs 961M 賣 75 張 (匹配 75%)"
     },
     {
       "stock_code": "2492",
@@ -77,15 +77,15 @@
       "buy_master": "林滄海",
       "sell_branch_code": "9A8F",
       "sell_master": "布哥/n_nchang",
-      "buy_lot": 93,
+      "buy_lot": 100,
       "sell_lot": 100,
       "buy_amt_wan": 3118,
       "sell_amt_wan": 3167,
-      "lot_match_ratio": 0.93,
+      "lot_match_ratio": 1.0,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9658 買 93 張 vs 9A8F 賣 100 張 (匹配 93%)"
+      "reasoning": "9658 買 100 張 vs 9A8F 賣 100 張 (匹配 100%)"
     },
     {
       "stock_code": "2492",
@@ -94,15 +94,15 @@
       "buy_master": "林滄海",
       "sell_branch_code": "962Q",
       "sell_master": "陳光裕",
-      "buy_lot": 93,
+      "buy_lot": 100,
       "sell_lot": 94,
       "buy_amt_wan": 3118,
       "sell_amt_wan": 3112,
-      "lot_match_ratio": 0.99,
+      "lot_match_ratio": 0.94,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9658 買 93 張 vs 962Q 賣 94 張 (匹配 99%)"
+      "reasoning": "9658 買 100 張 vs 962Q 賣 94 張 (匹配 94%)"
     },
     {
       "stock_code": "2492",
@@ -111,15 +111,15 @@
       "buy_master": "林滄海",
       "sell_branch_code": "918e",
       "sell_master": "群益大安(強勢波段)",
-      "buy_lot": 93,
-      "sell_lot": 66,
+      "buy_lot": 100,
+      "sell_lot": 70,
       "buy_amt_wan": 3118,
       "sell_amt_wan": 2193,
-      "lot_match_ratio": 0.71,
+      "lot_match_ratio": 0.7,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9658 買 93 張 vs 918e 賣 66 張 (匹配 71%)"
+      "reasoning": "9658 買 100 張 vs 918e 賣 70 張 (匹配 70%)"
     },
     {
       "stock_code": "2492",
@@ -128,15 +128,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "961M",
       "sell_master": "張濬安(航海王)",
-      "buy_lot": 89,
-      "sell_lot": 70,
+      "buy_lot": 96,
+      "sell_lot": 75,
       "buy_amt_wan": 2984,
       "sell_amt_wan": 2348,
-      "lot_match_ratio": 0.79,
+      "lot_match_ratio": 0.78,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9661 買 89 張 vs 961M 賣 70 張 (匹配 79%)"
+      "reasoning": "9661 買 96 張 vs 961M 賣 75 張 (匹配 78%)"
     },
     {
       "stock_code": "2492",
@@ -145,15 +145,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "9A8F",
       "sell_master": "布哥/n_nchang",
-      "buy_lot": 89,
+      "buy_lot": 96,
       "sell_lot": 100,
       "buy_amt_wan": 2984,
       "sell_amt_wan": 3167,
-      "lot_match_ratio": 0.89,
+      "lot_match_ratio": 0.96,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9661 買 89 張 vs 9A8F 賣 100 張 (匹配 89%)"
+      "reasoning": "9661 買 96 張 vs 9A8F 賣 100 張 (匹配 96%)"
     },
     {
       "stock_code": "2492",
@@ -162,15 +162,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "962Q",
       "sell_master": "陳光裕",
-      "buy_lot": 89,
+      "buy_lot": 96,
       "sell_lot": 94,
       "buy_amt_wan": 2984,
       "sell_amt_wan": 3112,
-      "lot_match_ratio": 0.95,
+      "lot_match_ratio": 0.98,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9661 買 89 張 vs 962Q 賣 94 張 (匹配 95%)"
+      "reasoning": "9661 買 96 張 vs 962Q 賣 94 張 (匹配 98%)"
     },
     {
       "stock_code": "2492",
@@ -179,15 +179,15 @@
       "buy_master": "陳族元",
       "sell_branch_code": "918e",
       "sell_master": "群益大安(強勢波段)",
-      "buy_lot": 89,
-      "sell_lot": 66,
+      "buy_lot": 96,
+      "sell_lot": 70,
       "buy_amt_wan": 2984,
       "sell_amt_wan": 2193,
-      "lot_match_ratio": 0.74,
+      "lot_match_ratio": 0.73,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9661 買 89 張 vs 918e 賣 66 張 (匹配 74%)"
+      "reasoning": "9661 買 96 張 vs 918e 賣 70 張 (匹配 73%)"
     },
     {
       "stock_code": "2492",
@@ -197,14 +197,14 @@
       "sell_branch_code": "961M",
       "sell_master": "張濬安(航海王)",
       "buy_lot": 64,
-      "sell_lot": 70,
+      "sell_lot": 75,
       "buy_amt_wan": 2044,
       "sell_amt_wan": 2348,
-      "lot_match_ratio": 0.91,
+      "lot_match_ratio": 0.85,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9g 買 64 張 vs 961M 賣 70 張 (匹配 91%)"
+      "reasoning": "9A9g 買 64 張 vs 961M 賣 75 張 (匹配 85%)"
     },
     {
       "stock_code": "2492",
@@ -214,14 +214,14 @@
       "sell_branch_code": "989N",
       "sell_master": "強森",
       "buy_lot": 64,
-      "sell_lot": 62,
+      "sell_lot": 66,
       "buy_amt_wan": 2044,
       "sell_amt_wan": 2069,
       "lot_match_ratio": 0.97,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9g 買 64 張 vs 989N 賣 62 張 (匹配 97%)"
+      "reasoning": "9A9g 買 64 張 vs 989N 賣 66 張 (匹配 97%)"
     },
     {
       "stock_code": "2492",
@@ -265,14 +265,14 @@
       "sell_branch_code": "918e",
       "sell_master": "群益大安(強勢波段)",
       "buy_lot": 64,
-      "sell_lot": 66,
+      "sell_lot": 70,
       "buy_amt_wan": 2044,
       "sell_amt_wan": 2193,
-      "lot_match_ratio": 0.97,
+      "lot_match_ratio": 0.91,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9g 買 64 張 vs 918e 賣 66 張 (匹配 97%)"
+      "reasoning": "9A9g 買 64 張 vs 918e 賣 70 張 (匹配 91%)"
     },
     {
       "stock_code": "2492",
@@ -281,15 +281,15 @@
       "buy_master": "陳律師",
       "sell_branch_code": "961M",
       "sell_master": "張濬安(航海王)",
-      "buy_lot": 89,
-      "sell_lot": 70,
+      "buy_lot": 96,
+      "sell_lot": 75,
       "buy_amt_wan": 2975,
       "sell_amt_wan": 2348,
-      "lot_match_ratio": 0.79,
+      "lot_match_ratio": 0.78,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "8450 買 89 張 vs 961M 賣 70 張 (匹配 79%)"
+      "reasoning": "8450 買 96 張 vs 961M 賣 75 張 (匹配 78%)"
     },
     {
       "stock_code": "2492",
@@ -298,15 +298,15 @@
       "buy_master": "陳律師",
       "sell_branch_code": "9A8F",
       "sell_master": "布哥/n_nchang",
-      "buy_lot": 89,
+      "buy_lot": 96,
       "sell_lot": 100,
       "buy_amt_wan": 2975,
       "sell_amt_wan": 3167,
-      "lot_match_ratio": 0.89,
+      "lot_match_ratio": 0.96,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "8450 買 89 張 vs 9A8F 賣 100 張 (匹配 89%)"
+      "reasoning": "8450 買 96 張 vs 9A8F 賣 100 張 (匹配 96%)"
     },
     {
       "stock_code": "2492",
@@ -315,15 +315,15 @@
       "buy_master": "陳律師",
       "sell_branch_code": "962Q",
       "sell_master": "陳光裕",
-      "buy_lot": 89,
+      "buy_lot": 96,
       "sell_lot": 94,
       "buy_amt_wan": 2975,
       "sell_amt_wan": 3112,
-      "lot_match_ratio": 0.95,
+      "lot_match_ratio": 0.98,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "8450 買 89 張 vs 962Q 賣 94 張 (匹配 95%)"
+      "reasoning": "8450 買 96 張 vs 962Q 賣 94 張 (匹配 98%)"
     },
     {
       "stock_code": "2492",
@@ -332,15 +332,15 @@
       "buy_master": "陳律師",
       "sell_branch_code": "918e",
       "sell_master": "群益大安(強勢波段)",
-      "buy_lot": 89,
-      "sell_lot": 66,
+      "buy_lot": 96,
+      "sell_lot": 70,
       "buy_amt_wan": 2975,
       "sell_amt_wan": 2193,
-      "lot_match_ratio": 0.74,
+      "lot_match_ratio": 0.73,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "8450 買 89 張 vs 918e 賣 66 張 (匹配 74%)"
+      "reasoning": "8450 買 96 張 vs 918e 賣 70 張 (匹配 73%)"
     },
     {
       "stock_code": "2492",
@@ -349,15 +349,15 @@
       "buy_master": "迷你哥/松山哥",
       "sell_branch_code": "961M",
       "sell_master": "張濬安(航海王)",
-      "buy_lot": 50,
-      "sell_lot": 70,
+      "buy_lot": 54,
+      "sell_lot": 75,
       "buy_amt_wan": 1676,
       "sell_amt_wan": 2348,
-      "lot_match_ratio": 0.71,
+      "lot_match_ratio": 0.72,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9217 買 50 張 vs 961M 賣 70 張 (匹配 71%)"
+      "reasoning": "9217 買 54 張 vs 961M 賣 75 張 (匹配 72%)"
     },
     {
       "stock_code": "2492",
@@ -366,15 +366,15 @@
       "buy_master": "迷你哥/松山哥",
       "sell_branch_code": "989N",
       "sell_master": "強森",
-      "buy_lot": 50,
-      "sell_lot": 62,
+      "buy_lot": 54,
+      "sell_lot": 66,
       "buy_amt_wan": 1676,
       "sell_amt_wan": 2069,
-      "lot_match_ratio": 0.81,
+      "lot_match_ratio": 0.82,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9217 買 50 張 vs 989N 賣 62 張 (匹配 81%)"
+      "reasoning": "9217 買 54 張 vs 989N 賣 66 張 (匹配 82%)"
     },
     {
       "stock_code": "2492",
@@ -383,15 +383,15 @@
       "buy_master": "迷你哥/松山哥",
       "sell_branch_code": "913Y",
       "sell_master": "江士勳",
-      "buy_lot": 50,
+      "buy_lot": 54,
       "sell_lot": 62,
       "buy_amt_wan": 1676,
       "sell_amt_wan": 2044,
-      "lot_match_ratio": 0.81,
+      "lot_match_ratio": 0.87,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9217 買 50 張 vs 913Y 賣 62 張 (匹配 81%)"
+      "reasoning": "9217 買 54 張 vs 913Y 賣 62 張 (匹配 87%)"
     },
     {
       "stock_code": "2492",
@@ -400,15 +400,15 @@
       "buy_master": "迷你哥/松山哥",
       "sell_branch_code": "980K",
       "sell_master": "竹科強勢地緣",
-      "buy_lot": 50,
+      "buy_lot": 54,
       "sell_lot": 56,
       "buy_amt_wan": 1676,
       "sell_amt_wan": 1746,
-      "lot_match_ratio": 0.89,
+      "lot_match_ratio": 0.96,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9217 買 50 張 vs 980K 賣 56 張 (匹配 89%)"
+      "reasoning": "9217 買 54 張 vs 980K 賣 56 張 (匹配 96%)"
     },
     {
       "stock_code": "2492",
@@ -417,15 +417,15 @@
       "buy_master": "迷你哥/松山哥",
       "sell_branch_code": "918e",
       "sell_master": "群益大安(強勢波段)",
-      "buy_lot": 50,
-      "sell_lot": 66,
+      "buy_lot": 54,
+      "sell_lot": 70,
       "buy_amt_wan": 1676,
       "sell_amt_wan": 2193,
-      "lot_match_ratio": 0.76,
+      "lot_match_ratio": 0.77,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9217 買 50 張 vs 918e 賣 66 張 (匹配 76%)"
+      "reasoning": "9217 買 54 張 vs 918e 賣 70 張 (匹配 77%)"
     },
     {
       "stock_code": "2492",
@@ -435,14 +435,14 @@
       "sell_branch_code": "961M",
       "sell_master": "張濬安(航海王)",
       "buy_lot": 100,
-      "sell_lot": 70,
+      "sell_lot": 75,
       "buy_amt_wan": 3210,
       "sell_amt_wan": 2348,
-      "lot_match_ratio": 0.7,
+      "lot_match_ratio": 0.75,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9B2r 買 100 張 vs 961M 賣 70 張 (匹配 70%)"
+      "reasoning": "9B2r 買 100 張 vs 961M 賣 75 張 (匹配 75%)"
     },
     {
       "stock_code": "2492",
@@ -481,19 +481,36 @@
     {
       "stock_code": "2492",
       "stock_name": "華新科",
+      "buy_branch_code": "9B2r",
+      "buy_master": "強森",
+      "sell_branch_code": "918e",
+      "sell_master": "群益大安(強勢波段)",
+      "buy_lot": 100,
+      "sell_lot": 70,
+      "buy_amt_wan": 3210,
+      "sell_amt_wan": 2193,
+      "lot_match_ratio": 0.7,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9B2r 買 100 張 vs 918e 賣 70 張 (匹配 70%)"
+    },
+    {
+      "stock_code": "2492",
+      "stock_name": "華新科",
       "buy_branch_code": "9B2a",
       "buy_master": "Tradow",
       "sell_branch_code": "961M",
       "sell_master": "張濬安(航海王)",
       "buy_lot": 56,
-      "sell_lot": 70,
+      "sell_lot": 75,
       "buy_amt_wan": 1825,
       "sell_amt_wan": 2348,
-      "lot_match_ratio": 0.8,
+      "lot_match_ratio": 0.75,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9B2a 買 56 張 vs 961M 賣 70 張 (匹配 80%)"
+      "reasoning": "9B2a 買 56 張 vs 961M 賣 75 張 (匹配 75%)"
     },
     {
       "stock_code": "2492",
@@ -503,31 +520,14 @@
       "sell_branch_code": "989N",
       "sell_master": "強森",
       "buy_lot": 56,
-      "sell_lot": 62,
+      "sell_lot": 66,
       "buy_amt_wan": 1825,
       "sell_amt_wan": 2069,
-      "lot_match_ratio": 0.9,
+      "lot_match_ratio": 0.85,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9B2a 買 56 張 vs 989N 賣 62 張 (匹配 90%)"
-    },
-    {
-      "stock_code": "2492",
-      "stock_name": "華新科",
-      "buy_branch_code": "9B2a",
-      "buy_master": "Tradow",
-      "sell_branch_code": "913Y",
-      "sell_master": "江士勳",
-      "buy_lot": 56,
-      "sell_lot": 62,
-      "buy_amt_wan": 1825,
-      "sell_amt_wan": 2044,
-      "lot_match_ratio": 0.9,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9B2a 買 56 張 vs 913Y 賣 62 張 (匹配 90%)"
+      "reasoning": "9B2a 買 56 張 vs 989N 賣 66 張 (匹配 85%)"
     }
   ],
   "distribution": [
