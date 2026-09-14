@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T02:53:08.680863+08:00",
+  "generated_at": "2026-09-15T03:46:29.832640+08:00",
   "trade_date": "20260914",
   "pump_suspicion": [
     {
@@ -530,88 +530,12 @@
       "reasoning": "700S 買 110 張 vs 8450 賣 152 張 (匹配 72%)"
     }
   ],
-  "distribution": [
-    {
-      "stock_code": "3624",
-      "stock_name": "光頡",
-      "branch_code": "984K",
-      "branch_name": "元大-館前",
-      "master": "強森",
-      "sell_lot": 145,
-      "sell_amt_wan": 1765,
-      "avg_30d_sell_lot": 29.0,
-      "sell_vs_avg_x": 5.0,
-      "recent_5d_limit_up_count": 17,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 145 張 (30 天均 29 張 × 5.0) + 近 5 天漲停 17 次"
-    },
-    {
-      "stock_code": "3406",
-      "stock_name": "玉晶光",
-      "branch_code": "9B2n",
-      "branch_name": "台新-西松",
-      "master": "巨人傑",
-      "sell_lot": 167,
-      "sell_amt_wan": 15935,
-      "avg_30d_sell_lot": 8.5,
-      "sell_vs_avg_x": 19.6,
-      "recent_5d_limit_up_count": 39,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 167 張 (30 天均 8 張 × 19.6) + 近 5 天漲停 39 次"
-    },
-    {
-      "stock_code": "3406",
-      "stock_name": "玉晶光",
-      "branch_code": "9647",
-      "branch_name": "富邦-新竹",
-      "master": "竹科主力分點",
-      "sell_lot": 230,
-      "sell_amt_wan": 22125,
-      "avg_30d_sell_lot": 28.8,
-      "sell_vs_avg_x": 8.0,
-      "recent_5d_limit_up_count": 39,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 230 張 (30 天均 29 張 × 8.0) + 近 5 天漲停 39 次"
-    },
-    {
-      "stock_code": "6173",
-      "stock_name": "信昌電",
-      "branch_code": "9874",
-      "branch_name": "元大-雙和",
-      "master": "東億資本",
-      "sell_lot": 247,
-      "sell_amt_wan": 6864,
-      "avg_30d_sell_lot": 49.0,
-      "sell_vs_avg_x": 5.0,
-      "recent_5d_limit_up_count": 32,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 247 張 (30 天均 49 張 × 5.0) + 近 5 天漲停 32 次"
-    },
-    {
-      "stock_code": "3624",
-      "stock_name": "光頡",
-      "branch_code": "585Q",
-      "branch_name": "統一-三多",
-      "master": "呂金發",
-      "sell_lot": 78,
-      "sell_amt_wan": 943,
-      "avg_30d_sell_lot": 11.0,
-      "sell_vs_avg_x": 7.1,
-      "recent_5d_limit_up_count": 17,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 78 張 (30 天均 11 張 × 7.1) + 近 5 天漲停 17 次"
-    }
-  ],
+  "distribution": [],
   "summary": {
     "pump_count": 1,
     "wash_count": 30,
-    "distribution_count": 5,
-    "total": 36
+    "distribution_count": 0,
+    "total": 31
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
