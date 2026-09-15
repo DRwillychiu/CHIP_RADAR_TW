@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T02:39:13.724424+08:00",
+  "generated_at": "2026-09-16T03:25:25.159414+08:00",
   "trade_date": "20260915",
   "pump_suspicion": [
     {
@@ -44,14 +44,14 @@
       "sell_branch_code": "9A9G",
       "sell_master": "永豐天母(老錢)",
       "buy_lot": 100,
-      "sell_lot": 88,
+      "sell_lot": 89,
       "buy_amt_wan": 1834,
       "sell_amt_wan": 1590,
-      "lot_match_ratio": 0.88,
+      "lot_match_ratio": 0.89,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9B25 買 100 張 vs 9A9G 賣 88 張 (匹配 88%)"
+      "reasoning": "9B25 買 100 張 vs 9A9G 賣 89 張 (匹配 89%)"
     },
     {
       "stock_code": "3042",
@@ -129,14 +129,14 @@
       "sell_branch_code": "9A9G",
       "sell_master": "永豐天母(老錢)",
       "buy_lot": 99,
-      "sell_lot": 88,
+      "sell_lot": 89,
       "buy_amt_wan": 1802,
       "sell_amt_wan": 1590,
-      "lot_match_ratio": 0.89,
+      "lot_match_ratio": 0.9,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9B18 買 99 張 vs 9A9G 賣 88 張 (匹配 89%)"
+      "reasoning": "9B18 買 99 張 vs 9A9G 賣 89 張 (匹配 90%)"
     },
     {
       "stock_code": "3042",
@@ -163,14 +163,14 @@
       "sell_branch_code": "9A9G",
       "sell_master": "永豐天母(老錢)",
       "buy_lot": 115,
-      "sell_lot": 88,
+      "sell_lot": 89,
       "buy_amt_wan": 2078,
       "sell_amt_wan": 1590,
       "lot_match_ratio": 0.77,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9676 買 115 張 vs 9A9G 賣 88 張 (匹配 77%)"
+      "reasoning": "9676 買 115 張 vs 9A9G 賣 89 張 (匹配 77%)"
     },
     {
       "stock_code": "3042",
@@ -309,40 +309,6 @@
       "reasoning": "9275 買 84 張 vs 8960 賣 92 張 (匹配 91%)"
     },
     {
-      "stock_code": "1326",
-      "stock_name": "台化",
-      "buy_branch_code": "9A9G",
-      "buy_master": "永豐天母(老錢)",
-      "sell_branch_code": "980K",
-      "sell_master": "竹科強勢地緣",
-      "buy_lot": 88,
-      "sell_lot": 115,
-      "buy_amt_wan": 579,
-      "sell_amt_wan": 754,
-      "lot_match_ratio": 0.77,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9A9G 買 88 張 vs 980K 賣 115 張 (匹配 77%)"
-    },
-    {
-      "stock_code": "1326",
-      "stock_name": "台化",
-      "buy_branch_code": "9A9G",
-      "buy_master": "永豐天母(老錢)",
-      "sell_branch_code": "8960",
-      "sell_master": "匯豐 HSBC",
-      "buy_lot": 88,
-      "sell_lot": 92,
-      "buy_amt_wan": 579,
-      "sell_amt_wan": 602,
-      "lot_match_ratio": 0.96,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9A9G 買 88 張 vs 8960 賣 92 張 (匹配 96%)"
-    },
-    {
       "stock_code": "2303",
       "stock_name": "聯電",
       "buy_branch_code": "9B25",
@@ -452,14 +418,14 @@
       "sell_branch_code": "9A9G",
       "sell_master": "永豐天母(老錢)",
       "buy_lot": 154,
-      "sell_lot": 132,
+      "sell_lot": 130,
       "buy_amt_wan": 2143,
       "sell_amt_wan": 1829,
-      "lot_match_ratio": 0.86,
+      "lot_match_ratio": 0.84,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9658 買 154 張 vs 9A9G 賣 132 張 (匹配 86%)"
+      "reasoning": "9658 買 154 張 vs 9A9G 賣 130 張 (匹配 84%)"
     },
     {
       "stock_code": "2303",
@@ -528,6 +494,40 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "9216 買 162 張 vs 779u 賣 205 張 (匹配 79%)"
+    },
+    {
+      "stock_code": "2303",
+      "stock_name": "聯電",
+      "buy_branch_code": "9216",
+      "buy_master": "林滄海",
+      "sell_branch_code": "700I",
+      "sell_master": "兆豐北高雄(強勢地緣)",
+      "buy_lot": 162,
+      "sell_lot": 163,
+      "buy_amt_wan": 2255,
+      "sell_amt_wan": 2285,
+      "lot_match_ratio": 0.99,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9216 買 162 張 vs 700I 賣 163 張 (匹配 99%)"
+    },
+    {
+      "stock_code": "2303",
+      "stock_name": "聯電",
+      "buy_branch_code": "9216",
+      "buy_master": "林滄海",
+      "sell_branch_code": "9A9G",
+      "sell_master": "永豐天母(老錢)",
+      "buy_lot": 162,
+      "sell_lot": 130,
+      "buy_amt_wan": 2255,
+      "sell_amt_wan": 1829,
+      "lot_match_ratio": 0.8,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "9216 買 162 張 vs 9A9G 賣 130 張 (匹配 80%)"
     }
   ],
   "distribution": [],
