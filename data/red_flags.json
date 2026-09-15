@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T01:53:36.167788+08:00",
+  "generated_at": "2026-09-16T02:39:13.724424+08:00",
   "trade_date": "20260915",
   "pump_suspicion": [
     {
@@ -530,118 +530,12 @@
       "reasoning": "9216 買 162 張 vs 779u 賣 205 張 (匹配 79%)"
     }
   ],
-  "distribution": [
-    {
-      "stock_code": "3406",
-      "stock_name": "玉晶光",
-      "branch_code": "1260",
-      "branch_name": "宏遠證券",
-      "master": "林滄海",
-      "sell_lot": 206,
-      "sell_amt_wan": 19255,
-      "avg_30d_sell_lot": 19.3,
-      "sell_vs_avg_x": 10.7,
-      "recent_5d_limit_up_count": 39,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 206 張 (30 天均 19 張 × 10.7) + 近 5 天漲停 39 次"
-    },
-    {
-      "stock_code": "2351",
-      "stock_name": "順德",
-      "branch_code": "9B2E",
-      "branch_name": "台新-城中",
-      "master": "張濬安(航海王)",
-      "sell_lot": 166,
-      "sell_amt_wan": 4158,
-      "avg_30d_sell_lot": 17.0,
-      "sell_vs_avg_x": 9.8,
-      "recent_5d_limit_up_count": 28,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 166 張 (30 天均 17 張 × 9.8) + 近 5 天漲停 28 次"
-    },
-    {
-      "stock_code": "2338",
-      "stock_name": "光罩",
-      "branch_code": "9B2E",
-      "branch_name": "台新-城中",
-      "master": "張濬安(航海王)",
-      "sell_lot": 247,
-      "sell_amt_wan": 1139,
-      "avg_30d_sell_lot": 20.0,
-      "sell_vs_avg_x": 12.3,
-      "recent_5d_limit_up_count": 26,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 247 張 (30 天均 20 張 × 12.3) + 近 5 天漲停 26 次"
-    },
-    {
-      "stock_code": "3406",
-      "stock_name": "玉晶光",
-      "branch_code": "8450",
-      "branch_name": "康和總公司",
-      "master": "陳律師",
-      "sell_lot": 277,
-      "sell_amt_wan": 25934,
-      "avg_30d_sell_lot": 45.7,
-      "sell_vs_avg_x": 6.1,
-      "recent_5d_limit_up_count": 39,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 277 張 (30 天均 46 張 × 6.1) + 近 5 天漲停 39 次"
-    },
-    {
-      "stock_code": "2305",
-      "stock_name": "全友",
-      "branch_code": "9227",
-      "branch_name": "凱基-城中",
-      "master": "蔣承翰",
-      "sell_lot": 2167,
-      "sell_amt_wan": 9910,
-      "avg_30d_sell_lot": 188.5,
-      "sell_vs_avg_x": 11.5,
-      "recent_5d_limit_up_count": 50,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 2,167 張 (30 天均 188 張 × 11.5) + 近 5 天漲停 50 次"
-    },
-    {
-      "stock_code": "6226",
-      "stock_name": "光鼎",
-      "branch_code": "913Y",
-      "branch_name": "群益金鼎-館前",
-      "master": "江士勳",
-      "sell_lot": 1036,
-      "sell_amt_wan": 3524,
-      "avg_30d_sell_lot": 88.8,
-      "sell_vs_avg_x": 11.7,
-      "recent_5d_limit_up_count": 29,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 1,036 張 (30 天均 89 張 × 11.7) + 近 5 天漲停 29 次"
-    },
-    {
-      "stock_code": "3441",
-      "stock_name": "聯一光",
-      "branch_code": "9275",
-      "branch_name": "凱基-三多",
-      "master": "凱基三多(波段千金股)",
-      "sell_lot": 152,
-      "sell_amt_wan": 2582,
-      "avg_30d_sell_lot": 14.3,
-      "sell_vs_avg_x": 10.6,
-      "recent_5d_limit_up_count": 16,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 152 張 (30 天均 14 張 × 10.6) + 近 5 天漲停 16 次"
-    }
-  ],
+  "distribution": [],
   "summary": {
     "pump_count": 1,
     "wash_count": 30,
-    "distribution_count": 7,
-    "total": 38
+    "distribution_count": 0,
+    "total": 31
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
