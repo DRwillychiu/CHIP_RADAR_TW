@@ -1,181 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260622",
-      "next_date": "20260623",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": null,
-      "vol_spike_masters": [
-        "布哥/n_nchang",
-        "強森"
-      ],
-      "quad_picks": [
-        {
-          "code": "6274",
-          "name": "台燿",
-          "matched_masters": [
-            "強森"
-          ],
-          "next_change_pct": -8.68,
-          "hit": false,
-          "leader_pct": 0.352,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "4958",
-          "name": "臻鼎-KY",
-          "matched_masters": [
-            "強森"
-          ],
-          "next_change_pct": -5.63,
-          "hit": false,
-          "leader_pct": 0.187,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "3481",
-          "name": "群創",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "強森"
-          ],
-          "next_change_pct": 0.0,
-          "hit": false,
-          "leader_pct": 0.193,
-          "excess_return": null,
-          "failure_reasons": [
-            "flat close (隔日收 = 今日收, 真實現象)"
-          ]
-        },
-        {
-          "code": "2344",
-          "name": "華邦電",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "強森"
-          ],
-          "next_change_pct": -4.73,
-          "hit": false,
-          "leader_pct": 0.251,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2308",
-          "name": "台達電",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "強森"
-          ],
-          "next_change_pct": -3.26,
-          "hit": false,
-          "leader_pct": 0.198,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "強森"
-          ],
-          "next_change_pct": -4.23,
-          "hit": false,
-          "leader_pct": 0.548,
-          "excess_return": null,
-          "failure_reasons": [
-            "假共識 (領頭獨佔 ≥50%)"
-          ]
-        },
-        {
-          "code": "8046",
-          "name": "南電",
-          "matched_masters": [
-            "強森"
-          ],
-          "next_change_pct": 5.21,
-          "hit": true,
-          "leader_pct": 0.27,
-          "excess_return": null,
-          "failure_reasons": []
-        },
-        {
-          "code": "2317",
-          "name": "鴻海",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "強森"
-          ],
-          "next_change_pct": -3.35,
-          "hit": false,
-          "leader_pct": 0.284,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "2324",
-          "name": "仁寶",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "強森"
-          ],
-          "next_change_pct": -2.53,
-          "hit": false,
-          "leader_pct": 0.186,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "3042",
-          "name": "晶技",
-          "matched_masters": [
-            "強森"
-          ],
-          "next_change_pct": -3.79,
-          "hit": false,
-          "leader_pct": 0.35,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        },
-        {
-          "code": "6182",
-          "name": "合晶",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "強森"
-          ],
-          "next_change_pct": -1.72,
-          "hit": false,
-          "leader_pct": 0.228,
-          "excess_return": null,
-          "failure_reasons": [
-            "TAIEX 資料缺, 歸因不全"
-          ]
-        }
-      ],
-      "n": 11,
-      "hits": 1,
-      "hit_rate": 0.0909,
-      "mean_change": -2.97
-    },
-    {
       "date": "20260624",
       "next_date": "20260625",
       "q5_direction": "偏多",
@@ -1901,16 +1726,16 @@
     "mean_change": -1.26
   },
   "rolling_all": {
-    "trigger_days": 12,
-    "n": 125,
-    "hits": 51,
-    "hit_rate": 0.408,
-    "mean_change": -0.51
+    "trigger_days": 11,
+    "n": 114,
+    "hits": 50,
+    "hit_rate": 0.4386,
+    "mean_change": -0.27
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.408,
-    "delta_pp": -38.1
+    "actual_hit_rate": 0.4386,
+    "delta_pp": -35.0
   },
-  "updated_at": "2026-09-14T20:17:17.825652"
+  "updated_at": "2026-09-15T18:01:17.170716"
 }
