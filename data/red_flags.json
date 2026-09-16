@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T02:01:11.675714+08:00",
+  "generated_at": "2026-09-17T02:36:35.633260+08:00",
   "trade_date": "20260916",
   "pump_suspicion": [],
   "wash_trade": [
@@ -486,15 +486,15 @@
       "buy_master": "永豐天母(老錢)",
       "sell_branch_code": "700c",
       "sell_master": "陳律師",
-      "buy_lot": 136,
+      "buy_lot": 96,
       "sell_lot": 103,
-      "buy_amt_wan": 385,
+      "buy_amt_wan": 271,
       "sell_amt_wan": 292,
-      "lot_match_ratio": 0.76,
+      "lot_match_ratio": 0.93,
       "same_master": false,
       "rule": "B_wash",
       "severity": "medium",
-      "reasoning": "9A9G 買 136 張 vs 700c 賣 103 張 (匹配 76%)"
+      "reasoning": "9A9G 買 96 張 vs 700c 賣 103 張 (匹配 93%)"
     },
     {
       "stock_code": "00981A",
@@ -514,103 +514,12 @@
       "reasoning": "1040 買 316 張 vs 700I 賣 303 張 (匹配 96%)"
     }
   ],
-  "distribution": [
-    {
-      "stock_code": "2338",
-      "stock_name": "光罩",
-      "branch_code": "1260",
-      "branch_name": "宏遠證券",
-      "master": "林滄海",
-      "sell_lot": 753,
-      "sell_amt_wan": 3818,
-      "avg_30d_sell_lot": 132.8,
-      "sell_vs_avg_x": 5.7,
-      "recent_5d_limit_up_count": 26,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 753 張 (30 天均 133 張 × 5.7) + 近 5 天漲停 26 次"
-    },
-    {
-      "stock_code": "2468",
-      "stock_name": "華經",
-      "branch_code": "920F",
-      "branch_name": "凱基-站前",
-      "master": "張濬安(航海王)",
-      "sell_lot": 306,
-      "sell_amt_wan": 1322,
-      "avg_30d_sell_lot": 47.0,
-      "sell_vs_avg_x": 6.5,
-      "recent_5d_limit_up_count": 20,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 306 張 (30 天均 47 張 × 6.5) + 近 5 天漲停 20 次"
-    },
-    {
-      "stock_code": "3441",
-      "stock_name": "聯一光",
-      "branch_code": "920F",
-      "branch_name": "凱基-站前",
-      "master": "張濬安(航海王)",
-      "sell_lot": 502,
-      "sell_amt_wan": 9344,
-      "avg_30d_sell_lot": 79.0,
-      "sell_vs_avg_x": 6.4,
-      "recent_5d_limit_up_count": 16,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 502 張 (30 天均 79 張 × 6.4) + 近 5 天漲停 16 次"
-    },
-    {
-      "stock_code": "2351",
-      "stock_name": "順德",
-      "branch_code": "779c",
-      "branch_name": "國票-敦北法人",
-      "master": "優式資本",
-      "sell_lot": 181,
-      "sell_amt_wan": 4511,
-      "avg_30d_sell_lot": 32.0,
-      "sell_vs_avg_x": 5.7,
-      "recent_5d_limit_up_count": 28,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 181 張 (30 天均 32 張 × 5.7) + 近 5 天漲停 28 次"
-    },
-    {
-      "stock_code": "3467",
-      "stock_name": "台灣精材",
-      "branch_code": "779u",
-      "branch_name": "國票-長城",
-      "master": "宋福祥",
-      "sell_lot": 76,
-      "sell_amt_wan": 560,
-      "avg_30d_sell_lot": 11.0,
-      "sell_vs_avg_x": 6.9,
-      "recent_5d_limit_up_count": 4,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 76 張 (30 天均 11 張 × 6.9) + 近 5 天漲停 4 次"
-    },
-    {
-      "stock_code": "2468",
-      "stock_name": "華經",
-      "branch_code": "700S",
-      "branch_name": "兆豐-大同",
-      "master": "何莎",
-      "sell_lot": 59,
-      "sell_amt_wan": 256,
-      "avg_30d_sell_lot": 4.0,
-      "sell_vs_avg_x": 14.8,
-      "recent_5d_limit_up_count": 20,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 59 張 (30 天均 4 張 × 14.8) + 近 5 天漲停 20 次"
-    }
-  ],
+  "distribution": [],
   "summary": {
     "pump_count": 0,
     "wash_count": 30,
-    "distribution_count": 6,
-    "total": 36
+    "distribution_count": 0,
+    "total": 30
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }

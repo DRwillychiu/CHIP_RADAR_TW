@@ -1,19 +1,19 @@
 {
   "summary": {
     "baseline": {
-      "n": 655,
-      "hits": 267,
-      "hit_rate": 0.4076335877862595,
-      "mean_change": -0.4658625954198473,
+      "n": 657,
+      "hits": 269,
+      "hit_rate": 0.4094368340943683,
+      "mean_change": -0.44074581430745813,
       "median_change": -0.56,
       "days": 59,
       "desc": "全部共識股 (對照)"
     },
     "e_anomaly_only": {
-      "n": 651,
-      "hits": 267,
-      "hit_rate": 0.41013824884792627,
-      "mean_change": -0.44036866359446997,
+      "n": 653,
+      "hits": 269,
+      "hit_rate": 0.4119448698315467,
+      "mean_change": -0.41517611026033685,
       "median_change": -0.55,
       "days": 59,
       "desc": "共識 ∩ ≥1 master 異常 (vol_spike OR new_stocks)"
@@ -28,20 +28,20 @@
       "desc": "共識 ∩ ≥1 master volume_spike"
     },
     "e_new_stocks_only": {
-      "n": 623,
-      "hits": 261,
-      "hit_rate": 0.4189406099518459,
-      "mean_change": -0.3561958266452647,
-      "median_change": -0.51,
+      "n": 625,
+      "hits": 263,
+      "hit_rate": 0.4208,
+      "mean_change": -0.3301439999999998,
+      "median_change": -0.49,
       "days": 57,
       "desc": "共識 ∩ ≥1 master new_stocks"
     },
     "e_anomaly_q5_bull": {
-      "n": 515,
-      "hits": 213,
-      "hit_rate": 0.41359223300970877,
-      "mean_change": -0.44056310679611604,
-      "median_change": -0.79,
+      "n": 517,
+      "hits": 215,
+      "hit_rate": 0.4158607350096712,
+      "mean_change": -0.4087427466150865,
+      "median_change": -0.76,
       "days": 47,
       "desc": "共識 ∩ Q5 偏多 ∩ ≥1 master 異常 (3 訊號)"
     },
@@ -55,10 +55,10 @@
       "desc": "共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike (嚴格 3 訊號)"
     },
     "q5_bull_only": {
-      "n": 517,
-      "hits": 213,
-      "hit_rate": 0.4119922630560928,
-      "mean_change": -0.4494970986460345,
+      "n": 519,
+      "hits": 215,
+      "hit_rate": 0.4142581888246628,
+      "mean_change": -0.41776493256262004,
       "median_change": -0.79,
       "days": 47,
       "desc": "共識 ∩ Q5 偏多 (Phase 3.1 對比)"
@@ -650,14 +650,14 @@
       "date": "20260915",
       "next": "20260916",
       "cons": 9,
-      "next_avail": 7,
+      "next_avail": 9,
       "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 3,
-      "e_hits": 6
+      "e_hits": 8
     }
   ],
-  "updated_at": "2026-09-16T18:09:00.486907",
+  "updated_at": "2026-09-16T18:44:18.789339",
   "window_days": 59,
   "thresholds": {
     "anomaly_sigma": 2.0,
