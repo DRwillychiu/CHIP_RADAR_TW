@@ -1,57 +1,24 @@
 {
-  "updated_at": "2026-09-16T03:25:15.795500+08:00",
+  "updated_at": "2026-09-17T02:01:02.287784+08:00",
   "actions": {
-    "2321": [
+    "1441": [
       {
-        "date": "20260921",
+        "date": "20260929",
         "type": "reduction_or_parvalue",
-        "pre_price": 15.1,
-        "post_price": 27.61,
-        "factor": 0.546903,
+        "pre_price": 8.72,
+        "post_price": 10.13,
+        "factor": 0.860809,
         "confidence": "official",
         "source": "TWSE_TWTAUU"
       }
     ],
-    "3356": [
+    "6550": [
       {
-        "date": "20260921",
+        "date": "20260929",
         "type": "reduction_or_parvalue",
-        "pre_price": 59.4,
-        "post_price": 68.04,
-        "factor": 0.873016,
-        "confidence": "official",
-        "source": "TWSE_TWTAUU"
-      }
-    ],
-    "3591": [
-      {
-        "date": "20260717",
-        "type": "detected_gap",
-        "pre_price": 24.15,
-        "post_price": 21.25,
-        "factor": 1.136471,
-        "confidence": "inferred",
-        "raw_move_pct": -12.01,
-        "source": "price_series",
-        "bad_data_dates": []
-      },
-      {
-        "date": "20260805",
-        "type": "detected_gap",
-        "pre_price": 19.85,
-        "post_price": 22.45,
-        "factor": 0.884187,
-        "confidence": "inferred",
-        "raw_move_pct": 13.1,
-        "source": "price_series",
-        "bad_data_dates": []
-      },
-      {
-        "date": "20260921",
-        "type": "reduction_or_parvalue",
-        "pre_price": 23.65,
-        "post_price": 25.22,
-        "factor": 0.937748,
+        "pre_price": 9.92,
+        "post_price": 19.09,
+        "factor": 0.519644,
         "confidence": "official",
         "source": "TWSE_TWTAUU"
       }
@@ -2264,6 +2231,30 @@
         "factor": 1.243948,
         "confidence": "inferred",
         "raw_move_pct": -19.61,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
+    "3591": [
+      {
+        "date": "20260717",
+        "type": "detected_gap",
+        "pre_price": 24.15,
+        "post_price": 21.25,
+        "factor": 1.136471,
+        "confidence": "inferred",
+        "raw_move_pct": -12.01,
+        "source": "price_series",
+        "bad_data_dates": []
+      },
+      {
+        "date": "20260805",
+        "type": "detected_gap",
+        "pre_price": 19.85,
+        "post_price": 22.45,
+        "factor": 0.884187,
+        "confidence": "inferred",
+        "raw_move_pct": 13.1,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -4686,8 +4677,8 @@
     ]
   },
   "stats": {
-    "official": 7,
+    "official": 6,
     "inferred": 366,
-    "merged_dup": 7
+    "merged_dup": 5
   }
 }
