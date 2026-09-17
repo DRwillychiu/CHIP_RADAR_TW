@@ -1,179 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260624",
-      "next_date": "20260625",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": -2.24,
-      "vol_spike_masters": [
-        "巨人傑",
-        "布哥/n_nchang",
-        "強森",
-        "蔣承翰"
-      ],
-      "quad_picks": [
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "巨人傑",
-            "布哥/n_nchang",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": 0.0,
-          "hit": false,
-          "leader_pct": 0.19,
-          "excess_return": 2.24,
-          "failure_reasons": [
-            "flat close (隔日收 = 今日收, 真實現象)",
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "2408",
-          "name": "南亞科",
-          "matched_masters": [
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": 7.55,
-          "hit": true,
-          "leader_pct": 0.312,
-          "excess_return": 9.79,
-          "failure_reasons": []
-        },
-        {
-          "code": "2454",
-          "name": "聯發科",
-          "matched_masters": [
-            "巨人傑",
-            "布哥/n_nchang",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": 0.58,
-          "hit": true,
-          "leader_pct": 0.28,
-          "excess_return": 2.82,
-          "failure_reasons": []
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "巨人傑",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": 0.28,
-          "hit": true,
-          "leader_pct": 0.298,
-          "excess_return": 2.52,
-          "failure_reasons": []
-        },
-        {
-          "code": "2308",
-          "name": "台達電",
-          "matched_masters": [
-            "巨人傑",
-            "布哥/n_nchang",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": -1.0,
-          "hit": false,
-          "leader_pct": 0.223,
-          "excess_return": 1.24,
-          "failure_reasons": [
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "3037",
-          "name": "欣興",
-          "matched_masters": [
-            "巨人傑",
-            "布哥/n_nchang",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": 9.56,
-          "hit": true,
-          "leader_pct": 0.348,
-          "excess_return": 11.8,
-          "failure_reasons": []
-        },
-        {
-          "code": "2344",
-          "name": "華邦電",
-          "matched_masters": [
-            "巨人傑",
-            "布哥/n_nchang",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": 7.07,
-          "hit": true,
-          "leader_pct": 0.176,
-          "excess_return": 9.31,
-          "failure_reasons": []
-        },
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "巨人傑",
-            "布哥/n_nchang",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": 7.14,
-          "hit": true,
-          "leader_pct": 0.344,
-          "excess_return": 9.38,
-          "failure_reasons": []
-        },
-        {
-          "code": "3105",
-          "name": "穩懋",
-          "matched_masters": [
-            "巨人傑",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": -3.14,
-          "hit": false,
-          "leader_pct": 0.187,
-          "excess_return": -0.9,
-          "failure_reasons": [
-            "TAIEX 整盤跌"
-          ]
-        },
-        {
-          "code": "5289",
-          "name": "宜鼎",
-          "matched_masters": [
-            "布哥/n_nchang",
-            "強森",
-            "蔣承翰"
-          ],
-          "next_change_pct": -3.06,
-          "hit": false,
-          "leader_pct": 0.229,
-          "excess_return": -0.82,
-          "failure_reasons": [
-            "TAIEX 整盤跌"
-          ]
-        }
-      ],
-      "n": 10,
-      "hits": 6,
-      "hit_rate": 0.6,
-      "mean_change": 2.5
-    },
-    {
       "date": "20260626",
       "next_date": "20260629",
       "q5_direction": "偏多",
@@ -1726,16 +1553,16 @@
     "mean_change": -1.26
   },
   "rolling_all": {
-    "trigger_days": 11,
-    "n": 114,
-    "hits": 50,
-    "hit_rate": 0.4386,
-    "mean_change": -0.27
+    "trigger_days": 10,
+    "n": 104,
+    "hits": 44,
+    "hit_rate": 0.4231,
+    "mean_change": -0.54
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4386,
-    "delta_pp": -35.0
+    "actual_hit_rate": 0.4231,
+    "delta_pp": -36.6
   },
-  "updated_at": "2026-09-16T19:26:05.884386"
+  "updated_at": "2026-09-17T17:59:22.534739"
 }
