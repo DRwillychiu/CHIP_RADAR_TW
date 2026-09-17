@@ -1,6 +1,6 @@
 {
  "trade_date": "20260917",
- "updated_at": "2026-09-18T01:55:11.915324+08:00",
+ "updated_at": "2026-09-18T02:46:33.425230+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -5006,34 +5006,22 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1179,
-   "watch": 43,
-   "high_risk": 2,
+   "healthy": 1183,
+   "watch": 38,
+   "high_risk": 1,
    "margin_call": 0,
-   "insufficient_data": 993
+   "insufficient_data": 995
   },
   "high_risk_stocks": [
    {
     "code": "2483",
     "name": "百容",
-    "ratio": 120.5,
+    "ratio": 123.7,
     "risk_level": "high_risk",
     "margin_balance": 2077,
     "today_close": 32.4,
-    "estimated_cost": 44.8,
+    "estimated_cost": 43.66,
     "cost_adjusted_for_corp_action": true,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   },
-   {
-    "code": "4127",
-    "name": "天良",
-    "ratio": 129.0,
-    "risk_level": "high_risk",
-    "margin_balance": 1198,
-    "today_close": 59.6,
-    "estimated_cost": 76.97,
-    "cost_adjusted_for_corp_action": false,
     "is_disposal_stock": false,
     "margin_rate_used": 0.6
    }
