@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-18T02:46:39.394922+08:00",
+  "updated_at": "2026-09-18T03:34:28.404937+08:00",
   "count": 60,
   "history": [
     {
@@ -3412,7 +3412,7 @@
     },
     {
       "date": "20260917",
-      "score": 68,
+      "score": 75,
       "signals": [
         {
           "name": "外資現貨",
@@ -3422,15 +3422,9 @@
         },
         {
           "name": "外資期貨",
-          "score": 0,
-          "level": "extreme-bear",
-          "value": -78910
-        },
-        {
-          "name": "P/C Ratio",
-          "score": 5,
-          "level": "bear",
-          "value": 0.765
+          "score": 10,
+          "level": "neutral",
+          "value": 0
         },
         {
           "name": "分點漲停",
@@ -3455,11 +3449,11 @@
         },
         {
           "name": "結算日壓力",
-          "score": 20,
-          "level": "extreme-bull",
+          "score": 10,
+          "level": "neutral",
           "value": {
             "days_to_settle": -1,
-            "foreign_eq_oi": -78910
+            "foreign_eq_oi": 0
           }
         }
       ],
