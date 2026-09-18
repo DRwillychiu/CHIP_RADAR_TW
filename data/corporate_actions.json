@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-18T03:29:45.193260+08:00",
+  "updated_at": "2026-09-19T01:19:45.222755+08:00",
   "actions": {
     "1441": [
       {
@@ -21,28 +21,6 @@
         "factor": 0.519644,
         "confidence": "official",
         "source": "TWSE_TWTAUU"
-      }
-    ],
-    "4549": [
-      {
-        "date": "20260908",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.02,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
-      }
-    ],
-    "6590": [
-      {
-        "date": "20260908",
-        "type": "exright_stock_dividend",
-        "pre_price": null,
-        "post_price": null,
-        "factor": 1.150036,
-        "confidence": "official",
-        "source": "TPEX_exright_prepost"
       }
     ],
     "1815": [
@@ -516,6 +494,19 @@
         "factor": 1.158163,
         "confidence": "inferred",
         "raw_move_pct": -13.66,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
+    "6590": [
+      {
+        "date": "20260908",
+        "type": "detected_gap",
+        "pre_price": 67.0,
+        "post_price": 58.9,
+        "factor": 1.137521,
+        "confidence": "inferred",
+        "raw_move_pct": -12.09,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -4561,8 +4552,8 @@
     ]
   },
   "stats": {
-    "official": 6,
-    "inferred": 356,
-    "merged_dup": 5
+    "official": 4,
+    "inferred": 357,
+    "merged_dup": 4
   }
 }
