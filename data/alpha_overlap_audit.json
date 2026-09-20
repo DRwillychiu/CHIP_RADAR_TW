@@ -1,38 +1,38 @@
 {
-  "updated_at": "2026-08-23T14:20:29.786845",
-  "days_analyzed": 50,
+  "updated_at": "2026-09-20T17:17:13.450913",
+  "days_analyzed": 47,
   "summary": {
-    "mild_only_pct": 64.33566433566433,
-    "both_overlap_pct_of_quad": 22.566371681415927,
+    "mild_only_pct": 80.53691275167785,
+    "both_overlap_pct_of_quad": 27.61904761904762,
     "verdict": "雙層獨立 — mild_up 大部分非 quad subset, 維持雙層 sub-banner 合理"
   },
   "buckets": {
     "quad_only": {
-      "n": 175,
-      "hits": 86,
-      "hit_rate": 0.49142857142857144,
-      "mean_change": 1.0281714285714285,
-      "median_change": 0.0
+      "n": 76,
+      "hits": 33,
+      "hit_rate": 0.4342105263157895,
+      "mean_change": -0.41828947368421016,
+      "median_change": -0.795
     },
     "both": {
-      "n": 51,
-      "hits": 22,
-      "hit_rate": 0.43137254901960786,
-      "mean_change": -0.6172549019607846,
-      "median_change": -0.83
+      "n": 29,
+      "hits": 11,
+      "hit_rate": 0.3793103448275862,
+      "mean_change": -0.8834482758620689,
+      "median_change": -1.34
     },
     "mild_up_only": {
-      "n": 92,
-      "hits": 29,
-      "hit_rate": 0.31521739130434784,
-      "mean_change": -1.2944565217391302,
-      "median_change": -1.745
+      "n": 120,
+      "hits": 45,
+      "hit_rate": 0.375,
+      "mean_change": -0.7331666666666669,
+      "median_change": -0.6799999999999999
     }
   },
   "per_day": [
     {
-      "date": "20260528",
-      "next_date": "20260529",
+      "date": "20260626",
+      "next_date": "20260629",
       "quad_n": 12,
       "mild_n": 0,
       "intersection": 0,
@@ -40,192 +40,21 @@
       "mild_only": 0
     },
     {
-      "date": "20260529",
-      "next_date": "20260601",
-      "quad_n": 9,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 9,
-      "mild_only": 0
-    },
-    {
-      "date": "20260601",
-      "next_date": "20260602",
-      "quad_n": 11,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 11,
-      "mild_only": 0
-    },
-    {
-      "date": "20260602",
-      "next_date": "20260603",
-      "quad_n": 10,
-      "mild_n": 3,
-      "intersection": 3,
-      "quad_only": 7,
-      "mild_only": 0
-    },
-    {
-      "date": "20260603",
-      "next_date": "20260604",
-      "quad_n": 12,
-      "mild_n": 2,
-      "intersection": 2,
-      "quad_only": 10,
-      "mild_only": 0
-    },
-    {
-      "date": "20260604",
-      "next_date": "20260605",
-      "quad_n": 12,
-      "mild_n": 6,
-      "intersection": 6,
-      "quad_only": 6,
-      "mild_only": 0
-    },
-    {
-      "date": "20260605",
-      "next_date": "20260608",
-      "quad_n": 0,
-      "mild_n": 2,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 2
-    },
-    {
-      "date": "20260608",
-      "next_date": "20260609",
-      "quad_n": 8,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 8,
-      "mild_only": 0
-    },
-    {
-      "date": "20260609",
-      "next_date": "20260610",
-      "quad_n": 11,
-      "mild_n": 3,
-      "intersection": 3,
-      "quad_only": 8,
-      "mild_only": 0
-    },
-    {
-      "date": "20260610",
-      "next_date": "20260611",
-      "quad_n": 10,
-      "mild_n": 1,
-      "intersection": 1,
-      "quad_only": 9,
-      "mild_only": 0
-    },
-    {
-      "date": "20260611",
-      "next_date": "20260612",
-      "quad_n": 0,
-      "mild_n": 1,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 1
-    },
-    {
-      "date": "20260612",
-      "next_date": "20260615",
-      "quad_n": 0,
-      "mild_n": 3,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 3
-    },
-    {
-      "date": "20260615",
-      "next_date": "20260616",
-      "quad_n": 0,
-      "mild_n": 1,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 1
-    },
-    {
-      "date": "20260616",
-      "next_date": "20260617",
-      "quad_n": 7,
-      "mild_n": 4,
-      "intersection": 4,
-      "quad_only": 3,
-      "mild_only": 0
-    },
-    {
-      "date": "20260617",
-      "next_date": "20260618",
-      "quad_n": 0,
-      "mild_n": 5,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 5
-    },
-    {
-      "date": "20260618",
-      "next_date": "20260622",
-      "quad_n": 9,
-      "mild_n": 4,
-      "intersection": 4,
-      "quad_only": 5,
-      "mild_only": 0
-    },
-    {
-      "date": "20260622",
-      "next_date": "20260623",
-      "quad_n": 11,
-      "mild_n": 1,
-      "intersection": 1,
-      "quad_only": 10,
-      "mild_only": 0
-    },
-    {
-      "date": "20260624",
-      "next_date": "20260625",
-      "quad_n": 10,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 10,
-      "mild_only": 0
-    },
-    {
-      "date": "20260625",
-      "next_date": "20260626",
-      "quad_n": 0,
-      "mild_n": 3,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 3
-    },
-    {
-      "date": "20260626",
-      "next_date": "20260629",
-      "quad_n": 12,
-      "mild_n": 1,
-      "intersection": 1,
-      "quad_only": 11,
-      "mild_only": 0
-    },
-    {
       "date": "20260629",
       "next_date": "20260630",
       "quad_n": 0,
-      "mild_n": 2,
+      "mild_n": 0,
       "intersection": 0,
       "quad_only": 0,
-      "mild_only": 2
+      "mild_only": 0
     },
     {
       "date": "20260630",
       "next_date": "20260701",
       "quad_n": 12,
-      "mild_n": 1,
-      "intersection": 1,
-      "quad_only": 11,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 12,
       "mild_only": 0
     },
     {
@@ -479,6 +308,150 @@
       "intersection": 0,
       "quad_only": 0,
       "mild_only": 2
+    },
+    {
+      "date": "20260821",
+      "next_date": "20260824",
+      "quad_n": 0,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 0
+    },
+    {
+      "date": "20260824",
+      "next_date": "20260825",
+      "quad_n": 0,
+      "mild_n": 3,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 3
+    },
+    {
+      "date": "20260825",
+      "next_date": "20260826",
+      "quad_n": 0,
+      "mild_n": 5,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 5
+    },
+    {
+      "date": "20260826",
+      "next_date": "20260827",
+      "quad_n": 0,
+      "mild_n": 7,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 7
+    },
+    {
+      "date": "20260827",
+      "next_date": "20260828",
+      "quad_n": 0,
+      "mild_n": 3,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 3
+    },
+    {
+      "date": "20260828",
+      "next_date": "20260831",
+      "quad_n": 0,
+      "mild_n": 4,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 4
+    },
+    {
+      "date": "20260831",
+      "next_date": "20260901",
+      "quad_n": 0,
+      "mild_n": 5,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 5
+    },
+    {
+      "date": "20260901",
+      "next_date": "20260902",
+      "quad_n": 11,
+      "mild_n": 4,
+      "intersection": 4,
+      "quad_only": 7,
+      "mild_only": 0
+    },
+    {
+      "date": "20260904",
+      "next_date": "20260907",
+      "quad_n": 0,
+      "mild_n": 3,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 3
+    },
+    {
+      "date": "20260907",
+      "next_date": "20260908",
+      "quad_n": 0,
+      "mild_n": 2,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 2
+    },
+    {
+      "date": "20260908",
+      "next_date": "20260909",
+      "quad_n": 0,
+      "mild_n": 4,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 4
+    },
+    {
+      "date": "20260909",
+      "next_date": "20260910",
+      "quad_n": 0,
+      "mild_n": 4,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 4
+    },
+    {
+      "date": "20260914",
+      "next_date": "20260915",
+      "quad_n": 0,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 0
+    },
+    {
+      "date": "20260915",
+      "next_date": "20260916",
+      "quad_n": 0,
+      "mild_n": 1,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 1
+    },
+    {
+      "date": "20260916",
+      "next_date": "20260917",
+      "quad_n": 0,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 0
+    },
+    {
+      "date": "20260917",
+      "next_date": "20260918",
+      "quad_n": 0,
+      "mild_n": 4,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 4
     }
   ]
 }
