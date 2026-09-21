@@ -1,6 +1,6 @@
 {
- "trade_date": "20260918",
- "updated_at": "2026-09-20T21:31:13.702294+08:00",
+ "trade_date": "20260921",
+ "updated_at": "2026-09-21T21:34:38.659419+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -2714,8 +2714,7 @@
     "short_quota": 65871,
     "short_usage": 0.39,
     "offsetting": 6,
-    "margin_short_ratio": 2.05,
-    "industry": "半導體業"
+    "margin_short_ratio": 2.05
    },
    {
     "code": "6190",
@@ -4265,7 +4264,8 @@
     "short_quota": 26887,
     "short_usage": 0.04,
     "offsetting": 1,
-    "margin_short_ratio": 0.08
+    "margin_short_ratio": 0.08,
+    "industry": "電子零組件業"
    },
    {
     "code": "3563",
@@ -5010,38 +5010,13 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1672,
-   "watch": 84,
-   "high_risk": 2,
+   "healthy": 1196,
+   "watch": 23,
+   "high_risk": 0,
    "margin_call": 0,
-   "insufficient_data": 458
+   "insufficient_data": 997
   },
-  "high_risk_stocks": [
-   {
-    "code": "2233",
-    "name": "宇隆",
-    "ratio": 125.1,
-    "risk_level": "high_risk",
-    "margin_balance": 2924,
-    "today_close": 162.0,
-    "estimated_cost": 215.83,
-    "cost_adjusted_for_corp_action": true,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   },
-   {
-    "code": "2483",
-    "name": "百容",
-    "ratio": 126.0,
-    "risk_level": "high_risk",
-    "margin_balance": 2061,
-    "today_close": 33.0,
-    "estimated_cost": 43.66,
-    "cost_adjusted_for_corp_action": true,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   }
-  ],
+  "high_risk_stocks": [],
   "thresholds": {
    "healthy": "≥150%",
    "watch": "130-150%",
