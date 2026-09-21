@@ -99,7 +99,8 @@ check("clear_buffer 回傳 1", cleared == 1)
 # ─────────────────────────────────────────────────────────────────────
 print("\n[Workflow scripts]")
 import pre_market_brief
-brief = pre_market_brief.build_brief(data_dir='data')
+# v3.79.1: write=False — 否則每跑一次測試就覆寫 production pre_market_brief.json
+brief = pre_market_brief.build_brief(data_dir='data', write=False)
 check("brief 含 master_movers_top3", 'master_movers_top3' in brief)
 check("brief 含 settlement", 'settlement' in brief)
 check("settlement.days_to_next 是 int", isinstance(brief['settlement']['days_to_next'], int))

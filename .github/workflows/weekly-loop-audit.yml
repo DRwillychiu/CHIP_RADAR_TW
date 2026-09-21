@@ -112,13 +112,11 @@ jobs:
       - name: Summary
         run: |
           echo "=== LOOP audit summary ==="
+          # v3.79.1 修: 原本 python -c 的內容因為包在 if 裡多一層縮排,
+          #   YAML 剝除共同縮排後 python 收到帶前導空白的程式碼 → IndentationError.
+          #   (對照: daily-full / phase34-combo-explore / settlement-tracking 的
+          #    python -c 與內容同縮排層, 剝除後為 0, 所以那三處正常.)
+          #   此處改單行 python -c, 結構上不可能再犯縮排問題.
           if [ -f data/multiday_backtest.json ]; then
-            python -c "
-            import json
-            d = json.load(open('data/multiday_backtest.json','r',encoding='utf-8'))
-            n = d.get('n_total', 0)
-            allq = d.get('combos', {}).get('all_quad', {}).get('all', {})
-            peak = allq.get('peak_5d', {})
-            print(f'Multiday n_total={n}, peak_5d hit={peak.get(\"hit_rate\",0)*100:.1f}%')
-            "
+            python -c "import json; d=json.load(open('data/multiday_backtest.json',encoding='utf-8')); p=d.get('combos',{}).get('all_quad',{}).get('all',{}).get('peak_5d',{}); print('Multiday n_total=%s, peak_5d hit=%.1f%%' % (d.get('n_total',0), p.get('hit_rate',0)*100))"
           fi

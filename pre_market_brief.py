@@ -98,7 +98,15 @@ def _days_to_settlement(now_dt: datetime):
     return min(relevant, key=abs)
 
 
-def build_brief(data_dir: str = 'data'):
+def build_brief(data_dir: str = 'data', write: bool = True):
+    """組盤前簡報. write=False 只回傳 dict 不落地 (測試用).
+
+    v3.79.1: 加 write 參數. 原因是 tests/test_v3410_sprint4.py 呼叫
+    build_brief(data_dir='data') 驗結構, 但本函式讀寫同一個 data_dir,
+    於是每跑一次測試就用「測試執行當下」的時間戳覆寫 production 的
+    pre_market_brief.json (同 v3.72.2 test_v3308 污染 daily_trading_signals
+    那類 bug). 讀寫共用 data_dir 無法靠換目錄隔離, 故以旗標分離副作用.
+    """
     dd = Path(data_dir)
     now = now_tw()
 
@@ -128,11 +136,12 @@ def build_brief(data_dir: str = 'data'):
         'source': 'pre_market_brief.py (Sprint 4 C1)',
     }
 
-    out = dd / 'pre_market_brief.json'
-    out.parent.mkdir(exist_ok=True)
-    tmp = out.with_suffix('.tmp')
-    tmp.write_text(json.dumps(brief, ensure_ascii=False, indent=2), encoding='utf-8')
-    tmp.replace(out)
+    if write:
+        out = dd / 'pre_market_brief.json'
+        out.parent.mkdir(exist_ok=True)
+        tmp = out.with_suffix('.tmp')
+        tmp.write_text(json.dumps(brief, ensure_ascii=False, indent=2), encoding='utf-8')
+        tmp.replace(out)
     return brief
 
 

@@ -1,6 +1,12 @@
-# Chip Radar TW 依賴釘版 — v3.40.0 (B3 機構級)
-# 釘上下界防 RCE/CVE 自動升入 main; 升版時手動跑 pip-audit + 全套迴歸
-# 上限是次主版本 (allow minor + patch, block major break)
+# Chip Radar TW - pinned dependencies (v3.40.0, B3 institutional)
+# Pin both bounds so a major-version bump cannot land in main unreviewed;
+# on upgrade run pip-audit + the full regression suite manually.
+# Upper bound = next major (allow minor + patch, block breaking major).
+#
+# v3.79.1: comments kept ASCII-only on purpose. pip_requirements_parser's
+# auto_decode() reads this file with the locale default encoding, so CJK
+# comments raise UnicodeDecodeError on any non-UTF-8 locale and pip-audit
+# dies before it ever checks a CVE. ASCII decodes under every encoding.
 requests>=2.31.0,<3.0
 cryptography>=43.0,<46.0
 openpyxl>=3.1,<4.0

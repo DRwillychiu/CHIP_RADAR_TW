@@ -6,8 +6,10 @@ name: 8. Intraday Settlement First Look (13:35 TW)
 
 on:
   schedule:
-    # 週二-六 UTC 05:35 = TW 13:35 (盤後 5 分鐘)
-    - cron: '35 5 * * 2-6'
+    # 週一-五 UTC 05:35 = TW 13:35 (盤後 5 分鐘)
+    # v3.79.1 修: 原為 '2-6' (TW 週二~週六) → 每週一無盤中回顧, 週六空跑.
+    #   UTC 05:35 與 TW 13:35 同日, 故用 1-5 正確對應台股交易日.
+    - cron: '35 5 * * 1-5'
   workflow_dispatch:
 
 permissions:
