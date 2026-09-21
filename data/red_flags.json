@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T02:58:22.036337+08:00",
+  "generated_at": "2026-09-22T03:55:20.175292+08:00",
   "trade_date": "20260921",
   "pump_suspicion": [
     {
@@ -358,23 +358,6 @@
     {
       "stock_code": "2408",
       "stock_name": "南亞科",
-      "buy_branch_code": "9A9G",
-      "buy_master": "永豐天母(老錢)",
-      "sell_branch_code": "913Y",
-      "sell_master": "江士勳",
-      "buy_lot": 53,
-      "sell_lot": 75,
-      "buy_amt_wan": 2731,
-      "sell_amt_wan": 3913,
-      "lot_match_ratio": 0.71,
-      "same_master": false,
-      "rule": "B_wash",
-      "severity": "medium",
-      "reasoning": "9A9G 買 53 張 vs 913Y 賣 75 張 (匹配 71%)"
-    },
-    {
-      "stock_code": "2408",
-      "stock_name": "南亞科",
       "buy_branch_code": "1440",
       "buy_master": "美林",
       "sell_branch_code": "1650",
@@ -558,6 +541,23 @@
       "rule": "B_wash",
       "severity": "medium",
       "reasoning": "779Z 買 87 張 vs 8450 賣 108 張 (匹配 81%)"
+    },
+    {
+      "stock_code": "6770",
+      "stock_name": "力積電",
+      "buy_branch_code": "779Z",
+      "buy_master": "張濬安(航海王)",
+      "sell_branch_code": "7003",
+      "sell_master": "劉子豪",
+      "buy_lot": 87,
+      "sell_lot": 108,
+      "buy_amt_wan": 632,
+      "sell_amt_wan": 795,
+      "lot_match_ratio": 0.81,
+      "same_master": false,
+      "rule": "B_wash",
+      "severity": "medium",
+      "reasoning": "779Z 買 87 張 vs 7003 賣 108 張 (匹配 81%)"
     }
   ],
   "distribution": [],
