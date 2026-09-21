@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-21T21:30:13.018895+08:00",
+  "updated_at": "2026-09-21T22:50:35.664653+08:00",
   "actions": {
     "1441": [
       {
@@ -162,6 +162,19 @@
         "factor": 0.831325,
         "confidence": "inferred",
         "raw_move_pct": 20.29,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
+    "3710": [
+      {
+        "date": "20260921",
+        "type": "detected_gap",
+        "pre_price": 5.13,
+        "post_price": 7.6,
+        "factor": 0.675,
+        "confidence": "inferred",
+        "raw_move_pct": 48.15,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -554,6 +567,19 @@
         "bad_data_dates": []
       }
     ],
+    "8059": [
+      {
+        "date": "20260921",
+        "type": "detected_gap",
+        "pre_price": 13.4,
+        "post_price": 20.15,
+        "factor": 0.665012,
+        "confidence": "inferred",
+        "raw_move_pct": 50.37,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
     "8064": [
       {
         "date": "20260910",
@@ -576,6 +602,19 @@
         "factor": 0.828452,
         "confidence": "inferred",
         "raw_move_pct": 20.71,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
+    "8277": [
+      {
+        "date": "20260921",
+        "type": "detected_gap",
+        "pre_price": 8.05,
+        "post_price": 16.85,
+        "factor": 0.477745,
+        "confidence": "inferred",
+        "raw_move_pct": 109.32,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -1223,19 +1262,6 @@
         "bad_data_dates": []
       }
     ],
-    "2427": [
-      {
-        "date": "20260702",
-        "type": "detected_gap",
-        "pre_price": 21.75,
-        "post_price": 24.25,
-        "factor": 0.896907,
-        "confidence": "inferred",
-        "raw_move_pct": 11.49,
-        "source": "price_series",
-        "bad_data_dates": []
-      }
-    ],
     "2428": [
       {
         "date": "20260729",
@@ -1698,19 +1724,6 @@
         "factor": 0.828413,
         "confidence": "inferred",
         "raw_move_pct": 20.71,
-        "source": "price_series",
-        "bad_data_dates": []
-      }
-    ],
-    "3027": [
-      {
-        "date": "20260701",
-        "type": "detected_gap",
-        "pre_price": 20.1,
-        "post_price": 22.35,
-        "factor": 0.899329,
-        "confidence": "inferred",
-        "raw_move_pct": 11.19,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -2462,17 +2475,6 @@
     ],
     "4540": [
       {
-        "date": "20260702",
-        "type": "detected_gap",
-        "pre_price": 55.4,
-        "post_price": 62.3,
-        "factor": 0.889246,
-        "confidence": "inferred",
-        "raw_move_pct": 12.45,
-        "source": "price_series",
-        "bad_data_dates": []
-      },
-      {
         "date": "20260806",
         "type": "detected_gap",
         "pre_price": 45.35,
@@ -2662,19 +2664,6 @@
         "factor": 1.14963,
         "confidence": "inferred",
         "raw_move_pct": -13.02,
-        "source": "price_series",
-        "bad_data_dates": []
-      }
-    ],
-    "4915": [
-      {
-        "date": "20260629",
-        "type": "detected_gap",
-        "pre_price": 73.5,
-        "post_price": 65.0,
-        "factor": 1.130769,
-        "confidence": "inferred",
-        "raw_move_pct": -11.56,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -3923,17 +3912,6 @@
     ],
     "6937": [
       {
-        "date": "20260702",
-        "type": "detected_gap",
-        "pre_price": 250.0,
-        "post_price": 291.5,
-        "factor": 0.857633,
-        "confidence": "inferred",
-        "raw_move_pct": 16.6,
-        "source": "price_series",
-        "bad_data_dates": []
-      },
-      {
         "date": "20260716",
         "type": "detected_gap",
         "pre_price": 258.5,
@@ -4616,7 +4594,7 @@
   },
   "stats": {
     "official": 2,
-    "inferred": 364,
+    "inferred": 362,
     "merged_dup": 4
   }
 }
