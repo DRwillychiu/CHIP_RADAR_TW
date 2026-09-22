@@ -267,7 +267,9 @@ MASTER_MAPPING: List[Dict] = [
         "name": "蔣承翰",
         "header_label": "分點",
         "branches": [
-            ("9227", "凱基-城中"),
+            # v3.79.3: (UC) 尾綴須與 branches.py canonical 一致, 否則
+            # _validate_master_mapping_vs_branches 會噴 master_mapping-name warning
+            ("9227", "凱基-城中(UC)"),
             ("9B18", "台新-建北"),
             ("9A9S", "永豐金-南京"),
         ],
