@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T23:49:03.378097+08:00",
+  "generated_at": "2026-09-23T01:51:34.699704+08:00",
   "trade_date": "20260922",
   "pump_suspicion": [
     {
@@ -547,6 +547,21 @@
       "reasoning": "當日賣 16,386 張 (30 天均 1910 張 × 8.6) + 近 5 天漲停 145 次"
     },
     {
+      "stock_code": "7711",
+      "stock_name": "永擎",
+      "branch_code": "9A9g",
+      "branch_name": "永豐金-內湖",
+      "master": "陳族元",
+      "sell_lot": 50,
+      "sell_amt_wan": 2710,
+      "avg_30d_sell_lot": 6.5,
+      "sell_vs_avg_x": 7.7,
+      "recent_5d_limit_up_count": 9,
+      "rule": "C_distribution",
+      "severity": "medium",
+      "reasoning": "當日賣 50 張 (30 天均 6 張 × 7.7) + 近 5 天漲停 9 次"
+    },
+    {
       "stock_code": "2409",
       "stock_name": "友達",
       "branch_code": "779c",
@@ -560,6 +575,21 @@
       "rule": "C_distribution",
       "severity": "medium",
       "reasoning": "當日賣 5,867 張 (30 天均 915 張 × 6.4) + 近 5 天漲停 145 次"
+    },
+    {
+      "stock_code": "3037",
+      "stock_name": "欣興",
+      "branch_code": "9A9G",
+      "branch_name": "永豐金-天母",
+      "master": "永豐天母(老錢)",
+      "sell_lot": 166,
+      "sell_amt_wan": 18560,
+      "avg_30d_sell_lot": 29.1,
+      "sell_vs_avg_x": 5.7,
+      "recent_5d_limit_up_count": 62,
+      "rule": "C_distribution",
+      "severity": "medium",
+      "reasoning": "當日賣 166 張 (30 天均 29 張 × 5.7) + 近 5 天漲停 62 次"
     },
     {
       "stock_code": "2409",
@@ -580,8 +610,8 @@
   "summary": {
     "pump_count": 1,
     "wash_count": 30,
-    "distribution_count": 3,
-    "total": 34
+    "distribution_count": 5,
+    "total": 36
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
