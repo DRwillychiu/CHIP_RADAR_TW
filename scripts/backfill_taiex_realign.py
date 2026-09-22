@@ -92,8 +92,20 @@ def main() -> int:
         print('X stock_history.market 是空的'); return 1
 
     dates = sorted(market)
-    months = sorted({d[:6] for d in dates})
+
+    # v3.79.5 修: 補洞邊界原本取自 market 自己 (dates[-1]), 於是
+    #   `if d > dates[-1]: continue` 讓本 script 永遠無法延伸到 market
+    #   最後一筆之後 — 只能補中間的洞, 補不了「尾端缺的那幾天」.
+    #   實測 2026-09-22: market 停在 0918, 交易日已到 0922, 缺 15 天但
+    #   只補得到 13 天, 0921/0922 被自己的邊界擋在外面.
+    #   正確邊界是「我們實際有個股資料的交易日」= stock_history["dates"].
+    track_dates = sorted(sh.get('dates') or [])
+    if not track_dates:
+        track_dates = dates
+    lo, hi = track_dates[0], track_dates[-1]
+    months = sorted({d[:6] for d in track_dates} | {d[:6] for d in dates})
     print(f'現有 market: {len(dates)} 筆, {dates[0]} ~ {dates[-1]}')
+    print(f'追蹤交易日: {len(track_dates)} 筆, {lo} ~ {hi}  (補洞邊界用這個)')
     print(f'抓取官方月份: {months}')
     off = fetch_official(months)
     print(f'官方取得 {len(off)} 個交易日\n')
@@ -119,7 +131,7 @@ def main() -> int:
     # ── 2. 重建 market ──
     new_market: dict[str, dict] = {}
     for i, d in enumerate(offd):
-        if d < dates[0] or d > dates[-1]:
+        if d < lo or d > hi:       # v3.79.5: 邊界改用追蹤交易日 (見上方註解)
             continue
         idx = off[d]
         prev = off[offd[i - 1]] if i > 0 else None

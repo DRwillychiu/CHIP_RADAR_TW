@@ -50,8 +50,10 @@ TW_TZ = timezone(timedelta(hours=8))
 HISTORY_FILE = 'stock_history.json'
 MAX_DAYS = 60  # v3.44.0: 30 → 60 配合 master_profile B3 時間衰減 60 天視窗 + 給 margin_maintenance 60 日均價選項
 
-# TWSE 大盤指數 API (FMTQIK 或 MI_INDEX)
+# TWSE 大盤指數 API
+# v3.79.5: FMTQIK 升為主要來源, MI_INDEX 降為備援. 見 _fetch_taiex_fmtqik docstring.
 TAIEX_URL = 'https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX'
+FMTQIK_URL = 'https://www.twse.com.tw/rwd/zh/afterTrading/FMTQIK?date={ym}01&response=json'
 
 
 def _yyyymmdd_to_roc(yyyymmdd: str) -> str:
@@ -160,6 +162,76 @@ def _fetch_taiex_index(expected_trade_date: str = None,
             if attempt < max_retries - 1:
                 time.sleep(5)
 
+    return None
+
+
+def _fetch_taiex_fmtqik(trade_date: str, timeout: int = 25) -> Optional[Dict[str, float]]:
+    """v3.79.5: 用 TWSE FMTQIK (盤後日成交統計) 抓指定交易日的加權指數.
+
+    為什麼把 FMTQIK 升為主要來源 (2026-09-22 稽核):
+      v3.76.0 修好 MI_INDEX 的 stale guard 之後, 問題從「寫入錯誤資料」
+      變成「幾乎沒有資料」— 60 個交易日有 15 天 (25%) 缺大盤, 且 8/31 起
+      幾乎全缺. 實測原因: 爬蟲時段 (延遲後約 TW 01:00-04:00) 去打 MI_INDEX,
+      它回的還是前一交易日, guard 正確擋下 → 該日就沒有大盤資料.
+      (實測 2026-09-22 23:30 呼叫仍回 1150921.)
+
+      FMTQIK 則是逐月回傳「已公布的每個交易日」, 同一時點實測已含 20260922
+      (收盤 47,800.17). 它也是 v3.76.0 backfill script 用來修復 55 筆歷史
+      資料的來源, 可靠性已驗證過.
+
+    回傳欄位刻意與 _fetch_taiex_index 對齊, 讓 update_history 不必分支:
+      {"index": 47800.17, "change_pct": 0.17, "quote_date": "1150922",
+       "source_api": "fmtqik"}
+
+    change_pct 用 FMTQIK 自己的「漲跌點數」÷ 前收算, 但 update_history
+    仍會用前一交易日 index 重算並覆蓋 (延續 v3.43.0「不信 API sign」原則).
+
+    Returns: dict 或 None (該月抓不到 / 該日尚未公布)
+    """
+    ym = trade_date[:6]
+    try:
+        from safe_fetch import safe_get
+        r = safe_get(FMTQIK_URL.format(ym=ym), source_id='TWSE_FMTQIK',
+                     max_retries=2, timeout=timeout,
+                     headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'zh-TW'})
+    except ImportError:
+        r = requests.get(FMTQIK_URL.format(ym=ym), timeout=timeout,
+                         headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'zh-TW'})
+    except Exception as e:
+        print(f"    ⚠️ FMTQIK 抓取失敗: {type(e).__name__}: {e}")
+        return None
+    try:
+        j = r.json()
+    except Exception:
+        return None
+    if j.get('stat') != 'OK':
+        print(f"    ⚠️ FMTQIK stat={j.get('stat')}")
+        return None
+
+    # data row: [日期(民國), 成交股數, 成交金額, 成交筆數, 加權指數, 漲跌點數]
+    for row in (j.get('data') or []):
+        try:
+            parts = str(row[0]).split('/')
+            if len(parts) != 3:
+                continue
+            d = f"{int(parts[0]) + 1911}{parts[1]}{parts[2]}"
+            if d != trade_date:
+                continue
+            close = float(str(row[4]).replace(',', ''))
+            chg_pts = float(str(row[5]).replace(',', '').replace('+', ''))
+            prev_close = close - chg_pts
+            pct = round(chg_pts / prev_close * 100, 2) if prev_close else 0.0
+            return {
+                "index": close,
+                "change_pct": pct,
+                "raw_pct_abs": abs(pct),
+                "raw_sign": '-' if chg_pts < 0 else '+',
+                "quote_date": f"{parts[0]}{parts[1]}{parts[2]}",
+                "source_api": "fmtqik",
+            }
+        except (ValueError, IndexError, TypeError):
+            continue
+    print(f"    ⚠️ FMTQIK 該月資料無 {trade_date} (可能尚未公布)")
     return None
 
 
@@ -331,9 +403,18 @@ def update_history(
         }
     print(f"  ✓ 運算 {len(industry_stats)} 個產業平均")
     
-    # 4. 抓大盤指數 (v3.27.3: 傳 trade_date 偵測 stale)
-    print(f"  [大盤] 抓取 TWSE 加權指數...")
-    taiex = _fetch_taiex_index(expected_trade_date=trade_date)
+    # 4. 抓大盤指數
+    #   v3.27.3: 傳 trade_date 偵測 stale
+    #   v3.79.5: FMTQIK 主 / MI_INDEX 備援. v3.76.0 修好 guard 後,
+    #     MI_INDEX 在爬蟲時段多半還沒更新 → guard 擋下 → 25% 交易日沒有大盤.
+    #     FMTQIK 同時點已有當日資料, 故改為優先.
+    print(f"  [大盤] 抓取 TWSE 加權指數 (FMTQIK 優先)...")
+    taiex = _fetch_taiex_fmtqik(trade_date)
+    if taiex:
+        print(f"    ✓ FMTQIK 命中 {trade_date}")
+    else:
+        print(f"    → FMTQIK 無資料, 退回 MI_INDEX")
+        taiex = _fetch_taiex_index(expected_trade_date=trade_date)
     if taiex:
         # v3.43.0 fix: 用前日 index 自己算 signed change_pct (絕對事實)
         # v3.45.0 (運4): 若 index 跟前日完全相同 (兜底排程在 TWSE 還沒更新前跑) →
