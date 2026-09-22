@@ -1,5 +1,5 @@
 {
- "count": 35,
+ "count": 28,
  "by_code": {
   "00400A": {
    "ex_date": "20261008",
@@ -15,27 +15,6 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
-  "00710B": {
-   "ex_date": "20260917",
-   "name": "復華彭博非投等債",
-   "type": "息",
-   "cash_dividend": 0.39,
-   "stock_dividend_pct": 0.0
-  },
-  "00711B": {
-   "ex_date": "20260917",
-   "name": "復華彭博新興債",
-   "type": "息",
-   "cash_dividend": 0.2,
-   "stock_dividend_pct": 0.0
-  },
-  "00712": {
-   "ex_date": "20260917",
-   "name": "復華富時不動產",
-   "type": "息",
-   "cash_dividend": 0.2,
-   "stock_dividend_pct": 0.0
-  },
   "00713": {
    "ex_date": "20260921",
    "name": "元大台灣高息低波",
@@ -43,32 +22,11 @@
    "cash_dividend": 1.25,
    "stock_dividend_pct": 0.0
   },
-  "00728": {
-   "ex_date": "20260918",
-   "name": "第一金工業30",
-   "type": "息",
-   "cash_dividend": 0.77,
-   "stock_dividend_pct": 0.0
-  },
-  "00918": {
-   "ex_date": "20260918",
-   "name": "大華優利高填息30",
-   "type": "息",
-   "cash_dividend": 1.75,
-   "stock_dividend_pct": 0.0
-  },
-  "00929": {
-   "ex_date": "20260917",
-   "name": "復華台灣科技優息",
-   "type": "息",
-   "cash_dividend": 0.38,
-   "stock_dividend_pct": 0.0
-  },
   "00930": {
    "ex_date": "20260923",
    "name": "永豐ESG低碳高息",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 0.815,
    "stock_dividend_pct": 0.0
   },
   "00939": {
@@ -113,13 +71,6 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
-  "00994A": {
-   "ex_date": "20260918",
-   "name": "主動第一金台股優",
-   "type": "息",
-   "cash_dividend": 0.257,
-   "stock_dividend_pct": 0.0
-  },
   "01004T": {
    "ex_date": "20260930",
    "name": "土銀富邦R2",
@@ -140,6 +91,13 @@
    "type": "息",
    "cash_dividend": 2.4,
    "stock_dividend_pct": 0.0
+  },
+  "1449": {
+   "ex_date": "20261012",
+   "name": "佳和",
+   "type": "權",
+   "cash_dividend": 0.0,
+   "stock_dividend_pct": 0.00999999
   },
   "1808": {
    "ex_date": "20260923",
@@ -197,13 +155,6 @@
    "cash_dividend": 1.007326,
    "stock_dividend_pct": 0.0
   },
-  "5306": {
-   "ex_date": "20260917",
-   "name": "桂盟",
-   "type": "息",
-   "cash_dividend": 1.074628,
-   "stock_dividend_pct": 0.0
-  },
   "6108": {
    "ex_date": "20261007",
    "name": "競國",
@@ -256,20 +207,8 @@
    "00939",
    "00984D"
   ],
-  "20260917": [
-   "00710B",
-   "00711B",
-   "00712",
-   "00929",
-   "5306"
-  ],
   "20260921": [
    "00713"
-  ],
-  "20260918": [
-   "00728",
-   "00918",
-   "00994A"
   ],
   "20260923": [
    "00930",
@@ -293,6 +232,9 @@
   "20260924": [
    "1235"
   ],
+  "20261012": [
+   "1449"
+  ],
   "20260929": [
    "2109",
    "7631"
@@ -314,19 +256,11 @@
  },
  "upcoming_30d": [
   {
-   "code": "00713",
-   "ex_date": "20260921",
-   "name": "元大台灣高息低波",
-   "type": "息",
-   "cash_dividend": 1.25,
-   "stock_dividend_pct": 0.0
-  },
-  {
    "code": "00930",
    "ex_date": "20260923",
    "name": "永豐ESG低碳高息",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 0.815,
    "stock_dividend_pct": 0.0
   },
   {
@@ -520,8 +454,16 @@
    "type": "息",
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "1449",
+   "ex_date": "20261012",
+   "name": "佳和",
+   "type": "權",
+   "cash_dividend": 0.0,
+   "stock_dividend_pct": 0.00999999
   }
  ],
- "fetched_at": "2026-09-21T21:35:32.963714+08:00",
+ "fetched_at": "2026-09-22T22:29:53.591481+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }
