@@ -8,6 +8,13 @@
 # comments raise UnicodeDecodeError on any non-UTF-8 locale and pip-audit
 # dies before it ever checks a CVE. ASCII decodes under every encoding.
 requests>=2.31.0,<3.0
-cryptography>=43.0,<46.0
+# v3.79.2: lower bound 43.0 -> 46.0.7 for PYSEC-2026-36 (CVE-2026-39892).
+# That advisory patches CffiBuf (src/rust/src/buf.rs), the shared buffer
+# layer that AESGCM.encrypt/decrypt and PBKDF2HMAC.derive both take their
+# arguments through, so it does apply to us even though the advisory text
+# only cites Hash.update(). The other 6 findings pip-audit reports are
+# assessed NOT APPLICABLE - see docs/SECURITY_EXCEPTIONS.md for the
+# per-advisory rationale and the review triggers that would reopen them.
+cryptography>=46.0.7,<47.0
 openpyxl>=3.1,<4.0
 pyyaml>=6.0,<7.0

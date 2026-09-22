@@ -34,10 +34,23 @@ jobs:
 
       # P0-7 (v3.38.0): 嚴格化 — 移除 || true 和 continue-on-error
       # CVE / vulnerability 必 fail workflow, 防無感放行進 main
+      # v3.79.2: --ignore-vuln 的每一條都在 docs/SECURITY_EXCEPTIONS.md 有
+      #   逐條不適用理由 + 複審觸發條件. 本專案只用 PBKDF2HMAC / hashes /
+      #   AESGCM / InvalidTag 四支 API (無 TLS / X.509 / PKCS#7 / 非對稱金鑰),
+      #   下列 4 條皆不在該路徑上 (X.509 / PKCS#7 / OpenSSL 批次).
+      #   清單刻意只列「升版後實測仍會報出」的 4 條 — PYSEC-2026-2141 /
+      #   -35 / -36 已由 cryptography>=46.0.7 真正修掉, 不靠 ignore 掩蓋.
+      #   ⚠️ 新增 ignore 前必須先在該文件補理由, 否則紅燈失去訊號價值
+      #      (本 workflow 曾連紅 10 週無人處理, 原因是 UnicodeDecodeError
+      #       讓它根本沒掃到 CVE 就死了 — 見 v3.79.1).
       - name: Audit requirements.txt (strict)
         run: |
           echo "::group::pip-audit (requirements.txt strict)"
-          pip-audit --requirement requirements.txt --format markdown
+          pip-audit --requirement requirements.txt --format markdown \
+            --ignore-vuln GHSA-537c-gmf6-5ccf \
+            --ignore-vuln PYSEC-2026-3552 \
+            --ignore-vuln PYSEC-2026-3553 \
+            --ignore-vuln PYSEC-2026-3554
           echo "::endgroup::"
 
       - name: Audit transitive (full env, strict)
@@ -45,7 +58,11 @@ jobs:
           # 安裝釘版 main deps (requirements.txt 已釘上下界)
           pip install -r requirements.txt
           echo "::group::pip-audit (full transitive strict)"
-          pip-audit --format markdown
+          pip-audit --format markdown \
+            --ignore-vuln GHSA-537c-gmf6-5ccf \
+            --ignore-vuln PYSEC-2026-3552 \
+            --ignore-vuln PYSEC-2026-3553 \
+            --ignore-vuln PYSEC-2026-3554
           echo "::endgroup::"
 
       - name: Safety scan (strict)
