@@ -1,168 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260630",
-      "next_date": "20260701",
-      "q5_direction": "偏多",
-      "q5_confidence": 67.0,
-      "taifex_change": 2.5,
-      "vol_spike_masters": [
-        "巨人傑"
-      ],
-      "quad_picks": [
-        {
-          "code": "2308",
-          "name": "台達電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 2.05,
-          "hit": true,
-          "leader_pct": 0.165,
-          "excess_return": -0.45,
-          "failure_reasons": []
-        },
-        {
-          "code": "2408",
-          "name": "南亞科",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": -6.96,
-          "hit": false,
-          "leader_pct": 0.444,
-          "excess_return": -9.46,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 2.74,
-          "hit": true,
-          "leader_pct": 0.239,
-          "excess_return": 0.24,
-          "failure_reasons": []
-        },
-        {
-          "code": "2337",
-          "name": "旺宏",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": -7.72,
-          "hit": false,
-          "leader_pct": 0.164,
-          "excess_return": -10.22,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "6770",
-          "name": "力積電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": -6.78,
-          "hit": false,
-          "leader_pct": 0.429,
-          "excess_return": -9.28,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "3008",
-          "name": "大立光",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 0.93,
-          "hit": true,
-          "leader_pct": 0.55,
-          "excess_return": -1.57,
-          "failure_reasons": []
-        },
-        {
-          "code": "2002",
-          "name": "中鋼",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": -0.8,
-          "hit": false,
-          "leader_pct": 0.491,
-          "excess_return": -3.3,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": 3.94,
-          "hit": true,
-          "leader_pct": 0.255,
-          "excess_return": 1.44,
-          "failure_reasons": []
-        },
-        {
-          "code": "2472",
-          "name": "立隆電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": -6.28,
-          "hit": false,
-          "leader_pct": 0.224,
-          "excess_return": -8.78,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2344",
-          "name": "華邦電",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": -8.43,
-          "hit": false,
-          "leader_pct": 0.43,
-          "excess_return": -10.93,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "3481",
-          "name": "群創",
-          "matched_masters": [
-            "巨人傑"
-          ],
-          "next_change_pct": -1.89,
-          "hit": false,
-          "leader_pct": 0.253,
-          "excess_return": -4.39,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        }
-      ],
-      "n": 11,
-      "hits": 4,
-      "hit_rate": 0.3636,
-      "mean_change": -2.65
-    },
-    {
       "date": "20260701",
       "next_date": "20260702",
       "q5_direction": "偏多",
@@ -1379,16 +1217,16 @@
     "mean_change": -1.26
   },
   "rolling_all": {
-    "trigger_days": 9,
-    "n": 92,
-    "hits": 34,
-    "hit_rate": 0.3696,
-    "mean_change": -0.91
+    "trigger_days": 8,
+    "n": 81,
+    "hits": 30,
+    "hit_rate": 0.3704,
+    "mean_change": -0.67
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.3696,
+    "actual_hit_rate": 0.3704,
     "delta_pp": -41.9
   },
-  "updated_at": "2026-09-22T19:32:16.508098"
+  "updated_at": "2026-09-23T13:37:24.439479"
 }
