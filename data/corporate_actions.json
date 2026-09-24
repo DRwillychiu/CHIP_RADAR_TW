@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-24T21:29:29.382762+08:00",
+  "updated_at": "2026-09-24T22:49:22.947125+08:00",
   "actions": {
     "2601": [
       {
@@ -2403,19 +2403,6 @@
         "bad_data_dates": []
       }
     ],
-    "4137": [
-      {
-        "date": "20260702",
-        "type": "detected_gap",
-        "pre_price": 110.5,
-        "post_price": 98.0,
-        "factor": 1.127551,
-        "confidence": "inferred",
-        "raw_move_pct": -11.31,
-        "source": "price_series",
-        "bad_data_dates": []
-      }
-    ],
     "4169": [
       {
         "date": "20260730",
@@ -4041,6 +4028,17 @@
         "factor": 0.875706,
         "confidence": "inferred",
         "raw_move_pct": 14.19,
+        "source": "price_series",
+        "bad_data_dates": []
+      },
+      {
+        "date": "20260924",
+        "type": "detected_gap",
+        "pre_price": 124.5,
+        "post_price": 109.5,
+        "factor": 1.136986,
+        "confidence": "inferred",
+        "raw_move_pct": -12.05,
         "source": "price_series",
         "bad_data_dates": []
       }

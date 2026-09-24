@@ -15,13 +15,6 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
-  "00713": {
-   "ex_date": "20260921",
-   "name": "元大台灣高息低波",
-   "type": "息",
-   "cash_dividend": 1.25,
-   "stock_dividend_pct": 0.0
-  },
   "00930": {
    "ex_date": "20260923",
    "name": "永豐ESG低碳高息",
@@ -98,6 +91,13 @@
    "type": "權",
    "cash_dividend": 0.0,
    "stock_dividend_pct": 0.00999999
+  },
+  "1727": {
+   "ex_date": "20261013",
+   "name": "中華化",
+   "type": "權",
+   "cash_dividend": 0.0,
+   "stock_dividend_pct": 0.0
   },
   "1808": {
    "ex_date": "20260923",
@@ -207,9 +207,6 @@
    "00939",
    "00984D"
   ],
-  "20260921": [
-   "00713"
-  ],
   "20260923": [
    "00930",
    "1442",
@@ -235,6 +232,9 @@
   "20261012": [
    "1449"
   ],
+  "20261013": [
+   "1727"
+  ],
   "20260929": [
    "2109",
    "7631"
@@ -255,46 +255,6 @@
   ]
  },
  "upcoming_30d": [
-  {
-   "code": "00930",
-   "ex_date": "20260923",
-   "name": "永豐ESG低碳高息",
-   "type": "息",
-   "cash_dividend": 0.815,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "1442",
-   "ex_date": "20260923",
-   "name": "名軒",
-   "type": "息",
-   "cash_dividend": 2.4,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "1808",
-   "ex_date": "20260923",
-   "name": "潤隆",
-   "type": "息",
-   "cash_dividend": 1.5,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "2542",
-   "ex_date": "20260923",
-   "name": "興富發",
-   "type": "息",
-   "cash_dividend": 4.0,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "5258",
-   "ex_date": "20260923",
-   "name": "虹堡",
-   "type": "息",
-   "cash_dividend": 1.007326,
-   "stock_dividend_pct": 0.0
-  },
   {
    "code": "1235",
    "ex_date": "20260924",
@@ -462,8 +422,16 @@
    "type": "權",
    "cash_dividend": 0.0,
    "stock_dividend_pct": 0.00999999
+  },
+  {
+   "code": "1727",
+   "ex_date": "20261013",
+   "name": "中華化",
+   "type": "權",
+   "cash_dividend": 0.0,
+   "stock_dividend_pct": 0.0
   }
  ],
- "fetched_at": "2026-09-23T22:52:44.693951+08:00",
+ "fetched_at": "2026-09-24T22:52:49.178145+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }
