@@ -297,6 +297,9 @@ MASTER_MAPPING: List[Dict] = [
         "branches": [
             ("8562", "新光-高雄"),
             ("8847", "玉山-台南"),
+            ("9274", "凱基-鳳山"),    # v3.80.1
+            ("8564", "新光-台南"),    # v3.80.1
+            ("9306", "華南永昌-台南"),  # v3.80.1
         ],
     },
 ]
@@ -1244,7 +1247,9 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str,
         ca = ws.cell(row=master_data_start, column=1)
         ca.value = master_name
         ca.font = _font_bold()
-        ca.alignment = _align_center()
+        # v3.80.1: wrap so a name wider than col A (~19 chars) is not clipped;
+        # names that already fit render exactly as before
+        ca.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
         if sniper_mode and master_has_limit_up:
             sniper_with_data += 1

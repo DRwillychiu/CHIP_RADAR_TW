@@ -273,13 +273,23 @@ WATCHED_BRANCHES = [
      "enabled": True, "region": "domestic"},
 
     # ─────────────────────────────────────────────────────────
-    # 全村希望資本_村長（2 個分點）— v3.80.0 使用者 2026-09-25 新增, 波段
-    # 代號出處: 富邦 zbrokerjs 券商清單 (8560 新光 / 8840 玉山), 使用者確認
+    # 全村希望資本_村長（5 個分點）— v3.80.0 使用者 2026-09-25 新增, 波段
+    # 代號出處: 富邦 zbrokerjs 券商清單 (8560 新光 / 8840 玉山 / 9200 凱基 /
+    #   9300 華南永昌), 使用者確認. v3.80.1 補 9274 / 8564 / 9306
     # ─────────────────────────────────────────────────────────
     {"code": "8562", "name": "新光-高雄", "master": "全村希望資本_村長",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "8847", "name": "玉山-台南", "master": "全村希望資本_村長",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9274", "name": "凱基-鳳山", "master": "全村希望資本_村長",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "8564", "name": "新光-台南", "master": "全村希望資本_村長",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9306", "name": "華南永昌-台南", "master": "全村希望資本_村長",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
 
