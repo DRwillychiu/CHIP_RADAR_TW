@@ -76,6 +76,7 @@ print()
 print("Step 4/4: regen Excel with refreshed backtest + hit log + contribution")
 from src.pipelines.crawler_output import decrypt_data
 from src.exports.excel_report import _update_monthly_workbook, refresh_premium_masters
+from src.core.quarantine import filter_day
 # v3.75.0: contribution 剛重算 → 強制刷新 premium 名單 cache, 否則 Excel 拿到舊值
 _prem = refresh_premium_masters(ROOT / 'data')
 print(f"  premium tier (實測動態): {sorted(_prem) if _prem else '(無人達標)'}")
@@ -96,6 +97,7 @@ with open(src, 'r', encoding='utf-8') as f:
     enc = json.load(f)
 plain = decrypt_data(enc['data'], password, iterations=enc.get('iterations'))
 data = json.loads(plain)
+data = filter_day(data, target_date)  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
 
 month_str = f"{target_date[:4]}-{target_date[4:6]}"
 mp = ROOT / 'data' / 'reports' / f'chip_radar_{month_str}.xlsx'

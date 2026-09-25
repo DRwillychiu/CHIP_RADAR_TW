@@ -13,6 +13,7 @@ from src.exports.excel_report import (
     _filter_tracked_branches, TRACKED_MASTERS, _compute_consensus_count,
     _is_excluded_by_market_type, MASTER_MAPPING,
 )
+from src.core.quarantine import filter_day
 
 password = os.environ.get('CHIP_RADAR_PASSWORD', '')
 if not password:
@@ -76,7 +77,8 @@ def _read_daily(p):
             with open(p, 'r', encoding='utf-8') as f:
                 enc = json.load(f)
         plain = decrypt_data(enc['data'], password, iterations=enc.get('iterations'))
-        return json.loads(plain)
+        data = json.loads(plain)
+        return filter_day(data, p.name[:8])  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
     except Exception as e:
         print(f"  ⚠️  {p.name}: {e}")
         return None

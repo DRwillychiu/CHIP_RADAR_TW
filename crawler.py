@@ -75,6 +75,7 @@ from crawler_pipeline import (
     compute_period_summaries, compute_limit_up_summary,
     compute_next_day_flip_verification, compute_master_summaries,
 )
+from quarantine import filter_day
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -176,6 +177,7 @@ def _post_auto_backfill_history(data_dir, password, industry_map):
                     _raw = json.loads(decrypt_data(_enc['data'], password))
                 else:
                     _raw = _enc
+                _raw = filter_day(_raw, _md)  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
                 _dq = {}
                 for _br in _raw.get('branches', []):
                     for _side in ('buys', 'sells'):
@@ -299,6 +301,7 @@ def _stage_load_yesterday_branches(data_dir, trade_date, password):
         if yest_raw.get("encrypted"):
             yest_plain = decrypt_data(yest_raw["data"], password)
             yest_data = json.loads(yest_plain)
+            yest_data = filter_day(yest_data, yest_date)  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
             branches = yest_data.get("branches", [])
             print(f"  ✓ 載入昨日資料 ({yest_date}): {len(branches)} 個分點")
             return branches

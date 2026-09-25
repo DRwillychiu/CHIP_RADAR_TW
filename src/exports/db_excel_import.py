@@ -163,6 +163,7 @@ def upsert_from_excel_sheet(conn: sqlite3.Connection,
     """把 parse_excel_sheet 的結果寫進 DB (source='excel')."""
     cur = conn.cursor()
     stats = {'daily_chips_rows': 0, 'daily_records_rows': 0}
+    from quarantine import is_quarantined as _is_quarantined
 
     for r in parsed_rows:
         trader_name = r['trader']
@@ -170,6 +171,10 @@ def upsert_from_excel_sheet(conn: sqlite3.Connection,
         stock_code = r['stock_code']
 
         if not branch_code or not stock_code:
+            continue
+        # v3.80.3: the monthly sheet of a quarantined branch-day holds the wrong
+        # branch's data too (data/quarantine.json)
+        if _is_quarantined(branch_code, trade_date):
             continue
 
         branch_id = _upsert_dim(conn, 'branches', 'code', branch_code,

@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT))
 
 from src.pipelines.crawler_output import decrypt_data
 from src.exports.excel_report import _update_monthly_workbook
+from src.core.quarantine import filter_day
 
 password = os.environ.get('CHIP_RADAR_PASSWORD', '')
 if not password:
@@ -29,6 +30,7 @@ with open(src_json, 'r', encoding='utf-8') as f:
 
 plaintext = decrypt_data(enc['data'], password, iterations=enc.get('iterations'))
 data = json.loads(plaintext)
+data = filter_day(data, target_date)  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
 branches_data = data.get('branches', [])
 print(f"branches: {len(branches_data)}")
 

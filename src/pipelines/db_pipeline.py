@@ -313,6 +313,23 @@ def _upsert_trader_branch(conn: sqlite3.Connection, trader_id: int, branch_id: i
 #  Core: upsert_from_raw_dict
 # ════════════════════════════════════════════════════════════════════
 
+def _purge_quarantined(conn: sqlite3.Connection) -> int:
+    """v3.80.3: delete every stored row of a branch-day listed in data/quarantine.json
+    (both source='raw' and source='excel'). Idempotent; runs on every upsert so the
+    DB carried between workflow runs as an artifact cleans itself on its next run.
+    Branch codes compare case-sensitively (SQLite BINARY), so 9A9g != 9A9G."""
+    from quarantine import load as _load_quarantine
+    n = 0
+    for code, dates in _load_quarantine().items():
+        for d in dates:
+            n += conn.execute(
+                "DELETE FROM daily_chips WHERE date=? AND branch_id=(SELECT id FROM branches WHERE code=?)",
+                (d, code)).rowcount
+            n += conn.execute(
+                "DELETE FROM daily_records WHERE date=? AND branch_code=?", (d, code)).rowcount
+    return n
+
+
 def upsert_from_raw_dict(conn: sqlite3.Connection,
                           raw_output: Dict[str, Any],
                           trade_date: Optional[str] = None,
@@ -344,9 +361,15 @@ def upsert_from_raw_dict(conn: sqlite3.Connection,
     if not td:
         raise ValueError("trade_date 缺失 (raw_output 沒 trade_date 也沒傳)")
 
+    # v3.80.3: skip quarantined branch-days (data/quarantine.json) and drop any
+    # such rows already in the DB
+    from quarantine import filter_day
+    raw_output = filter_day(raw_output, td)
+
     cur = conn.cursor()
     stats = {'daily_chips_rows': 0, 'daily_records_rows': 0,
-             'traders': 0, 'branches': 0, 'stocks': 0}
+             'traders': 0, 'branches': 0, 'stocks': 0,
+             'quarantine_purged': _purge_quarantined(conn)}
 
     # 先記下 dimension 表現有 ID set, 用來算 added count
     pre_traders  = {r[0] for r in cur.execute("SELECT name FROM traders")}

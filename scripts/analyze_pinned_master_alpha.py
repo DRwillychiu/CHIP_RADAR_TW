@@ -41,6 +41,7 @@ sh_dates = sh.get('dates', [])
 password = os.environ.get('CHIP_RADAR_PASSWORD', '')
 if password:
     from src.pipelines.crawler_output import decrypt_data
+    from src.core.quarantine import filter_day
     print(f"=== with password: full backtest ===\n")
 else:
     print(f"=== no password: simplified (only stock_history-based) ===\n")
@@ -56,7 +57,8 @@ def _read_daily(p):
         else:
             with open(p, 'r', encoding='utf-8') as f: enc = json.load(f)
         plain = decrypt_data(enc['data'], password, iterations=enc.get('iterations'))
-        return json.loads(plain)
+        data = json.loads(plain)
+        return filter_day(data, p.name[:8])  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
     except Exception:
         return None
 

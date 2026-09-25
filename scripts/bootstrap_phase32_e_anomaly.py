@@ -28,6 +28,7 @@ from src.exports.excel_report import (
     _filter_tracked_branches, _compute_consensus_count,
 )
 from src.analyzers.signal_engine import infer_market_direction
+from src.core.quarantine import filter_day
 
 ANOMALY_SIGMA = 2.0
 MIN_HISTORY_DAYS = 5
@@ -55,7 +56,8 @@ def _read_daily(p):
         else:
             with open(p, 'r', encoding='utf-8') as f: enc = json.load(f)
         plain = decrypt_data(enc['data'], password, iterations=enc.get('iterations'))
-        return json.loads(plain)
+        data = json.loads(plain)
+        return filter_day(data, p.name[:8])  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
     except Exception as e:
         print(f"  decrypt fail {p.name}: {e}")
         return None

@@ -552,6 +552,8 @@ def load_history(data_dir: str, window_days: Optional[int], password: str) -> Li
                 data = enc.get('data', enc)
             # v3.31.9: .json.gz → stem = YYYYMMDD.json, 要再 strip 一次
             date_stem = f.stem.replace('.json', '') if f.suffix == '.gz' else f.stem
+            from quarantine import filter_day
+            data = filter_day(data, date_stem)  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
             history.append({'date': date_stem, 'data': data})
         except Exception as e:
             # v3.30.10: 印 exception type (避免「⚠️ 跳過 ...: 」空白訊息)

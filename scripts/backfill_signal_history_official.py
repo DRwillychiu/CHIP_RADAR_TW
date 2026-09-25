@@ -270,6 +270,7 @@ def load_archive_limit_up():
         return {}
     try:
         from src.pipelines.crawler_output import decrypt_data
+        from src.core.quarantine import filter_day
     except ImportError:
         print('  ! decrypt_data import fail, 信號 4 略過')
         return {}
@@ -295,6 +296,7 @@ def load_archive_limit_up():
                     enc = json.load(f)
             plain = decrypt_data(enc['data'], password, iterations=enc.get('iterations'))
             data = json.loads(plain)
+            data = filter_day(data, date_str)  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
             lus = data.get('limit_up_summary') or {}
             stocks = lus.get('limit_up_stocks')
             if stocks is not None:

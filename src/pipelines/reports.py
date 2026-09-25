@@ -25,6 +25,7 @@ import os
 from pathlib import Path
 from datetime import datetime, timezone, timedelta, date
 from collections import defaultdict, Counter
+from quarantine import filter_day
 
 TW_TZ = timezone(timedelta(hours=8))
 
@@ -110,6 +111,7 @@ def load_period_data(data_dir: Path, password: str,
                 daily_data[d] = json.loads(plain)
             else:
                 daily_data[d] = enc
+            daily_data[d] = filter_day(daily_data[d], d)  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
         except Exception as e:
             print(f"  ⚠️ 無法讀取 {d}: {e}")
     
