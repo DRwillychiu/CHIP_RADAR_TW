@@ -62,9 +62,25 @@ def parse_region(html):
     return rows
 
 
-def fetch_branch_mode(branch_code, mode, max_retries=3):
-    """爬取指定分點的指定模式 (mode='B' 金額, mode='E' 張數)"""
-    url = URL_TPL.format(code=branch_code, mode=mode)
+def fubon_bno(branch_code):
+    """v3.80.1: bno as Fubon's own broker list (zbrokerjs) writes it.
+
+    Codes containing a letter are sent UTF-16BE hex encoded (9A9g ->
+    0039004100390067). Fubon does not tell letter case apart for the plain
+    form: 9A9g (永豐金-內湖) and 9A9G (永豐金-天母) collide, and which branch's
+    page comes back depends on what was requested first. Measured 2026-09-25:
+    plain 9A9g returned 天母's data; the hex form matched the date-pinned page
+    for all 38 lettered codes in WATCHED_BRANCHES. Digit-only codes unchanged.
+    """
+    if any(ch.isalpha() for ch in branch_code):
+        return ''.join(f'{ord(ch):04X}' for ch in branch_code)
+    return branch_code
+
+
+def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
+    """爬取指定分點的指定模式 (mode='B' 金額, mode='E' 張數)
+    top_n=None 保留整頁 (v3.80.1: 張數頁給 merge 查表用)"""
+    url = URL_TPL.format(code=fubon_bno(branch_code), mode=mode)
     last_err = None
     for attempt in range(max_retries):
         try:
@@ -96,8 +112,8 @@ def fetch_branch_mode(branch_code, mode, max_retries=3):
             if buy_idx < 0 or sell_idx < 0:
                 return {"date": date, "buys": [], "sells": [], "error": None}
             
-            buys = parse_region(html[buy_idx:sell_idx])[:TOP_N]
-            sells = parse_region(html[sell_idx:])[:TOP_N]
+            buys = parse_region(html[buy_idx:sell_idx])[:top_n]
+            sells = parse_region(html[sell_idx:])[:top_n]
             return {"date": date, "buys": buys, "sells": sells, "error": None}
         except Exception as e:
             last_err = str(e)
@@ -129,8 +145,10 @@ def fetch_branch_combined(branch_code):
     
     time.sleep(random.uniform(1.5, 2.5))  # 兩次請求之間的小停頓
     
-    # 爬張數模式
-    lot_result = fetch_branch_mode(branch_code, "E")
+    # 爬張數模式 — v3.80.1: 保留整頁 (約 50 檔/邊). 原本也截在 TOP_N=30,
+    # 張數榜第 31~50 名的股票真實張數被丟掉, 再被 crawler.py 用收盤價反推覆蓋
+    # (實測 8562 南亞科 真 59 張 → 顯示 58). 整頁只拿來查張數, 列數不變.
+    lot_result = fetch_branch_mode(branch_code, "E", top_n=None)
     if lot_result["error"]:
         # 張數爬失敗也可以繼續，只是沒有張數資料
         lot_result = {"date": None, "buys": [], "sells": [], "error": None}
@@ -141,8 +159,9 @@ def fetch_branch_combined(branch_code):
     # - 兩邊都有的 → amt + lot 都完整（可計算 FIFO 損益）
     def merge_rows(amt_rows, lot_rows):
         amt_map = {r["code"]: r for r in amt_rows}
-        lot_map = {r["code"]: r for r in lot_rows}
-        all_codes = list({r["code"]: None for r in amt_rows + lot_rows}.keys())  # 保持順序（優先依金額排行）
+        lot_map = {r["code"]: r for r in lot_rows}   # 整頁: 查張數用
+        # 列的集合維持 v3.80.0 以前: 金額前 TOP_N ∪ 張數前 TOP_N
+        all_codes = list({r["code"]: None for r in amt_rows + lot_rows[:TOP_N]}.keys())  # 保持順序（優先依金額排行）
         
         merged = []
         for code in all_codes:
