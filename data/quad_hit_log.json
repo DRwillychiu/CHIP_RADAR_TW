@@ -337,7 +337,7 @@
           ],
           "next_change_pct": 2.53,
           "hit": true,
-          "leader_pct": 0.566,
+          "leader_pct": 0.559,
           "excess_return": null,
           "failure_reasons": []
         },
@@ -349,7 +349,7 @@
           ],
           "next_change_pct": 9.87,
           "hit": true,
-          "leader_pct": 0.341,
+          "leader_pct": 0.351,
           "excess_return": null,
           "failure_reasons": []
         },
@@ -361,7 +361,7 @@
           ],
           "next_change_pct": -2.11,
           "hit": false,
-          "leader_pct": 0.357,
+          "leader_pct": 0.354,
           "excess_return": null,
           "failure_reasons": [
             "TAIEX 資料缺, 歸因不全"
@@ -375,7 +375,7 @@
           ],
           "next_change_pct": 0.42,
           "hit": true,
-          "leader_pct": 0.327,
+          "leader_pct": 0.332,
           "excess_return": null,
           "failure_reasons": []
         },
@@ -399,7 +399,7 @@
           ],
           "next_change_pct": 3.33,
           "hit": true,
-          "leader_pct": 0.355,
+          "leader_pct": 0.35,
           "excess_return": null,
           "failure_reasons": []
         },
@@ -411,7 +411,7 @@
           ],
           "next_change_pct": -1.79,
           "hit": false,
-          "leader_pct": 0.566,
+          "leader_pct": 0.529,
           "excess_return": null,
           "failure_reasons": [
             "假共識 (領頭獨佔 ≥50%)"
@@ -425,7 +425,7 @@
           ],
           "next_change_pct": 5.34,
           "hit": true,
-          "leader_pct": 0.711,
+          "leader_pct": 0.72,
           "excess_return": null,
           "failure_reasons": []
         },
@@ -603,20 +603,8 @@
           ],
           "next_change_pct": 4.1,
           "hit": true,
-          "leader_pct": 0.275,
+          "leader_pct": 0.238,
           "excess_return": 2.51,
-          "failure_reasons": []
-        },
-        {
-          "code": "6182",
-          "name": "合晶",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": 1.08,
-          "hit": true,
-          "leader_pct": 0.325,
-          "excess_return": -0.51,
           "failure_reasons": []
         },
         {
@@ -641,7 +629,7 @@
           ],
           "next_change_pct": 4.14,
           "hit": true,
-          "leader_pct": 0.294,
+          "leader_pct": 0.305,
           "excess_return": 2.55,
           "failure_reasons": []
         },
@@ -667,7 +655,7 @@
           ],
           "next_change_pct": -0.98,
           "hit": false,
-          "leader_pct": 0.132,
+          "leader_pct": 0.134,
           "excess_return": -2.57,
           "failure_reasons": [
             "個股弱勢 (跑輸大盤 >2pp)"
@@ -681,15 +669,15 @@
           ],
           "next_change_pct": 9.97,
           "hit": true,
-          "leader_pct": 0.414,
+          "leader_pct": 0.418,
           "excess_return": 8.38,
           "failure_reasons": []
         }
       ],
-      "n": 7,
-      "hits": 4,
-      "hit_rate": 0.5714,
-      "mean_change": 1.99
+      "n": 6,
+      "hits": 3,
+      "hit_rate": 0.5,
+      "mean_change": 2.14
     },
     {
       "date": "20260814",
@@ -1023,15 +1011,15 @@
   },
   "rolling_all": {
     "trigger_days": 7,
-    "n": 68,
-    "hits": 27,
-    "hit_rate": 0.3971,
-    "mean_change": -0.47
+    "n": 67,
+    "hits": 26,
+    "hit_rate": 0.3881,
+    "mean_change": -0.49
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.3971,
-    "delta_pp": -39.2
+    "actual_hit_rate": 0.3881,
+    "delta_pp": -40.1
   },
-  "updated_at": "2026-09-25T13:56:41.517600"
+  "updated_at": "2026-09-25T14:56:16.214519"
 }

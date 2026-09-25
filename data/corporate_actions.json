@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-25T21:49:39.191791+08:00",
+  "updated_at": "2026-09-25T22:48:29.260373+08:00",
   "actions": {
     "2601": [
       {
@@ -695,6 +695,19 @@
         "factor": 0.892704,
         "confidence": "inferred",
         "raw_move_pct": 12.02,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
+    "1442": [
+      {
+        "date": "20260924",
+        "type": "detected_gap",
+        "pre_price": 31.6,
+        "post_price": 27.7,
+        "factor": 1.140794,
+        "confidence": "inferred",
+        "raw_move_pct": -12.34,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -4520,7 +4533,7 @@
   },
   "stats": {
     "official": 1,
-    "inferred": 357,
+    "inferred": 358,
     "merged_dup": 2
   }
 }
