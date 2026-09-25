@@ -305,7 +305,9 @@ WATCHED_BRANCHES = [
     {"code": "585Q", "name": "統一-三多", "master": "呂金發",
      "tags_personal": ["太普高董事長"], "tags_market": [],
      "enabled": True, "region": "domestic"},
-    {"code": "962Q", "name": "富邦-北高雄", "master": "陳光裕",
+    # v3.80.2: 962Q 官方名 (TWSE OpenData_BRK02 / 富邦券商清單) = 富邦-港都.
+    #   6/05 從使用者 Excel 帶進來的寫法「富邦-北高雄」是同一分點 (使用者 9/25 確認)
+    {"code": "962Q", "name": "富邦-港都", "master": "陳光裕",
      "tags_personal": ["世德董事長"], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "9676", "name": "富邦-仁愛", "master": "謝孟恭(股癌)",
