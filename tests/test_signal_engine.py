@@ -129,7 +129,11 @@ ok_e = (
     daily['market_direction']['confidence_pct'] >= 70 and
     len(daily['top_focus_stocks']) >= 2 and
     '外資期貨等效大台淨 OI' in daily['killed_signals'] and
-    daily['headline'].startswith('偏多')
+    # v3.78.0 (7a3f12c) reworded the headline to "籌碼偏向<dir> (..., 非預測訊號)"
+    # on purpose: the old "偏多 信心78%" read like a hit rate but was not one.
+    # Pin that disclosure rather than the old prefix.
+    daily['headline'].startswith('籌碼偏向偏多') and
+    '非預測訊號' in daily['headline']
 )
 print(f"  {'✅' if ok_e else '❌'} headline: {daily['headline']}")
 print(f"     market: {daily['market_direction']['direction']} {daily['market_direction']['confidence_pct']}%")

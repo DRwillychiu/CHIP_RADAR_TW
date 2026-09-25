@@ -76,7 +76,10 @@ check("記錄退役日期", ct.get('retired_date') == '2026-08-30')
 check("記錄退役理由", '0.0pp' in (ct.get('retired_reason') or ''))
 # 退役 ≠ 刪除: signals 閾值必須保留 (溫度分數仍要算)
 check("signals 閾值保留 (數值顯示仍需要)", len(ct.get('signals') or {}) >= 7)
-check("algo_version 已升", cfg['algo_version'] == '3.78.0', cfg['algo_version'])
+# The intent is "the version was bumped when the gauge was retired", so assert
+# a floor, not equality -- an exact match breaks on every later bump.
+_ver = tuple(int(x) for x in str(cfg['algo_version']).split('.'))
+check("algo_version 已升 (>= 3.78.0)", _ver >= (3, 78, 0), cfg['algo_version'])
 
 # ─── 5. 前端揭露 ───
 print("\n[5] 前端 — 使用者必須看得到這是描述不是預測")
