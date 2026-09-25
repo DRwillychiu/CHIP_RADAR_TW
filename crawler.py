@@ -686,23 +686,25 @@ def main():
                     buy_lot_raw = s.get("buy_lot", 0) or 0
                     sell_lot_raw = s.get("sell_lot", 0) or 0
                     estimated = False
+                    # v3.80.1: 只對「沒出現在該頁」的欄位反推. 出現在頁上但為 0
+                    # 是真值 (例: 賣 355 股零股 → 張數頁 0), 原本被改成 1 張
                     # 買進: 高價股「金額榜上 + 張數榜沒上」→ 反推張數
-                    if buy_lot_raw == 0 and buy_amt_k > 0:
+                    if buy_lot_raw == 0 and buy_amt_k > 0 and not s.get("lot_listed", False):
                         s["buy_lot"] = max(1, round(buy_amt_k / cp_close))
                         s["buy_avg"] = round(cp_close, 2)
                         estimated = True
                     # 賣出: 同上
-                    if sell_lot_raw == 0 and sell_amt_k > 0:
+                    if sell_lot_raw == 0 and sell_amt_k > 0 and not s.get("lot_listed", False):
                         s["sell_lot"] = max(1, round(sell_amt_k / cp_close))
                         s["sell_avg"] = round(cp_close, 2)
                         estimated = True
                     # 反向: 低價股「張數榜上 + 金額榜沒上」→ 反推金額
                     # amt(仟元) = lot(張) × 1000股 × close(元/股) / 1000 = lot × close
-                    if buy_amt_k == 0 and buy_lot_raw > 0:
+                    if buy_amt_k == 0 and buy_lot_raw > 0 and not s.get("amt_listed", False):
                         s["buy_amt"] = int(round(buy_lot_raw * cp_close))
                         s["buy_avg"] = round(cp_close, 2)
                         estimated = True
-                    if sell_amt_k == 0 and sell_lot_raw > 0:
+                    if sell_amt_k == 0 and sell_lot_raw > 0 and not s.get("amt_listed", False):
                         s["sell_amt"] = int(round(sell_lot_raw * cp_close))
                         s["sell_avg"] = round(cp_close, 2)
                         estimated = True

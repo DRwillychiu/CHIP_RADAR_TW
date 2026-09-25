@@ -139,7 +139,8 @@ def fetch_branch_combined(branch_code):
     }
     """
     # 爬金額模式
-    amt_result = fetch_branch_mode(branch_code, "B")
+    # v3.80.1: 整頁 (約 50 檔/邊) 當查表; 列的集合仍是前 TOP_N (見 merge_rows)
+    amt_result = fetch_branch_mode(branch_code, "B", top_n=None)
     if amt_result["error"]:
         return {"date": None, "buys": [], "sells": [], "error": amt_result["error"]}
     
@@ -158,10 +159,10 @@ def fetch_branch_combined(branch_code):
     # - 只在張數排行的 → 有 lot，amt 為 0（可能是低價股，金額少沒上榜）
     # - 兩邊都有的 → amt + lot 都完整（可計算 FIFO 損益）
     def merge_rows(amt_rows, lot_rows):
-        amt_map = {r["code"]: r for r in amt_rows}
+        amt_map = {r["code"]: r for r in amt_rows}   # 整頁: 查金額用
         lot_map = {r["code"]: r for r in lot_rows}   # 整頁: 查張數用
         # 列的集合維持 v3.80.0 以前: 金額前 TOP_N ∪ 張數前 TOP_N
-        all_codes = list({r["code"]: None for r in amt_rows + lot_rows[:TOP_N]}.keys())  # 保持順序（優先依金額排行）
+        all_codes = list({r["code"]: None for r in amt_rows[:TOP_N] + lot_rows[:TOP_N]}.keys())  # 保持順序（優先依金額排行）
         
         merged = []
         for code in all_codes:
@@ -242,6 +243,9 @@ def fetch_branch_combined(branch_code):
                 "buy_avg": buy_avg, "sell_avg": sell_avg,
                 "pnl_intraday": pnl_intraday,
                 "data_complete": has_amt and has_lot,  # 兩邊都有才能 FIFO
+                # v3.80.1: 該股有沒有出現在金額頁 / 張數頁. 有出現 = 數字是真的
+                # (張數頁寫 0 = 真的不足 1 張, 例如零股), crawler.py 只對「沒出現」反推
+                "amt_listed": has_amt, "lot_listed": has_lot,
                 "trade_style": trade_style,
                 "daytrade_ratio": daytrade_ratio,
                 "overnight_lots": overnight_lots,
