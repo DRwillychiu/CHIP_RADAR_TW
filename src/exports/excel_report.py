@@ -97,6 +97,7 @@ MASTER_BLOCK_COLORS = {
     "布哥/n_nchang":         {"header": "FF80DEEA", "body": "FFE0F7FA"},  # 青
     "強森":                  {"header": "FF80CBC4", "body": "FFE0F2F1"},  # 青綠
     "大牌分析師":            {"header": "FFAED581", "body": "FFF1F8E9"},  # 黃綠
+    "全村希望資本_村長":     {"header": "FF4FC3F7", "body": "FFE1F5FE"},  # 天藍 (v3.80.0)
     # ── Longterm 長線灰系 (2 個) ──
     "優式資本":              {"header": "FFBCAAA4", "body": "FFEFEBE9"},  # 灰棕
     "東億資本":              {"header": "FFB0BEC5", "body": "FFECEFF1"},  # 灰藍
@@ -287,6 +288,15 @@ MASTER_MAPPING: List[Dict] = [
         "branches": [
             ("700V", "兆豐-新竹"),
             ("9647", "富邦-新竹"),
+        ],
+    },
+    {
+        # v3.80.0: 使用者 2026-09-25 新增, 波段. 放最後 = 既有區塊位置不動
+        "name": "全村希望資本_村長",
+        "header_label": "分點",
+        "branches": [
+            ("8562", "新光-高雄"),
+            ("8847", "玉山-台南"),
         ],
     },
 ]
