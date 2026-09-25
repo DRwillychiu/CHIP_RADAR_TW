@@ -22,6 +22,9 @@ COOL_DOWN_EVERY = 10      # 每 N 個分點後長休息
 COOL_DOWN_SECONDS = 8
 
 URL_TPL = "https://fubon-ebrokerdj.fbs.com.tw/z/zg/zgb/zgb0.djhtm?a={code}&b={code}&c={mode}&d=1"
+# v3.80.2: the page names the branch it actually served, e.g. ('9A9G','9A9G','frm').
+# 2026-09-25: a plain 9A9g request was served as 9A9G -> used as an identity check.
+IDENTITY_RE = re.compile(r"\('([0-9A-Za-z]+)','([0-9A-Za-z]+)','frm'\)")
 HOME_URL = "https://fubon-ebrokerdj.fbs.com.tw/"
 
 UA_POOL = [
@@ -80,7 +83,8 @@ def fubon_bno(branch_code):
 def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
     """爬取指定分點的指定模式 (mode='B' 金額, mode='E' 張數)
     top_n=None 保留整頁 (v3.80.1: 張數頁給 merge 查表用)"""
-    url = URL_TPL.format(code=fubon_bno(branch_code), mode=mode)
+    sent = fubon_bno(branch_code)
+    url = URL_TPL.format(code=sent, mode=mode)
     last_err = None
     for attempt in range(max_retries):
         try:
@@ -104,17 +108,27 @@ def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
                 time.sleep(5 + attempt * 3)
                 continue
             
+            # v3.80.2: 頁面自報的分點 != 我們要的 → 別的分點的資料, 寧可失敗也不收
+            id_m = IDENTITY_RE.search(html)
+            if id_m and id_m.group(2) != sent:
+                last_err = f"identity mismatch: sent {sent}, page is {id_m.group(2)}"
+                time.sleep(3 + attempt * 3)
+                continue
+            identity = "verified" if id_m else "unverified"
+            if not id_m:
+                print(f"\n::warning::{branch_code} mode {mode}: page has no branch-id marker, identity unverified")
+
             date_m = re.search(r"資料日期：(\d{8})", html)
             date = date_m.group(1) if date_m else None
             
             buy_idx = html.find("買超</td>")
             sell_idx = html.find("賣超</td>")
             if buy_idx < 0 or sell_idx < 0:
-                return {"date": date, "buys": [], "sells": [], "error": None}
+                return {"date": date, "buys": [], "sells": [], "error": None, "identity": identity}
             
             buys = parse_region(html[buy_idx:sell_idx])[:top_n]
             sells = parse_region(html[sell_idx:])[:top_n]
-            return {"date": date, "buys": buys, "sells": sells, "error": None}
+            return {"date": date, "buys": buys, "sells": sells, "error": None, "identity": identity}
         except Exception as e:
             last_err = str(e)
             time.sleep(3 + attempt * 3)
@@ -151,8 +165,9 @@ def fetch_branch_combined(branch_code):
     # (實測 8562 南亞科 真 59 張 → 顯示 58). 整頁只拿來查張數, 列數不變.
     lot_result = fetch_branch_mode(branch_code, "E", top_n=None)
     if lot_result["error"]:
-        # 張數爬失敗也可以繼續，只是沒有張數資料
-        lot_result = {"date": None, "buys": [], "sells": [], "error": None}
+        # 張數爬失敗也可以繼續，只是沒有張數資料 (金額頁已驗證身分)
+        print(f"\n::warning::{branch_code} lots page failed ({lot_result['error']}); lots will be estimated")
+        lot_result = {"date": None, "buys": [], "sells": [], "error": None, "identity": "failed"}
     
     # 合併策略：聯集（不論在哪個排行）→ 最完整的當日交易紀錄
     # - 只在金額排行的 → 有 amt，lot 為 0（可能是高價股，張數少沒上榜）
@@ -255,6 +270,7 @@ def fetch_branch_combined(branch_code):
     
     return {
         "date": amt_result["date"] or lot_result["date"],
+        "identity": amt_result.get("identity"),   # v3.80.2: 金額頁身分 (verified / unverified)
         "buys": merge_rows(amt_result["buys"], lot_result["buys"]),
         "sells": merge_rows(amt_result["sells"], lot_result["sells"]),
         "error": None,
