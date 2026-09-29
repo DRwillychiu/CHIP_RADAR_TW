@@ -1,6 +1,6 @@
 {
- "trade_date": "20260924",
- "updated_at": "2026-09-29T05:37:06.281922+08:00",
+ "trade_date": "20260929",
+ "updated_at": "2026-09-29T21:33:37.126851+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -1924,8 +1924,7 @@
     "short_quota": 18259,
     "short_usage": 1.38,
     "offsetting": 0,
-    "margin_short_ratio": 7.71,
-    "industry": "電腦及週邊設備業"
+    "margin_short_ratio": 7.71
    },
    {
     "code": "4542",
@@ -2760,8 +2759,7 @@
     "short_quota": 17752,
     "short_usage": 1.14,
     "offsetting": 0,
-    "margin_short_ratio": 4.94,
-    "industry": "光電業"
+    "margin_short_ratio": 4.94
    },
    {
     "code": "2305",
@@ -5007,22 +5005,34 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 1692,
-   "watch": 57,
-   "high_risk": 0,
+   "healthy": 1223,
+   "watch": 21,
+   "high_risk": 1,
    "margin_call": 1,
-   "insufficient_data": 466
+   "insufficient_data": 970
   },
   "high_risk_stocks": [
    {
     "code": "4127",
     "name": "天良",
-    "ratio": 115.0,
+    "ratio": 112.2,
     "risk_level": "margin_call",
     "margin_balance": 1036,
-    "today_close": 48.7,
+    "today_close": 47.5,
     "estimated_cost": 70.55,
     "cost_adjusted_for_corp_action": false,
+    "is_disposal_stock": false,
+    "margin_rate_used": 0.6
+   },
+   {
+    "code": "7740",
+    "name": "熙特爾-創",
+    "ratio": 128.7,
+    "risk_level": "high_risk",
+    "margin_balance": 2466,
+    "today_close": 102.0,
+    "estimated_cost": 132.05,
+    "cost_adjusted_for_corp_action": true,
     "is_disposal_stock": false,
     "margin_rate_used": 0.6
    }
