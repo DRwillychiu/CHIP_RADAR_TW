@@ -1,24 +1,56 @@
-name: 10. Weekly Summary (週五 14:30 TW)
+name: 10. Weekly Summary (本週最後交易日 14:30 TW)
 
 # v3.41.0 (2026-06-19, Sprint 4):
-# 週五收盤後產 markdown 週度綜合報告
+# 本週最後一個交易日收盤後產 markdown 週度綜合報告
 #   - TDCC 大戶比例 movers Top 10
 #   - master 週度曝險排名
 #   - 處置股名單變動
 #   - 籌碼溫度近 5 日
 # 寫 data/reports/weekly_YYYY_WXX.md
+#
+# v3.80.4: 每天 (週一-五) 14:30 TW 都觸發, 由 gate job (scripts/trading_gate.py,
+#   kind=weekly_last) 決定要不要做事: 只在「本週最後一個交易日」放行.
+#   週五正常開市 -> 週五跑; 週五放假 -> 週四跑 (週一~週三與週五以外的日子被開關擋下).
 
 on:
   schedule:
-    # 週五 UTC 06:30 = TW 14:30 (收盤 1 小時後)
-    - cron: '30 6 * * 5'
+    # 週一-五 UTC 06:30 = TW 14:30 (收盤 1 小時後); 只有本週最後交易日會通過 gate
+    - cron: '30 6 * * 1-5'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+      session: ${{ steps.gate.outputs.session }}
+    steps:
+      - name: Checkout (gate files only)
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            scripts/trading_gate.py
+            src
+            data/twse_holidays.json
+            data/latest.json
+          sparse-checkout-cone-mode: false
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Trading-day gate
+        id: gate
+        run: python scripts/trading_gate.py --kind weekly_last --event "${{ github.event_name }}" --schedule "${{ github.event.schedule }}"
+
   summary:
+    needs: gate
+    # fail-open: skip only when the gate ran and said no; a crashed gate must not
+    # silently cancel a trading-day run
+    if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.run == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
 

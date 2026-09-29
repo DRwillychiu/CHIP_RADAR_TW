@@ -6,6 +6,11 @@ name: 2. Margin Refresh (Multi-Layer Defense)
 #   1. 跨度大 (22:30 → 12:00 隔日, 14 小時)
 #   2. 多時段冗餘 (7 個時段, GitHub 跳過 7 個的機率極低)
 #   3. 聰明跳過 (crawler 端已有邏輯, T-0 後不再重複跑)
+#
+# v3.80.4: 前面加交易日開關 gate job (scripts/trading_gate.py), 國定假日/颱風假不再空跑.
+#   晚上 4 個 cron 只在該場次是交易日時跑. 早上 3 個 cron 改成每天觸發 (星期欄位 *),
+#   目標是「前一個交易日」的融資融券: 該日已驗證 (confidence high) 就跳過,
+#   所以週六早上補週五, 週日/週一只在週五/週六失敗時才真的做事.
 
 on:
   schedule:
@@ -17,12 +22,12 @@ on:
     - cron: '30 16 * * 2-6'
     # 台灣時間 02:00 (UTC 18:00) - 深夜 fallback
     - cron: '0 18 * * 2-6'
-    # 台灣時間 08:00 (UTC 00:00) - 上班前最後保險
-    - cron: '0 0 * * 2-6'
-    # 台灣時間 09:00 (UTC 01:00) - 盤前確保
-    - cron: '0 1 * * 2-6'
-    # 台灣時間 12:00 (UTC 04:00) - 午休最後機會
-    - cron: '0 4 * * 2-6'
+    # 台灣時間 08:00 (UTC 00:00) - 上班前最後保險 (每天觸發, 由 gate 決定要不要做事)
+    - cron: '0 0 * * *'
+    # 台灣時間 09:00 (UTC 01:00) - 盤前確保 (每天觸發, 由 gate 決定要不要做事)
+    - cron: '0 1 * * *'
+    # 台灣時間 12:00 (UTC 04:00) - 午休最後機會 (每天觸發, 由 gate 決定要不要做事)
+    - cron: '0 4 * * *'
   
   workflow_dispatch:
 
@@ -30,7 +35,39 @@ permissions:
   contents: write
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+      session: ${{ steps.gate.outputs.session }}
+    steps:
+      - name: Checkout (gate files only)
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            scripts/trading_gate.py
+            src
+            data/twse_holidays.json
+            data/latest.json
+          sparse-checkout-cone-mode: false
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Trading-day gate
+        id: gate
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+        run: |
+          pip install "cryptography>=46.0.7,<47.0"   # same pin as requirements.txt
+          python scripts/trading_gate.py --kind margin --event "${{ github.event_name }}" --schedule "${{ github.event.schedule }}"
+
   margin_refresh:
+    needs: gate
+    # fail-open: skip only when the gate ran and said no; a crashed gate must not
+    # silently cancel a trading-day run
+    if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.run == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     

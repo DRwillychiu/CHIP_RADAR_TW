@@ -1570,22 +1570,15 @@ def main_margin_only():
     print(f"  現有融資融券信心: {current_verification.get('confidence', 'N/A')}")
     
     # ===== 聰明跳過: 如果已經是 T-0 (最新交易日),跳過本次 =====
-    today_str = now_tw().strftime("%Y%m%d")
-    # 取最近一個交易日 (週末的情況: 若今天週六,最近交易日是週五)
-    import calendar
+    # 取最近一個交易日. v3.80.4: 改用交易日曆 — 原本只認週一~週五,
+    # 國定假日 (例: 2026-09-25 中秋) 會被當成交易日, 永遠不會「已是最新」.
+    # 語意不變: 交易日 08:00 起算今天, 其他時候 (08:00 前 / 休市日) 算上一個交易日.
+    from trading_calendar import is_trading_day, prev_trading_day
     now = now_tw()
-    check = now
-    for _ in range(5):
-        if check.weekday() < 5:  # 週一(0) ~ 週五(4)
-            break
-        check = check - timedelta(days=1)
-    latest_trade_day = check.strftime("%Y%m%d")
-    # 若已 8 點前，則上個交易日
-    if now.hour < 8:
-        yesterday = now - timedelta(days=1)
-        while yesterday.weekday() >= 5:
-            yesterday = yesterday - timedelta(days=1)
-        latest_trade_day = yesterday.strftime("%Y%m%d")
+    if now.hour >= 8 and is_trading_day(now.date()):
+        latest_trade_day = now.strftime("%Y%m%d")
+    else:
+        latest_trade_day = prev_trading_day(now.date()).strftime("%Y%m%d")
     
     if current_data_date and current_data_date >= latest_trade_day and current_verification.get('confidence') == 'high':
         print(f"\n✅ 現有融資融券資料已是 {current_data_date} (最新交易日)，跳過本次更新")

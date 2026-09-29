@@ -6,6 +6,7 @@ name: 7. Pre-Market Alert (08:50 TW)
 #   - 新增處置股 + 新差 1 次
 #   - 結算日壓力 (D-?)
 # 不爬新資料, 純摘要 (秒級完成)
+# v3.80.4: 加交易日開關 gate job, 國定假日 (中秋/教師節...) 不再產出盤前簡報
 
 on:
   schedule:
@@ -20,7 +21,35 @@ permissions:
   contents: write
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+      session: ${{ steps.gate.outputs.session }}
+    steps:
+      - name: Checkout (gate files only)
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            scripts/trading_gate.py
+            src
+            data/twse_holidays.json
+            data/latest.json
+          sparse-checkout-cone-mode: false
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Trading-day gate
+        id: gate
+        run: python scripts/trading_gate.py --kind premarket --event "${{ github.event_name }}" --schedule "${{ github.event.schedule }}"
+
   brief:
+    needs: gate
+    # fail-open: skip only when the gate ran and said no; a crashed gate must not
+    # silently cancel a trading-day run
+    if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.run == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
 
