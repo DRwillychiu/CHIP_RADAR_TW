@@ -26,6 +26,23 @@ URL_TPL = "https://fubon-ebrokerdj.fbs.com.tw/z/zg/zgb/zgb0.djhtm?a={code}&b={co
 # 2026-09-25: a plain 9A9g request was served as 9A9G -> used as an identity check.
 IDENTITY_RE = re.compile(r"\('([0-9A-Za-z]+)','([0-9A-Za-z]+)','frm'\)")
 HOME_URL = "https://fubon-ebrokerdj.fbs.com.tw/"
+# v3.81.0 (winrate Task 1.1): one specific day. A range (e != f) returns the SUM of
+# the days (measured 2026-09-30), so history is always fetched one day at a time.
+URL_TPL_DATE = "https://fubon-ebrokerdj.fbs.com.tw/z/zg/zgb/zgb0.djhtm?a={code}&b={code}&c={mode}&e={d}&f={d}"
+DATA_DATE_RE = re.compile(r"資料日期：(\d{8})")
+
+
+def _date_key(date):
+    """'20260924' / '2026-09-24' / date(2026, 9, 24) -> '20260924'."""
+    if hasattr(date, 'strftime'):
+        return date.strftime('%Y%m%d')
+    return str(date).replace('-', '')
+
+
+def _fubon_date(date):
+    """-> '2026-9-24', the form Fubon's own links use (zero-padded also accepted)."""
+    k = _date_key(date)
+    return f"{int(k[:4])}-{int(k[4:6])}-{int(k[6:8])}"
 
 UA_POOL = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
@@ -80,11 +97,14 @@ def fubon_bno(branch_code):
     return branch_code
 
 
-def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
+def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N, date=None):
     """爬取指定分點的指定模式 (mode='B' 金額, mode='E' 張數)
-    top_n=None 保留整頁 (v3.80.1: 張數頁給 merge 查表用)"""
+    top_n=None 保留整頁 (v3.80.1: 張數頁給 merge 查表用)
+    date=None 抓最新一天 (每日爬蟲); 給 date (YYYYMMDD / date) 抓那一天 (v3.81.0):
+      頁面日期必須等於指定日期, 否則重試後回 error; 休市日/無交易 → no_data=True"""
     sent = fubon_bno(branch_code)
-    url = URL_TPL.format(code=sent, mode=mode)
+    url = (URL_TPL_DATE.format(code=sent, mode=mode, d=_fubon_date(date)) if date
+           else URL_TPL.format(code=sent, mode=mode))
     last_err = None
     for attempt in range(max_retries):
         try:
@@ -118,26 +138,38 @@ def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
             if not id_m:
                 print(f"\n::warning::{branch_code} mode {mode}: page has no branch-id marker, identity unverified")
 
-            date_m = re.search(r"資料日期：(\d{8})", html)
-            date = date_m.group(1) if date_m else None
-            
+            date_m = DATA_DATE_RE.search(html)
+            page_date = date_m.group(1) if date_m else None
+            if date:
+                # v3.81.0: a non-trading day (holiday / weekend / typhoon) comes back as a
+                # short page with no date marker and no tables (measured 2026-09-25/27, 07-10)
+                if page_date is None:
+                    return {"date": None, "buys": [], "sells": [], "error": None,
+                            "identity": identity, "no_data": True}
+                if page_date != _date_key(date):
+                    last_err = f"date mismatch: asked {_date_key(date)}, page is {page_date}"
+                    time.sleep(3 + attempt * 3)
+                    continue
+
             buy_idx = html.find("買超</td>")
             sell_idx = html.find("賣超</td>")
             if buy_idx < 0 or sell_idx < 0:
-                return {"date": date, "buys": [], "sells": [], "error": None, "identity": identity}
-            
+                return {"date": page_date, "buys": [], "sells": [], "error": None, "identity": identity}
+
             buys = parse_region(html[buy_idx:sell_idx])[:top_n]
             sells = parse_region(html[sell_idx:])[:top_n]
-            return {"date": date, "buys": buys, "sells": sells, "error": None, "identity": identity}
+            return {"date": page_date, "buys": buys, "sells": sells, "error": None, "identity": identity}
         except Exception as e:
             last_err = str(e)
             time.sleep(3 + attempt * 3)
     return {"date": None, "buys": [], "sells": [], "error": last_err}
 
 
-def fetch_branch_combined(branch_code):
+def fetch_branch_combined(branch_code, date=None):
     """
     爬取金額+張數雙模式，合併為完整資料
+    date=None: 最新一天 (每日爬蟲, 行為不變); date=YYYYMMDD: 指定那一天 (v3.81.0 歷史回補),
+    那天無交易時回 no_data=True、buys/sells 為空、error=None.
     回傳結構:
     {
         "date": "20260421",
@@ -154,16 +186,19 @@ def fetch_branch_combined(branch_code):
     """
     # 爬金額模式
     # v3.80.1: 整頁 (約 50 檔/邊) 當查表; 列的集合仍是前 TOP_N (見 merge_rows)
-    amt_result = fetch_branch_mode(branch_code, "B", top_n=None)
+    amt_result = fetch_branch_mode(branch_code, "B", top_n=None, date=date)
     if amt_result["error"]:
         return {"date": None, "buys": [], "sells": [], "error": amt_result["error"]}
+    if amt_result.get("no_data"):
+        return {"date": None, "buys": [], "sells": [], "error": None, "no_data": True,
+                "identity": amt_result.get("identity")}
     
     time.sleep(random.uniform(1.5, 2.5))  # 兩次請求之間的小停頓
     
     # 爬張數模式 — v3.80.1: 保留整頁 (約 50 檔/邊). 原本也截在 TOP_N=30,
     # 張數榜第 31~50 名的股票真實張數被丟掉, 再被 crawler.py 用收盤價反推覆蓋
     # (實測 8562 南亞科 真 59 張 → 顯示 58). 整頁只拿來查張數, 列數不變.
-    lot_result = fetch_branch_mode(branch_code, "E", top_n=None)
+    lot_result = fetch_branch_mode(branch_code, "E", top_n=None, date=date)
     if lot_result["error"]:
         # 張數爬失敗也可以繼續，只是沒有張數資料 (金額頁已驗證身分)
         print(f"\n::warning::{branch_code} lots page failed ({lot_result['error']}); lots will be estimated")
