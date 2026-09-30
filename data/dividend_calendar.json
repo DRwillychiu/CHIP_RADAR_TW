@@ -1,5 +1,5 @@
 {
- "count": 24,
+ "count": 35,
  "by_code": {
   "00400A": {
    "ex_date": "20261008",
@@ -8,9 +8,44 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
+  "00401A": {
+   "ex_date": "20261015",
+   "name": "主動摩根台灣鑫收",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
   "00406A": {
    "ex_date": "20261005",
    "name": "主動中信台灣收益",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "00904": {
+   "ex_date": "20261016",
+   "name": "台新臺灣半導體30",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "00922": {
+   "ex_date": "20261019",
+   "name": "國泰台灣領袖50",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "00927": {
+   "ex_date": "20261019",
+   "name": "群益半導體收益",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "00936": {
+   "ex_date": "20261016",
+   "name": "台新永續高息中小",
    "type": "息",
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
@@ -29,9 +64,30 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
+  "00943": {
+   "ex_date": "20261019",
+   "name": "兆豐電子高息等權",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "00944": {
+   "ex_date": "20261019",
+   "name": "野村趨勢動能高息",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
   "00946": {
    "ex_date": "20261007",
    "name": "群益科技高息成長",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "00947": {
+   "ex_date": "20261016",
+   "name": "台新臺灣IC設計",
    "type": "息",
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
@@ -43,9 +99,23 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
+  "00962": {
+   "ex_date": "20261016",
+   "name": "台新AI優息動能",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
   "00984D": {
    "ex_date": "20261005",
    "name": "主動聯博全球非投",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "00985A": {
+   "ex_date": "20261019",
+   "name": "主動野村台灣50",
    "type": "息",
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
@@ -57,19 +127,26 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
+  "00992A": {
+   "ex_date": "20261019",
+   "name": "主動群益科技創新",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "00996A": {
+   "ex_date": "20261019",
+   "name": "主動兆豐台灣豐收",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
   "01004T": {
    "ex_date": "20260930",
    "name": "土銀富邦R2",
    "type": "息",
    "cash_dividend": 0.221074,
    "stock_dividend_pct": 0.0
-  },
-  "1235": {
-   "ex_date": "20260924",
-   "name": "興泰",
-   "type": "權息",
-   "cash_dividend": 0.5,
-   "stock_dividend_pct": 0.04999999
   },
   "1449": {
    "ex_date": "20261012",
@@ -174,10 +251,29 @@
   "20261008": [
    "00400A"
   ],
+  "20261015": [
+   "00401A",
+   "1463"
+  ],
   "20261005": [
    "00406A",
    "00939",
    "00984D"
+  ],
+  "20261016": [
+   "00904",
+   "00936",
+   "00947",
+   "00962"
+  ],
+  "20261019": [
+   "00922",
+   "00927",
+   "00943",
+   "00944",
+   "00985A",
+   "00992A",
+   "00996A"
   ],
   "20261007": [
    "00940",
@@ -191,14 +287,8 @@
   "20260930": [
    "01004T"
   ],
-  "20260924": [
-   "1235"
-  ],
   "20261012": [
    "1449"
-  ],
-  "20261015": [
-   "1463"
   ],
   "20261013": [
    "1727"
@@ -223,22 +313,6 @@
   ]
  },
  "upcoming_30d": [
-  {
-   "code": "2109",
-   "ex_date": "20260929",
-   "name": "華豐",
-   "type": "息",
-   "cash_dividend": 0.5,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "7631",
-   "ex_date": "20260929",
-   "name": "聚賢研發-創",
-   "type": "息",
-   "cash_dividend": 0.8,
-   "stock_dividend_pct": 0.0
-  },
   {
    "code": "01004T",
    "ex_date": "20260930",
@@ -392,11 +466,107 @@
    "stock_dividend_pct": 0.0
   },
   {
+   "code": "00401A",
+   "ex_date": "20261015",
+   "name": "主動摩根台灣鑫收",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
    "code": "1463",
    "ex_date": "20261015",
    "name": "強盛新",
    "type": "息",
    "cash_dividend": 0.1273,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00904",
+   "ex_date": "20261016",
+   "name": "台新臺灣半導體30",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00936",
+   "ex_date": "20261016",
+   "name": "台新永續高息中小",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00947",
+   "ex_date": "20261016",
+   "name": "台新臺灣IC設計",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00962",
+   "ex_date": "20261016",
+   "name": "台新AI優息動能",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00922",
+   "ex_date": "20261019",
+   "name": "國泰台灣領袖50",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00927",
+   "ex_date": "20261019",
+   "name": "群益半導體收益",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00943",
+   "ex_date": "20261019",
+   "name": "兆豐電子高息等權",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00944",
+   "ex_date": "20261019",
+   "name": "野村趨勢動能高息",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00985A",
+   "ex_date": "20261019",
+   "name": "主動野村台灣50",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00992A",
+   "ex_date": "20261019",
+   "name": "主動群益科技創新",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00996A",
+   "ex_date": "20261019",
+   "name": "主動兆豐台灣豐收",
+   "type": "息",
+   "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
   {
@@ -408,6 +578,6 @@
    "stock_dividend_pct": 0.0
   }
  ],
- "fetched_at": "2026-09-29T22:54:14.069462+08:00",
+ "fetched_at": "2026-09-30T22:55:43.510703+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }
