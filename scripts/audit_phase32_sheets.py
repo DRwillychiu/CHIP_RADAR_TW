@@ -7,7 +7,7 @@
     - Phase 3.2 sub-banner (78.9%, n=38, Wilson CI, 30d 實戰)
     - 今日 quad 狀態 banner (row 9)
   Layer 2: 📱 手機摘要
-    - 明日預測, 強共識 Top 5 (含 ⭐), 追蹤池方向
+    - 今日籌碼偏向 (v3.80.7 原明日預測), 強共識 Top 5 (含 ⭐), 追蹤池方向
   Layer 3: 📈 Quad 實戰追蹤
     - 摘要 line (累積/30d/預期/delta)
     - 逐 trigger day (日期/Q5/picks/hits/命中率/mean)
@@ -141,7 +141,7 @@ m_title = mobile.cell(2, 3).value
 if not m_title or '📋' not in str(m_title) or 'Chip Radar' not in str(m_title):
     err('MOB.TITLE', 'has "📋 Chip Radar"', m_title, 'mobile 標題不對')
 
-# 明日預測 row 5
+# 今日籌碼偏向 row 5 (v3.80.7 原明日預測)
 m_q5 = mobile.cell(5, 3).value
 if not m_q5 or ('↑' not in str(m_q5) and '↓' not in str(m_q5) and '↕' not in str(m_q5)):
     err('MOB.Q5', 'has direction arrow', m_q5, 'mobile Q5 banner 缺方向')

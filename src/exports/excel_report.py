@@ -2186,7 +2186,7 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
       3. 視覺不雜亂 — 單欄, section 空 1 行, 無格線
 
     內容 (4 個決策問題):
-      📅 明日預測 (Q5 direction)
+      🌡️ 今日籌碼偏向 (v3.80.7: 原「明日預測」, 已退役為描述)
       🎯 強共識 Top 5 (買什麼)
       🚫 今日避開 (除權息)
       📊 追蹤池方向 (淨買差 + vs 昨/5d)
@@ -2216,22 +2216,30 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     c.alignment = Alignment(horizontal='left', vertical='center')
     row += 2
 
-    # ── 📅 明日預測 ──
-    ws.cell(row, 3, "📅 明日預測").font = sec_font
+    # ── 🌡️ 今日籌碼偏向 (v3.80.7: 原「📅 明日預測 … %」) ──
+    # v3.78.0 已判定方向判定無 alpha (160 天 Δ+0.0pp) 並退役為「描述」,
+    # 但當時只改了網站與 daily_signal headline, 這裡 (= 每日 Email 第一行)
+    # 仍寫「明日預測 + 信心%」. confidence_pct 是 net_weight 的線性換算,
+    # 不是命中率, 讀起來卻像勝率 → 改顯示籌碼強度並註明非預測.
+    ws.cell(row, 3, "🌡️ 今日籌碼偏向").font = sec_font
     row += 1
     daily_signal = _read_json_safely(data_dir / 'daily_signal.json')
     md = (daily_signal or {}).get('market_direction') or {}
     direction = md.get('direction') or '—'
-    confidence = md.get('confidence_pct') or 0
+    net_w = md.get('net_weight')
     if direction == '偏多':
         arrow, q5_color = '↑', COLORS['tw_red']
     elif direction == '偏空':
         arrow, q5_color = '↓', COLORS['tw_green']
     else:
         arrow, q5_color = '↕', COLORS['text_neutral']
-    c_q5 = ws.cell(row, 3, f"{arrow} {direction} {confidence:.1f}%")
+    strength = f" (強度 {net_w:+.2f})" if isinstance(net_w, (int, float)) else ""
+    c_q5 = ws.cell(row, 3, f"{arrow} {direction}{strength}")
     c_q5.font = Font(name='Noto Sans TC', size=16, bold=True, color=q5_color)
     ws.row_dimensions[row].height = 24
+    row += 1
+    c_note = ws.cell(row, 3, "描述非預測 · 實測對明日方向無優勢 (Δ+0.0pp)")
+    c_note.font = Font(name='Noto Sans TC', size=9, color=COLORS['text_neutral'])
     row += 2
 
     # ── 🎯 強共識買超 Top 5 ──
@@ -3254,11 +3262,17 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         # 不加前綴用戶可能誤解為「今日市場偏多」, 實際是預測「明日 TAIEX 偏多」
         # 例: 58.7 + fmt '"📅 明日預測 ↑ 偏多 "0.0"% — P/C Ratio 主推 — 3 檔焦點"'
         # → 顯示: "📅 明日預測 ↑ 偏多 58.7% — P/C Ratio 主推 — 3 檔焦點"
-        q5_fmt = f'"📅 明日預測 {arrow} {direction} "0.0"% 信心 — {top_signal} 主推 — {focus_n} 檔焦點"'
+        # v3.80.7: v3.78.0 已判定方向判定無 alpha 並退役為「描述」—
+        # 「明日預測 … % 信心」改為「籌碼偏向 … 強度」, 數值改用 net_weight.
+        # ⚠️ Excel 數字格式的 ';' 會切成「正;負;零」三段 — 前後綴文字每段都要帶,
+        #    否則負值時前綴會消失.
+        _pre = f'"🌡️ 籌碼偏向 {arrow} {direction} · 強度 "'
+        _post = f'" — {top_signal} 主推 — {focus_n} 檔焦點 (描述非預測)"'
+        q5_fmt = f'{_pre}+0.00{_post};{_pre}-0.00{_post};{_pre}0.00{_post}'
 
         ws.merge_cells(f'B{row}:N{row}')
         c_q5 = ws[f'B{row}']
-        c_q5.value = float(confidence)
+        c_q5.value = float(md.get('net_weight') or 0)
         c_q5.number_format = q5_fmt
         c_q5.alignment = Alignment(horizontal='center', vertical='center')
         c_q5.font = Font(name='Noto Sans TC', size=12, bold=True, color=color)

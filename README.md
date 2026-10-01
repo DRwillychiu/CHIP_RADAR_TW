@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.80.6(2026-10-01) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.80.7(2026-10-01) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,6 +261,7 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
+| **v3.80.7** | 10/1 | **🌡️ Excel 補齊 v3.78.0 退役** — v3.78.0 判定溫度計方向判定無 alpha (Δ+0.0pp) 並退役為描述, 但只改了網站與 headline, **漏了 Excel 手機摘要 (= 每日 Email 第一行) 與 Dashboard banner**, 仍寫「📅 明日預測 … % 信心」. 改為「🌡️ 今日籌碼偏向 ↕ 中性 (強度 -0.04) · 描述非預測」, 數值由 confidence_pct 改 net_weight. 順帶修正自訂數字格式 `;` 分段陷阱 (正/負/零三段都要帶前後綴). 同步 cross_validate_dashboard 稽核. 新測 33 PASS |
 | **v3.80.6** | 10/1 | **🔁 失敗分點同輪補抓** — 10/01 21:17 開跑前 7 分鐘富邦整段無回應, 前 5 個分點 + [11] 共 6 個逾時 (民哥 3/3 全滅 / 林滄海 2 / 張濬安 1), 但 [12]~[82] 全部成功. 每頁內建 3 次重試擠在 ~80 秒內撐不過停擺; 新 `retry_failed_branches()` 在主迴圈跑完 (~30 分鐘後) 回頭重抓一次, 不必等 22:37 整輪重跑. 新測 10 PASS |
 | **v3.80.5** | 10/1 | **🩹 大盤缺口自我修復** — v3.79.5 (9/22) 已把 8/31~9/21 補到 60/60, 但 **13 分鐘後被並行的 daily-full 蓋掉** (`git pull --rebase -X theirs` 讓後推者整段覆蓋), 之後 9 天缺 14/23 交易日沒人發現. 連帶: Quad 失效歸因 5 筆「TAIEX 資料缺」/ 缺口後錨點錯 3 天 (9/10 +1.31% 實為 -0.51% 正負翻轉) / temp_history.taiex_change_pct 36 錯 18 None. 修法改成**每日流程自己補**: `heal_market_gaps()` 冪等 (無缺口零網路), `_sync_temp_with_market()` 全量對齊, heartbeat 加中間缺口檢查 (原本只看錯位與最新一筆), daily-full 加 concurrency 防自我並行. 新測 30 PASS |
 | **v3.79.0** | 8/30 | **🧹 P2 技術債 — master 名單集中化挖出 3 個實際缺陷** — ① `PREMIUM_MASTERS` 漂移到**零交集**(excel_report 動態 `{巨人傑}` vs bootstrap 硬寫 `{陳律師,竹科主力,陳族元}`)→ 每週 multiday backtest 一直在算三個已不符資格的人; ② `SNIPER_MASTERS` 兩份定義不同(crawler 1 人 / audit 4 人)— 查出是**兩個不同概念共用一個名字**, 拆成 `TOP_BUYER_HIGHLIGHT_MASTERS` + `LIMIT_UP_SNIPERS`; ③ audit 寫 `'迷你哥'` 但正式名稱是 `'迷你哥/松山哥'` → **silent no-op**, 對他永遠不匹配. 新 `src/core/master_tiers.py` 唯一真相來源 + **import 時驗證名字存在**(打錯直接 raise). ⚠️ 差點做錯: 回測不可換成動態名單(依績效挑的名單篩全部歷史 = look-ahead), 改用 `PREMIUM_MASTERS_SNAPSHOT` 時點快照 + `check_snapshot_leakage()`. 另: 融資加權成本**接線已驗證正常**, 純等資料(5/30 天, 約 2026-10); histock 第三來源實測富邦 10/10、histock 0 觸發 → **不需要**. 新測 36 PASS / 全套 337 case 全過 |
