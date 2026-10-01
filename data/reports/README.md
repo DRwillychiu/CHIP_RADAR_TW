@@ -28,10 +28,11 @@ Excel 抓取法依 master 切換:
 
 ## 每日歷史
 
-近 5 個交易日 (共 5 個檔案):
+近 6 個交易日 (共 6 個檔案):
 
 | 日期 | 檔案 | 大小 |
 |------|------|------|
+| 2026-10 | [chip_radar_2026-10.xlsx](./chip_radar_2026-10.xlsx) | 66.7 KB |
 | 2026-09 | [chip_radar_2026-09.xlsx](./chip_radar_2026-09.xlsx) | 728.0 KB |
 | 2026-08 | [chip_radar_2026-08.xlsx](./chip_radar_2026-08.xlsx) | 757.6 KB |
 | 2026-07 | [chip_radar_2026-07.xlsx](./chip_radar_2026-07.xlsx) | 780.6 KB |
@@ -40,4 +41,4 @@ Excel 抓取法依 master 切換:
 
 ---
 
-*Updated: 2026-09-30 20:37*
+*Updated: 2026-10-01 13:50*
