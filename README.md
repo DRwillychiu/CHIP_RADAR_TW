@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.80.8(2026-10-01) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.80.9(2026-10-01) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,6 +261,7 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
+| **v3.80.9** | 10/1 | **🗜️ 權證不進 stock_history** — stock_history.json 長到 29.5 MB, daily-full 一個月 commit ~100 次, .git 已 2.5 GB. 拆解 stocks 18,027 筆: **15,618 筆 (~16.7 MB, 約 7 成) 是 TPEx 日收盤帶進來的上櫃權證** (70xxxx~73xxxx, 認售尾碼 U), 下游 quad_hit_log / master_profiles / daily_trading_signals / multiday_backtest 引用 0 次. `update_history()` 改為略過權證 + 每輪 `prune_warrants()` 自我清除 (防並行排程用舊版蓋回, 同 v3.80.5 教訓); **00 開頭 ETF/ETN 與 4 碼個股 (含 7402 等 7 開頭) 全部保留**. 一次性 `scripts/prune_warrants_history.py` 備份至 data/backup_v3809/ 後清理, 29.5 → 9.3 MB (-68%), 707 個被引用代號清理前後全部可查. 新測 44 PASS |
 | **v3.80.8** | 10/1 | **⏱️ daily-full 時限 45 → 75 分** — 10/01 富邦整晚偏慢, 21:17 跑 42.0 分、22:37 跑到 45.6 分被砍 (分點與大盤自我修復都已成功, 但後處理沒跑完 → **什麼都沒 commit**). 平常 20~25 分; 加上 v3.80.6 同輪補抓需要更多空間 |
 | **v3.80.7** | 10/1 | **🌡️ Excel 補齊 v3.78.0 退役** — v3.78.0 判定溫度計方向判定無 alpha (Δ+0.0pp) 並退役為描述, 但只改了網站與 headline, **漏了 Excel 手機摘要 (= 每日 Email 第一行) 與 Dashboard banner**, 仍寫「📅 明日預測 … % 信心」. 改為「🌡️ 今日籌碼偏向 ↕ 中性 (強度 -0.04) · 描述非預測」, 數值由 confidence_pct 改 net_weight. 順帶修正自訂數字格式 `;` 分段陷阱 (正/負/零三段都要帶前後綴). 同步 cross_validate_dashboard 稽核. 新測 33 PASS |
 | **v3.80.6** | 10/1 | **🔁 失敗分點同輪補抓** — 10/01 21:17 開跑前 7 分鐘富邦整段無回應, 前 5 個分點 + [11] 共 6 個逾時 (民哥 3/3 全滅 / 林滄海 2 / 張濬安 1), 但 [12]~[82] 全部成功. 每頁內建 3 次重試擠在 ~80 秒內撐不過停擺; 新 `retry_failed_branches()` 在主迴圈跑完 (~30 分鐘後) 回頭重抓一次, 不必等 22:37 整輪重跑. 新測 10 PASS |

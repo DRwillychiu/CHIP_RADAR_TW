@@ -39,6 +39,7 @@ Module: history.py (v3.15.2 新增)
 """
 
 import json
+import re
 import time
 import requests
 from pathlib import Path
@@ -49,6 +50,33 @@ TW_TZ = timezone(timedelta(hours=8))
 
 HISTORY_FILE = 'stock_history.json'
 MAX_DAYS = 60  # v3.44.0: 30 → 60 配合 master_profile B3 時間衰減 60 天視窗 + 給 margin_maintenance 60 日均價選項
+
+# v3.80.9: 上櫃權證不進 stock_history.
+#   TPEx 日收盤 (tpex_mainboard_daily_close_quotes ~10,657 列) 含整批權證:
+#   認購 70xxxx~73xxxx、認售尾碼 U (例 72050U). 2026-10-01 實測佔 stocks
+#   15,618 / 18,027 筆 (~16.7 MB, 約 7 成), 而 quad_hit_log / master_profiles /
+#   daily_trading_signals / multiday_backtest 引用次數為 0 — 純負擔.
+#   只比對 6 碼, 不會誤傷 4 碼個股 (7402 等) 與 00 開頭的 ETF/ETN (00981A 等, 有被引用).
+WARRANT_CODE_RE = re.compile(r'^7[0-3]\d{3}[0-9A-Z]$')
+
+
+def is_warrant_code(code: str) -> bool:
+    """v3.80.9: 是否為上櫃權證代號 (70xxxx~73xxxx, 含認售尾碼 U)."""
+    return bool(WARRANT_CODE_RE.match(code or ''))
+
+
+def prune_warrants(history: Dict[str, Any]) -> int:
+    """v3.80.9: 從 history["stocks"] 移除權證, 回傳移除筆數. 冪等.
+
+    每次 update_history 都跑, 不只靠一次性清理 — v3.80.5 教訓:
+    並行的 daily-full 以 `git pull --rebase -X theirs` 推送時會用舊版整段
+    覆蓋, 一次性修改可能被蓋回去; 讓每日流程自己清, 下一輪就會再收斂.
+    """
+    stocks = history.get("stocks") or {}
+    drop = [c for c in stocks if is_warrant_code(c)]
+    for c in drop:
+        del stocks[c]
+    return len(drop)
 
 # TWSE 大盤指數 API
 # v3.79.5: FMTQIK 升為主要來源, MI_INDEX 降為備援. 見 _fetch_taiex_fmtqik docstring.
@@ -440,7 +468,12 @@ def update_history(
     
     history_path = data_dir / HISTORY_FILE
     history = _load_history(history_path)
-    
+
+    # 0. v3.80.9: 清掉既有的權證 (冪等, 正常日為 0 筆)
+    pruned_warrants = prune_warrants(history)
+    if pruned_warrants:
+        print(f"  🗑️ [v3.80.9] 移除 {pruned_warrants} 檔既有權證")
+
     # 1. 建立股票代號 → 名稱的 map (從 branches_results 或 quotes)
     name_map = {}
     if branches_results:
@@ -459,7 +492,11 @@ def update_history(
     #   保留 v3.27.3 + v3.45.0 fetcher level stale 偵測 (TWSE response_date 比對) — 那才是真 stale.
     stock2ind = industry_map.get("stock_industry", {})
     added_stocks = 0
+    skipped_warrants = 0
     for code, quote in daily_quotes_map.items():
+        if is_warrant_code(code):   # v3.80.9
+            skipped_warrants += 1
+            continue
         close = quote.get("close", 0)
         change_pct = quote.get("change_pct", 0)
         if not close:
@@ -495,7 +532,8 @@ def update_history(
                 rec_day["margin_balance"] = int(mb)
         history["stocks"][code]["daily"][trade_date] = rec_day
     
-    print(f"  ✓ 累積 {len(daily_quotes_map)} 檔個股 ({added_stocks} 檔新增)")
+    print(f"  ✓ 累積 {len(daily_quotes_map) - skipped_warrants} 檔個股 ({added_stocks} 檔新增, "
+          f"略過 {skipped_warrants} 檔權證)")
     
     # 3. 計算產業平均漲跌
     industry_stats = {}  # industry -> [change_pcts]
