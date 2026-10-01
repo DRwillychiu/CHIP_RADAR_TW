@@ -43,7 +43,7 @@ import time
 import requests
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, Optional
+from typing import List, Dict, Any, Optional
 
 TW_TZ = timezone(timedelta(hours=8))
 
@@ -233,6 +233,121 @@ def _fetch_taiex_fmtqik(trade_date: str, timeout: int = 25) -> Optional[Dict[str
             continue
     print(f"    ⚠️ FMTQIK 該月資料無 {trade_date} (可能尚未公布)")
     return None
+
+
+def _fetch_fmtqik_month(ym: str, timeout: int = 25) -> Dict[str, float]:
+    """v3.80.5: 抓 FMTQIK 一整個月 → {YYYYMMDD: 加權指數}. 失敗回 {}."""
+    try:
+        try:
+            from safe_fetch import safe_get
+            r = safe_get(FMTQIK_URL.format(ym=ym), source_id='TWSE_FMTQIK',
+                         max_retries=2, timeout=timeout,
+                         headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'zh-TW'})
+        except ImportError:
+            r = requests.get(FMTQIK_URL.format(ym=ym), timeout=timeout,
+                             headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'zh-TW'})
+        j = r.json()
+    except Exception as e:
+        print(f"    ⚠️ FMTQIK {ym} 抓取失敗: {type(e).__name__}")
+        return {}
+    if j.get('stat') != 'OK':
+        return {}
+    out = {}
+    for row in (j.get('data') or []):
+        try:
+            p = str(row[0]).split('/')
+            out[f"{int(p[0]) + 1911}{p[1]}{p[2]}"] = float(str(row[4]).replace(',', ''))
+        except (ValueError, IndexError, TypeError):
+            continue
+    return out
+
+
+def _prev_month(ym: str) -> str:
+    y, m = int(ym[:4]), int(ym[4:])
+    return f"{y - 1}12" if m == 1 else f"{y}{m - 1:02d}"
+
+
+def heal_market_gaps(history: Dict[str, Any], upto: str,
+                     fetch_month=None) -> List[str]:
+    """v3.80.5: 大盤缺口自我修復 — 每次 update_history 都跑, 冪等.
+
+    為什麼需要 (2026-10-01 稽核):
+      v3.79.5 (09/22 23:45) 用 FMTQIK 把 8/31~9/21 的 15 天缺口補到 60/60,
+      **13 分鐘後就被蓋掉**: 一個 23:35 啟動的 daily-full 先 checkout 了回補前
+      的版本, 跑完 push 衝突時走 `git pull --rebase --strategy-option=theirs`,
+      衝突區塊一律採用 runner 自己的版本 → 回補的 14 天整段消失, 之後 9 天
+      沒有人發現 (heartbeat 只檢查日期錯位與「最新一筆」落後, 不看中間缺口).
+
+      教訓: 一次性的手動回補, 在「多個排程會同時寫同一個檔」的環境裡不可靠.
+      只有讓**每日流程自己檢查並補缺口**, 才能保證最終一致 —
+      就算哪次又被 race 蓋掉, 下一次排程也會再補回來.
+
+    做法:
+      缺口 = history["dates"] (有個股資料的交易日, 上限 upto) 中, market 沒有的日子
+      無缺口 → 立即返回, 不打任何網路 (正常日零成本)
+      有缺口 → 抓涵蓋月份的 FMTQIK (含前一個月, 供第一天算漲跌幅),
+               補 index + quote_date, change_pct 以**官方前一交易日**重算.
+      另外, 缺口後第一個既有交易日的 change_pct 也要重算 —
+      它當初是對著「缺口前更早的一天」算的 (v3.79.5 實例: 09/10 正負號被翻轉).
+
+    Returns: 被補上的日期清單
+    """
+    market = history.setdefault("market", {})
+    gaps = sorted(d for d in history.get("dates", [])
+                  if d <= upto and d not in market)
+    if not gaps:
+        return []
+
+    fetch_month = fetch_month or _fetch_fmtqik_month
+    months = {d[:6] for d in gaps}
+    months |= {_prev_month(m) for m in months}
+    off: Dict[str, float] = {}
+    for ym in sorted(months):
+        off.update(fetch_month(ym))
+    if not off:
+        print(f"  ⚠️ [大盤自我修復] {len(gaps)} 天缺口, 但 FMTQIK 取不到資料 — 下次排程再試")
+        return []
+
+    od = sorted(off)
+    healed: List[str] = []
+    touched = set()
+    for d in gaps:
+        if d not in off:
+            continue                      # 官方也沒有 (非交易日或尚未公布)
+        i = od.index(d)
+        prev = off[od[i - 1]] if i > 0 else None
+        market[d] = {
+            "index": off[d],
+            "change_pct": round((off[d] - prev) / prev * 100, 2) if prev else None,
+            "quote_date": f"{int(d[:4]) - 1911}{d[4:]}",
+            "change_pct_source": "fmtqik_self_heal_v3.80.5",
+        }
+        healed.append(d)
+        touched.add(d)
+        # 缺口後第一個既有交易日: 它的 change_pct 當初對著錯的前一日算
+        if i + 1 < len(od):
+            nd = od[i + 1]
+            if nd in market and nd not in gaps:
+                touched.add(nd)
+
+    for d in touched - set(healed):
+        i = od.index(d)
+        if i == 0:
+            continue
+        prev = off[od[i - 1]]
+        new_pct = round((off[d] - prev) / prev * 100, 2)
+        old_pct = (market[d] or {}).get("change_pct")
+        if old_pct is None or abs(old_pct - new_pct) >= 0.02:
+            market[d]["change_pct"] = new_pct
+            market[d]["change_pct_source"] = "fmtqik_post_gap_recalc_v3.80.5"
+            print(f"    ↻ {d} change_pct {old_pct} → {new_pct} (缺口後錨點校正)")
+
+    if healed:
+        print(f"  🩹 [大盤自我修復] 補回 {len(healed)} 天: {healed}")
+    still = [d for d in gaps if d not in healed]
+    if still:
+        print(f"  ⚠️ [大盤自我修復] 仍缺 {len(still)} 天 (FMTQIK 尚無): {still}")
+    return healed
 
 
 def _load_history(history_path: Path) -> Dict[str, Any]:
@@ -460,6 +575,12 @@ def update_history(
     if trade_date not in history["dates"]:
         history["dates"].append(trade_date)
         history["dates"].sort()
+
+    # 5b. v3.80.5 大盤缺口自我修復 (無缺口時零成本, 不打網路)
+    try:
+        history["market_healed_last_run"] = heal_market_gaps(history, upto=trade_date)
+    except Exception as _he:
+        print(f"  ⚠️ [大盤自我修復] 失敗 (不影響主流程): {type(_he).__name__}: {_he}")
     
     # 6. 清除過舊資料
     _prune_old_data(history, MAX_DAYS)

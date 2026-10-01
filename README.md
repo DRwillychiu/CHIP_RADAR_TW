@@ -1,7 +1,7 @@
 # Chip Radar TW · 分點籌碼觀察站
 
 > 自動化追蹤台股券商分點 + 期貨選擇權籌碼 + 法人動向 + 大戶策略分析的專業級個人看板
-> **當前版本**:v3.79.0(2026-08-30) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
+> **當前版本**:v3.80.5(2026-10-01) ｜ **網站**:https://drwillychiu.github.io/CHIP_RADAR_TW/
 > **結構**:機構級 Data Analyst 分層(src/ 8 大類 + tests/ + docs/),60 模組
 
 v3.40-v3.51 機構級升級重點(Sprint 1-13):
@@ -261,6 +261,7 @@ Actions → `1. Daily Full Crawl (21:17)` → Run workflow
 
 | 版本 | 日期 | 重點 |
 |------|------|------|
+| **v3.80.5** | 10/1 | **🩹 大盤缺口自我修復** — v3.79.5 (9/22) 已把 8/31~9/21 補到 60/60, 但 **13 分鐘後被並行的 daily-full 蓋掉** (`git pull --rebase -X theirs` 讓後推者整段覆蓋), 之後 9 天缺 14/23 交易日沒人發現. 連帶: Quad 失效歸因 5 筆「TAIEX 資料缺」/ 缺口後錨點錯 3 天 (9/10 +1.31% 實為 -0.51% 正負翻轉) / temp_history.taiex_change_pct 36 錯 18 None. 修法改成**每日流程自己補**: `heal_market_gaps()` 冪等 (無缺口零網路), `_sync_temp_with_market()` 全量對齊, heartbeat 加中間缺口檢查 (原本只看錯位與最新一筆), daily-full 加 concurrency 防自我並行. 新測 30 PASS |
 | **v3.79.0** | 8/30 | **🧹 P2 技術債 — master 名單集中化挖出 3 個實際缺陷** — ① `PREMIUM_MASTERS` 漂移到**零交集**(excel_report 動態 `{巨人傑}` vs bootstrap 硬寫 `{陳律師,竹科主力,陳族元}`)→ 每週 multiday backtest 一直在算三個已不符資格的人; ② `SNIPER_MASTERS` 兩份定義不同(crawler 1 人 / audit 4 人)— 查出是**兩個不同概念共用一個名字**, 拆成 `TOP_BUYER_HIGHLIGHT_MASTERS` + `LIMIT_UP_SNIPERS`; ③ audit 寫 `'迷你哥'` 但正式名稱是 `'迷你哥/松山哥'` → **silent no-op**, 對他永遠不匹配. 新 `src/core/master_tiers.py` 唯一真相來源 + **import 時驗證名字存在**(打錯直接 raise). ⚠️ 差點做錯: 回測不可換成動態名單(依績效挑的名單篩全部歷史 = look-ahead), 改用 `PREMIUM_MASTERS_SNAPSHOT` 時點快照 + `check_snapshot_leakage()`. 另: 融資加權成本**接線已驗證正常**, 純等資料(5/30 天, 約 2026-10); histock 第三來源實測富邦 10/10、histock 0 觸發 → **不需要**. 新測 36 PASS / 全套 337 case 全過 |
 | **v3.78.0** | 8/30 | **⚰️ 溫度計方向判定退役 (數值保留)** — 160 天乾淨資料 (official 119 + v3.76.0 重建 41) 實測: 配對命中率相對無腦全多 **Δ +0.0pp / p=1.000**(全期 n=129 / train 94 / test 35 三段皆是). 結構性主因: 160 天只喊過 **2 次偏空**, net_weight 值域 -0.148~+0.855 → 幾乎不站空方就不可能勝過全多. 選擇能力同樣不成立 (全期 -0.032% z=-0.19, **OOS -0.310% z=-0.79**). **9 個重設計候選** 依預先宣告準則在 train 選出最佳者, train z=1.82 → **test z=0.38** (過擬合衰減). t+1~t+10 全 horizon 測過 z ∈ [-0.84,+0.12] → 不是問錯 horizon. 處置: direction/confidence_pct 退役, 7 信號數值與溫度分數**保留顯示**; 新增 `ALPHA_VERDICT` 隨每次回傳帶出、headline 停用「信心%」說法、前端加揭露框. 閾值**刻意不改** (退役後改閾值只是看起來有在維護). 新測 34 PASS / 全套 301 case 全過 |
 | **v3.77.0** | 8/30 | **🛡️ P0 資料信任度掃尾 — 讓同類靜默錯誤下次會自己叫** — ① 下游影響清單: 4 條 market 消費路徑逐一用官方 FMTQIK 驗證, **權重體系完全乾淨**(`backtest_results.json` 116/116 正確、`signal_history_official.json` 18/18 正確)→ 不需重跑; 唯一污染是 Q5 命中判定(已於 v3.76.0 修). ② 同類錯誤掃描: 新 `audit_api_fields.py` probe **13 端點 → 0 CRITICAL**; 確認 institutional.py 的 `.get('Date')` 寫法正確(那兩支 API 真的是英文欄位), 融資兩支語言相反但 margin.py 兩邊都對. ③ 結構性防護: heartbeat 加 `check_data_integrity`(每日 2 次/純本機/錯位即 FAIL) + weekly 加 API 欄位漂移稽核; 另補 Phase B **資料源分歧守門**(CLI 預設與 production 實際來源不同, 會靜默換掉權重基礎). 新測 25 PASS 直接餵 v3.76.0 前的真實壞狀態驗證守門會擋. 全套回歸 267 case 全過 |

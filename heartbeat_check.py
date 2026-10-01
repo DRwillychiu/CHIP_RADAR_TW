@@ -172,6 +172,16 @@ def check_data_integrity(stock_history_path: str = 'data/stock_history.json'
     if missing_qd:
         issues.append(f'market {len(missing_qd)} 筆缺 quote_date — 無法驗證新鮮度: '
                       f'{missing_qd[:5]}')
+
+    # v3.80.5: 中間缺口 — 有個股資料但沒有大盤的交易日 (最新一天除外, 那由下方軟性檢查負責)
+    # 2026-10-01 實例: v3.79.5 的回補被並行排程蓋掉, 8/31~9/21 共 14 天缺大盤,
+    # 舊版 heartbeat 只看「錯位」和「最新一筆落後」, 這個洞存在 9 天都是 PASS.
+    # 每日流程現有 heal_market_gaps 自我修復, 跑完仍有缺口 = 修復本身失效 → FAIL.
+    hist_dates = sorted(sh.get('dates') or [])
+    interior_gaps = [d for d in hist_dates[:-1] if d not in market] if market else []
+    if interior_gaps:
+        issues.append(f'market 中間缺口 {len(interior_gaps)} 天 (有個股資料卻無大盤, '
+                      f'自我修復未生效): {interior_gaps[:6]}')
     if misaligned:
         issues.append(f'market {len(misaligned)} 筆日期錯位 (key ≠ quote_date): '
                       f'{misaligned[:5]}')
@@ -197,6 +207,7 @@ def check_data_integrity(stock_history_path: str = 'data/stock_history.json'
             'market_records': len(market),
             'missing_quote_date': len(missing_qd),
             'misaligned': len(misaligned),
+            'interior_gaps': len(interior_gaps),
         },
     }
 

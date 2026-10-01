@@ -35,6 +35,15 @@ on:
 permissions:
   contents: write
 
+# v3.80.5: 同一時間只允許一個 daily-full 在跑 (後到的排隊, 不取消正在跑的).
+# 2026-10-01 稽核: 本機 Task Scheduler 的 21:17/22:37 dispatch 與 GitHub 延遲到
+# 01:00-04:00 的 schedule run 常常重疊. 兩個 run 各自 checkout 舊版 → 各自寫
+# stock_history.json → push 衝突時 `git pull --rebase -X theirs` 讓後推的一方
+# 整段覆蓋前者. v3.79.5 的 14 天大盤回補就是這樣在 13 分鐘後被蓋掉的.
+concurrency:
+  group: daily-full-crawl
+  cancel-in-progress: false
+
 jobs:
   gate:
     runs-on: ubuntu-latest
