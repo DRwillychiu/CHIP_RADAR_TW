@@ -384,6 +384,49 @@ def _post_disposal_snapshot(data_dir):
         print(f"  ⚠️ disposal snapshot 失敗 (不影響主流程): {type(_dse).__name__}: {_dse}")
 
 
+
+def retry_failed_branches(results, fetch_fn, classify_fn, pause=16.0, sleep_fn=None):
+    """v3.80.6 同輪補抓: 主迴圈跑完後, 對 error 的分點再抓一次 (就地替換 results).
+
+    2026-10-01 21:17 實例: 開跑前 7 分鐘富邦整段無回應, 前 5 個分點連續逾時,
+    之後 71 個全部成功. 每頁內建 3 次重試擠在 ~80 秒內撐不過整段停擺;
+    主迴圈跑完已過 ~30 分鐘, 這時回頭重抓幾乎必定成功.
+
+    Returns: (補回數, 第一個補回分點的 trade_date 或 None)
+    """
+    sleep_fn = sleep_fn or time.sleep
+    failed_idx = [k for k, r in enumerate(results) if r.get("error")]
+    if not failed_idx:
+        return 0, None
+    print()
+    print(f"  🔁 同輪補抓 {len(failed_idx)} 個失敗分點 (先休息 {pause:.0f} 秒)...")
+    sleep_fn(pause)
+    recovered, td = 0, None
+    for k in failed_idx:
+        r0 = results[k]
+        print(f"    ↻ {r0.get('master')} | {r0.get('name')} ({r0['code']}) ", end="", flush=True)
+        data = fetch_fn(r0["code"])
+        if data.get("error") or (not data.get("buys") and not data.get("sells")):
+            print(f"仍失敗: {data.get('error') or '無資料'}")
+        else:
+            for st in data.get("buys", []) + data.get("sells", []):
+                cinfo = classify_fn(st["code"], st["name"])
+                st["market_type"] = cinfo["category"]
+                st["market_type_simple"] = cinfo["category_simple"]
+                st["market_type_basic"] = cinfo["category_basic"]
+                st["industry"] = cinfo.get("industry", "")
+                st["is_ky"] = cinfo.get("is_ky", False)
+            results[k] = {**r0, "date": data.get("date"), "buys": data["buys"],
+                          "sells": data["sells"], "error": None,
+                          "recovered_in_retry_pass": True}
+            recovered += 1
+            td = td or data.get("date")
+            print(f"✓ 補回 買{len(data['buys'])}/賣{len(data['sells'])}")
+        sleep_fn(random.uniform(DELAY_MIN, DELAY_MAX))
+    print(f"  🔁 同輪補抓: 補回 {recovered}/{len(failed_idx)}")
+    return recovered, td
+
+
 def main():
     password = os.environ.get("CHIP_RADAR_PASSWORD", "").strip()
     if not password:
@@ -470,6 +513,22 @@ def main():
             else:
                 time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))
     
+    # ════════════════════════════════════════════════════════════════
+    # v3.80.6 同輪補抓: 主迴圈跑完後, 失敗的分點再抓一次
+    # ════════════════════════════════════════════════════════════════
+    # 2026-10-01 21:17 實例: 開跑前 7 分鐘富邦整段無回應, [1]~[5] 連續逾時
+    # (另 [11] 一筆), 但 [12]~[82] 全部成功. 每頁內建的 3 次重試擠在 ~80 秒內,
+    # 撐不過整段停擺; 主迴圈跑完已過 ~30 分鐘, 這時回頭重抓幾乎必定成功.
+    # 原本只能等 22:37 兜底排程整輪重跑 (再花 40 分鐘), 且若兜底被 GitHub
+    # 延遲到凌晨, 當晚 21:58 寄出的 Email/Excel 就一直缺這幾個分點.
+    _rec, _td = retry_failed_branches(results, fetch_branch_combined, classify_stock_fn,
+                                      pause=COOL_DOWN_SECONDS * 2)
+    if _rec:
+        fail_count -= _rec
+        success_count += _rec
+        trade_date = trade_date or _td
+        print(f"  🔁 最終 成功 {success_count} / 失敗 {fail_count} / 無資料 {empty_count}")
+
     if not trade_date:
         trade_date = now_tw().strftime("%Y%m%d")
     

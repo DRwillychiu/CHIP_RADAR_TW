@@ -153,6 +153,43 @@ c = wf.get('concurrency') or {}
 check("有 concurrency group", bool(c.get('group')), c)
 check("cancel-in-progress=false (不可砍掉正在跑的)", c.get('cancel-in-progress') is False, c)
 
+# ─── 9. v3.80.6 失敗分點同輪補抓 ───
+print("\n[9] 失敗分點同輪補抓 (10/01 21:17: 前 7 分鐘富邦無回應, 6 個分點逾時)")
+import crawler
+CLS = lambda code, name: {'category': 'listed', 'category_simple': 'listed',
+                          'category_basic': 'listed', 'industry': '測試', 'is_ky': False}
+OK_PAGE = {'date': '20261001', 'error': None,
+           'buys': [{'code': '2330', 'name': '台積電'}], 'sells': []}
+results = [
+    {'code': '9B25', 'master': '民哥', 'name': '台新-五權西', 'date': None,
+     'buys': [], 'sells': [], 'error': 'Read timed out'},
+    {'code': '779Z', 'master': '張濬安', 'name': '國票-安和', 'date': '20261001',
+     'buys': [{'code': '1101'}], 'sells': [], 'error': None},
+    {'code': '9666', 'master': '民哥', 'name': '富邦-南屯', 'date': None,
+     'buys': [], 'sells': [], 'error': 'Read timed out'},
+]
+fetched = []
+def fetch_ok_then_fail(code):
+    fetched.append(code)
+    if code == '9666':
+        return {'date': None, 'error': 'Read timed out', 'buys': [], 'sells': []}
+    return copy.deepcopy(OK_PAGE)
+rec, td = crawler.retry_failed_branches(results, fetch_ok_then_fail, CLS, sleep_fn=lambda s: None)
+check("只重抓失敗的分點 (不碰成功的 779Z)", fetched == ['9B25', '9666'], fetched)
+check("補回 1 個", rec == 1, rec)
+check("回傳 trade_date", td == '20261001', td)
+check("補回的分點 error 清空且有資料",
+      results[0]['error'] is None and results[0]['buys'], results[0])
+check("補回的分點有標記 recovered_in_retry_pass", results[0].get('recovered_in_retry_pass') is True)
+check("補回的個股有市場分類", results[0]['buys'][0].get('market_type') == 'listed')
+check("保留分點原有欄位 (master/name)", results[0]['master'] == '民哥')
+check("仍失敗的分點維持 error", results[2]['error'] == 'Read timed out')
+check("成功的分點完全不動", results[1]['buys'] == [{'code': '1101'}])
+rec2, _ = crawler.retry_failed_branches(
+    [{'code': 'X', 'error': None, 'buys': [1], 'sells': []}],
+    lambda c: (_ for _ in ()).throw(AssertionError('不該被呼叫')), CLS, sleep_fn=lambda s: None)
+check("沒有失敗分點 → 不重抓也不休息", rec2 == 0)
+
 print(f"\n{'=' * 58}")
 print(f"test_v3805_market_self_heal: {P} PASS / {F} FAIL")
 sys.exit(0 if F == 0 else 1)
