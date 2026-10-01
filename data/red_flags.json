@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T03:09:52.871211+08:00",
+  "generated_at": "2026-10-02T04:01:15.812224+08:00",
   "trade_date": "20261001",
   "pump_suspicion": [
     {
@@ -562,36 +562,6 @@
   ],
   "distribution": [
     {
-      "stock_code": "6182",
-      "stock_name": "合晶",
-      "branch_code": "9666",
-      "branch_name": "富邦-南屯",
-      "master": "民哥",
-      "sell_lot": 800,
-      "sell_amt_wan": 10754,
-      "avg_30d_sell_lot": 106.3,
-      "sell_vs_avg_x": 7.5,
-      "recent_5d_limit_up_count": 63,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 800 張 (30 天均 106 張 × 7.5) + 近 5 天漲停 63 次"
-    },
-    {
-      "stock_code": "2030",
-      "stock_name": "彰源",
-      "branch_code": "9666",
-      "branch_name": "富邦-南屯",
-      "master": "民哥",
-      "sell_lot": 396,
-      "sell_amt_wan": 1509,
-      "avg_30d_sell_lot": 20.0,
-      "sell_vs_avg_x": 19.8,
-      "recent_5d_limit_up_count": 62,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 396 張 (30 天均 20 張 × 19.8) + 近 5 天漲停 62 次"
-    },
-    {
       "stock_code": "2409",
       "stock_name": "友達",
       "branch_code": "9216",
@@ -599,27 +569,12 @@
       "master": "林滄海",
       "sell_lot": 35911,
       "sell_amt_wan": 140318,
-      "avg_30d_sell_lot": 5070.9,
-      "sell_vs_avg_x": 7.1,
+      "avg_30d_sell_lot": 5005.0,
+      "sell_vs_avg_x": 7.2,
       "recent_5d_limit_up_count": 79,
       "rule": "C_distribution",
       "severity": "medium",
-      "reasoning": "當日賣 35,911 張 (30 天均 5071 張 × 7.1) + 近 5 天漲停 79 次"
-    },
-    {
-      "stock_code": "3481",
-      "stock_name": "群創",
-      "branch_code": "9216",
-      "branch_name": "凱基-信義",
-      "master": "林滄海",
-      "sell_lot": 734,
-      "sell_amt_wan": 4002,
-      "avg_30d_sell_lot": 124.0,
-      "sell_vs_avg_x": 5.9,
-      "recent_5d_limit_up_count": 77,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 734 張 (30 天均 124 張 × 5.9) + 近 5 天漲停 77 次"
+      "reasoning": "當日賣 35,911 張 (30 天均 5005 張 × 7.2) + 近 5 天漲停 79 次"
     },
     {
       "stock_code": "6182",
@@ -700,8 +655,8 @@
   "summary": {
     "pump_count": 3,
     "wash_count": 30,
-    "distribution_count": 9,
-    "total": 42
+    "distribution_count": 6,
+    "total": 39
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
