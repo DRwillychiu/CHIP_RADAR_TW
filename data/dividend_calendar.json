@@ -1,5 +1,5 @@
 {
- "count": 57,
+ "count": 58,
  "by_code": {
   "00400A": {
    "ex_date": "20261008",
@@ -123,6 +123,13 @@
   "00927": {
    "ex_date": "20261019",
    "name": "群益半導體收益",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "00929": {
+   "ex_date": "20261021",
+   "name": "復華台灣科技優息",
    "type": "息",
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
@@ -302,6 +309,13 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
+  "00991B": {
+   "ex_date": "20261020",
+   "name": "貝萊德A級公司債",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
   "00992A": {
    "ex_date": "20261019",
    "name": "主動群益科技創新",
@@ -379,13 +393,6 @@
    "cash_dividend": 1.0,
    "stock_dividend_pct": 0.0
   },
-  "6834": {
-   "ex_date": "20261002",
-   "name": "天二科技",
-   "type": "權",
-   "cash_dividend": 0.0,
-   "stock_dividend_pct": 0.0
-  },
   "6947": {
    "ex_date": "20261007",
    "name": "台鎔科技",
@@ -415,7 +422,8 @@
    "00984D"
   ],
   "20261021": [
-   "00408A"
+   "00408A",
+   "00929"
   ],
   "20261022": [
    "0056"
@@ -470,6 +478,10 @@
    "6108",
    "6947"
   ],
+  "20261020": [
+   "00991B",
+   "4155"
+  ],
   "20261012": [
    "1449"
   ],
@@ -480,25 +492,11 @@
    "2614",
    "8021"
   ],
-  "20261020": [
-   "4155"
-  ],
   "20261028": [
    "4552"
-  ],
-  "20261002": [
-   "6834"
   ]
  },
  "upcoming_30d": [
-  {
-   "code": "6834",
-   "ex_date": "20261002",
-   "name": "天二科技",
-   "type": "權",
-   "cash_dividend": 0.0,
-   "stock_dividend_pct": 0.0
-  },
   {
    "code": "00406A",
    "ex_date": "20261005",
@@ -908,6 +906,14 @@
    "stock_dividend_pct": 0.0
   },
   {
+   "code": "00991B",
+   "ex_date": "20261020",
+   "name": "貝萊德A級公司債",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
    "code": "4155",
    "ex_date": "20261020",
    "name": "訊映",
@@ -919,6 +925,14 @@
    "code": "00408A",
    "ex_date": "20261021",
    "name": "主動第一金優股息",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00929",
+   "ex_date": "20261021",
+   "name": "復華台灣科技優息",
    "type": "息",
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
@@ -948,6 +962,6 @@
    "stock_dividend_pct": 0.0
   }
  ],
- "fetched_at": "2026-10-02T03:13:35.854038+08:00",
+ "fetched_at": "2026-10-03T03:45:33.615883+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }
