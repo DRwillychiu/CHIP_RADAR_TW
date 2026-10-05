@@ -1,30 +1,37 @@
 {
-  "audit_run_at": "2026-10-05T15:06:52.235977",
+  "audit_run_at": "2026-10-05T16:06:37.101877",
   "xlsx_path": "/home/runner/work/CHIP_RADAR_TW/CHIP_RADAR_TW/data/reports/latest.xlsx",
   "tool": "auto_audit v3.29.3",
   "sheet": "📋 今日 Dashboard",
   "stats": {
-    "total_rows": 3,
-    "total_real": 3,
+    "total_rows": 4,
+    "total_real": 4,
     "net_buy": 0,
     "net_sell": 0,
-    "net_zero": 3,
+    "net_zero": 4,
     "empty": 0,
     "notice": 0,
     "limit_up_tag": 0,
     "reverse_est": 0
   },
   "overall_verdict": "PASS",
-  "summary": "✅ 3 row 全淨買, 0 限漲標, 0 反推估算",
+  "summary": "✅ 4 row 全淨買, 0 限漲標, 0 反推估算",
   "anomalies": {
     "net_sell_count": 0,
-    "net_zero_count": 3,
+    "net_zero_count": 4,
     "net_sell_examples": [],
     "net_zero_examples": [
       {
         "master": "",
         "branch": "友達",
         "stock": "張濬安(航海王)",
+        "buy_amt": 0,
+        "sell_amt": 0
+      },
+      {
+        "master": "",
+        "branch": "華新科",
+        "stock": "蔣承翰(UC)",
         "buy_amt": 0,
         "sell_amt": 0
       },
@@ -44,5 +51,5 @@
       }
     ]
   },
-  "branches_audited": 3
+  "branches_audited": 4
 }
