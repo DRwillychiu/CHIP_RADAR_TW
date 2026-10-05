@@ -1006,26 +1006,114 @@
       "hits": 3,
       "hit_rate": 0.2727,
       "mean_change": -1.26
+    },
+    {
+      "date": "20261002",
+      "next_date": "20261005",
+      "q5_direction": "偏多",
+      "q5_confidence": 81.7,
+      "taifex_change": 2.55,
+      "vol_spike_masters": [
+        "Tradow"
+      ],
+      "quad_picks": [
+        {
+          "code": "2330",
+          "name": "台積電",
+          "matched_masters": [
+            "Tradow"
+          ],
+          "next_change_pct": 3.0,
+          "hit": true,
+          "leader_pct": 0.351,
+          "excess_return": 0.45,
+          "failure_reasons": []
+        },
+        {
+          "code": "6274",
+          "name": "台燿",
+          "matched_masters": [
+            "Tradow"
+          ],
+          "next_change_pct": 9.88,
+          "hit": true,
+          "leader_pct": 0.25,
+          "excess_return": 7.33,
+          "failure_reasons": []
+        },
+        {
+          "code": "2308",
+          "name": "台達電",
+          "matched_masters": [
+            "Tradow"
+          ],
+          "next_change_pct": 6.37,
+          "hit": true,
+          "leader_pct": 0.596,
+          "excess_return": 3.82,
+          "failure_reasons": []
+        },
+        {
+          "code": "6213",
+          "name": "聯茂",
+          "matched_masters": [
+            "Tradow"
+          ],
+          "next_change_pct": 9.96,
+          "hit": true,
+          "leader_pct": 0.437,
+          "excess_return": 7.41,
+          "failure_reasons": []
+        },
+        {
+          "code": "2345",
+          "name": "智邦",
+          "matched_masters": [
+            "Tradow"
+          ],
+          "next_change_pct": 5.6,
+          "hit": true,
+          "leader_pct": 0.511,
+          "excess_return": 3.05,
+          "failure_reasons": []
+        },
+        {
+          "code": "8996",
+          "name": "高力",
+          "matched_masters": [
+            "Tradow"
+          ],
+          "next_change_pct": 5.63,
+          "hit": true,
+          "leader_pct": 0.211,
+          "excess_return": 3.08,
+          "failure_reasons": []
+        }
+      ],
+      "n": 6,
+      "hits": 6,
+      "hit_rate": 1.0,
+      "mean_change": 6.74
     }
   ],
   "rolling_30d": {
-    "trigger_days": 0,
-    "n": 0,
-    "hits": 0,
-    "hit_rate": 0,
-    "mean_change": 0
+    "trigger_days": 1,
+    "n": 6,
+    "hits": 6,
+    "hit_rate": 1.0,
+    "mean_change": 6.74
   },
   "rolling_all": {
-    "trigger_days": 7,
-    "n": 67,
-    "hits": 26,
-    "hit_rate": 0.3881,
-    "mean_change": -0.49
+    "trigger_days": 8,
+    "n": 73,
+    "hits": 32,
+    "hit_rate": 0.4384,
+    "mean_change": 0.1
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.3881,
-    "delta_pp": -40.1
+    "actual_hit_rate": 0.4384,
+    "delta_pp": -35.1
   },
-  "updated_at": "2026-10-02T20:30:11.793051"
+  "updated_at": "2026-10-05T13:52:03.715123"
 }
