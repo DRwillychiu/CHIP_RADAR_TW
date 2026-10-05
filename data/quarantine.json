@@ -73,5 +73,36 @@
    "found": "2026-09-25",
    "evidence": "same scan as 9A9g"
   }
+ ],
+ "_doc_code_aliases": "Stock codes stored wrong by the branch-page parser before v3.80.11: the link text is code+name glued together, and a name starting with capital letters (FT...) was read as part of the code. Readers rewrite these to the official code/name at load time (filter_day); stored files are never rewritten.",
+ "code_aliases": [
+  {
+   "from": "00961FT",
+   "to": "00961",
+   "name": "FT臺灣永續高息",
+   "reason": "parser read the FT name prefix as part of the code (fixed v3.80.11)",
+   "evidence": "Fubon <a href=\"javascript:Link2Stk('00961');\">00961FT臺灣永續高息</a>; TWSE MI_INDEX 20261005: 00961 FT臺灣永續高息"
+  },
+  {
+   "from": "00905FT",
+   "to": "00905",
+   "name": "FT臺灣Smart",
+   "reason": "parser read the FT name prefix as part of the code (fixed v3.80.11)",
+   "evidence": "TWSE MI_INDEX 20261005: 00905 FT臺灣Smart"
+  },
+  {
+   "from": "00899FT",
+   "to": "00899",
+   "name": "FT潔淨能源",
+   "reason": "parser read the FT name prefix as part of the code (fixed v3.80.11)",
+   "evidence": "TWSE MI_INDEX 20261005: 00899 FT潔淨能源"
+  },
+  {
+   "from": "00982BFT",
+   "to": "00982B",
+   "name": "FT投資級債20+",
+   "reason": "parser read the FT name prefix as part of the code (fixed v3.80.11)",
+   "evidence": "same parser pattern; TPEx daily quotes 20261005 list 00982B (close 9.02), not 00982BFT"
+  }
  ]
 }

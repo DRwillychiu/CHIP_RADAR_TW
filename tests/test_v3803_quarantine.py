@@ -58,6 +58,23 @@ clean = {'trade_date': '20260624', 'branches': day['branches']}
 check("沒命中的日子回傳同一物件 (零成本)", q.filter_day(clean, '20260624') is clean)
 check("非日檔結構原樣回傳", q.filter_day({'x': 1}, '20260623') == {'x': 1} and q.filter_day(None) is None)
 
+# ── H. v3.80.11 代號更正 ──
+print("\nH. 讀取時把解析錯的 4 個 FT 開頭 ETF 代號改回官方代號")
+al = q.load_aliases()
+check("4 筆更正: 00961FT/00905FT/00899FT/00982BFT",
+      set(al) == {'00961FT', '00905FT', '00899FT', '00982BFT'}, sorted(al))
+check("00961FT → 00961 FT臺灣永續高息", al.get('00961FT') == ('00961', 'FT臺灣永續高息'))
+dayA = {'trade_date': '20261005', 'branches': [
+    {'code': '9666', 'master': '民哥', 'buys': [{'code': '00961FT', 'name': '臺灣永續高息', 'buy_amt': 509},
+                                                {'code': '2330', 'name': '台積電', 'buy_amt': 9}], 'sells': []}]}
+snapA = json.dumps(dayA, ensure_ascii=False, sort_keys=True)
+outA = q.filter_day(dayA, '20261005')
+rows = {r['code']: r for r in outA['branches'][0]['buys']}
+check("讀取後是 00961 / FT臺灣永續高息, 並記下原代號",
+      '00961' in rows and rows['00961']['name'] == 'FT臺灣永續高息' and rows['00961']['code_fixed_from'] == '00961FT')
+check("其他股票原封不動", rows['2330'] is dayA['branches'][0]['buys'][1])
+check("輸入物件沒被改", json.dumps(dayA, ensure_ascii=False, sort_keys=True) == snapA)
+
 # ── D ──
 print("\nD. DB: 寫入時跳過, 已存在的錯列在下次寫入時刪掉 (in-memory, 合成資料)")
 import db_pipeline as dbp

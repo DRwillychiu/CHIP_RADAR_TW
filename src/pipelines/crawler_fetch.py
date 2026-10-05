@@ -36,14 +36,19 @@ UA_POOL = [
 ROW_PATTERN = re.compile(
     r"<tr>\s*<td[^>]*id=\"oAddCheckbox\"[^>]*>\s*"
     r"(?:"
-    r"<SCRIPT[^>]*>\s*<!--\s*GenLink2stk\('(?:AS)?(\w+)',\s*'([^']+)'\)"
+    r"<SCRIPT[^>]*>\s*<!--\s*GenLink2stk\('(?:AS)?(?P<g_code>\w+)',\s*'(?P<g_name>[^']+)'\)"
     r"|"
-    r"<a[^>]*>([0-9A-Z]+)([^<]+)</a>"
+    # v3.80.11: code from the link target. The link TEXT is code+name glued
+    # together ("00961FT臺灣永續高息" for 00961 FT臺灣永續高息), so reading the
+    # code off the text swallowed a name that starts with capital letters.
+    r"<a[^>]*Link2Stk\('(?P<l_code>\w+)'\)[^>]*>(?P<l_text>[^<]+)</a>"
+    r"|"
+    r"<a[^>]*>(?P<a_code>[0-9A-Z]+)(?P<a_name>[^<]+)</a>"      # older pages, no Link2Stk
     r")"
     r".*?"
-    r"<td[^>]*>([\d,]+)</td>\s*"
-    r"<td[^>]*>([\d,]+)</td>\s*"
-    r"<td[^>]*>(-?[\d,]+)</td>",
+    r"<td[^>]*>(?P<v1>[\d,]+)</td>\s*"
+    r"<td[^>]*>(?P<v2>[\d,]+)</td>\s*"
+    r"<td[^>]*>(?P<v3>-?[\d,]+)</td>",
     re.DOTALL,
 )
 
@@ -53,12 +58,18 @@ def parse_region(html):
     """解析買超或賣超表格區塊"""
     rows = []
     for m in ROW_PATTERN.finditer(html):
-        code = m.group(1) or m.group(3)
-        name = (m.group(2) or m.group(4) or "").strip()
+        if m.group('l_code'):
+            code = m.group('l_code')
+            text = m.group('l_text').strip()
+            name = text[len(code):] if text.startswith(code) else text
+        else:
+            code = m.group('g_code') or m.group('a_code')
+            name = m.group('g_name') or m.group('a_name') or ""
+        name = name.strip()
         try:
-            v1 = int(m.group(5).replace(",", ""))
-            v2 = int(m.group(6).replace(",", ""))
-            v3 = int(m.group(7).replace(",", ""))
+            v1 = int(m.group('v1').replace(",", ""))
+            v2 = int(m.group('v2').replace(",", ""))
+            v3 = int(m.group('v3').replace(",", ""))
         except ValueError:
             continue
         rows.append({"code": code, "name": name, "v1": v1, "v2": v2, "v3": v3})

@@ -121,6 +121,24 @@ s = r['buys'][0]
 check("張數頁寫 0 (零股) → sell_lot=0 且 lot_listed=True (不會被改成 1 張)",
       s['sell_lot'] == 0 and s['lot_listed'] is True, (s['sell_lot'], s['lot_listed']))
 
+# ── F. v3.80.11 名稱以大寫字母開頭的股票 ──
+print("\nF. 代號從連結 Link2Stk('...') 取, 不從「代號+名稱」黏在一起的文字猜")
+def link_row(cell):
+    return (f'<tr>\r\n<td class="t4t1" nowrap id="oAddCheckbox">\r\n{cell}\r\n</td>\r\n'
+            '<td class="t3n1" nowrap>1,234</td>\r\n<td class="t3n1" nowrap>509</td>\r\n<td class="t3n1" nowrap>725</td>\r\n</tr>\r\n')
+got = {r['code']: r['name'] for r in cf.parse_region(''.join(link_row(c) for c in [
+    "<a href=\"javascript:Link2Stk('00961');\">00961FT臺灣永續高息</a>",          # 2026-10-05 實際頁面
+    "<a href=\"javascript:Link2Stk('00982B');\">00982BFT投資級債20+</a>",
+    "<a href=\"javascript:Link2Stk('2330');\">2330台積電</a>",
+    "<SCRIPT LANGUAGE=javascript>\r\n<!--\r\nGenLink2stk('AS3653','健策');\r\n//-->\r\n</SCRIPT>",
+    "<a href=\"x\">6488環球晶</a>",                                             # 舊版頁面無 Link2Stk
+]))}
+check("00961 / FT臺灣永續高息 (舊版解析成 00961FT / 臺灣永續高息)", got.get('00961') == 'FT臺灣永續高息', got)
+check("00982B / FT投資級債20+", got.get('00982B') == 'FT投資級債20+')
+check("一般股 2330 台積電、GenLink2stk 3653 健策、無連結舊格式 6488 環球晶 不受影響",
+      (got.get('2330'), got.get('3653'), got.get('6488')) == ('台積電', '健策', '環球晶'))
+check("不再產生 00961FT / 00982BFT 這種代號", not ({'00961FT', '00982BFT'} & set(got)))
+
 # ── E. registry ──
 print("\nE. 分點名稱與官方登記一致的已知修正")
 from branches import get_branch_by_code, WATCHED_BRANCHES
