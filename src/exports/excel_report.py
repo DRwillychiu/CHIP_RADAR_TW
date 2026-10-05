@@ -60,9 +60,18 @@ ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME,
 LEGACY_ENRICHMENT_NAMES = ["📋 今日摘要", "🚨 異常警報", "📦 連續囤貨", "⚠️ 風險警示"]
 
 try:
-    from branches import MASTER_STYLES
+    from branches import MASTER_STYLES, WATCHED_BRANCHES
 except ImportError:
-    MASTER_STYLES = {}
+    MASTER_STYLES, WATCHED_BRANCHES = {}, []
+
+# v3.80.12 (使用者 2026-10-05): 凱基-城中 (9227) 也是優式資本 (UC) 的操作分點.
+# 有分點名稱帶 (UC) 的大戶, 在 Dashboard 以「大戶(UC)」顯示, 提醒這個金額可能混有 UC.
+# 從 branches.py 名稱推得 (目前 = 蔣承翰), 不另寫死名單; master 本身不改名.
+UC_SHARED_MASTERS = {b['master'] for b in WATCHED_BRANCHES if '(UC)' in b.get('name', '')}
+
+
+def _master_display(master):
+    return f"{master}(UC)" if master in UC_SHARED_MASTERS else master
 
 SNIPER_STYLES = {"next_day_flipper", "day_trader"}
 
@@ -4068,7 +4077,7 @@ def _build_strong_consensus_dashboard(ws, branches_data, trade_date):
         c = ws.cell(row, 3, p['code'])
         c.font = body_font
         c.alignment = Alignment(horizontal='center')
-        ws.cell(row, 4, leader).font = body_font
+        ws.cell(row, 4, _master_display(leader)).font = body_font
         c = ws.cell(row, 5, round(leader_amt / 10))
         c.font = body_font
         c.number_format = '#,##0'
