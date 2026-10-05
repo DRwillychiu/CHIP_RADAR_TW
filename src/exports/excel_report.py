@@ -1344,7 +1344,8 @@ def _section_header(ws, row: int, title: str, span_cols: int = 9, color: str = '
 def _compute_consensus_count(branches_data):
     """v3.64.3: 共用 helper — 算「強共識股」清單 (≥10 大戶 + ≥2 分點 + 排 ETF + net>0).
 
-    Returns: list of dict {code, name, master_count, branch_count, total_net_amt, masters}
+    Returns: list of dict {code, name, master_count, branch_count, total_net_amt, masters,
+                           master_net}  (master_net: {master: 該大戶在此股的淨買合計 仟元}, v3.80.10)
     與 Section 0 使用相同邏輯, 兩處共用避免 drift.
     """
     MIN_MASTER_COUNT = 10
@@ -1375,11 +1376,15 @@ def _compute_consensus_count(branches_data):
         masters = {br['master'] for br in info['branches']}
         if len(masters) < MIN_MASTER_COUNT:
             continue
+        master_net = {}
+        for br in info['branches']:
+            master_net[br['master']] = master_net.get(br['master'], 0) + br['net_amt']
         out.append({
             'code': code, 'name': info['name'],
             'master_count': len(masters),
             'branch_count': len(info['branches']),
             'masters': masters,
+            'master_net': master_net,
             'total_net_amt': sum(br['net_amt'] for br in info['branches']),
         })
     return out
@@ -3090,27 +3095,9 @@ def _update_load_timeseries(data_dir, trade_date, kpis, update=True):
     return {'yesterday': yesterday, 'avg5': avg5, 'days_history': len(past_idx)}
 
 
-def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
-                            all_branches=None, update_timeseries=True):
-    """Section A: 追蹤池摘要 (v3.64.3) — 10 秒判讀今天追蹤大戶在做什麼.
-
-    4 KPI 對應 4 個盤前 decision-making 問題:
-      Q1 活躍率      → 是否值得看細節?
-      Q2 淨買差      → 偏多/偏空 bias?
-      Q3 強共識股    → 是否有 conviction 還是散亂?
-      Q4 追蹤佔比    → vs 全市場誰更看多?
-
-    + Top 5 master + Top 5 個股 + 籌碼溫度 (後續 sections 保持不變).
-    """
-    label_font = Font(name='Noto Sans TC', size=10, color='FF666666')
-    val_font = Font(name='Noto Sans TC', size=14, bold=True)
-    hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
-    hdr_fill = _summary_fill('FFF0F0F0')
-
-    row = start_row
-    _section_header(ws, row, "▍ A. 追蹤池摘要 (10 秒判讀今日 13 位大戶在做什麼)")
-    row += 1
-
+def _compute_summary_kpis(branches_data, all_branches=None):
+    """v3.80.10: Section A 的 4 個 KPI (原本寫在 _build_section_summary 內, 原樣搬出).
+    Dashboard 只顯示強共識清單後, 仍由 build_dashboard_sheet 呼叫它更新 timeseries.json."""
     # ── 共同計算: sell_amt dedup helper (v3.64.1 Bug 1 fix) ──
     def _compute_buy_sell(blist):
         buy = sum((s.get('buy_amt') or 0) for b in blist for s in (b.get('buys') or []))
@@ -3129,7 +3116,7 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
     total_net = total_buy - total_sell
     net_billion = total_net / 100000   # 仟元 → 億元
 
-    # ── Q1: 活躍率 = 今天有 buys 的追蹤大戶 / 全追蹤大戶數 (13) ──
+    # ── Q1: 活躍率 = 今天有 buys 的追蹤大戶 / 全追蹤大戶數 ──
     active_masters = {b.get('master') for b in branches_data
                        if (b.get('buys') or []) and b.get('master')}
     total_masters = len(TRACKED_MASTERS)
@@ -3151,15 +3138,57 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         mkt_net_billion = 0
         track_share = 0
 
-    # ── v3.66.7 Phase 2.3: 時間維度 cache (今/昨/5日均) ──
-    ts = _update_load_timeseries(data_dir, trade_date, {
+    return {
+        'total_net': total_net, 'active_count': active_count, 'total_masters': total_masters,
         'q1_active_ratio': active_ratio,
         'q2_net_billion': net_billion,
         'q3_consensus_count': consensus_count,
         'q3_consensus_net_billion': consensus_net_billion,
         'q4_track_share': track_share,
         'q4_mkt_net_billion': mkt_net_billion,
-    }, update=update_timeseries)
+    }
+
+
+_TIMESERIES_KEYS = ('q1_active_ratio', 'q2_net_billion', 'q3_consensus_count',
+                    'q3_consensus_net_billion', 'q4_track_share', 'q4_mkt_net_billion')
+
+
+def _timeseries_kpis(k):
+    """The 6 KPIs timeseries.json stores (same keys as before v3.80.10)."""
+    return {key: k[key] for key in _TIMESERIES_KEYS}
+
+
+def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
+                            all_branches=None, update_timeseries=True):
+    """Section A: 追蹤池摘要 (v3.64.3) — 10 秒判讀今天追蹤大戶在做什麼.
+
+    4 KPI 對應 4 個盤前 decision-making 問題:
+      Q1 活躍率      → 是否值得看細節?
+      Q2 淨買差      → 偏多/偏空 bias?
+      Q3 強共識股    → 是否有 conviction 還是散亂?
+      Q4 追蹤佔比    → vs 全市場誰更看多?
+
+    + Top 5 master + Top 5 個股 + 籌碼溫度 (後續 sections 保持不變).
+    """
+    label_font = Font(name='Noto Sans TC', size=10, color='FF666666')
+    val_font = Font(name='Noto Sans TC', size=14, bold=True)
+    hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
+    hdr_fill = _summary_fill('FFF0F0F0')
+
+    row = start_row
+    _section_header(ws, row, "▍ A. 追蹤池摘要 (10 秒判讀今日 13 位大戶在做什麼)")
+    row += 1
+
+    # v3.80.10: KPI 計算抽成 _compute_summary_kpis — Dashboard 不再畫本區塊時,
+    # 仍要每天更新 timeseries.json (手機摘要 / Email 的「vs 昨 / 5 日均」靠它)
+    k = _compute_summary_kpis(branches_data, all_branches)
+    total_net, net_billion = k['total_net'], k['q2_net_billion']
+    active_count, total_masters, active_ratio = k['active_count'], k['total_masters'], k['q1_active_ratio']
+    consensus_count, consensus_net_billion = k['q3_consensus_count'], k['q3_consensus_net_billion']
+    mkt_net_billion, track_share = k['q4_mkt_net_billion'], k['q4_track_share']
+
+    # ── v3.66.7 Phase 2.3: 時間維度 cache (今/昨/5日均) ──
+    ts = _update_load_timeseries(data_dir, trade_date, _timeseries_kpis(k), update=update_timeseries)
     y, a = ts['yesterday'], ts['avg5']
 
     # 累積中 (歷史不足) 顯示
@@ -3994,54 +4023,87 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
     return row
 
 
+def _build_strong_consensus_dashboard(ws, branches_data, trade_date):
+    """v3.80.10: 今日強共識買超清單 — 個股 / 代號 / 領頭大戶 / 領頭金額(萬).
+
+    名單 = _compute_consensus_count (≥10 位追蹤大戶淨買 >0、≥2 分點、排除 00 開頭 ETF),
+    與手機摘要 / Section 0 同一套邏輯. 排序沿用 Section 0: 合計淨買 ↓, 大戶數 ↓.
+    領頭大戶 = 在此股淨買合計最多的追蹤大戶; 領頭金額 = 其淨買合計 (仟元 ÷ 10 = 萬).
+    """
+    picks = sorted(_compute_consensus_count(branches_data),
+                   key=lambda x: (-x['total_net_amt'], -x['master_count'], x['code']))
+    ds = f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]}"
+
+    for col, w in [('A', 3), ('B', 16), ('C', 10), ('D', 22), ('E', 16)]:
+        ws.column_dimensions[col].width = w
+
+    ws.merge_cells('B2:E2')
+    c = ws['B2']
+    c.value = f"📋 今日強共識買超 — {ds}"
+    c.font = _summary_font_header()
+    c.fill = _summary_fill('FF1F2A48')
+    c.alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[2].height = 30
+
+    ws.merge_cells('B3:E3')
+    c = ws['B3']
+    c.value = f"≥10 位追蹤大戶共同淨買 (追蹤 {len(TRACKED_MASTERS)} 位)  |  共 {len(picks)} 檔"
+    c.font = Font(name='Noto Sans TC', size=10, color='FF666666')
+    c.alignment = Alignment(horizontal='center', vertical='center')
+
+    hdr_font = Font(name='Noto Sans TC', size=11, bold=True)
+    hdr_fill = _summary_fill('FFF0F0F0')
+    for col, h in zip('BCDE', ('個股', '代號', '領頭大戶', '領頭金額(萬)')):
+        c = ws[f'{col}5']
+        c.value = h
+        c.font = hdr_font
+        c.fill = hdr_fill
+        c.alignment = Alignment(horizontal='center', vertical='center')
+
+    body_font = Font(name='Noto Sans TC', size=11)
+    row = 6
+    for p in picks:
+        leader, leader_amt = max(p['master_net'].items(), key=lambda kv: (kv[1], kv[0]))
+        ws.cell(row, 2, p['name']).font = body_font
+        c = ws.cell(row, 3, p['code'])
+        c.font = body_font
+        c.alignment = Alignment(horizontal='center')
+        ws.cell(row, 4, leader).font = body_font
+        c = ws.cell(row, 5, round(leader_amt / 10))
+        c.font = body_font
+        c.number_format = '#,##0'
+        row += 1
+    if not picks:
+        ws.merge_cells(f'B{row}:E{row}')
+        c = ws.cell(row, 2, "(今日無強共識股)")
+        c.font = Font(name='Noto Sans TC', size=11, color='FF999999')
+        c.alignment = Alignment(horizontal='center')
+    ws.freeze_panes = 'A6'
+
+
 def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str,
                             data_dir: Optional[Path] = None,
                             update_timeseries: bool = True):
-    """v3.62.1: 把 E1-E4 4 個 section 全部寫到單一 sheet (用戶要求).
-    順序: A 規模 → B Top master → C Top stocks → D 籌碼溫度
-        → E 異常警報 → F 連續囤貨 → G 注意股 → H 借券 → I 除權息
+    """📋 今日 Dashboard.
+    v3.80.10 (使用者 2026-10-05): 只呈現今日強共識買超清單 (≥10 位追蹤大戶共同淨買),
+    欄位 個股 / 代號 / 領頭大戶 / 領頭金額(萬). 仍更新 timeseries.json.
     """
     data_dir = data_dir or Path('data')
-    title_fill = _summary_fill('FF1F2A48')
-    title_font = _summary_font_header()
 
     # v3.63.2: 嚴格只保留追蹤清單內的大戶 (MASTER_MAPPING)
     # v3.64.3: 保留全市場 branches 供 Section A 計算「追蹤佔比 vs 全市場」
     all_branches = branches_data
     branches_data = _filter_tracked_branches(branches_data)
 
-    for col, w in [('A', 4), ('B', 22), ('C', 18), ('D', 22), ('E', 16),
-                    ('F', 22), ('G', 18), ('H', 22), ('I', 16)]:
-        ws.column_dimensions[col].width = w
-
-    # ── 大標題 ──
-    ws.merge_cells('B2:N2')
-    c = ws['B2']
-    c.value = (f"📋 Chip Radar 今日 Dashboard — "
-                f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]} "
-                f"(追蹤 {len(TRACKED_MASTERS)} 位大戶)")
-    c.font = title_font
-    c.fill = title_fill
-    c.alignment = Alignment(horizontal='center', vertical='center')
-    ws.row_dimensions[2].height = 30
-
-    # ── v3.66.4 Phase 2.1: TL;DR + Action card (首屏 5 秒決策摘要) ──
-    _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_dir)
-
-    # ── 各 section ──
-    row = 6   # v3.66.4: 從 row 4 → row 6 (讓 TL;DR + Action)
-    # v3.63.2: ★ Section 0 — 今日共同買超 (置於最前, 使用者最關注)
-    row = _build_section_consensus(ws, branches_data, data_dir, row, trade_date=trade_date)
-    row = _build_section_summary(ws, branches_data, trade_date, data_dir, row,
-                                   all_branches=all_branches,
-                                   update_timeseries=update_timeseries)
-    row = _build_section_alerts(ws, data_dir, row)
-    row = _build_section_accumulation(ws, data_dir, row)
-    row = _build_section_pivot(ws, branches_data, row)   # v3.63.0 E7 Pivot
-    row = _build_section_risk(ws, data_dir, row, trade_date=trade_date)
-
-    # v3.66.4: freeze pane 延伸到 row 5 (TL;DR + Action 永遠看得到)
-    ws.freeze_panes = 'A6'
+    # v3.80.10 (使用者 2026-10-05): Dashboard 只呈現「今日強共識買超」清單,
+    # 欄位 個股 / 代號 / 領頭大戶 / 領頭金額(萬). 其餘區塊不再畫, 但 KPI 照樣
+    # 寫進 timeseries.json — 手機摘要 (= 每日 Email) 的「vs 昨 / 5 日均」靠它.
+    _update_load_timeseries(data_dir, trade_date,
+                            _timeseries_kpis(_compute_summary_kpis(branches_data, all_branches)),
+                            update=update_timeseries)
+    _build_strong_consensus_dashboard(ws, branches_data, trade_date)
+    # 舊版多區塊 Dashboard (TL;DR、A 追蹤池、警報、囤貨、Pivot、風險) 見 git 1182f54;
+    # 各 _build_section_* 函式保留 (手機摘要等仍可能共用).
 
 
 # v3.62.0 → v3.62.1 backward compat: 舊 builder name 保留但呼叫 dashboard

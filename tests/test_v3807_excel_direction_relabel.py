@@ -10,9 +10,9 @@
 
 本測試鎖住:
   1. 兩處不再出現「明日預測」與「信心」
-  2. 改顯示 net_weight 強度並註明非預測
-  3. Dashboard 自訂數字格式的「正;負;零」三段都帶前後綴
-     (第一版寫成 "+0.00;-0.00" 讓 ';' 把文字切斷, 負值時前綴會消失)
+  2. 手機摘要改顯示 net_weight 強度並註明非預測
+  3. (v3.80.10 起) Dashboard 只呈現強共識買超清單, 不再有方向 banner;
+     原本 banner 數字格式「正;負;零」三段的檢查隨之移除
 """
 import sys, os, json, re, tempfile, shutil
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -68,19 +68,13 @@ for direction, net, conf in (('偏多', 0.523, 95.0), ('中性', -0.035, 46.5), 
         check(f"手機摘要顯示強度 {net:+.2f}", f"強度 {net:+.2f}" in blob, blob[:200])
         check("手機摘要註明描述非預測", '描述非預測' in blob)
 
-        dash = [x for x in texts(ds) if '籌碼偏向' in x[2] or '明日預測' in x[2]]
-        check("Dashboard banner 存在", len(dash) == 1, dash)
-        if dash:
-            coord, val, fmt = dash[0]
-            check("Dashboard 不再出現「明日預測」/「信心」",
-                  '明日預測' not in fmt and '信心' not in fmt, fmt)
-            check("Dashboard 數值是 net_weight 而非 confidence",
-                  abs(float(val) - net) < 1e-9, val)
-            # 不在引號內的 ';' 才是段落分隔
-            sections = re.split(r';(?=(?:[^"]*"[^"]*")*[^"]*$)', fmt)
-            check("數字格式有 正/負/零 三段", len(sections) == 3, sections)
-            check("三段都帶前綴「籌碼偏向」", all('籌碼偏向' in s for s in sections), sections)
-            check("三段都帶後綴「描述非預測」", all('描述非預測' in s for s in sections), sections)
+        # v3.80.10 (使用者 2026-10-05): Dashboard 只呈現強共識買超清單, 方向橫幅
+        # (原本的「籌碼偏向」banner 與其數字格式檢查) 隨 TL;DR 卡片一起拿掉.
+        # 核心要求不變: 不得出現「明日預測」/「信心」.
+        d_blob = ' '.join(v + ' ' + f for _, v, f in texts(ds))
+        check("Dashboard 不出現「明日預測」/「信心」", '明日預測' not in d_blob and '信心' not in d_blob)
+        check("Dashboard 是強共識清單 (個股/代號/領頭大戶/領頭金額(萬))",
+              all(h in d_blob for h in ('個股', '代號', '領頭大戶', '領頭金額(萬)')), d_blob[:200])
     finally:
         shutil.rmtree(d, ignore_errors=True)
 
