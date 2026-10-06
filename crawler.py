@@ -385,6 +385,76 @@ def _post_disposal_snapshot(data_dir):
 
 
 
+def _classify_stocks(data, classify_fn):
+    """Attach market / industry classification to every stock of one branch page."""
+    for st in data.get("buys", []) + data.get("sells", []):
+        cinfo = classify_fn(st["code"], st["name"])
+        st["market_type"] = cinfo["category"]
+        st["market_type_simple"] = cinfo["category_simple"]
+        st["market_type_basic"] = cinfo["category_basic"]
+        st["industry"] = cinfo.get("industry", "")
+        st["is_ky"] = cinfo.get("is_ky", False)
+
+
+def _has_rows(r):
+    return not r.get("error") and bool(r.get("buys") or r.get("sells"))
+
+
+def reconcile_branch_dates(results, fetch_fn, classify_fn, pause=16.0, sleep_fn=None):
+    """v3.80.20 資料日期一致性 (使用者 2026-10-06 選 A): 一輪裡每個分點頁的
+    資料日期都要相同.
+
+    原本 trade_date 只取第一個成功分點的日期, 其餘分點日期不同也照收.
+    2026-10-06 16:24 的 dev 測試 run 跨過富邦 10/05 → 10/06 換日: 第一個分點
+    還是 10/05, 後面的已是 10/06 → 兩天混在一起標成 20261005, 來源比對 74 列不符.
+    GitHub 排程延遲到隔天下午時, 正式 run 也可能遇到並把混合資料 commit.
+
+    規則: 以最新的日期為準; 舊日期的分點同輪重抓一次, 拿到最新日期就換上,
+    否則清空並記為失敗 (寧缺勿混). 就地修改 results.
+    重抓後是最新日期但沒有任何進出 = 當天沒交易, 照主迴圈的「無資料」處理.
+    Returns: (重抓換上數, 仍舊日期→失敗數, 變成無資料數, 最新日期或 None)
+    """
+    sleep_fn = sleep_fn or time.sleep
+    dates = [r["date"] for r in results if _has_rows(r) and r.get("date")]
+    if not dates:
+        return 0, 0, 0, None
+    newest = max(dates)
+    stale_idx = [k for k, r in enumerate(results)
+                 if _has_rows(r) and r.get("date") and r["date"] < newest]
+    if not stale_idx:
+        return 0, 0, 0, newest
+    print()
+    print(f"  📅 資料日期不一致: {len(stale_idx)} 個分點還是舊日期, 最新 {newest} "
+          f"→ 同輪重抓 (先休息 {pause:.0f} 秒)...")
+    sleep_fn(pause)
+    fixed = failed = emptied = 0
+    for k in stale_idx:
+        r0 = results[k]
+        print(f"    ↻ {r0.get('master')} | {r0.get('name')} ({r0['code']}) {r0['date']} ", end="", flush=True)
+        data = fetch_fn(r0["code"])
+        if not data.get("error") and (data.get("buys") or data.get("sells")) and data.get("date") == newest:
+            _classify_stocks(data, classify_fn)
+            results[k] = {**r0, "date": newest, "buys": data["buys"], "sells": data["sells"],
+                          "error": None, "refetched_from_date": r0["date"]}
+            fixed += 1
+            print(f"→ {newest} ✓ 買{len(data['buys'])}/賣{len(data['sells'])}")
+        elif (not data.get("error") and not (data.get("buys") or data.get("sells"))
+              and data.get("date") in (newest, None)):
+            results[k] = {**r0, "date": newest, "buys": [], "sells": [], "error": None,
+                          "refetched_from_date": r0["date"]}
+            emptied += 1
+            print(f"→ {newest} ⚪ 無資料 (當天沒有進出)")
+        else:
+            got = data.get("error") or data.get("date") or "無資料"
+            results[k] = {**r0, "buys": [], "sells": [], "stale_date": r0["date"],
+                          "error": f"stale data date {r0['date']} (round date {newest}); refetch got {got}"}
+            failed += 1
+            print(f"✗ 仍不是 {newest} ({got}) → 不收")
+        sleep_fn(random.uniform(DELAY_MIN, DELAY_MAX))
+    print(f"  📅 日期一致性: 換上 {fixed} / 不收 {failed} / 無資料 {emptied} (全部以 {newest} 為準)")
+    return fixed, failed, emptied, newest
+
+
 def retry_failed_branches(results, fetch_fn, classify_fn, pause=16.0, sleep_fn=None):
     """v3.80.6 同輪補抓: 主迴圈跑完後, 對 error 的分點再抓一次 (就地替換 results).
 
@@ -409,13 +479,7 @@ def retry_failed_branches(results, fetch_fn, classify_fn, pause=16.0, sleep_fn=N
         if data.get("error") or (not data.get("buys") and not data.get("sells")):
             print(f"仍失敗: {data.get('error') or '無資料'}")
         else:
-            for st in data.get("buys", []) + data.get("sells", []):
-                cinfo = classify_fn(st["code"], st["name"])
-                st["market_type"] = cinfo["category"]
-                st["market_type_simple"] = cinfo["category_simple"]
-                st["market_type_basic"] = cinfo["category_basic"]
-                st["industry"] = cinfo.get("industry", "")
-                st["is_ky"] = cinfo.get("is_ky", False)
+            _classify_stocks(data, classify_fn)
             results[k] = {**r0, "date": data.get("date"), "buys": data["buys"],
                           "sells": data["sells"], "error": None,
                           "recovered_in_retry_pass": True}
@@ -528,6 +592,19 @@ def main():
         success_count += _rec
         trade_date = trade_date or _td
         print(f"  🔁 最終 成功 {success_count} / 失敗 {fail_count} / 無資料 {empty_count}")
+
+    # v3.80.20: 每個分點的資料日期必須一致 (富邦換日時段會混到兩天)
+    _fixed, _stale, _emptied, _newest = reconcile_branch_dates(
+        results, fetch_branch_combined, classify_stock_fn, pause=COOL_DOWN_SECONDS)
+    if _newest:
+        if trade_date and trade_date != _newest:
+            print(f"  📅 trade_date {trade_date} → {_newest} (第一個分點是舊日期)")
+        trade_date = _newest
+    if _stale or _emptied:
+        success_count -= _stale + _emptied
+        fail_count += _stale
+        empty_count += _emptied
+        print(f"  📅 最終 成功 {success_count} / 失敗 {fail_count} / 無資料 {empty_count}")
 
     if not trade_date:
         trade_date = now_tw().strftime("%Y%m%d")
