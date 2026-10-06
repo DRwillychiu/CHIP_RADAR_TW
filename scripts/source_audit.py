@@ -69,7 +69,15 @@ def annotate(doc):
         msg = f"{td} 有 {n_bad} 列與富邦原始頁不符 (data/audit/source_audit_latest.json)"
         print(f"::error title=來源比對不符::{_esc(msg)}")
     elif st == "incomplete":
-        msg = f"{td} 未比對 {n_unv} 列 ({n_br} 個分點抓不到原始頁)"
+        # v3.80.18: name every reason (10/06 said "0 個分點抓不到原始頁" when the
+        # real cause was the TPEx close source)
+        why = []
+        if n_br:
+            why.append(f"{n_br} 個分點抓不到原始頁")
+        if doc.get("unverified_rows_close"):
+            why.append(f"{doc['unverified_rows_close']} 列缺官方收盤價: "
+                       + "; ".join(doc.get("close_errors") or ["?"]))
+        msg = f"{td} 未比對 {n_unv} 列 ({' | '.join(why) or '原因不明'})"
         print(f"::warning title=來源比對未完成::{_esc(msg)}")
     elif st == "error":
         print(f"::warning title=來源比對出錯::{_esc(doc.get('error') or 'unknown error')}")

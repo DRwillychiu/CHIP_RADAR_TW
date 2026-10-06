@@ -54,6 +54,12 @@ TWSE_URL = ("https://www.twse.com.tw/rwd/zh/afterTrading/MI_INDEX"
             "?date={ymd}&type=ALLBUT0999&response=json")
 TPEX_URL = ("https://www.tpex.org.tw/www/zh-tw/afterTrading/otc"
             "?date={y}/{m}/{d}&type=EW&response=json")
+# v3.80.18: fallback for the TPEx website, which did not answer the GitHub
+# runner on 2026-10-06 (34 rows left UNVERIFIED). Same endpoint the crawler
+# uses (fetchers/institutional.py TPEX_DAILY_URL); latest day only, so the
+# Date field is checked. ~2 MB, slow -> longer timeout.
+TPEX_OPENAPI_URL = "https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes"
+TPEX_OPENAPI_TIMEOUT_S = 60
 
 _UA = UA_POOL[0]   # full Chrome UA, same as the crawler
 FUBON_HEADERS = {
@@ -267,6 +273,28 @@ def parse_tpex_closes(doc, trade_date):
     return out
 
 
+def _roc_date(trade_date):
+    """'20261005' -> '1151005' (TPEx OpenAPI Date field)."""
+    return f"{int(trade_date[:4]) - 1911}{trade_date[4:]}"
+
+
+def parse_tpex_openapi_closes(doc, trade_date):
+    if not isinstance(doc, list) or not doc or not isinstance(doc[0], dict):
+        raise SourceError(f"TPEx OpenAPI bad payload {type(doc).__name__}")
+    want, got = _roc_date(trade_date), str(doc[0].get("Date") or "").strip()
+    if got != want:
+        raise SourceError(f"TPEx OpenAPI date mismatch: asked {want}, got {got}")
+    out = {}
+    for item in doc:
+        code = str(item.get("SecuritiesCompanyCode") or "").strip()
+        c = _price(item.get("Close"))
+        if code and c:
+            out[code] = c
+    if not out:
+        raise SourceError("TPEx OpenAPI has no closes")
+    return out
+
+
 # ----------------------------------------------------------------------------
 #  Row classifier
 # ----------------------------------------------------------------------------
@@ -350,16 +378,16 @@ def http_get(url, headers, timeout):
     return r.status_code, r.content
 
 
-def _get_json(get, url, headers, attempts=2):
+def _get_json(get, url, headers, attempts=2, timeout=CLOSE_TIMEOUT_S):
     import json
     last = None
     for _ in range(attempts):
         try:
-            status, body = get(url, headers, CLOSE_TIMEOUT_S)
+            status, body = get(url, headers, timeout)
             if status != 200:
                 last = f"HTTP {status}"
                 continue
-            return json.loads(body.decode("utf-8", errors="replace") if isinstance(body, bytes) else body)
+            return json.loads(body.decode("utf-8-sig", errors="replace") if isinstance(body, bytes) else body)
         except Exception as e:      # network / JSON error -> retry once
             last = f"{type(e).__name__}: {e}"
     raise SourceError(last or "no response")
@@ -377,7 +405,12 @@ def fetch_closes(trade_date, get=None):
     try:
         tpex = parse_tpex_closes(_get_json(get, TPEX_URL.format(y=y, m=m, d=d), TPEX_HEADERS), trade_date)
     except SourceError as e:
-        errors.append(f"TPEx: {e}")
+        try:
+            tpex = parse_tpex_openapi_closes(
+                _get_json(get, TPEX_OPENAPI_URL, TPEX_HEADERS, timeout=TPEX_OPENAPI_TIMEOUT_S), trade_date)
+            print(f"  TPEx website failed ({e}); OpenAPI fallback: {len(tpex)} closes")
+        except SourceError as e2:
+            errors.append(f"TPEx: {e}; OpenAPI fallback: {e2}")
     return {**tpex, **twse}, errors
 
 

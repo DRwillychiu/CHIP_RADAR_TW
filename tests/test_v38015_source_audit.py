@@ -466,6 +466,32 @@ check("crawl job 有 issues: write (開 Issue 需要)", (job.get('permissions') 
 check("data/audit/ 不進 git (每次都會改寫, 不可讓 data_changed 永遠為真)",
       'data/audit/' in (ROOT / '.gitignore').read_text(encoding='utf-8'))
 
+print("\nI. v3.80.18 櫃買網站抓不到 → 改用櫃買 OpenAPI (2026-10-06 雲端: 34 列缺收盤價)")
+def openapi_doc(roc='1151005'):
+    return [{'Date': roc, 'SecuritiesCompanyCode': c, 'Close': f'{p:.2f}'} for c, p in OTC.items()]
+def close_get(openapi):
+    def get(url, headers, timeout):
+        if 'twse.com.tw' in url:
+            return 200, json.dumps(twse_doc()).encode()
+        if 'openapi' in url:
+            return openapi
+        return 500, b''                          # TPEx website down
+    return get
+c_ok, e_ok = sa.fetch_closes(TD, close_get((200, ('﻿' + json.dumps(openapi_doc())).encode('utf-8'))))
+check("網站 500 → OpenAPI (含 BOM) 補上櫃收盤價, 不算錯誤", c_ok.get('3105') == 290.5 and e_ok == [], (c_ok.get('3105'), e_ok))
+c_bad, e_bad = sa.fetch_closes(TD, close_get((200, json.dumps(openapi_doc('1151002')).encode())))
+check("OpenAPI 是別天的 → 不採用, 錯誤寫明兩個來源", '3105' not in c_bad and len(e_bad) == 1
+      and 'OpenAPI fallback' in e_bad[0] and 'date mismatch' in e_bad[0], e_bad)
+check("民國日期換算 20261005 → 1151005", sa._roc_date('20261005') == '1151005')
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    cli.annotate({'trade_date': TD, 'status': 'incomplete', 'verdicts': {'UNVERIFIED': 34},
+                  'unverified_branches': [], 'unverified_rows_close': 34,
+                  'close_errors': ['TPEx: HTTP 500; OpenAPI fallback: HTTP 500']})
+ann = buf.getvalue()
+check("雲端警告寫出真正原因 (缺官方收盤價 + 來源錯誤), 不再寫「0 個分點抓不到」",
+      '34 列缺官方收盤價' in ann and 'HTTP 500' in ann and '0 個分點' not in ann, ann.strip())
+
 print()
 print("─" * 72)
 print(f"  整體: {'✅ ALL PASS' if all_pass else '❌ HAS FAIL'}")
