@@ -42,6 +42,7 @@ try:
     from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
     from openpyxl.formatting.rule import ColorScaleRule, IconSetRule, CellIsRule, DataBarRule
     from openpyxl.worksheet.worksheet import Worksheet
+    from openpyxl.worksheet.properties import PageSetupProperties
     OPENPYXL_AVAILABLE = True
 except ImportError:
     OPENPYXL_AVAILABLE = False
@@ -2650,151 +2651,63 @@ def build_quad_track_sheet(ws, data_dir):
     ws.freeze_panes = 'A6'
 
 
-def build_pinned_track_sheet(ws, branches_data, data_dir):
+def build_pinned_track_sheet(ws, branches_data, data_dir, trade_date=None):
     """v3.71.18 L2: pinned master 專屬追蹤 sheet.
 
-    對 PINNED_MASTERS 內每位 master 顯示:
-      [Header] master 名 + master_profile narrative + L1/L5/L6 stats
-      [Table 1] 今日 top buys (top 10, dedup 跨分點同股 + 合計)
-      [Table 2] 過去 30 天 連續加碼 stocks (從 master_profiles.consecutive_accumulation)
+    v3.80.16 (使用者 2026-10-06): 只保留「今日 Top 10 買進」, 改成與 Dashboard 相同的
+    報告版面. 拿掉 master_profile 敘述、alpha 統計與「連續囤貨」表 — 後者讀的是
+    master_profiles 舊格式 (list), 實際是 {'accumulation_stocks': [...]}, 上線以來一直
+    顯示「無連續囤貨資料」. 「買張」原本讀不存在的 'volume' 欄位 (永遠 0), 改為 buy_lot.
+    Top 10 = 該大戶所有追蹤分點的買進, 跨分點同股合計, 依買進金額排序, 排除 00 開頭 ETF.
     """
-    hdr_font = Font(name='Noto Sans TC', size=14, bold=True, color='FFB45309')
-    sub_font = Font(name='Noto Sans TC', size=10, color='FF666666')
-    val_font = Font(name='Noto Sans TC', size=11)
-    th_font = Font(name='Noto Sans TC', size=10, bold=True)
-    th_fill = PatternFill('solid', fgColor='FFFEF3C7')
-
-    # column widths
-    for col, w in [('A', 3), ('B', 22), ('C', 18), ('D', 14), ('E', 14),
-                    ('F', 14), ('G', 14), ('H', 18)]:
-        ws.column_dimensions[col].width = w
-
-    pms = _read_json_safely(data_dir / 'pinned_master_stats.json') or {}
-    mp = _read_json_safely(data_dir / 'master_profiles.json') or {}
-    mp_masters = mp.get('individual_masters') or {}
-    if not mp_masters and isinstance(mp.get('masters'), dict):
-        mp_masters = mp['masters']
-
+    if not trade_date:
+        trade_date = next((b.get('date') for b in branches_data if b.get('date')), '')
+    _pro_sheet_setup(ws, [('A', 2), ('B', 6), ('C', 10), ('D', 20), ('E', 18), ('F', 12), ('G', 12)])
     row = 2
+    first_body = None
     for m_name in sorted(PINNED_MASTERS):
-        # Header
-        c = ws.cell(row, 2, f"📌 {m_name}")
-        c.font = hdr_font
-        row += 1
-
-        # Narrative
-        prof = mp_masters.get(m_name, {})
-        narr = prof.get('narrative', '')
-        if narr:
-            c = ws.cell(row, 2, narr[:400])
-            c.font = sub_font
-            ws.merge_cells(f'B{row}:H{row+1}')
-            c.alignment = Alignment(wrap_text=True, vertical='top')
-            ws.row_dimensions[row].height = 28
-            ws.row_dimensions[row+1].height = 28
-            row += 2
-        row += 1
-
-        # L1/L5/L6 stats
-        m_stats = (pms.get('pinned_masters') or {}).get(m_name, {})
-        if m_stats.get('status') == 'ok':
-            for label, key in [('全部 picks', 'all_picks'),
-                                ('新標的', 'new_stocks'),
-                                ('連續加碼', 'accumulation')]:
-                s = m_stats.get(key) or {}
-                if not s.get('n'): continue
-                txt = (f"{label}: n={s['n']}  hit_1d={s.get('hit_1d',0)*100:.0f}%  "
-                       f"mean_1d={s.get('mean_1d',0):+.2f}%  hit_3d={s.get('hit_3d',0)*100:.0f}%  "
-                       f"mean_3d={s.get('mean_3d',0):+.2f}%  hit_5d={s.get('hit_5d',0)*100:.0f}%  "
-                       f"mean_5d={s.get('mean_5d',0):+.2f}%")
-                c = ws.cell(row, 2, txt)
-                c.font = Font(name='Noto Sans TC', size=10, color='FFB45309')
-                ws.merge_cells(f'B{row}:H{row}')
-                row += 1
-        else:
-            c = ws.cell(row, 2, "(歷史 alpha stats 待 weekly cron 跑 analyze_pinned_master_alpha.py)")
-            c.font = sub_font
-            row += 1
-        row += 1
-
-        # Table 1: 今日 top buys
-        ws.cell(row, 2, f"📊 {m_name} 今日 Top 10 買進 (跨分點同股合計)").font = th_font
-        row += 1
-        for col_i, header in enumerate(['#', '代號', '股名', '買金額(萬)', '買張', '漲跌%']):
-            c = ws.cell(row, 2 + col_i, header)
-            c.font = th_font; c.fill = th_fill
-            c.alignment = Alignment(horizontal='center')
-        row += 1
-
-        master_buys = []
-        for b in branches_data:
-            if b.get('master') == m_name:
-                for s in (b.get('buys') or []):
-                    code = s.get('code')
-                    if not code or code.startswith('00'): continue
-                    master_buys.append({
-                        'code': code, 'name': s.get('name', '—'),
-                        'amt': s.get('buy_amt') or 0,
-                        'volume': s.get('volume') or 0,
-                        'change_pct': s.get('change_pct'),
-                    })
+        own = [b for b in branches_data if b.get('master') == m_name]
         agg = {}
-        for b in master_buys:
-            key = b['code']
-            if key in agg:
-                agg[key]['amt'] += b['amt']
-                agg[key]['volume'] += b['volume']
+        for b in own:
+            for s in (b.get('buys') or []):
+                code = s.get('code')
+                if not code or code.startswith('00'):
+                    continue
+                a = agg.setdefault(code, {'code': code, 'name': s.get('name', '—'), 'amt': 0,
+                                          'lot': 0, 'change_pct': s.get('change_pct')})
+                a['amt'] += s.get('buy_amt') or 0
+                a['lot'] += s.get('buy_lot') or 0
+        top_buys = sorted(agg.values(), key=lambda x: (-x['amt'], x['code']))[:10]
+
+        where = (f"追蹤分點：{own[0].get('name') or own[0].get('code')}" if len(own) == 1
+                 else f"{len(own)} 個追蹤分點・跨分點同股合計")
+        row = _pro_title(ws, row, 'B', 'G', f"{m_name}　今日 Top 10 買進", trade_date,
+                         f"{where}・依買進金額排序（不含 ETF）")
+        rows = []
+        for i, b in enumerate(top_buys, 1):
+            chg = b.get('change_pct')
+            if chg is None:
+                chg_cell = ('—', _pro_font(11, False, _PRO_MUTED))
             else:
-                agg[key] = b
-        top_buys = sorted(agg.values(), key=lambda x: -x['amt'])[:10]
-        if top_buys:
-            for i, b in enumerate(top_buys, 1):
-                ws.cell(row, 2, i)
-                ws.cell(row, 3, b['code'])
-                ws.cell(row, 4, b['name'])
-                ws.cell(row, 5, round(b['amt'] / 10)).number_format = '#,##0'
-                ws.cell(row, 6, b['volume']).number_format = '#,##0'
-                chg = b.get('change_pct')
-                if chg is not None:
-                    c_chg = ws.cell(row, 7, chg / 100)
-                    c_chg.number_format = '0.00%;[Color10]-0.00%'
-                    if chg >= 0.01:
-                        c_chg.font = Font(name='Noto Sans TC', size=11, bold=True, color='FFC62828')
-                    elif chg <= -0.01:
-                        c_chg.font = Font(name='Noto Sans TC', size=11, bold=True, color='FF2E7D32')
-                row += 1
-        else:
-            ws.cell(row, 2, "今日無買進資料").font = sub_font
-            row += 1
-        row += 2
-
-        # Table 2: 連續加碼 (從 master_profile)
-        ws.cell(row, 2, f"📦 {m_name} 連續囤貨 (active)").font = th_font
-        row += 1
-        for col_i, header in enumerate(['#', '代號', '股名', '連續天數', '累計金額(萬)']):
-            c = ws.cell(row, 2 + col_i, header)
-            c.font = th_font; c.fill = th_fill
-            c.alignment = Alignment(horizontal='center')
-        row += 1
-
-        op = prof.get('operation_metrics', {}) if prof else {}
-        cons = op.get('consecutive_accumulation') or op.get('consecutive_active') or []
-        if isinstance(cons, list) and cons:
-            for i, item in enumerate(cons[:10], 1):
-                ws.cell(row, 2, i)
-                ws.cell(row, 3, item.get('code', '—'))
-                ws.cell(row, 4, item.get('name', '—'))
-                ws.cell(row, 5, item.get('days') or item.get('streak', '—'))
-                amt = item.get('total_amt') or item.get('cumulative_amt')
-                if amt:
-                    ws.cell(row, 5 if 'days' in item else 6, round(amt / 10)).number_format = '#,##0'
-                row += 1
-        else:
-            ws.cell(row, 2, "無連續囤貨資料 (待 master_profile 更新)").font = sub_font
-            row += 1
-        row += 3
-
-    ws.freeze_panes = 'A2'
+                color = 'FFC62828' if chg >= 0.01 else ('FF2E7D32' if chg <= -0.01 else _PRO_INK)
+                chg_cell = (chg / 100, _pro_font(11, abs(chg) >= 0.01, color))
+            rows.append([(i, _pro_font(10, False, _PRO_MUTED)), b['code'], b['name'],
+                         round(b['amt'] / 10), b['lot'], chg_cell])
+        body0, row = _pro_table(ws, row, 'B', ['#', '代號', '股名', '買金額(萬)', '買張', '漲跌%'],
+                                rows, ['center', 'center', 'left', 'right', 'right', 'right'],
+                                [None, None, None, '#,##0', '#,##0', '+0.00%;-0.00%;0.00%'],
+                                bar_col='E', empty_text='今日無買進資料')
+        first_body = first_body or body0
+        # col C holds the code: not bold (the shared table bolds the 2nd column)
+        for r in range(body0, body0 + len(rows)):
+            ws.cell(r, 3).font = _pro_font(11)
+            ws.cell(r, 4).font = _pro_font(11, True)
+        row = _pro_notes(ws, row, 'B', 'G', [
+            '買金額／買張＝該大戶各追蹤分點對同一檔的買進合計（金額為萬元）。',
+            '張數頁沒列出的個股，張數以 金額÷收盤價 估算。',
+            f"資料：富邦 DJ 分點進出・{_pro_date(trade_date)}　｜　Chip Radar TW",
+        ]) + 2
+    ws.freeze_panes = f'A{first_body}' if len(PINNED_MASTERS) == 1 and first_body else None
 
 
 def build_quad_failure_sheet(ws, data_dir):
@@ -4053,6 +3966,166 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
     return row
 
 
+# ─── v3.80.16 report look (Dashboard / Pinned) ───
+# One palette for the two front sheets: navy title + rule, KPI cards, navy table
+# header, zebra rows, right-aligned numbers with a light data bar, footnote.
+_PRO_FONT = 'Noto Sans TC'
+_PRO_NAVY = 'FF1F3A5F'
+_PRO_INK = 'FF1B2433'
+_PRO_MUTED = 'FF6B7686'
+_PRO_RULE = 'FFD9E0EA'
+_PRO_ZEBRA = 'FFF6F8FB'
+_PRO_CARD = 'FFF3F6FA'
+_PRO_BAR = 'FF9DB9E0'
+_PRO_WEEKDAY = '一二三四五六日'
+_CONSENSUS_MIN = 10   # same threshold as _compute_consensus_count
+
+
+def _pro_date(trade_date):
+    """'20261005' -> '2026/10/05（一）'; anything else passes through."""
+    try:
+        d = datetime.strptime(str(trade_date), '%Y%m%d')
+    except (TypeError, ValueError):
+        return str(trade_date or '')
+    return f"{d:%Y/%m/%d}（{_PRO_WEEKDAY[d.weekday()]}）"
+
+
+def _pro_font(size=11, bold=False, color=None):
+    return Font(name=_PRO_FONT, size=size, bold=bold, color=color or _PRO_INK)
+
+
+def _pro_sheet_setup(ws, widths):
+    """Column widths (col A = left margin), no gridlines, fit to one page wide."""
+    for col, w in widths:
+        ws.column_dimensions[col].width = w
+    ws.sheet_view.showGridLines = False
+    ws.sheet_properties.tabColor = _PRO_NAVY
+    if ws.sheet_properties.pageSetUpPr is None:
+        ws.sheet_properties.pageSetUpPr = PageSetupProperties()
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+
+
+def _pro_title(ws, row, first, last, title, trade_date, subtitle):
+    """Title (left) + date (right) on `row`, subtitle on row+1 above a navy rule.
+    Returns the next free row."""
+    split = chr(ord(last) - 2)                       # date takes the last 2 columns
+    ws.merge_cells(f'{first}{row}:{split}{row}')
+    c = ws[f'{first}{row}']
+    c.value = title
+    c.font = _pro_font(20, True, _PRO_NAVY)
+    c.alignment = Alignment(horizontal='left', vertical='bottom')
+    nxt = chr(ord(split) + 1)
+    ws.merge_cells(f'{nxt}{row}:{last}{row}')
+    c = ws[f'{nxt}{row}']
+    c.value = _pro_date(trade_date)
+    c.font = _pro_font(12, False, _PRO_MUTED)
+    c.alignment = Alignment(horizontal='right', vertical='bottom')
+    ws.row_dimensions[row].height = 34
+
+    ws.merge_cells(f'{first}{row + 1}:{last}{row + 1}')
+    c = ws[f'{first}{row + 1}']
+    c.value = subtitle
+    c.font = _pro_font(10, False, _PRO_MUTED)
+    c.alignment = Alignment(horizontal='left', vertical='center')
+    rule = Border(bottom=Side(style='medium', color=_PRO_NAVY))
+    for col in range(ord(first), ord(last) + 1):
+        ws[f'{chr(col)}{row + 1}'].border = rule
+    ws.row_dimensions[row + 1].height = 24
+    ws.row_dimensions[row + 2].height = 10
+    return row + 3
+
+
+def _pro_cards(ws, row, cards):
+    """KPI cards on rows row/row+1. cards = [(first_col, last_col, label, value)].
+    Returns the next free row."""
+    gap = Border(left=Side(style='thick', color='FFFFFFFF'))   # white seam between cards
+    fill = PatternFill('solid', fgColor=_PRO_CARD)
+    for k, (first, last, label, value) in enumerate(cards):
+        for r, text, font in ((row, label, _pro_font(9, False, _PRO_MUTED)),
+                              (row + 1, value, _pro_font(15, True, _PRO_NAVY))):
+            if first != last:
+                ws.merge_cells(f'{first}{r}:{last}{r}')
+            c = ws[f'{first}{r}']
+            c.value = text
+            c.font = font
+            c.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+            for col in range(ord(first), ord(last) + 1):
+                cell = ws[f'{chr(col)}{r}']
+                cell.fill = fill
+                if k and col == ord(first):
+                    cell.border = gap
+    ws.row_dimensions[row].height = 20
+    ws.row_dimensions[row + 1].height = 32
+    ws.row_dimensions[row + 2].height = 12
+    return row + 3
+
+
+def _pro_table(ws, row, first, headers, rows, aligns, formats, bar_col=None,
+               empty_text='(無資料)'):
+    """Navy header + zebra body. headers/aligns/formats are per column starting at
+    `first`; rows = list of value lists (a value may be (value, Font) to override
+    the font). Returns (first_body_row, next_free_row)."""
+    col0 = ord(first)
+    last = chr(col0 + len(headers) - 1)
+    hdr_fill = PatternFill('solid', fgColor=_PRO_NAVY)
+    for i, h in enumerate(headers):
+        c = ws.cell(row, col0 - 64 + i, h)
+        c.font = _pro_font(11, True, 'FFFFFFFF')
+        c.fill = hdr_fill
+        c.alignment = Alignment(horizontal='right' if aligns[i] == 'right' else 'center',
+                                vertical='center', indent=1 if aligns[i] == 'right' else 0)
+    ws.row_dimensions[row].height = 26
+    body0 = row + 1
+    line = Border(bottom=Side(style='thin', color=_PRO_RULE))
+    zebra = PatternFill('solid', fgColor=_PRO_ZEBRA)
+    r = body0
+    for n, vals in enumerate(rows):
+        for i, v in enumerate(vals):
+            font = None
+            if isinstance(v, tuple):
+                v, font = v
+            c = ws.cell(r, col0 - 64 + i, v)
+            c.font = font or _pro_font(11, i == 1)
+            c.alignment = Alignment(horizontal=aligns[i], vertical='center',
+                                    indent=1 if aligns[i] in ('left', 'right') else 0)
+            if formats[i]:
+                c.number_format = formats[i]
+            c.border = line
+            if n % 2:
+                c.fill = zebra
+        ws.row_dimensions[r].height = 24
+        r += 1
+    if not rows:
+        ws.merge_cells(f'{first}{r}:{last}{r}')
+        c = ws.cell(r, col0 - 64, empty_text)
+        c.font = _pro_font(11, False, _PRO_MUTED)
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        ws.row_dimensions[r].height = 28
+        r += 1
+    elif bar_col:
+        ws.conditional_formatting.add(
+            f'{bar_col}{body0}:{bar_col}{r - 1}',
+            DataBarRule(start_type='num', start_value=0, end_type='max',
+                        color=_PRO_BAR, showValue=True))
+    return body0, r
+
+
+def _pro_notes(ws, row, first, last, lines):
+    """Grey footnote lines; returns the next free row."""
+    row += 1
+    for text in lines:
+        ws.merge_cells(f'{first}{row}:{last}{row}')
+        c = ws[f'{first}{row}']
+        c.value = text
+        c.font = _pro_font(9, False, _PRO_MUTED)
+        c.alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
+        ws.row_dimensions[row].height = 18
+        row += 1
+    return row
+
+
 def _build_strong_consensus_dashboard(ws, branches_data, trade_date):
     """v3.80.10: 今日強共識買超清單 — 個股 / 代號 / 領頭分點 / 領頭金額(萬).
 
@@ -4060,56 +4133,36 @@ def _build_strong_consensus_dashboard(ws, branches_data, trade_date):
     與手機摘要 / Section 0 同一套邏輯. 排序沿用 Section 0: 合計淨買 ↓, 大戶數 ↓.
     v3.80.13 (使用者 2026-10-06): 領頭欄改為「追蹤分點中, 單日淨買金額最多的單一分點」,
     金額 = 該分點自己的淨買 (仟元 ÷ 10 = 萬). 分點背後不只一人, 不再把金額加總歸給大戶.
+    v3.80.16 (使用者 2026-10-06): 內容不變, 改成報告版面 (標題列 / KPI 卡 / 表格 / 註腳).
     """
     picks = sorted(_compute_consensus_count(branches_data),
                    key=lambda x: (-x['total_net_amt'], -x['master_count'], x['code']))
-    ds = f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]}"
+    _pro_sheet_setup(ws, [('A', 2), ('B', 6), ('C', 18), ('D', 10), ('E', 26), ('F', 18)])
+    row = _pro_title(ws, 2, 'B', 'F', '今日強共識買超', trade_date,
+                     f"追蹤 {len(TRACKED_MASTERS)} 位大戶中，≥{_CONSENSUS_MIN} 位同日淨買的個股"
+                     f"（不含 ETF）・依合計淨買排序")
 
-    for col, w in [('A', 3), ('B', 16), ('C', 10), ('D', 22), ('E', 16)]:
-        ws.column_dimensions[col].width = w
-
-    ws.merge_cells('B2:E2')
-    c = ws['B2']
-    c.value = f"📋 今日強共識買超 — {ds}"
-    c.font = _summary_font_header()
-    c.fill = _summary_fill('FF1F2A48')
-    c.alignment = Alignment(horizontal='center', vertical='center')
-    ws.row_dimensions[2].height = 30
-
-    ws.merge_cells('B3:E3')
-    c = ws['B3']
-    c.value = f"≥10 位追蹤大戶共同淨買 (追蹤 {len(TRACKED_MASTERS)} 位)  |  共 {len(picks)} 檔"
-    c.font = Font(name='Noto Sans TC', size=10, color='FF666666')
-    c.alignment = Alignment(horizontal='center', vertical='center')
-
-    hdr_font = Font(name='Noto Sans TC', size=11, bold=True)
-    hdr_fill = _summary_fill('FFF0F0F0')
-    for col, h in zip('BCDE', ('個股', '代號', '領頭分點', '領頭金額(萬)')):
-        c = ws[f'{col}5']
-        c.value = h
-        c.font = hdr_font
-        c.fill = hdr_fill
-        c.alignment = Alignment(horizontal='center', vertical='center')
-
-    body_font = Font(name='Noto Sans TC', size=11)
-    row = 6
-    for p in picks:
+    rows = []
+    for i, p in enumerate(picks, 1):
         top = p['top_branch']
-        ws.cell(row, 2, p['name']).font = body_font
-        c = ws.cell(row, 3, p['code'])
-        c.font = body_font
-        c.alignment = Alignment(horizontal='center')
-        ws.cell(row, 4, top['name'] or top['code']).font = body_font
-        c = ws.cell(row, 5, round(top['net_amt'] / 10))
-        c.font = body_font
-        c.number_format = '#,##0'
-        row += 1
-    if not picks:
-        ws.merge_cells(f'B{row}:E{row}')
-        c = ws.cell(row, 2, "(今日無強共識股)")
-        c.font = Font(name='Noto Sans TC', size=11, color='FF999999')
-        c.alignment = Alignment(horizontal='center')
-    ws.freeze_panes = 'A6'
+        rows.append([(i, _pro_font(10, False, _PRO_MUTED)), p['name'], p['code'],
+                     top['name'] or top['code'], round(top['net_amt'] / 10)])
+    best = max(rows, key=lambda r: r[4]) if rows else None
+    row = _pro_cards(ws, row, [
+        ('B', 'C', '入選檔數', f"{len(rows)} 檔"),
+        ('D', 'E', '最大領頭金額', f"{best[4]:,} 萬・{best[1]}" if best else '—'),
+        ('F', 'F', '共識門檻', f"≥{_CONSENSUS_MIN} 位大戶"),
+    ])
+    _, row = _pro_table(ws, row, 'B', ['#', '個股', '代號', '領頭分點', '領頭金額(萬)'], rows,
+                        ['center', 'left', 'center', 'left', 'right'],
+                        [None, None, None, None, '#,##0'],
+                        empty_text='(今日無強共識股)')
+    _pro_notes(ws, row, 'B', 'F', [
+        '領頭分點＝追蹤分點中，當日淨買金額最多的單一分點；領頭金額＝該分點自己的淨買（萬元）。',
+        f"資料：富邦 DJ 分點進出・{_pro_date(trade_date)}　｜　Chip Radar TW",
+    ])
+    ws.freeze_panes = 'A9'
+    ws.print_title_rows = '8:8'
 
 
 def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str,
@@ -4252,7 +4305,7 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
         wb.remove(wb[PINNED_TRACK_SHEET_NAME])
     pinned_ws = wb.create_sheet(title=PINNED_TRACK_SHEET_NAME)
     try:
-        build_pinned_track_sheet(pinned_ws, branches_data, data_dir)
+        build_pinned_track_sheet(pinned_ws, branches_data, data_dir, trade_date=trade_date)
     except Exception as _be:
         print(f"  [Excel] pinned track sheet build 失敗: {type(_be).__name__}: {_be}")
 
