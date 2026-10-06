@@ -2194,6 +2194,19 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
     return row
 
 
+def _fresh_attstock(data_dir, trade_date):
+    """v3.80.14: disposal_attstock.json 只有在「該交易日當天或之後」抓到才採用.
+    回傳 (data, None) 或 (None, 最後抓取日 'YYYY-MM-DD' / None).
+    2026-08-21 ~ 10-06 抓取一直失敗, 但 Email 照樣把 8/21 的「明日恐處置」當今天的寄出."""
+    d = _read_json_safely(Path(data_dir) / 'disposal_attstock.json')
+    if not d:
+        return None, None
+    fa = str(d.get('fetched_at') or '')
+    if fa[:10].replace('-', '') >= str(trade_date or '') and fa:
+        return d, None
+    return None, (fa[:10] or None)
+
+
 def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     """v3.67.1 Phase 2.7: 手機摘要 sheet.
 
@@ -2385,8 +2398,11 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     else:
         ws.cell(row, 3, "今日無除權息").font = sub_font
     row += 1
-    # v3.71.7: 處置股 (attstock.tw API)
-    disp = _read_json_safely(data_dir / 'disposal_attstock.json')
+    # v3.71.7: 處置股 (attstock.tw API). v3.80.14: 過期資料不列, 改註明最後更新日
+    disp, disp_stale = _fresh_attstock(data_dir, trade_date)
+    if disp_stale:
+        ws.cell(row, 3, f"處置股資料未更新 (最後 {disp_stale}), 今日不列").font = sub_font
+        row += 1
     if disp:
         n_in = disp.get('count_in_disposal', 0)
         n_pending = disp.get('count_pending_1d', 0)
@@ -3852,7 +3868,9 @@ def _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_d
         n_total = len(today_ex_list)
         suffix = ' ...' if n_total > 3 else ''
         avoid_parts.append(f"除權息 {n_total} 檔: {today_ex_str}{suffix}")
-    disp_data = _read_json_safely(data_dir / 'disposal_attstock.json')
+    disp_data, disp_stale = _fresh_attstock(data_dir, trade_date)   # v3.80.14
+    if disp_stale:
+        avoid_parts.append(f"處置股資料未更新(最後 {disp_stale})")
     if disp_data:
         n_in = disp_data.get('count_in_disposal', 0)
         n_pending = disp_data.get('count_pending_1d', 0)
