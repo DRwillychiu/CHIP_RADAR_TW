@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="836" viewBox="0 0 1280 836"><style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=block');text{font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;}</style><rect x="0" y="0" width="1280" height="836" fill="#FFFFFF"/>
+<text id="architecture_t1" x="40.0" y="68.1" font-size="34" font-weight="700" fill="#1F3A5F" text-anchor="start">程式架構圖</text>
+<text id="architecture_t2" x="230.0" y="68.1" font-size="16" font-weight="400" fill="#5D656B" text-anchor="start">程式怎麼分工、目前狀態</text>
+<rect x="40" y="88.5" width="1200" height="3" fill="#1F3A5F"/>
+<rect x="40.0" y="116.0" width="26.0" height="16.0" rx="4" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.5"/>
+<text id="architecture_t3" x="74.0" y="129.0" font-size="14" font-weight="400" fill="#5D656B" text-anchor="start">已上線</text>
+<rect x="142.0" y="116.0" width="26.0" height="16.0" rx="4" fill="#F3F5F7" stroke="#8C9095" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text id="architecture_t4" x="176.0" y="129.0" font-size="14" font-weight="400" fill="#5D656B" text-anchor="start">暫停中</text>
+<rect x="40.0" y="150.0" width="760.0" height="616.0" rx="12" fill="#F4F8FB"/>
+<text id="architecture_t5" x="64.0" y="188.7" font-size="19" font-weight="700" fill="#1F3A5F" text-anchor="start">雲端每天跑的程式</text>
+<rect x="220.0" y="208.0" width="400.0" height="46.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.5"/>
+<text id="architecture_t6" x="420.0" y="236.7" font-size="16" font-weight="700" fill="#1E2A38" text-anchor="middle">排程：16 支 workflow＋交易日開關</text>
+<polyline points="420.0,254.0 420.0,276.0" fill="none" stroke="#4D5058" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="butt"/>
+<polyline points="234.0,276.0 606.0,276.0" fill="none" stroke="#4D5058" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="butt"/>
+<circle cx="420" cy="276" r="3.2" fill="#4D5058"/>
+<polyline points="234.0,276.0 234.0,292.0" fill="none" stroke="#4D5058" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="234.0,300.0 229.5,291.0 238.5,291.0" fill="#4D5058"/>
+<polyline points="606.0,276.0 606.0,292.0" fill="none" stroke="#4D5058" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="606.0,300.0 601.5,291.0 610.5,291.0" fill="#4D5058"/>
+<rect x="64.0" y="300.0" width="340.0" height="64.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.5"/>
+<text id="architecture_t7" x="234.0" y="328.0" font-size="16" font-weight="700" fill="#1E2A38" text-anchor="middle">crawler.py 主流程</text>
+<text id="architecture_t8" x="234.0" y="348.0" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">full / margin_only</text>
+<rect x="436.0" y="300.0" width="340.0" height="64.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.5"/>
+<text id="architecture_t9" x="606.0" y="328.0" font-size="16" font-weight="700" fill="#1E2A38" text-anchor="middle">scripts/ 每日腳本</text>
+<text id="architecture_t10" x="606.0" y="348.0" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">滾動回測、處置股、信件文字</text>
+<polyline points="234.0,364.0 234.0,384.0" fill="none" stroke="#4D5058" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="234.0,392.0 229.5,383.0 238.5,383.0" fill="#4D5058"/>
+<polyline points="606.0,364.0 606.0,384.0" fill="none" stroke="#4D5058" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="606.0,392.0 601.5,383.0 610.5,383.0" fill="#4D5058"/>
+<rect x="64.0" y="392.0" width="712.0" height="236.0" rx="10" fill="#FFFFFF" stroke="#B9C8DA" stroke-width="1.2"/>
+<text id="architecture_t11" x="84.0" y="423.7" font-size="16" font-weight="700" fill="#1F3A5F" text-anchor="start">src/ 模組</text>
+<rect x="84.0" y="438.0" width="159.0" height="80.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.3"/>
+<text id="architecture_t12" x="163.5" y="473.8" font-size="15" font-weight="700" fill="#1E2A38" text-anchor="middle">fetchers</text>
+<text id="architecture_t13" x="163.5" y="493.2" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">抓取</text>
+<rect x="255.0" y="438.0" width="159.0" height="80.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.3"/>
+<text id="architecture_t14" x="334.5" y="464.3" font-size="15" font-weight="700" fill="#1E2A38" text-anchor="middle">pipelines</text>
+<text id="architecture_t15" x="334.5" y="483.6" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">抓取層・彙總</text>
+<text id="architecture_t16" x="334.5" y="502.7" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">加密・資料庫</text>
+<rect x="426.0" y="438.0" width="159.0" height="80.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.3"/>
+<text id="architecture_t17" x="505.5" y="473.8" font-size="15" font-weight="700" fill="#1E2A38" text-anchor="middle">analyzers</text>
+<text id="architecture_t18" x="505.5" y="493.2" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">主力統計・訊號</text>
+<rect x="597.0" y="438.0" width="159.0" height="80.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.3"/>
+<text id="architecture_t19" x="676.5" y="473.8" font-size="15" font-weight="700" fill="#1E2A38" text-anchor="middle">exports</text>
+<text id="architecture_t20" x="676.5" y="493.2" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">Excel 報表</text>
+<rect x="84.0" y="530.0" width="159.0" height="80.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.3"/>
+<text id="architecture_t21" x="163.5" y="565.8" font-size="15" font-weight="700" fill="#1E2A38" text-anchor="middle">alerts</text>
+<text id="architecture_t22" x="163.5" y="585.2" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">告警</text>
+<rect x="255.0" y="530.0" width="159.0" height="80.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.3"/>
+<text id="architecture_t23" x="334.5" y="565.8" font-size="15" font-weight="700" fill="#1E2A38" text-anchor="middle">audit</text>
+<text id="architecture_t24" x="334.5" y="585.2" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">自動稽核・來源比對</text>
+<rect x="426.0" y="530.0" width="159.0" height="80.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.3"/>
+<text id="architecture_t25" x="505.5" y="556.3" font-size="15" font-weight="700" fill="#1E2A38" text-anchor="middle">core</text>
+<text id="architecture_t26" x="505.5" y="575.6" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">分點登錄・交易日曆</text>
+<text id="architecture_t27" x="505.5" y="594.7" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">排除清單</text>
+<rect x="597.0" y="530.0" width="159.0" height="80.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.3"/>
+<text id="architecture_t28" x="676.5" y="565.8" font-size="15" font-weight="700" fill="#1E2A38" text-anchor="middle">backtest</text>
+<text id="architecture_t29" x="676.5" y="585.2" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">回測（多為手動）</text>
+<polyline points="420.0,628.0 420.0,646.0" fill="none" stroke="#4D5058" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="420.0,654.0 415.5,645.0 424.5,645.0" fill="#4D5058"/>
+<path d="M270,665 V731 A150.0,11 0 0 0 570,731 V665 A150.0,11 0 0 0 270,665 Z" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.4"/>
+<ellipse cx="420.0" cy="665" rx="150.0" ry="11" fill="#E1EBF7" stroke="#3D6FB6" stroke-width="1.4"/>
+<text id="architecture_t30" x="420.0" y="705.0" font-size="16" font-weight="700" fill="#1E2A38" text-anchor="middle">data/</text>
+<text id="architecture_t31" x="420.0" y="725.0" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">加密日檔・歷史・報表</text>
+<rect x="820.0" y="150.0" width="420.0" height="616.0" rx="12" fill="#F4F9F5"/>
+<text id="architecture_t32" x="844.0" y="188.7" font-size="19" font-weight="700" fill="#1F3A5F" text-anchor="start">測試與稽核</text>
+<rect x="844.0" y="208.0" width="372.0" height="64.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.5"/>
+<text id="architecture_t33" x="1030.0" y="236.0" font-size="16" font-weight="700" fill="#1E2A38" text-anchor="middle">tests/run_all.py 61 支測試</text>
+<text id="architecture_t34" x="1030.0" y="256.0" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">每次推送雲端自動跑</text>
+<rect x="844.0" y="300.0" width="372.0" height="64.0" rx="6" fill="#EEF4FB" stroke="#3D6FB6" stroke-width="1.5"/>
+<text id="architecture_t35" x="1030.0" y="328.0" font-size="16" font-weight="700" fill="#1E2A38" text-anchor="middle">來源逐列比對稽核</text>
+<text id="architecture_t36" x="1030.0" y="348.0" font-size="14" font-weight="400" fill="#4A5563" text-anchor="middle">每晚對富邦原始頁</text>
+<rect x="844.0" y="392.0" width="372.0" height="86.0" rx="6" fill="#F3F5F7" stroke="#8C9095" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text id="architecture_t37" x="1030.0" y="419.3" font-size="14" font-weight="700" fill="#8C9095" text-anchor="middle">暫停中</text>
+<text id="architecture_t38" x="1030.0" y="440.7" font-size="16" font-weight="700" fill="#636D77" text-anchor="middle">分點勝率研究 Phase 1</text>
+<text id="architecture_t39" x="1030.0" y="460.7" font-size="14" font-weight="400" fill="#636D77" text-anchor="middle">Task 1.1 在分支上</text>
+<text id="architecture_t40" x="40.0" y="811.0" font-size="14" font-weight="400" fill="#5D656B" text-anchor="start">依據：repo 盤點（2026/10/06，v3.80.16）</text>
+<text id="architecture_t41" x="1240.0" y="811.0" font-size="14" font-weight="400" fill="#5D656B" text-anchor="end">Chip Radar TW</text>
+</svg>
