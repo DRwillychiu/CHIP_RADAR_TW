@@ -1,26 +1,26 @@
 {
-  "audit_run_at": "2026-10-06T13:39:08.918080",
+  "audit_run_at": "2026-10-06T14:57:44.981033",
   "xlsx_path": "/home/runner/work/CHIP_RADAR_TW/CHIP_RADAR_TW/data/reports/latest.xlsx",
   "tool": "auto_audit v3.29.3",
   "sheet": "20261006",
   "stats": {
-    "total_rows": 468,
-    "total_real": 465,
-    "net_buy": 465,
+    "total_rows": 498,
+    "total_real": 495,
+    "net_buy": 495,
     "net_sell": 0,
     "net_zero": 0,
     "empty": 0,
     "notice": 3,
     "limit_up_tag": 0,
-    "reverse_est": 1
+    "reverse_est": 2
   },
   "overall_verdict": "PASS",
-  "summary": "✅ 465 row 全淨買, 0 限漲標, 1 反推估算",
+  "summary": "✅ 495 row 全淨買, 0 限漲標, 2 反推估算",
   "anomalies": {
     "net_sell_count": 0,
     "net_zero_count": 0,
     "net_sell_examples": [],
     "net_zero_examples": []
   },
-  "branches_audited": 48
+  "branches_audited": 51
 }

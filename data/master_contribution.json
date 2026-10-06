@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
-  "updated_at": "2026-10-06T21:45:28+08:00",
-  "source_updated_at": "2026-10-06T13:45:26.398991",
+  "updated_at": "2026-10-06T23:03:14+08:00",
+  "source_updated_at": "2026-10-06T15:03:12.406301",
   "min_n_for_verdict": 20,
   "baseline": {
     "n": 90,
@@ -55,7 +55,7 @@
     },
     {
       "master": "巨人傑",
-      "is_premium": true,
+      "is_premium": false,
       "contrib_pct_pct": 12.222222222222221,
       "n_with": 11,
       "hits_with": 3,
@@ -152,6 +152,20 @@
       "verdict_reliable": false
     },
     {
+      "master": "焦家",
+      "is_premium": false,
+      "contrib_pct_pct": 0.0,
+      "n_with": 0,
+      "hits_with": 0,
+      "hr_with_pct": 0,
+      "hr_without_pct": 45.55555555555556,
+      "ci_lo_pct": null,
+      "ci_hi_pct": null,
+      "delta_pp": -45.55555555555556,
+      "verdict": "未貢獻",
+      "verdict_reliable": false
+    },
+    {
       "master": "竹科主力分點",
       "is_premium": false,
       "contrib_pct_pct": 0.0,
@@ -214,6 +228,6 @@
     "樣本不足 (n=15<20)": 1,
     "樣本不足 (n=11<20)": 1,
     "樣本不足 (n=9<20)": 1,
-    "未貢獻": 9
+    "未貢獻": 10
   }
 }
