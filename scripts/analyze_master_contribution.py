@@ -26,8 +26,12 @@ QHL = ROOT / 'data' / 'quad_hit_log.json'
 OUT = ROOT / 'data' / 'master_contribution.json'
 
 # 從 master mapping 抓 13 位 (用 excel_report 的 TRACKED_MASTERS)
-sys.path.insert(0, str(ROOT / 'src'))
-from exports.excel_report import TRACKED_MASTERS, PREMIUM_MASTERS
+# v3.80.17: `import src` puts the 8 src/ subdirs on sys.path. Only adding src/
+# broke on 2026-08-30 (v3.79.0): core/master_tiers.py imports `branches` at
+# import time -> ModuleNotFoundError -> master_contribution.json froze at 08-29.
+sys.path.insert(0, str(ROOT))
+import src  # noqa: F401,E402
+from src.exports.excel_report import TRACKED_MASTERS, PREMIUM_MASTERS  # noqa: E402
 
 # v3.75.0 稽核修正:
 #   (a) 單位統一 — 原本 baseline.hit_rate 是分數(0.51) 但 per_master.hr_with 是
