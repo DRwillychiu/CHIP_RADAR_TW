@@ -82,6 +82,11 @@ jobs:
     #   75 分留給富邦偏慢 + v3.80.6 同輪補抓 (失敗分點 × ~30-80s) 的空間.
     #   concurrency 已序列化, 拉長不會造成與下一個排程重疊寫入.
     timeout-minutes: 75
+    # v3.80.15: issues: write so the alert steps below can open GitHub Issues
+    # (a job that sets permissions gets none it does not list)
+    permissions:
+      contents: write
+      issues: write
 
     steps:
       - name: Checkout repo
@@ -139,6 +144,16 @@ jobs:
           python scripts/daily_rolling_update.py
         continue-on-error: true
 
+      # v3.80.15: every row of the newest day sheet vs the Fubon source pages
+      # (date pinned) + official closes -> data/audit/source_audit_latest.json
+      # (gitignored). Own ~8 min budget; never fails or blocks the run.
+      - name: Source audit (Excel vs Fubon pages)
+        id: audit
+        continue-on-error: true
+        timeout-minutes: 10
+        run: |
+          python scripts/source_audit.py
+
       # v3.31.14: 上傳更新後的 DB (GitHub Artifact, 90 天保留)
       # DB 不進 git (.gitignore) 但透過 artifact 在 workflow 間傳遞累積
       - name: Upload DB artifact
@@ -186,6 +201,9 @@ jobs:
         if: steps.commit.outputs.data_changed == 'true'
         id: summary
         run: |
+          # v3.80.15: one-line source audit verdict goes first in the mail body
+          AUDIT_LINE=$(python scripts/source_audit.py --email-line || true)
+          [ -n "$AUDIT_LINE" ] || AUDIT_LINE="⚠️ 來源比對：今天沒有跑完"
           # v3.80.13: 讀 data/reports/mobile_summary.txt (手機摘要已不是 Excel 頁籤)
           SUMMARY=$(python scripts/extract_mobile_summary_text.py)
           # 也萃取 trade_date 給 subject 用
@@ -199,6 +217,8 @@ jobs:
           # 寫進 GITHUB_OUTPUT (multi-line 用 heredoc 形式)
           {
             echo "summary<<MOBILE_EOF"
+            echo "$AUDIT_LINE"
+            echo ""
             echo "$SUMMARY"
             echo "MOBILE_EOF"
             echo "trade_date=$TRADE_DATE"
@@ -254,3 +274,64 @@ jobs:
                 '解決後 close 此 issue.'
               ].join('\n'),
             });
+
+      # v3.80.15: source audit found rows that differ from the Fubon pages ->
+      # open one GitHub Issue per trade date (skipped while the same title is
+      # still open). Last step on purpose: its own failure must not trigger the
+      # email-failure alert above, and continue-on-error keeps the run green.
+      - name: Source audit mismatch alert (GitHub Issue)
+        if: ${{ !cancelled() && steps.audit.outputs.status == 'mismatch' && steps.commit.outputs.data_changed == 'true' }}
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            let a;
+            try {
+              a = JSON.parse(fs.readFileSync('data/audit/source_audit_latest.json', 'utf8'));
+            } catch (e) {
+              core.warning(`source audit json unreadable: ${e.message}`);
+              return;
+            }
+            const td = String(a.trade_date || '');
+            const date = td.length === 8 ? `${td.slice(0, 4)}-${td.slice(4, 6)}-${td.slice(6, 8)}` : td;
+            const n = a.mismatch_total || (a.mismatches || []).length;
+            const title = `🚨 來源比對不符 ${date}：${n} 列`;
+            const { owner, repo } = context.repo;
+            const open = await github.paginate(github.rest.issues.listForRepo,
+              { owner, repo, state: 'open', per_page: 100 });
+            if (open.some(i => i.title === title)) {
+              core.info(`open issue already exists: ${title}`);
+              return;
+            }
+            const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
+            const pair = v => Array.isArray(v) ? v.join(' / ') : '-';
+            const two = (o, a1, a2) => o ? `${o[a1]} / ${o[a2]}` : '-';
+            const list = a.mismatches || [];
+            const rows = list.map(m => '| ' + [
+              m.master, `${m.branch} (${m.bno})`, m.stock,
+              two(m.excel, 'buy_lot', 'sell_lot'), two(m.excel, 'buy_wan', 'sell_wan'),
+              two(m.expected, 'buy_lot', 'sell_lot'), two(m.expected, 'buy_wan', 'sell_wan'),
+              pair((m.source || {}).lots), pair((m.source || {}).amt_k),
+              (m.source || {}).close ?? '-', m.reason || '',
+            ].join(' | ') + ' |');
+            const body = [
+              `## 來源比對不符 ${date}`,
+              '',
+              `Excel 日表 ${a.sheet} 有 **${n}** 列與富邦原始分點頁 (指定日期 ${date}) 不符.`,
+              `共比對 ${a.rows} 列: ` + Object.entries(a.verdicts || {}).map(([k, v]) => `${k} ${v}`).join(', '),
+              `**Workflow run**: ${runUrl}`,
+              '',
+              '| 高手 | 分點 | 標的 | Excel 張 買/賣 | Excel 萬 買/賣 | 應為 張 | 應為 萬 | 來源張數頁 | 來源金額頁(仟元) | 收盤 | 原因 |',
+              '|---|---|---|---|---|---|---|---|---|---|---|',
+              ...rows,
+              n > list.length ? `\n(只列前 ${list.length} 列, 共 ${n} 列不符)` : '',
+              '',
+              '判定規則: src/audit/source_audit.py. 查明並修正後 close 此 issue.',
+            ].join('\n');
+            try {
+              await github.rest.issues.create({ owner, repo, title, body, labels: ['source-audit'] });
+            } catch (e) {
+              core.warning(`create with label failed (${e.message}); retrying without label`);
+              await github.rest.issues.create({ owner, repo, title, body });
+            }
