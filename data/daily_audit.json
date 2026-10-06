@@ -1,55 +1,26 @@
 {
-  "audit_run_at": "2026-10-05T22:26:52.684301",
+  "audit_run_at": "2026-10-06T13:39:08.918080",
   "xlsx_path": "/home/runner/work/CHIP_RADAR_TW/CHIP_RADAR_TW/data/reports/latest.xlsx",
   "tool": "auto_audit v3.29.3",
-  "sheet": "📋 今日 Dashboard",
+  "sheet": "20261006",
   "stats": {
-    "total_rows": 4,
-    "total_real": 4,
-    "net_buy": 0,
+    "total_rows": 468,
+    "total_real": 465,
+    "net_buy": 465,
     "net_sell": 0,
-    "net_zero": 4,
+    "net_zero": 0,
     "empty": 0,
-    "notice": 0,
+    "notice": 3,
     "limit_up_tag": 0,
-    "reverse_est": 0
+    "reverse_est": 1
   },
   "overall_verdict": "PASS",
-  "summary": "✅ 4 row 全淨買, 0 限漲標, 0 反推估算",
+  "summary": "✅ 465 row 全淨買, 0 限漲標, 1 反推估算",
   "anomalies": {
     "net_sell_count": 0,
-    "net_zero_count": 4,
+    "net_zero_count": 0,
     "net_sell_examples": [],
-    "net_zero_examples": [
-      {
-        "master": "",
-        "branch": "友達",
-        "stock": "張濬安(航海王)",
-        "buy_amt": 0,
-        "sell_amt": 0
-      },
-      {
-        "master": "",
-        "branch": "華新科",
-        "stock": "蔣承翰(UC)",
-        "buy_amt": 0,
-        "sell_amt": 0
-      },
-      {
-        "master": "",
-        "branch": "頎邦",
-        "stock": "張濬安(航海王)",
-        "buy_amt": 0,
-        "sell_amt": 0
-      },
-      {
-        "master": "",
-        "branch": "群創",
-        "stock": "張濬安(航海王)",
-        "buy_amt": 0,
-        "sell_amt": 0
-      }
-    ]
+    "net_zero_examples": []
   },
-  "branches_audited": 4
+  "branches_audited": 48
 }
