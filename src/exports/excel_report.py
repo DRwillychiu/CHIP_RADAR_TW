@@ -4265,95 +4265,210 @@ def _tw_card_spans(n, cols):
     return out
 
 
+_TW_CHIP = {   # status chip -> (font color, fill)
+    'buy': ('FFC62828', 'FFFDECEA'),
+    'sell': ('FF2E7D32', 'FFE8F5E9'),
+    'other': ('FF6B7686', 'FFF1F3F5'),
+}
+
+
+def _tw_status(g, frm, to_sum):
+    """Descriptive status of one stock today (never a prediction).
+    frm / to_sum = net lots or None (unknown). -> (text, chip kind) or None."""
+    if frm is None or to_sum is None:
+        return None
+    fs, ts = g['from_short'], g['to_short']
+    if frm > 0 and to_sum < 0:
+        return f'{fs}買・{ts}賣', 'buy'
+    if frm > 0:
+        return f'{fs}加碼', 'buy'
+    if to_sum < 0:
+        return f'{ts}出貨', 'sell'
+    if frm < 0:
+        return f'{fs}減碼', 'sell'
+    return '其他', 'other'
+
+
+def _tw_muted_line(ws, row, last, text):
+    ws.merge_cells(f'B{row}:{last}{row}')
+    c = ws.cell(row, 2, text)
+    c.font = _pro_font(10, False, _PRO_MUTED)
+    c.alignment = Alignment(horizontal='left', vertical='center', indent=1, wrap_text=True)
+    ws.row_dimensions[row].height = 22
+    return row + 1
+
+
 def build_transfer_sheet(ws, data, trade_date):
-    """🔁 transfer-watch sheet. data = transfer_watch.collect(...)[group name]."""
+    """🔁 transfer-watch sheet. data = transfer_watch.collect(...)[group name].
+    Columns by branch role (owner 2026-10-06): from branches (buy-and-hold),
+    to branches, signed sum of the to branches (selling), all-branch total."""
     g = data['config']
     branches, stocks, days, cells = data['branches'], data['stocks'], data['days'], data['cells']
+    frm_b, to_b = list(g['from_branches']), list(g['to_branches'])
     k = len(branches)
     n_word = _TW_CN[k] if 0 < k < 10 else str(k)
     total_label = f'{n_word}戶合計'
-    cols = [chr(ord('B') + i) for i in range(k + 5)]   # stock, code, branches, total, close, change
+    to_sum_hdr = f"{g['to_sum_label']}（{g['to_role']}）"
+    marked = set(g.get('transfer_stocks') or [])
+    names = {c: (f'{n} 🔁' if c in marked else n) for c, n, *_ in stocks}
+    # today columns: stock, code, from..., to..., to-sum, total, status, close, change
+    ncol = 2 + k + 5
+    cols = [chr(ord('B') + i) for i in range(ncol)]
     last = cols[-1]
-    _pro_sheet_setup(ws, [('A', 2), ('B', 14), ('C', 9)]
-                     + [(cols[2 + i], 13) for i in range(k)]
-                     + [(cols[2 + k], 13), (cols[3 + k], 11), (cols[4 + k], 13)])
-    src_names = '、'.join(n for _, n in g['from_branches'])
-    dst_names = '、'.join(n for _, n in g['to_branches'])
+    widths = [('A', 2), ('B', 14), ('C', 8)]
+    widths += [(cols[2 + i], 20) for i in range(len(frm_b))]
+    widths += [(cols[2 + len(frm_b) + i], 12) for i in range(len(to_b))]
+    widths += [(cols[2 + k], 18), (cols[3 + k], 12), (cols[4 + k], 15), (cols[5 + k], 10), (cols[6 + k], 11)]
+    _pro_sheet_setup(ws, widths)
     row = _pro_title(ws, 2, 'B', last, g['title'], trade_date,
-                     f'{src_names} 買進 → 匯撥至 {dst_names}・單位：張（≈ 為金額÷收盤估算）')
+                     f"{g['subtitle']}・{g['stock_tag']} {len(stocks)} 檔・單位：張（≈ 為金額÷收盤估算）")
 
-    def today_cells(code):
-        return [cells[(bno, trade_date, code)] for bno, _ in branches]
+    def day_cells(d, code):
+        return ([cells[(b, d, code)] for b, _ in frm_b], [cells[(b, d, code)] for b, _ in to_b])
 
-    for i in range(0, len(stocks), 4):                 # KPI cards, at most 4 per row
-        chunk = stocks[i:i + 4]
-        cards = []
-        for (a, b), (code, name) in zip(_tw_card_spans(len(chunk), cols), chunk):
-            tot, est = _tw_sum(today_cells(code))
-            value = '—' if tot is None else f"{'≈' if est else ''}{tot:+,} 張"
-            cards.append((a, b, f'{name} 今日{total_label}', value))
-        row = _pro_cards(ws, row, cards)
+    def activity(cs):
+        """'active' = on some list; 'unknown' = nothing listed but some cell is
+        missing (cannot claim "no activity"); 'quiet' = known not listed."""
+        if any(c.get('state') == 'value' for c in cs):
+            return 'active'
+        return 'unknown' if any(c.get('state') == 'missing' for c in cs) else 'quiet'
+
+    # today rows: one per stock with activity, by abs(total) desc
+    today = []
+    quiet, unknown = [], []
+    for idx, (code, name, *_) in enumerate(stocks):
+        fc, tc = day_cells(trade_date, code)
+        act = activity(fc + tc)
+        if act != 'active':
+            (quiet if act == 'quiet' else unknown).append(name)
+            continue
+        frm, fe = _tw_sum(fc)
+        tos, te = _tw_sum(tc)
+        tot, tt = _tw_sum(fc + tc)
+        today.append({'code': code, 'idx': idx, 'fc': fc, 'tc': tc, 'frm': (frm, fe),
+                      'tos': (tos, te), 'tot': (tot, tt), 'status': _tw_status(g, frm, tos)})
+    today.sort(key=lambda x: (x['tot'][0] is None, -abs(x['tot'][0] or 0), x['idx']))
+
+    def lots_txt(v, est):
+        sign = '+' if v > 0 else ('−' if v < 0 else '')
+        return f"{'≈' if est else ''}{sign}{abs(v):,} 張"
+
+    buyers = [x for x in today if (x['frm'][0] or 0) > 0]
+    sellers = [x for x in today if (x['tos'][0] or 0) < 0]
+    b_sum = sum(x['frm'][0] for x in buyers)
+    s_sum = sum(x['tos'][0] for x in sellers)
+    spans = _tw_card_spans(3, cols)
+    row = _pro_cards(ws, row, [
+        (spans[0][0], spans[0][1], f"{g['from_short']}加碼",
+         f"{len(buyers)} 檔（合計 {lots_txt(b_sum, any(x['frm'][1] for x in buyers))}）" if buyers else '0 檔'),
+        (spans[1][0], spans[1][1], f"{g['to_sum_label']}出貨",
+         f"{len(sellers)} 檔（合計 {lots_txt(s_sum, any(x['tos'][1] for x in sellers))}）" if sellers else '0 檔'),
+        (spans[2][0], spans[2][1], '今日有進出', f'{len(today)} 檔'),
+    ])
 
     ws.cell(row, 2, f'今日買賣超（{_pro_date(trade_date)}）').font = _pro_font(12, True, _PRO_NAVY)
     row += 1
-    hdr = ['個股', '代號'] + [n for _, n in branches] + [total_label, '收盤', '漲跌%']
-    body = [[name, code] + [None] * (k + 3) for code, name in stocks]
-    _, end = _pro_table(ws, row, 'B', hdr, body, ['left', 'center'] + ['right'] * (k + 3),
-                        [None] * (k + 5))
-    for i, (code, name) in enumerate(stocks):
+    hdr = (['個股', '代號'] + [f"{n}（{g['from_role']}）" for _, n in frm_b] + [n for _, n in to_b]
+           + [to_sum_hdr, total_label, '狀態', '收盤', '漲跌%'])
+    body = [[names[x['code']], x['code']] + [None] * (k + 5) for x in today]
+    _, end = _pro_table(ws, row, 'B', hdr, body,
+                        ['left', 'center'] + ['right'] * (k + 2) + ['center', 'right', 'right'],
+                        [None] * ncol, empty_text='(今日三個分點都沒有進出)')
+    for i, x in enumerate(today):
         r = row + 1 + i
-        tc = today_cells(code)
-        for j, x in enumerate(tc):
-            _tw_put(ws, r, 4 + j, *_tw_val(x))
-        _tw_put(ws, r, 4 + k, *_tw_sum(tc), bold=True)
-        close, chg = data['quotes'].get(code) or (None, None)
-        c = ws.cell(r, 5 + k)
+        for j, c in enumerate(x['fc'] + x['tc']):
+            _tw_put(ws, r, 4 + j, *_tw_val(c))
+        _tw_put(ws, r, 4 + k, *x['tos'], bold=True)
+        _tw_put(ws, r, 5 + k, *x['tot'], bold=True)
+        c = ws.cell(r, 6 + k)
+        if x['status']:
+            text, kind = x['status']
+            color, fill = _TW_CHIP[kind]
+            c.value, c.font = text, _pro_font(10, True, color)
+            c.fill = PatternFill('solid', fgColor=fill)
+        else:
+            c.value, c.font = '—', _pro_font(11, False, _PRO_MUTED)
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        close, chg = data['quotes'].get(x['code']) or (None, None)
+        c = ws.cell(r, 7 + k)
         if close:
             c.value, c.number_format = close, '#,##0.00'
         else:
             c.value, c.font = '—', _pro_font(11, False, _PRO_MUTED)
-        c = ws.cell(r, 6 + k)
+        c = ws.cell(r, 8 + k)
         if chg is not None:
-            c.value, c.number_format = chg / 100, '+0.00%;-0.00%;0.00%'
+            c.value, c.number_format = round(chg / 100, 6), '+0.00%;-0.00%;0.00%'
             c.font = _pro_font(11, False, _TW_RED if chg > 0 else _TW_GREEN if chg < 0 else _PRO_INK)
         else:
             c.value, c.font = '—', _pro_font(11, False, _PRO_MUTED)
+    row = end
+    if quiet:
+        row = _tw_muted_line(ws, row, last, f"今日{n_word}個分點無進出：{'、'.join(quiet)}")
+    if unknown:
+        row = _tw_muted_line(ws, row, last, f"今日資料暫缺、無法判斷：{'、'.join(unknown)}")
 
+    # N-day tables: stocks with activity; transfer stocks first, then abs(N-day total) desc
     n = len(days)
-    row = end + 1
+    blocks = []
+    quiet5, unknown5 = [], []
+    for idx, (code, name, *_) in enumerate(stocks):
+        allc = [c for d in days for c in sum(day_cells(d, code), [])]
+        act = activity(allc)
+        if act != 'active':
+            (quiet5 if act == 'quiet' else unknown5).append(name)
+            continue
+        tot = _tw_sum(allc)[0]
+        blocks.append((code not in marked, 0 if code in marked else (tot is None, -abs(tot or 0)), idx, code))
+    blocks.sort()
+    row += 1
     ws.cell(row, 2, f'近 {n} 日買賣超').font = _pro_font(12, True, _PRO_NAVY)
     row += 1
-    for code, name in stocks:
-        ws.cell(row, 2, f'{name}（{code}）').font = _pro_font(11, True)
+    sum_cols = 4 + k                      # B .. last numeric column of the N-day table
+    for _, _, _, code in blocks:
+        name = dict((c, nm) for c, nm, *_ in stocks)[code]
+        title = f'{name} 🔁（{code}）' if code in marked else f'{name}（{code}）'
+        ws.cell(row, 2, title).font = _pro_font(11, True)
         row += 1
-        h5 = ['日期'] + [nm for _, nm in branches] + [total_label]
-        rows5 = [[_pro_date(d)[5:]] + [None] * (k + 1) for d in days]
-        b0, end = _pro_table(ws, row, 'B', h5, rows5, ['left'] + ['right'] * (k + 1), [None] * (k + 2))
+        h5 = (['日期'] + [f"{nm}（{g['from_role']}）" for _, nm in frm_b] + [nm for _, nm in to_b]
+              + [to_sum_hdr, total_label])
+        rows5 = [[_pro_date(d)[5:]] + [None] * (k + 2) for d in days]
+        b0, end = _pro_table(ws, row, 'B', h5, rows5, ['left'] + ['right'] * (k + 2), [None] * (k + 3))
         ws.cell(row, 2).alignment = Alignment(horizontal='left', vertical='center', indent=1)
         for i, d in enumerate(days):
-            dc = [cells[(bno, d, code)] for bno, _ in branches]
-            for j, x in enumerate(dc):
-                _tw_put(ws, b0 + i, 3 + j, *_tw_val(x))
-            _tw_put(ws, b0 + i, 3 + k, *_tw_sum(dc), bold=True)
+            fc, tc = day_cells(d, code)
+            for j, c in enumerate(fc + tc):
+                _tw_put(ws, b0 + i, 3 + j, *_tw_val(c))
+            _tw_put(ws, b0 + i, 3 + k, *_tw_sum(tc), bold=True)
+            _tw_put(ws, b0 + i, 4 + k, *_tw_sum(fc + tc), bold=True)
         r = end
         ws.cell(r, 2, f'{n} 日合計').font = _pro_font(11, True)
         for j, (bno, _) in enumerate(branches):
             _tw_put(ws, r, 3 + j, *_tw_sum([cells[(bno, d, code)] for d in days]), bold=True)
-        _tw_put(ws, r, 3 + k, *_tw_sum([cells[(bno, d, code)] for d in days for bno, _ in branches]),
-                bold=True)
-        for c in range(2, 4 + k):
+        _tw_put(ws, r, 3 + k, *_tw_sum([c for d in days for c in day_cells(d, code)[1]]), bold=True)
+        _tw_put(ws, r, 4 + k, *_tw_sum([c for d in days for c in sum(day_cells(d, code), [])]), bold=True)
+        for c in range(2, sum_cols + 1):
             ws.cell(r, c).border = Border(top=Side(style='medium', color=_PRO_NAVY))
         ws.row_dimensions[r].height = 24
         row = r + 2
+    if quiet5 or unknown5:
+        row -= 1
+        if quiet5:
+            row = _tw_muted_line(ws, row, last, f"近 {n} 日{n_word}個分點都無進出：{'、'.join(quiet5)}")
+        if unknown5:
+            row = _tw_muted_line(ws, row, last, f"近 {n} 日資料暫缺、無法判斷：{'、'.join(unknown5)}")
+        row += 1
 
     notes = [f'匯撥是帳戶之間移轉、不經市場，分點進出看不到匯撥本身；本頁把{n_word}個分點的買賣並排與合計。',
-             f'{n_word}個分點都有其他客戶，數字不全是{g["group"]}；「—」= 該股不在該分點當日買賣超名單。']
+             f'{n_word}個分點都有其他客戶，數字不全是{g["group"]}；「—」= 該股不在該分點當日買賣超名單。',
+             f"「{g['to_sum_label']}」= {'＋'.join(nm for _, nm in to_b)} 淨買賣相加；+ = 淨買（紅）、− = 淨賣（綠）；"
+             f"狀態只描述當日買賣方向，不是預測。"]
+    notes += list(g.get('notes') or [])
     if data['missing']:
-        names = dict(branches)
+        bnames = dict(branches)
         by_branch = {}
         for bno, d in data['missing']:
             by_branch.setdefault(bno, []).append(f'{d[4:6]}/{d[6:8]}')
-        txt = '；'.join(f"{names.get(b, b)} {'、'.join(ds)}" for b, ds in by_branch.items())
+        txt = '；'.join(f"{bnames.get(b, b)} {'、'.join(ds)}" for b, ds in by_branch.items())
         notes.append(f'資料暫缺：{txt}（來源頁暫時抓不到），這幾格的「—」不代表沒有進出，下次更新會再補抓。')
     notes.append(f'資料：富邦 DJ 分點進出（指定日期頁）・{_pro_date(trade_date)}　｜　Chip Radar TW')
     _pro_notes(ws, row - 1, 'B', last, notes)

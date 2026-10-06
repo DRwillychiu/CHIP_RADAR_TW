@@ -4,6 +4,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 import src  # noqa: F401
 
 """v3.80.21 焦家 master + 🔁 焦家匯撥 transfer-watch sheet (offline, synthetic data)
+   12 core stocks (🔁 = 2492 / 4919 / 6173), columns by branch role (館前 buy-and-hold,
+   內湖兩戶 = signed sum of 989N + 585b), status chip, KPI cards, quiet / unknown lines
 
   A. registry: 585b 統一-內湖 (master 焦家), 984K / 989N co_masters, style unknown,
      MASTER_MAPPING block + color, mapping validation 0 warnings, hex bno vs 585B
@@ -196,59 +198,98 @@ def val(r, c):
     return (None if x.value == '—' else x.value), ('≈' in (x.number_format or ''))
 
 
-check("標題 / 日期", ws['B2'].value == '焦家匯撥追蹤' and str(ws['H2'].value).startswith('2026/10/05'),
-      (ws['B2'].value, ws['H2'].value))
-check("副標 = 館前買進 → 匯撥至 內湖", ws['B3'].value.startswith('元大-館前 買進 → 匯撥至 元大-內湖、統一-內湖'),
+check("標題 / 日期", ws['B2'].value == '焦家匯撥追蹤' and str(ws['J2'].value).startswith('2026/10/05'),
+      (ws['B2'].value, ws['J2'].value))
+check("副標 = 分點角色 + 焦家核心股 12 檔",
+      ws['B3'].value == '元大-館前 = 大方向買進持有；賣出經 元大-內湖、統一-內湖・焦家核心股 12 檔・單位：張（≈ 為金額÷收盤估算）',
       ws['B3'].value)
+check("設定: 12 檔核心股 (代號, 名稱, 產業), 🔁 = 2492 / 4919 / 6173",
+      len(G['stocks']) == 12 and all(len(x) == 3 for x in G['stocks'])
+      and G['transfer_stocks'] == ['2492', '4919', '6173'])
 H = find_row(2, '個股')
-hdr = {ws.cell(H, c).value: c for c in range(2, 12) if ws.cell(H, c).value}
-check("今日表頭 (以標籤定位)", list(hdr) == ['個股', '代號', '元大-館前', '元大-內湖', '統一-內湖', '三戶合計', '收盤', '漲跌%'],
-      list(hdr))
-rows = {str(ws.cell(r, hdr['代號']).value): r for r in range(H + 1, H + 4)}
+hdr = {ws.cell(H, c).value: c for c in range(2, 14) if ws.cell(H, c).value}
+check("今日表頭 (以標籤定位)", list(hdr) == ['個股', '代號', '元大-館前（買進持有）', '元大-內湖', '統一-內湖',
+                                     '內湖兩戶（賣出）', '三戶合計', '狀態', '收盤', '漲跌%'], list(hdr))
+FROM, NH, SUM2, TOT = '元大-館前（買進持有）', '元大-內湖', '內湖兩戶（賣出）', '三戶合計'
+CODES = {c for c, *_ in G['stocks']}
+body_rows = []
+for r in range(H + 1, H + 14):          # contiguous body rows right under the header
+    if str(ws.cell(r, hdr['代號']).value or '') not in CODES:
+        break
+    body_rows.append(r)
+rows = {str(ws.cell(r, hdr['代號']).value): r for r in body_rows}
+check("今日只列有進出的 3 檔, 依 |三戶合計| 由大到小 (57 / 27 / 3)", list(rows) == ['4919', '2492', '6173'], list(rows))
 r = rows.get('2492')
-check("2492 館前 = 95-67 = +28 (真實)", val(r, hdr['元大-館前']) == (28, False), val(r, hdr['元大-館前']))
-check("2492 內湖 = 爬蟲估算 90-84 = ≈6", val(r, hdr['元大-內湖']) == (6, True), val(r, hdr['元大-內湖']))
+check("名稱旁 🔁 標記", ws.cell(r, 2).value == '華新科 🔁', ws.cell(r, 2).value)
+check("2492 館前 = 95-67 = +28 (真實)", val(r, hdr[FROM]) == (28, False), val(r, hdr[FROM]))
+check("2492 元大-內湖 = 爬蟲估算 90-84 = ≈6", val(r, hdr[NH]) == (6, True), val(r, hdr[NH]))
 check("2492 統一-內湖 (爬蟲沒有 → 指定日期頁) 13-20 = -7", val(r, hdr['統一-內湖']) == (-7, False))
-check("2492 三戶合計 = 27, 含估算 → ≈", val(r, hdr['三戶合計']) == (27, True), val(r, hdr['三戶合計']))
+check("2492 內湖兩戶 = ≈6 + -7 = ≈-1 (帶正負號相加)", val(r, hdr[SUM2]) == (-1, True), val(r, hdr[SUM2]))
+check("2492 三戶合計 = 27, 含估算 → ≈", val(r, hdr[TOT]) == (27, True), val(r, hdr[TOT]))
+check("2492 狀態 = 館前買・內湖賣 (紅系)", ws.cell(r, hdr['狀態']).value == '館前買・內湖賣'
+      and ws.cell(r, hdr['狀態']).font.color.rgb == 'FFC62828', ws.cell(r, hdr['狀態']).value)
 check("2492 收盤 368.5 / 漲跌 +1.94%", ws.cell(r, hdr['收盤']).value == 368.5
       and abs(ws.cell(r, hdr['漲跌%']).value - 0.0194) < 1e-9)
 r = rows.get('4919')
-check("4919 館前: 不在前 30 名 → 查頁 → 頁上也沒有 → —", ws.cell(r, hdr['元大-館前']).value == '—')
+check("4919 館前: 不在前 30 名 → 查頁 → 頁上也沒有 → —", ws.cell(r, hdr[FROM]).value == '—')
+check("4919 狀態: 館前 0、內湖兩戶 +57 → 其他 (灰)", ws.cell(r, hdr['狀態']).value == '其他'
+      and ws.cell(r, hdr['狀態']).font.color.rgb == 'FF6B7686')
 r = rows.get('6173')
-check("6173 館前: 頁上只有金額頁… 有張數 3 → +3", val(r, hdr['元大-館前']) == (3, False), val(r, hdr['元大-館前']))
-check("6173 內湖: 名單完整 (<30 列) 且沒有 → — (不必查頁)", ws.cell(r, hdr['元大-內湖']).value == '—'
+check("6173 館前: 頁上有張數 3 → +3", val(r, hdr[FROM]) == (3, False), val(r, hdr[FROM]))
+check("6173 元大-內湖: 名單完整 (<30 列) 且沒有 → — (不必查頁)", ws.cell(r, hdr[NH]).value == '—'
       and ('989N', TD) not in calls)
-check("紅 = 正 / 綠 = 負", ws.cell(rows['2492'], hdr['元大-館前']).font.color.rgb == 'FFC62828'
+check("6173 狀態 = 館前加碼", ws.cell(r, hdr['狀態']).value == '館前加碼')
+check("紅 = 正 / 綠 = 負", ws.cell(rows['2492'], hdr[FROM]).font.color.rgb == 'FFC62828'
       and ws.cell(rows['2492'], hdr['統一-內湖']).font.color.rgb == 'FF2E7D32')
-check("KPI 卡: 華新科 今日三戶合計 ≈+27 張", ws['B6'].value == '≈+27 張' and ws['B5'].value == '華新科 今日三戶合計',
-      (ws['B5'].value, ws['B6'].value))
+check("今日無進出的 9 檔列成一行",
+      ws.cell(body_rows[-1] + 1, 2).value == '今日三個分點無進出：華新、華邦電、瀚宇博、精成科、佳邦、彩晶、精星、華東、精金',
+      ws.cell(body_rows[-1] + 1, 2).value)
+cards = [(ws.cell(5, c).value, ws.cell(6, c).value) for c in (2, 5, 8)]
+check("KPI 卡: 館前加碼 2 檔 +31 / 內湖兩戶出貨 1 檔 ≈−1 / 今日有進出 3 檔",
+      cards == [('館前加碼', '2 檔（合計 +31 張）'), ('內湖兩戶出貨', '1 檔（合計 ≈−1 張）'), ('今日有進出', '3 檔')],
+      cards)
 
-# 5-day table of 4919
-r0 = find_row(2, '新唐（4919）')
-h5 = {ws.cell(r0 + 1, c).value: c for c in range(2, 7)}
+# 5-day tables
+titles = [ws.cell(rr, 2).value for rr in range(H, ws.max_row + 1)
+          if isinstance(ws.cell(rr, 2).value, str) and ws.cell(rr, 2).value.endswith('）')
+          and '（' in ws.cell(rr, 2).value and ws.cell(rr + 1, 2).value == '日期']
+check("近 5 日表: 只有有進出的股票, 🔁 三檔在前", titles == ['華新科 🔁（2492）', '新唐 🔁（4919）', '信昌電 🔁（6173）'],
+      titles)
+r0 = find_row(2, '新唐 🔁（4919）')
+h5 = {ws.cell(r0 + 1, c).value: c for c in range(2, 8)}
+check("近 5 日表頭", list(h5) == ['日期', FROM, NH, '統一-內湖', SUM2, TOT], list(h5))
 drows = {ws.cell(rr, 2).value[:5]: rr for rr in range(r0 + 2, r0 + 7)}
 check("近 5 日日期 = 10/05 … 09/29 (新到舊)", list(drows) == ['10/05', '10/02', '10/01', '09/30', '09/29'],
       list(drows))
-check("10/02 館前 22-73 = -51 (已存日)", val(drows['10/02'], h5['元大-館前']) == (-51, False))
-check("10/02 內湖: 當天沒有進出 → —", ws.cell(drows['10/02'], h5['元大-內湖']).value == '—')
+check("10/02 館前 22-73 = -51 (已存日)", val(drows['10/02'], h5[FROM]) == (-51, False))
+check("10/02 元大-內湖: 當天沒有進出 → —", ws.cell(drows['10/02'], h5[NH]).value == '—')
 check("10/01 館前: 存檔失敗分點 → 查頁 → 張數頁沒有 → 金額÷收盤 ≈ 77-36 = ≈41",
-      val(drows['10/01'], h5['元大-館前']) == (41, True), val(drows['10/01'], h5['元大-館前']))
+      val(drows['10/01'], h5[FROM]) == (41, True), val(drows['10/01'], h5[FROM]))
+check("10/05 內湖兩戶 = 17 + 40 = 57", val(drows['10/05'], h5[SUM2]) == (57, False), val(drows['10/05'], h5[SUM2]))
 tot_r = find_row(2, '5 日合計', r0)
-check("5 日合計 館前 = -51 + 41 = ≈-10", val(tot_r, h5['元大-館前']) == (-10, True), val(tot_r, h5['元大-館前']))
-check("5 日合計列粗體 + 上框線", ws.cell(tot_r, h5['元大-館前']).font.b
+check("5 日合計 館前 = -51 + 41 = ≈-10", val(tot_r, h5[FROM]) == (-10, True), val(tot_r, h5[FROM]))
+check("5 日合計 三戶 = 57 - 51 + 41 + ... (含估算 ≈)", val(tot_r, h5[TOT])[1] is True, val(tot_r, h5[TOT]))
+check("5 日合計列粗體 + 上框線", ws.cell(tot_r, h5[FROM]).font.b
       and ws.cell(tot_r, 2).border.top.style == 'medium')
-r6 = find_row(2, '信昌電（6173）')
+r6 = find_row(2, '信昌電 🔁（6173）')
 d6 = {ws.cell(rr, 2).value[:5]: rr for rr in range(r6 + 2, r6 + 7)}
 check("10/01 統一-內湖: 隔離中的分點日 → 查頁 22-32 = -10", val(d6['10/01'], h5['統一-內湖']) == (-10, False))
 check("10/02 統一-內湖: 存檔有該分點但不在名單 → —", ws.cell(d6['10/02'], h5['統一-內湖']).value == '—'
       and ('585b', '20261002') not in calls)
-notes = [ws.cell(rr, 2).value for rr in range(1, ws.max_row + 1)
-         if isinstance(ws.cell(rr, 2).value, str) and ws.cell(rr, 2).value.startswith(('匯撥', '三個', '資料'))]
-check("註腳: 匯撥不經市場 / 三個分點有其他客戶 / 資料來源",
-      notes[0].startswith('匯撥是帳戶之間移轉、不經市場') and notes[1].startswith('三個分點都有其他客戶，數字不全是焦家')
-      and notes[-1].startswith('資料：富邦 DJ 分點進出（指定日期頁）'), notes)
-check("抓不到的頁 (館前 10/02 存檔不完整 + 頁抓不到) → 「資料暫缺」註腳列出分點與日期",
-      any(n.startswith('資料暫缺：元大-館前 10/02（') for n in notes), notes)
+lines = [ws.cell(rr, 2).value for rr in range(r6, ws.max_row + 1) if isinstance(ws.cell(rr, 2).value, str)]
+check("近 5 日: 其他 9 檔館前 10/02 抓不到 → 「資料暫缺、無法判斷」, 不說成無進出",
+      '近 5 日資料暫缺、無法判斷：華新、華邦電、瀚宇博、精成科、佳邦、彩晶、精星、華東、精金' in lines
+      and not any(x.startswith('近 5 日三個分點都無進出') for x in lines), lines[-9:])
+notes = lines[lines.index('近 5 日資料暫缺、無法判斷：華新、華邦電、瀚宇博、精成科、佳邦、彩晶、精星、華東、精金') + 1:] \
+    if '近 5 日資料暫缺、無法判斷：華新、華邦電、瀚宇博、精成科、佳邦、彩晶、精星、華東、精金' in lines else lines
+check("註腳: 匯撥不經市場 / 有其他客戶 / 內湖兩戶定義 / 分點角色 / 清單來源 / 資料暫缺 / 資料來源",
+      len(notes) == 7 and notes[0].startswith('匯撥是帳戶之間移轉、不經市場')
+      and notes[1].startswith('三個分點都有其他客戶，數字不全是焦家')
+      and notes[2].startswith('「內湖兩戶」= 元大-內湖＋統一-內湖')
+      and notes[3] == '分點角色：使用者 2026-10-06 說明（館前買進持有；內湖兩戶賣出）'
+      and notes[4] == '焦家核心股清單：使用者 2026-10-06 提供'
+      and notes[5].startswith('資料暫缺：元大-館前 10/02（')
+      and notes[6].startswith('資料：富邦 DJ 分點進出（指定日期頁）'), notes)
 
 # ── D ──
 print("\nD. 快取: 第二次產表不重抓")
@@ -267,7 +308,7 @@ wb3 = openpyxl.Workbook()
 er._build_transfer_sheets(wb3, today, TD, DIR, fetch=False)
 check("最終重建 (fetch=False): 0 次抓取", len(calls) == n2, calls[n2:])
 same = all(wb2['🔁 焦家匯撥'].cell(rr, cc).value == wb3['🔁 焦家匯撥'].cell(rr, cc).value
-           for rr in range(1, 40) for cc in range(2, 10))
+           for rr in range(1, 130) for cc in range(2, 13))
 check("兩次產出的格子相同", same)
 old_cap = tw.FETCH_CAP
 tw.FETCH_CAP = 2

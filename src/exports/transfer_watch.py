@@ -6,6 +6,9 @@ at branch 984K and moves the shares by account transfer (not a market trade) to
 accounts at branches 989N and 585b. Branch data never shows the transfer itself,
 so the daily Excel puts the three branches' net lots side by side: today and the
 last trading days. The sheet is drawn by excel_report.build_transfer_sheet.
+Owner update 19:25 / 19:30: the family's 12 core stocks are tracked (the three
+transfer stocks are marked), and the sheet is laid out by branch role (984K =
+buy-and-hold, 989N + 585b = selling) - display only.
 
 Config: TRANSFER_WATCH_GROUPS, one dict per family. Adding a family = adding a
 dict here; nothing else changes (one sheet per dict, after the Pinned sheet).
@@ -51,15 +54,45 @@ from src.pipelines.crawler_output import decrypt_data
 
 TW = timezone(timedelta(hours=8))
 
+# group keys: group / sheet / title / stocks [(code, name, industry)] /
+# transfer_stocks (marker) / stock_tag / from_branches / to_branches /
+# from_short / to_short / from_role / to_sum_label / to_role / subtitle / notes
 TRANSFER_WATCH_GROUPS: List[Dict] = [
     {
         # owner 2026-10-06: bought at 984K, moved by account transfer to 989N / 585b
         "group": "焦家",
         "sheet": "🔁 焦家匯撥",
         "title": "焦家匯撥追蹤",
-        "stocks": [("2492", "華新科"), ("4919", "新唐"), ("6173", "信昌電")],
+        # owner 2026-10-06 19:25: the family's 12 core stocks (code, name, industry);
+        # transfer_stocks = the ones known to move by account transfer (marker)
+        "stocks": [
+            ("1605", "華新", "電線電纜、不鏽鋼"),
+            ("2344", "華邦電", "記憶體"),
+            ("2492", "華新科", "被動元件"),
+            ("4919", "新唐", "IC 設計"),
+            ("5469", "瀚宇博", "PCB"),
+            ("6191", "精成科", "PCB・EMS"),
+            ("6284", "佳邦", "微波天線、保護元件"),
+            ("6116", "彩晶", "中小尺寸 LCD 面板"),
+            ("6173", "信昌電", "高壓 MLCC"),
+            ("8183", "精星", "PCBA"),
+            ("8110", "華東", "記憶體封測"),
+            ("3049", "精金", "觸控感應器"),
+        ],
+        "transfer_stocks": ["2492", "4919", "6173"],
+        "stock_tag": "焦家核心股",
+        # owner 2026-10-06 19:30, display only: 984K = buy-and-hold branch,
+        # selling goes out through 989N + 585b (shown as one signed sum column)
         "from_branches": [("984K", "元大-館前")],
         "to_branches": [("989N", "元大-內湖"), ("585b", "統一-內湖")],
+        "from_short": "館前",
+        "to_short": "內湖",
+        "from_role": "買進持有",
+        "to_sum_label": "內湖兩戶",
+        "to_role": "賣出",
+        "subtitle": "元大-館前 = 大方向買進持有；賣出經 元大-內湖、統一-內湖",
+        "notes": ["分點角色：使用者 2026-10-06 說明（館前買進持有；內湖兩戶賣出）",
+                  "焦家核心股清單：使用者 2026-10-06 提供"],
     },
 ]
 SHEET_PREFIX = "🔁 "      # every transfer-watch sheet name starts with this
@@ -302,7 +335,7 @@ def collect(groups: List[Dict], branches_data: List[Dict], trade_date: str, data
         for bno, _ in group_branches(g):
             if bno not in codes_by_bno:
                 bno_order.append(bno)
-            codes_by_bno.setdefault(bno, set()).update(c for c, _ in g["stocks"])
+            codes_by_bno.setdefault(bno, set()).update(c for c, *_ in g["stocks"])
     all_codes = set().union(*codes_by_bno.values()) if codes_by_bno else set()
 
     # records[date][bno] (only the watched branches are kept) + crawl quotes
@@ -389,16 +422,16 @@ def collect(groups: List[Dict], branches_data: List[Dict], trade_date: str, data
     for g in groups:
         brs = group_branches(g)
         g_cells = {(bno, d, c): cells[(bno, d, c)]
-                   for d in days for bno, _ in brs for c, _ in g["stocks"]}
+                   for d in days for bno, _ in brs for c, *_ in g["stocks"]}
         miss = []
         for d in days:
             for bno, _ in brs:
-                if any(g_cells[(bno, d, c)]["state"] == "missing" for c, _ in g["stocks"]):
+                if any(g_cells[(bno, d, c)]["state"] == "missing" for c, *_ in g["stocks"]):
                     miss.append((bno, d))
         out[g["group"]] = {
             "config": g, "days": days, "branches": brs, "stocks": list(g["stocks"]),
             "cells": g_cells,
-            "quotes": {c: quotes.get(trade_date, {}).get(c, (None, None)) for c, _ in g["stocks"]},
+            "quotes": {c: quotes.get(trade_date, {}).get(c, (None, None)) for c, *_ in g["stocks"]},
             "missing": miss,
         }
     return out
