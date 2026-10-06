@@ -42,6 +42,12 @@ def warn(section, msg):
 xlsx = ROOT / 'data' / 'reports' / 'latest.xlsx'
 wb = openpyxl.load_workbook(xlsx, data_only=False)
 
+_retired = [n for n in ('📱 手機摘要', '📈 Quad 實戰追蹤', '📉 Quad 失效歸因') if n not in wb.sheetnames]
+if _retired:
+    # v3.80.13 (使用者 2026-10-06): 這三個頁籤已不放進 Excel, 本稽核只適用舊月檔
+    print(f"本稽核需要的頁籤已不存在 (v3.80.13 起不產生): {_retired} — 跳過")
+    sys.exit(0)
+
 dashboard = wb['📋 今日 Dashboard']
 mobile = wb['📱 手機摘要']
 qtrack = wb['📈 Quad 實戰追蹤']

@@ -184,7 +184,7 @@ jobs:
         if: steps.commit.outputs.data_changed == 'true'
         id: summary
         run: |
-          # 抓 latest.xlsx 的「📱 手機摘要」sheet → 純文字
+          # v3.80.13: 讀 data/reports/mobile_summary.txt (手機摘要已不是 Excel 頁籤)
           SUMMARY=$(python scripts/extract_mobile_summary_text.py)
           # 也萃取 trade_date 給 subject 用
           TRADE_DATE=$(python -c "

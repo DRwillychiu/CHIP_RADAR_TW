@@ -53,25 +53,22 @@ MOBILE_SHEET_NAME = "📱 手機摘要"   # v3.67.1 Phase 2.7
 QUAD_TRACK_SHEET_NAME = "📈 Quad 實戰追蹤"   # v3.70.2 Phase 3.2 持續性追蹤
 PINNED_TRACK_SHEET_NAME = "📌 Pinned Master 追蹤"   # v3.71.18 L2
 QUAD_FAIL_SHEET_NAME = "📉 Quad 失效歸因"   # v3.70.3 Phase 3.2 失效學習
-ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME,
-                     QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME,
-                     PINNED_TRACK_SHEET_NAME]
+# v3.80.13 (使用者 2026-10-06): 頁籤只留 Dashboard + Pinned + 日期 sheet.
+# 手機摘要 / Quad 實戰追蹤 / Quad 失效歸因 不再放進 Excel. 手機摘要內容照樣產生,
+# 存成 reports/mobile_summary.txt, 每日 Email 改讀它 (scripts/extract_mobile_summary_text.py).
+ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, PINNED_TRACK_SHEET_NAME]
+MOBILE_SUMMARY_TXT = "mobile_summary.txt"
 # 舊 sheet 名 (給 cleanup 移除舊月檔殘留)
-LEGACY_ENRICHMENT_NAMES = ["📋 今日摘要", "🚨 異常警報", "📦 連續囤貨", "⚠️ 風險警示"]
+LEGACY_ENRICHMENT_NAMES = ["📋 今日摘要", "🚨 異常警報", "📦 連續囤貨", "⚠️ 風險警示",
+                           MOBILE_SHEET_NAME, QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME]
 
 try:
-    from branches import MASTER_STYLES, WATCHED_BRANCHES
+    from branches import MASTER_STYLES
 except ImportError:
-    MASTER_STYLES, WATCHED_BRANCHES = {}, []
+    MASTER_STYLES = {}
 
-# v3.80.12 (使用者 2026-10-05): 凱基-城中 (9227) 也是優式資本 (UC) 的操作分點.
-# 有分點名稱帶 (UC) 的大戶, 在 Dashboard 以「大戶(UC)」顯示, 提醒這個金額可能混有 UC.
-# 從 branches.py 名稱推得 (目前 = 蔣承翰), 不另寫死名單; master 本身不改名.
-UC_SHARED_MASTERS = {b['master'] for b in WATCHED_BRANCHES if '(UC)' in b.get('name', '')}
-
-
-def _master_display(master):
-    return f"{master}(UC)" if master in UC_SHARED_MASTERS else master
+# v3.80.13: Dashboard 領頭欄改顯示分點名稱, 凱基-城中(UC) 名稱本身就帶 (UC),
+# v3.80.12 的「大戶(UC)」顯示 (UC_SHARED_MASTERS / _master_display) 不再需要, 已移除.
 
 SNIPER_STYLES = {"next_day_flipper", "day_trader"}
 
@@ -1377,7 +1374,8 @@ def _compute_consensus_count(branches_data):
             })
             if not entry['name'] and s.get('name'):
                 entry['name'] = s.get('name')
-            entry['branches'].append({'master': m, 'branch_code': b_code, 'net_amt': net})
+            entry['branches'].append({'master': m, 'branch_code': b_code,
+                                      'branch_name': b.get('name', ''), 'net_amt': net})
     out = []
     for code, info in stock_map.items():
         if len(info['branches']) < 2:
@@ -1388,12 +1386,17 @@ def _compute_consensus_count(branches_data):
         master_net = {}
         for br in info['branches']:
             master_net[br['master']] = master_net.get(br['master'], 0) + br['net_amt']
+        # v3.80.13: 單一分點淨買最多的追蹤分點 (使用者 10/06: 分點背後不只一人,
+        # 不把金額歸給大戶加總); 同額時取代號較小者, 結果固定
+        top = min(info['branches'], key=lambda br: (-br['net_amt'], br['branch_code']))
         out.append({
             'code': code, 'name': info['name'],
             'master_count': len(masters),
             'branch_count': len(info['branches']),
             'masters': masters,
             'master_net': master_net,
+            'top_branch': {'code': top['branch_code'], 'name': top['branch_name'],
+                           'master': top['master'], 'net_amt': top['net_amt']},
             'total_net_amt': sum(br['net_amt'] for br in info['branches']),
         })
     return out
@@ -4033,11 +4036,12 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
 
 
 def _build_strong_consensus_dashboard(ws, branches_data, trade_date):
-    """v3.80.10: 今日強共識買超清單 — 個股 / 代號 / 領頭大戶 / 領頭金額(萬).
+    """v3.80.10: 今日強共識買超清單 — 個股 / 代號 / 領頭分點 / 領頭金額(萬).
 
     名單 = _compute_consensus_count (≥10 位追蹤大戶淨買 >0、≥2 分點、排除 00 開頭 ETF),
     與手機摘要 / Section 0 同一套邏輯. 排序沿用 Section 0: 合計淨買 ↓, 大戶數 ↓.
-    領頭大戶 = 在此股淨買合計最多的追蹤大戶; 領頭金額 = 其淨買合計 (仟元 ÷ 10 = 萬).
+    v3.80.13 (使用者 2026-10-06): 領頭欄改為「追蹤分點中, 單日淨買金額最多的單一分點」,
+    金額 = 該分點自己的淨買 (仟元 ÷ 10 = 萬). 分點背後不只一人, 不再把金額加總歸給大戶.
     """
     picks = sorted(_compute_consensus_count(branches_data),
                    key=lambda x: (-x['total_net_amt'], -x['master_count'], x['code']))
@@ -4062,7 +4066,7 @@ def _build_strong_consensus_dashboard(ws, branches_data, trade_date):
 
     hdr_font = Font(name='Noto Sans TC', size=11, bold=True)
     hdr_fill = _summary_fill('FFF0F0F0')
-    for col, h in zip('BCDE', ('個股', '代號', '領頭大戶', '領頭金額(萬)')):
+    for col, h in zip('BCDE', ('個股', '代號', '領頭分點', '領頭金額(萬)')):
         c = ws[f'{col}5']
         c.value = h
         c.font = hdr_font
@@ -4072,13 +4076,13 @@ def _build_strong_consensus_dashboard(ws, branches_data, trade_date):
     body_font = Font(name='Noto Sans TC', size=11)
     row = 6
     for p in picks:
-        leader, leader_amt = max(p['master_net'].items(), key=lambda kv: (kv[1], kv[0]))
+        top = p['top_branch']
         ws.cell(row, 2, p['name']).font = body_font
         c = ws.cell(row, 3, p['code'])
         c.font = body_font
         c.alignment = Alignment(horizontal='center')
-        ws.cell(row, 4, _master_display(leader)).font = body_font
-        c = ws.cell(row, 5, round(leader_amt / 10))
+        ws.cell(row, 4, top['name'] or top['code']).font = body_font
+        c = ws.cell(row, 5, round(top['net_amt'] / 10))
         c.font = body_font
         c.number_format = '#,##0'
         row += 1
@@ -4132,6 +4136,27 @@ def apply_pnl_color_scale(ws: "Worksheet", first_row: int, last_row: int, col_le
         end_type='num', end_value=10, end_color='FF2E7D32',
     )
     ws.conditional_formatting.add(f'{col_letter}{first_row}:{col_letter}{last_row}', rule)
+
+
+def mobile_summary_text(ws) -> str:
+    """v3.80.13: 手機摘要 sheet → Email 純文字. 與 scripts/extract_mobile_summary_text.py
+    原本讀 latest.xlsx 的邏輯相同: C 欄由第 1 列起, 頭尾空行去掉, 連續空行壓成 1 行."""
+    lines = ['' if ws[f'C{r}'].value is None else str(ws[f'C{r}'].value)
+             for r in range(1, ws.max_row + 1)]
+    while lines and lines[0] == '':
+        lines.pop(0)
+    while lines and lines[-1] == '':
+        lines.pop()
+    out, prev_blank = [], False
+    for ln in lines:
+        if ln == '':
+            if not prev_blank:
+                out.append('')
+            prev_blank = True
+        else:
+            out.append(ln)
+            prev_blank = False
+    return '\n'.join(out)
 
 
 def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
@@ -4191,34 +4216,20 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     except Exception as _be:
         print(f"  [Excel] dashboard sheet build 失敗: {type(_be).__name__}: {_be}")
 
-    # v3.67.1 Phase 2.7: 手機摘要 sheet (Dashboard 後第 2 個)
-    if MOBILE_SHEET_NAME in wb.sheetnames:
-        wb.remove(wb[MOBILE_SHEET_NAME])
-    mobile_ws = wb.create_sheet(title=MOBILE_SHEET_NAME)
+    # v3.80.13: 手機摘要不再是 Excel 頁籤 — 在記憶體建一張暫時的 sheet, 轉成純文字
+    # 存 reports/mobile_summary.txt 給每日 Email. Quad 實戰追蹤 / 失效歸因 不再產生
+    # (舊月檔殘留由上面的 LEGACY_ENRICHMENT_NAMES 清掉).
+    _txt = monthly_path.parent / MOBILE_SUMMARY_TXT
+    _txt.unlink(missing_ok=True)   # 失敗時寧可沒有檔 (Email 步驟報錯), 也不寄前一天的內容
     try:
-        build_mobile_summary_sheet(mobile_ws, branches_data, trade_date, data_dir)
+        _tmp_ws = Workbook().active
+        build_mobile_summary_sheet(_tmp_ws, branches_data, trade_date, data_dir)
+        _txt.write_text(
+            mobile_summary_text(_tmp_ws) + '\n', encoding='utf-8')
     except Exception as _be:
-        print(f"  [Excel] mobile summary sheet build 失敗: {type(_be).__name__}: {_be}")
+        print(f"  [Excel] mobile summary text build 失敗: {type(_be).__name__}: {_be}")
 
-    # v3.70.2 Phase 3.2 持續性追蹤: Quad 實戰追蹤 sheet (Dashboard 後第 3 個)
-    if QUAD_TRACK_SHEET_NAME in wb.sheetnames:
-        wb.remove(wb[QUAD_TRACK_SHEET_NAME])
-    quad_ws = wb.create_sheet(title=QUAD_TRACK_SHEET_NAME)
-    try:
-        build_quad_track_sheet(quad_ws, data_dir)
-    except Exception as _be:
-        print(f"  [Excel] quad track sheet build 失敗: {type(_be).__name__}: {_be}")
-
-    # v3.70.3 Phase 3.2 失效歸因: Quad 失效歸因 sheet (Dashboard 後第 4 個)
-    if QUAD_FAIL_SHEET_NAME in wb.sheetnames:
-        wb.remove(wb[QUAD_FAIL_SHEET_NAME])
-    fail_ws = wb.create_sheet(title=QUAD_FAIL_SHEET_NAME)
-    try:
-        build_quad_failure_sheet(fail_ws, data_dir)
-    except Exception as _be:
-        print(f"  [Excel] quad failure sheet build 失敗: {type(_be).__name__}: {_be}")
-
-    # v3.71.18 L2: Pinned master 追蹤 sheet (Dashboard 後第 5 個)
+    # v3.71.18 L2: Pinned master 追蹤 sheet (Dashboard 後第 2 個)
     if PINNED_TRACK_SHEET_NAME in wb.sheetnames:
         wb.remove(wb[PINNED_TRACK_SHEET_NAME])
     pinned_ws = wb.create_sheet(title=PINNED_TRACK_SHEET_NAME)
@@ -4227,10 +4238,8 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     except Exception as _be:
         print(f"  [Excel] pinned track sheet build 失敗: {type(_be).__name__}: {_be}")
 
-    # 排序: dashboard → mobile → quad track → quad fail → pinned → 日期 sheets desc
-    enrichment = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME,
-                  QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME,
-                  PINNED_TRACK_SHEET_NAME]
+    # 排序: dashboard → pinned → 日期 sheets desc (v3.80.13)
+    enrichment = ENRICHMENT_SHEETS
     other_sheets = sorted([s for s in wb.sheetnames if s not in enrichment],
                             reverse=True)
     order = [s for s in enrichment if s in wb.sheetnames] + other_sheets

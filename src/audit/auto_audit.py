@@ -38,7 +38,10 @@ except ImportError:
 def _parse_excel(xlsx_path: Path):
     """Returns (sheet_title, list_of_row_dicts)."""
     wb = openpyxl.load_workbook(str(xlsx_path), data_only=False)
-    ws = wb.active
+    # v3.80.13: 稽核最新的日期 sheet. 原本用 wb.active = 第一個頁籤, 自 v3.62 把
+    # Dashboard 排第一後就一直在掃 Dashboard (2026-10-05 只掃到 4 列) — 等於沒稽核.
+    day_sheets = sorted(n for n in wb.sheetnames if len(n) == 8 and n.isdigit())
+    ws = wb[day_sheets[-1]] if day_sheets else wb.active
     rows = []
     current_master = ''
     current_branch = ''

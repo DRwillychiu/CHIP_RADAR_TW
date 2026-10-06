@@ -73,8 +73,8 @@ for direction, net, conf in (('偏多', 0.523, 95.0), ('中性', -0.035, 46.5), 
         # 核心要求不變: 不得出現「明日預測」/「信心」.
         d_blob = ' '.join(v + ' ' + f for _, v, f in texts(ds))
         check("Dashboard 不出現「明日預測」/「信心」", '明日預測' not in d_blob and '信心' not in d_blob)
-        check("Dashboard 是強共識清單 (個股/代號/領頭大戶/領頭金額(萬))",
-              all(h in d_blob for h in ('個股', '代號', '領頭大戶', '領頭金額(萬)')), d_blob[:200])
+        check("Dashboard 是強共識清單 (個股/代號/領頭分點/領頭金額(萬))",
+              all(h in d_blob for h in ('個股', '代號', '領頭分點', '領頭金額(萬)')), d_blob[:200])
     finally:
         shutil.rmtree(d, ignore_errors=True)
 

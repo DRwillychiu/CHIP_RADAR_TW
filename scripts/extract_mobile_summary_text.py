@@ -1,7 +1,8 @@
 """v3.67.2 Phase 2.7: 萃取手機摘要為純文字 → stdout
 
-用途: GitHub Actions daily-full 跑完後, 抓 latest.xlsx 「📱 手機摘要」sheet
-      的內容轉成純文字, 作為 email body.
+用途: GitHub Actions daily-full 跑完後, 取手機摘要純文字作為 email body.
+      v3.80.13 起讀 data/reports/mobile_summary.txt; 沒有時退回讀 latest.xlsx 的
+      「📱 手機摘要」sheet (舊月檔).
 
 執行: python scripts/extract_mobile_summary_text.py [path/to/latest.xlsx]
       預設 path = data/reports/latest.xlsx
@@ -14,6 +15,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 xlsx_path = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / 'data' / 'reports' / 'latest.xlsx'
 
+# v3.80.13: 手機摘要不再是 Excel 頁籤; 產表時同步寫出 reports/mobile_summary.txt
+# (excel_report.mobile_summary_text, 與下方舊邏輯相同). 有它就直接用.
+txt_path = xlsx_path.parent / 'mobile_summary.txt'
+if len(sys.argv) <= 1 and txt_path.exists():
+    text = txt_path.read_text(encoding='utf-8').strip()
+    if text:
+        print(text)
+        sys.exit(0)
+
+# fallback: v3.80.12 以前的月檔仍有「📱 手機摘要」sheet
 try:
     from openpyxl import load_workbook
     wb = load_workbook(str(xlsx_path), data_only=True)
