@@ -108,6 +108,8 @@ MASTER_BLOCK_COLORS = {
     # ── Longterm 長線灰系 (2 個) ──
     "優式資本":              {"header": "FFBCAAA4", "body": "FFEFEBE9"},  # 灰棕
     "東億資本":              {"header": "FFB0BEC5", "body": "FFECEFF1"},  # 灰藍
+    # v3.80.21: Jiao family, style not given yet -> indigo (unused by the others)
+    "焦家":                  {"header": "FF9FA8DA", "body": "FFE8EAF6"},
 }
 DEFAULT_MASTER_COLOR = {"header": "FFD7D7D7", "body": "FFF5F5F5"}   # 未在表內的 fallback
 
@@ -307,6 +309,19 @@ MASTER_MAPPING: List[Dict] = [
             ("9274", "凱基-鳳山"),    # v3.80.1
             ("8564", "新光-台南"),    # v3.80.1
             ("9306", "華南永昌-台南"),  # v3.80.1
+        ],
+    },
+    {
+        # v3.80.21: owner 2026-10-06, appended last so no existing block moves.
+        # 984K / 989N list this family in co_masters only; consensus
+        # (_compute_consensus_count) counts each branch's primary master, so the
+        # family is counted through 585b alone.
+        "name": "焦家",
+        "header_label": "分點",
+        "branches": [
+            ("984K", "元大-館前"),
+            ("989N", "元大-內湖"),
+            ("585b", "統一-內湖"),
         ],
     },
 ]
@@ -4190,6 +4205,194 @@ def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date
     # 各 _build_section_* 函式保留 (手機摘要等仍可能共用).
 
 
+# ─── v3.80.21 transfer-watch sheets (one per transfer_watch.TRANSFER_WATCH_GROUPS) ───
+# Layout = owner-approved mock (2026-10-06): title + date, KPI card per stock,
+# today table (branches / total / close / change), one N-day table per stock with
+# a bold N-day total row, footnotes. Values: net lots; estimate -> approx sign via
+# number format; red positive, green negative; a dash when there is no number.
+_TW_RED = 'FFC62828'
+_TW_GREEN = 'FF2E7D32'
+_TW_CN = '〇一二三四五六七八九'
+
+
+def _transfer_watch():
+    """The data layer module (lazy: only the monthly build needs it)."""
+    try:
+        from src.exports import transfer_watch as tw
+    except ImportError:             # only src/ subdirs on sys.path
+        import transfer_watch as tw  # type: ignore
+    return tw
+
+
+def _tw_val(cell):
+    """transfer_watch cell -> (lots or None, est)."""
+    if cell and cell.get('state') == 'value':
+        return cell['lots'], cell['est']
+    return None, False
+
+
+def _tw_sum(cells):
+    """Sum of cells -> (lots or None, est). A dash ('absent') counts 0; any
+    'missing' cell makes the sum unknown (None)."""
+    if any(c.get('state') == 'missing' for c in cells):
+        return None, False
+    vals = [c for c in cells if c.get('state') == 'value']
+    return sum(c['lots'] for c in vals), any(c['est'] for c in vals)
+
+
+def _tw_put(ws, r, c, v, est=False, bold=False):
+    cell = ws.cell(r, c)
+    if v is None:
+        cell.value = '—'
+        cell.font = _pro_font(11, False, _PRO_MUTED)
+    else:
+        pre = '"≈"' if est else ''
+        cell.value = v
+        cell.number_format = f'{pre}+#,##0;{pre}-#,##0;{pre}0'
+        cell.font = _pro_font(11, bold, _TW_RED if v > 0 else _TW_GREEN if v < 0 else _PRO_INK)
+    cell.alignment = Alignment(horizontal='right', vertical='center', indent=1)
+    return cell
+
+
+def _tw_card_spans(n, cols):
+    """Split `cols` (column letters) into n consecutive spans, wider ones last."""
+    base, extra = divmod(len(cols), n)
+    sizes = [base] * (n - extra) + [base + 1] * extra
+    out, i = [], 0
+    for s in sizes:
+        out.append((cols[i], cols[i + s - 1]))
+        i += s
+    return out
+
+
+def build_transfer_sheet(ws, data, trade_date):
+    """🔁 transfer-watch sheet. data = transfer_watch.collect(...)[group name]."""
+    g = data['config']
+    branches, stocks, days, cells = data['branches'], data['stocks'], data['days'], data['cells']
+    k = len(branches)
+    n_word = _TW_CN[k] if 0 < k < 10 else str(k)
+    total_label = f'{n_word}戶合計'
+    cols = [chr(ord('B') + i) for i in range(k + 5)]   # stock, code, branches, total, close, change
+    last = cols[-1]
+    _pro_sheet_setup(ws, [('A', 2), ('B', 14), ('C', 9)]
+                     + [(cols[2 + i], 13) for i in range(k)]
+                     + [(cols[2 + k], 13), (cols[3 + k], 11), (cols[4 + k], 13)])
+    src_names = '、'.join(n for _, n in g['from_branches'])
+    dst_names = '、'.join(n for _, n in g['to_branches'])
+    row = _pro_title(ws, 2, 'B', last, g['title'], trade_date,
+                     f'{src_names} 買進 → 匯撥至 {dst_names}・單位：張（≈ 為金額÷收盤估算）')
+
+    def today_cells(code):
+        return [cells[(bno, trade_date, code)] for bno, _ in branches]
+
+    for i in range(0, len(stocks), 4):                 # KPI cards, at most 4 per row
+        chunk = stocks[i:i + 4]
+        cards = []
+        for (a, b), (code, name) in zip(_tw_card_spans(len(chunk), cols), chunk):
+            tot, est = _tw_sum(today_cells(code))
+            value = '—' if tot is None else f"{'≈' if est else ''}{tot:+,} 張"
+            cards.append((a, b, f'{name} 今日{total_label}', value))
+        row = _pro_cards(ws, row, cards)
+
+    ws.cell(row, 2, f'今日買賣超（{_pro_date(trade_date)}）').font = _pro_font(12, True, _PRO_NAVY)
+    row += 1
+    hdr = ['個股', '代號'] + [n for _, n in branches] + [total_label, '收盤', '漲跌%']
+    body = [[name, code] + [None] * (k + 3) for code, name in stocks]
+    _, end = _pro_table(ws, row, 'B', hdr, body, ['left', 'center'] + ['right'] * (k + 3),
+                        [None] * (k + 5))
+    for i, (code, name) in enumerate(stocks):
+        r = row + 1 + i
+        tc = today_cells(code)
+        for j, x in enumerate(tc):
+            _tw_put(ws, r, 4 + j, *_tw_val(x))
+        _tw_put(ws, r, 4 + k, *_tw_sum(tc), bold=True)
+        close, chg = data['quotes'].get(code) or (None, None)
+        c = ws.cell(r, 5 + k)
+        if close:
+            c.value, c.number_format = close, '#,##0.00'
+        else:
+            c.value, c.font = '—', _pro_font(11, False, _PRO_MUTED)
+        c = ws.cell(r, 6 + k)
+        if chg is not None:
+            c.value, c.number_format = chg / 100, '+0.00%;-0.00%;0.00%'
+            c.font = _pro_font(11, False, _TW_RED if chg > 0 else _TW_GREEN if chg < 0 else _PRO_INK)
+        else:
+            c.value, c.font = '—', _pro_font(11, False, _PRO_MUTED)
+
+    n = len(days)
+    row = end + 1
+    ws.cell(row, 2, f'近 {n} 日買賣超').font = _pro_font(12, True, _PRO_NAVY)
+    row += 1
+    for code, name in stocks:
+        ws.cell(row, 2, f'{name}（{code}）').font = _pro_font(11, True)
+        row += 1
+        h5 = ['日期'] + [nm for _, nm in branches] + [total_label]
+        rows5 = [[_pro_date(d)[5:]] + [None] * (k + 1) for d in days]
+        b0, end = _pro_table(ws, row, 'B', h5, rows5, ['left'] + ['right'] * (k + 1), [None] * (k + 2))
+        ws.cell(row, 2).alignment = Alignment(horizontal='left', vertical='center', indent=1)
+        for i, d in enumerate(days):
+            dc = [cells[(bno, d, code)] for bno, _ in branches]
+            for j, x in enumerate(dc):
+                _tw_put(ws, b0 + i, 3 + j, *_tw_val(x))
+            _tw_put(ws, b0 + i, 3 + k, *_tw_sum(dc), bold=True)
+        r = end
+        ws.cell(r, 2, f'{n} 日合計').font = _pro_font(11, True)
+        for j, (bno, _) in enumerate(branches):
+            _tw_put(ws, r, 3 + j, *_tw_sum([cells[(bno, d, code)] for d in days]), bold=True)
+        _tw_put(ws, r, 3 + k, *_tw_sum([cells[(bno, d, code)] for d in days for bno, _ in branches]),
+                bold=True)
+        for c in range(2, 4 + k):
+            ws.cell(r, c).border = Border(top=Side(style='medium', color=_PRO_NAVY))
+        ws.row_dimensions[r].height = 24
+        row = r + 2
+
+    notes = [f'匯撥是帳戶之間移轉、不經市場，分點進出看不到匯撥本身；本頁把{n_word}個分點的買賣並排與合計。',
+             f'{n_word}個分點都有其他客戶，數字不全是{g["group"]}；「—」= 該股不在該分點當日買賣超名單。']
+    if data['missing']:
+        names = dict(branches)
+        by_branch = {}
+        for bno, d in data['missing']:
+            by_branch.setdefault(bno, []).append(f'{d[4:6]}/{d[6:8]}')
+        txt = '；'.join(f"{names.get(b, b)} {'、'.join(ds)}" for b, ds in by_branch.items())
+        notes.append(f'資料暫缺：{txt}（來源頁暫時抓不到），這幾格的「—」不代表沒有進出，下次更新會再補抓。')
+    notes.append(f'資料：富邦 DJ 分點進出（指定日期頁）・{_pro_date(trade_date)}　｜　Chip Radar TW')
+    _pro_notes(ws, row - 1, 'B', last, notes)
+    ws.freeze_panes = 'A5'
+
+
+def _build_transfer_sheets(wb, branches_data, trade_date, data_dir, fetch=True):
+    """v3.80.21: (re)build every transfer-watch sheet of the workbook.
+    Old / no longer configured ones are removed first, so a failed build never
+    leaves yesterday's sheet behind. Returns the sheet names built, in order."""
+    try:
+        tw = _transfer_watch()
+    except Exception as e:
+        print(f"  [Excel] transfer watch module unavailable: {type(e).__name__}: {e}")
+        return []
+    for name in list(wb.sheetnames):
+        if name.startswith(tw.SHEET_PREFIX):
+            wb.remove(wb[name])
+    try:
+        datasets = tw.collect(tw.TRANSFER_WATCH_GROUPS, branches_data, trade_date, data_dir,
+                              fetch=fetch)
+    except Exception as e:
+        print(f"  [Excel] transfer watch data failed: {type(e).__name__}: {e}")
+        return []
+    st = datasets.get('_stats') or {}
+    print(f"  [Excel] transfer watch: cache {st.get('cache_hits', 0)} / fetched {st.get('fetched', 0)}"
+          f" / failed {st.get('failed', 0)} / skipped {st.get('skipped', 0)} branch-days")
+    built = []
+    for g in tw.TRANSFER_WATCH_GROUPS:
+        ws = wb.create_sheet(title=g['sheet'])
+        try:
+            build_transfer_sheet(ws, datasets[g['group']], trade_date)
+            built.append(g['sheet'])
+        except Exception as e:
+            print(f"  [Excel] transfer sheet {g['group']} failed: {type(e).__name__}: {e}")
+            wb.remove(ws)
+    return built
+
+
 # v3.62.0 → v3.62.1 backward compat: 舊 builder name 保留但呼叫 dashboard
 def build_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     """DEPRECATED v3.62.1: 用戶要求合 dashboard. 此 fn 仍 alias 給 build_dashboard_sheet."""
@@ -4232,12 +4435,15 @@ def mobile_summary_text(ws) -> str:
 
 def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
                               trade_date: str,
-                              limit_up_summary: Optional[Dict] = None):
+                              limit_up_summary: Optional[Dict] = None,
+                              transfer_fetch: bool = True):
     """v3.31.0: 開啟既有月檔 (若有) 或新建, add/update 該日 sheet, save back.
     sheet 名 = trade_date (YYYYMMDD), 同日重跑會覆寫該 sheet, sheets 按日期 desc 排序.
 
     v3.72.11: 若 limit_up_summary 有 sniper_top_buyer_index (crawler enricher 產),
     傳給 build_day_sheet 避免二次 fetch histock.
+    v3.80.21: transfer_fetch=False -> the transfer-watch sheets use stored data and
+    the page cache only, no network (the nightly final regen passes False).
     """
     if monthly_path.exists():
         try:
@@ -4309,8 +4515,12 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     except Exception as _be:
         print(f"  [Excel] pinned track sheet build 失敗: {type(_be).__name__}: {_be}")
 
-    # 排序: dashboard → pinned → 日期 sheets desc (v3.80.13)
-    enrichment = ENRICHMENT_SHEETS
+    # v3.80.21: transfer-watch sheets (src/exports/transfer_watch.py), right after Pinned
+    transfer_sheets = _build_transfer_sheets(wb, branches_data, trade_date, data_dir,
+                                             fetch=transfer_fetch)
+
+    # 排序: dashboard → pinned → 匯撥追蹤 → 日期 sheets desc (v3.80.13, v3.80.21)
+    enrichment = ENRICHMENT_SHEETS + transfer_sheets
     other_sheets = sorted([s for s in wb.sheetnames if s not in enrichment],
                             reverse=True)
     order = [s for s in enrichment if s in wb.sheetnames] + other_sheets

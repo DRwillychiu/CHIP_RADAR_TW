@@ -102,7 +102,9 @@ data = filter_day(data, target_date)  # v3.80.3: skip quarantined branch-days (d
 month_str = f"{target_date[:4]}-{target_date[4:6]}"
 mp = ROOT / 'data' / 'reports' / f'chip_radar_{month_str}.xlsx'
 lp = ROOT / 'data' / 'reports' / 'latest.xlsx'
-_update_monthly_workbook(mp, data['branches'], target_date)
+# v3.80.21: final regen = second build of the night -> no Fubon fetch for the
+# transfer-watch sheet (the crawler's build already cached what it fetched)
+_update_monthly_workbook(mp, data['branches'], target_date, transfer_fetch=False)
 shutil.copy2(str(mp), str(lp))
 print(f"  Regen OK: {mp.name} + latest.xlsx")
 print()

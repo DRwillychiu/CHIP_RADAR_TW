@@ -159,10 +159,11 @@ WATCHED_BRANCHES = [
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "984K", "name": "元大-館前", "master": "強森",
-     "co_masters": ["巨人傑"],
+     "co_masters": ["巨人傑", "焦家"],   # v3.80.21 Jiao family added (owner 2026-10-06)
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "989N", "name": "元大-內湖", "master": "強森",
+     "co_masters": ["焦家"],            # v3.80.21 Jiao family added (owner 2026-10-06)
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "9215", "name": "凱基-高美館", "master": "強森",
@@ -290,6 +291,22 @@ WATCHED_BRANCHES = [
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "9306", "name": "華南永昌-台南", "master": "全村希望資本_村長",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+
+    # ─────────────────────────────────────────────────────────
+    # Jiao family (Walsin group) - v3.80.21, owner 2026-10-06. Buys 2492 / 4919
+    #   / 6173 at 984K and moves the shares by account transfer (no market
+    #   trade) to accounts at 989N and 585b. 585b is the only branch with this
+    #   family as primary master; 984K / 989N stay with their master and list
+    #   the family in co_masters (Dashboard consensus counts primary masters).
+    #   Official register (TWSE OpenData_BRK02, 2026-10-06): 585b = President
+    #   Securities Neihu branch, Neihu Rd Sec 1 No 575 3F. Its case twin 585B
+    #   (President Securities Yonghe) is in the register and in Fubon's list ->
+    #   lettered code, fetched hex-encoded with the page identity check.
+    #   Excel: transfer-watch sheet, src/exports/transfer_watch.py.
+    # ─────────────────────────────────────────────────────────
+    {"code": "585b", "name": "統一-內湖", "master": "焦家",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
 
@@ -607,6 +624,7 @@ MASTER_STYLES = {
     "竹科主力分點": ["swing"],                   # v3.31.8 補
     "謝明彧大哥(華南永昌)": ["swing"],          # v3.31.8 補
     "全村希望資本_村長": ["swing"],              # v3.80.0 使用者 9/25 指定: 波段
+    "焦家": ["unknown"],                         # v3.80.21: owner has not given a style yet
     # 🌏 外資
     "高盛": ["foreign_ib"],
     "美林": ["foreign_ib"],

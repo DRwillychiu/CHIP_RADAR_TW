@@ -103,13 +103,21 @@ er.build_day_sheet = lambda ws, *a, **k: 0
 er.build_dashboard_sheet = lambda ws, *a, **k: None
 er.build_pinned_track_sheet = lambda ws, *a, **k: None
 er.build_mobile_summary_sheet = fake_mobile
+tw = er._transfer_watch()
+orig_fetch = tw.fetch_branch_day
+def no_network(*a, **k):     # v3.80.21: transfer-watch sheet must not hit Fubon here
+    raise tw.sa.SourceError('offline test')
+tw.fetch_branch_day = no_network
 try:
     er._update_monthly_workbook(monthly, [], '20261005')
 finally:
     er.build_day_sheet, er.build_dashboard_sheet, er.build_pinned_track_sheet, er.build_mobile_summary_sheet = orig
+    tw.fetch_branch_day = orig_fetch
 names = openpyxl.load_workbook(monthly).sheetnames
-check("頁籤順序 = Dashboard → Pinned → 20261005 → 20261002",
-      names == [er.DASHBOARD_SHEET_NAME, er.PINNED_TRACK_SHEET_NAME, '20261005', '20261002'], names)
+transfer = [g['sheet'] for g in tw.TRANSFER_WATCH_GROUPS]
+check("頁籤順序 = Dashboard → Pinned → 匯撥追蹤 (v3.80.21) → 20261005 → 20261002",
+      names == [er.DASHBOARD_SHEET_NAME, er.PINNED_TRACK_SHEET_NAME] + transfer + ['20261005', '20261002'],
+      names)
 check("舊月檔的 手機摘要 / Quad 實戰追蹤 / Quad 失效歸因 被移除",
       not ({er.MOBILE_SHEET_NAME, er.QUAD_TRACK_SHEET_NAME, er.QUAD_FAIL_SHEET_NAME} & set(names)))
 txt = (tmp / er.MOBILE_SUMMARY_TXT).read_text(encoding='utf-8')
