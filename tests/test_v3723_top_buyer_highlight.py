@@ -26,6 +26,17 @@ from src.exports.excel_report import (
 
 YELLOW = "FFFFFF00"
 
+# ══════════════════════════════════════════════════════════════════
+# v3.73.0: 富邦 zco.djhtm 成為 primary 來源, histock 降為 fallback.
+# 既有 test (1-12) 全部驗 histock fallback 路徑 → 全域 patch 富邦回 None,
+# 讓流程落到 histock mock. 富邦 primary 路徑另在 section 13 專測.
+# ══════════════════════════════════════════════════════════════════
+_fubon_patcher = patch(
+    "src.fetchers.stock_branch_ranking.fetch_stock_branch_ranking",
+    return_value=None,
+)
+_fubon_patcher.start()
+
 pass_count = 0
 fail_count = 0
 def check(label, cond):
@@ -223,7 +234,7 @@ check("成功後 stats.success++", stats["success"] == 1 and stats["attempted"] 
 _reset_histock_stats()
 NET_ZERO_MOCK = {"XXXX": {"date": "2026/07/24",
                           "buys": [{"bno": "9A9S", "net": 0, "buy_lot": 10, "sell_lot": 10}]}}
-def mock_net_zero(code, timeout=8, max_retries=1):
+def mock_net_zero(code, timeout=15, max_retries=2):
     return NET_ZERO_MOCK.get(code)
 with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=mock_net_zero):
     cache = {}
@@ -240,17 +251,39 @@ with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=mo
 stats = _get_histock_stats()
 check("stale_date stats++", stats["stale_date"] == 1)
 
+# Scenario D: v3.72.10 fetch_fail (fetch_histock_branch 回 None) vs empty_buys
+_reset_histock_stats()
+def mock_none_returned(code, timeout=15, max_retries=2):
+    return None  # 模擬 timeout / block
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=mock_none_returned):
+    cache = {}
+    _fetch_histock_top_buyer("Z1", cache)
+stats = _get_histock_stats()
+check("fetch=None → fetch_fail 分類 (v3.72.10)", stats.get("fetch_fail") == 1)
+
+# empty_buys separate
+_reset_histock_stats()
+def mock_empty_buys(code, timeout=15, max_retries=2):
+    return {"date": "2026/07/24", "buys": []}
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=mock_empty_buys):
+    cache = {}
+    _fetch_histock_top_buyer("Z2", cache)
+stats = _get_histock_stats()
+check("empty buys → empty_buys 分類 (v3.72.10)", stats.get("empty_buys") == 1)
+
 # ─── 11. v3.72.8 Bug #4 histock 全 fail → 警示 row ───
 print("\n11. v3.72.8 histock 全 fail → 警示 row 寫入")
 wb3 = Workbook()
 ws3 = wb3.active
-# 模擬全 fail
-stats_fail = {"attempted": 3, "success": 0, "stale_date": 0, "no_data": 0,
-              "http_error": 3, "net_zero_or_neg": 0}
+# 模擬全 fetch fail (v3.72.10 新 key)
+stats_fail = {"attempted": 3, "success": 0, "stale_date": 0, "fetch_fail": 3,
+              "empty_buys": 0, "http_error": 0, "net_zero_or_neg": 0}
 used = _write_histock_status_notice(ws3, 1, stats_fail)
-check("全 http_err → 寫警示 row (used=1)", used == 1)
-notice_val = ws3.cell(row=1, column=4).value
+check("全 fetch_fail → 寫警示 row (used=1)", used == 1)
+notice_val = ws3.cell(row=1, column=1).value  # v3.72.12: 改到 A 欄 + merge A:L
 check("警示 notice 內容含「無 top-buyer」", "無 top-buyer" in (notice_val or ""))
+check("v3.72.10 診斷正確 (「timeout / block」關鍵字)",
+      "timeout" in (notice_val or "") or "block" in (notice_val or ""))
 # 檢查橘色 fill (FFFFECB3)
 fill = ws3.cell(row=1, column=1).fill
 rgb = getattr(getattr(fill, 'fgColor', None), 'rgb', None)
@@ -259,37 +292,215 @@ check("警示 row 背景 = 橘色 FFFFECB3", rgb == "FFFFECB3")
 # 100% success → 不寫警示
 wb4 = Workbook()
 ws4 = wb4.active
-stats_ok = {"attempted": 3, "success": 3, "stale_date": 0, "no_data": 0,
-            "http_error": 0, "net_zero_or_neg": 0}
+stats_ok = {"attempted": 3, "success": 3, "stale_date": 0, "fetch_fail": 0,
+            "empty_buys": 0, "http_error": 0, "net_zero_or_neg": 0}
 used = _write_histock_status_notice(ws4, 1, stats_ok)
 check("100% success → 不寫警示 (used=0)", used == 0)
 
 # 部分 fail (2/3)
 wb5 = Workbook()
 ws5 = wb5.active
-stats_partial = {"attempted": 3, "success": 1, "stale_date": 1, "no_data": 1,
-                 "http_error": 0, "net_zero_or_neg": 0}
+stats_partial = {"attempted": 3, "success": 1, "stale_date": 1, "fetch_fail": 1,
+                 "empty_buys": 0, "http_error": 0, "net_zero_or_neg": 0}
 used = _write_histock_status_notice(ws5, 1, stats_partial)
 check("部分 fail → 寫警示 (used=1)", used == 1)
-notice_val = ws5.cell(row=1, column=4).value
+notice_val = ws5.cell(row=1, column=1).value  # v3.72.12: A 欄
 check("警示含「部分 top-buyer」", "部分" in (notice_val or ""))
 
-# ─── 12. v3.72.8 Bug #8 histock 時間戳 footer ───
-print("\n12. v3.72.8 histock timestamp footer")
+# ─── 12.5 v3.72.11 build_day_sheet 用 precomputed (skip 二次 fetch) ───
+print("\n12.5 v3.72.11 build_day_sheet precomputed path (share single fetch)")
+from src.exports.excel_report import build_day_sheet
+
+sample_stock_v11 = {
+    "code": "6577", "name": "勁豐",
+    "buy_lot": 22, "sell_lot": 0,
+    "buy_amt": 200000, "sell_amt": 0,
+    "net_amt": 200000, "net_lot": 22,
+    "is_limit_up": True,
+}
+branches_data_v11 = [
+    {"code": "9A9S", "name": "永豐金-南京", "buys": [sample_stock_v11], "sells": []},
+]
+wb_v11 = Workbook()
+ws_v11 = wb_v11.active
+
+# Feed precomputed (enricher 已 fetch 過的結果)
+precomputed_top = {"6577": "9A9S"}
+precomputed_stats = {"attempted": 1, "success": 1, "stale_date": 0,
+                     "fetch_fail": 0, "empty_buys": 0,
+                     "http_error": 0, "net_zero_or_neg": 0}
+
+fetch_called = [False]
+def spy_fetch(code, timeout=15, max_retries=2):
+    fetch_called[0] = True
+    return None
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=spy_fetch):
+    build_day_sheet(ws_v11, branches_data_v11, "20260731",
+                     precomputed_top_buyer=precomputed_top,
+                     precomputed_stats=precomputed_stats)
+
+check("precomputed 傳入 → 不再呼叫 histock", fetch_called[0] is False)
+# 檢查 9A9S 6577 row 是否黃色
+for row in range(1, ws_v11.max_row + 1):
+    val_d = ws_v11.cell(row=row, column=4).value
+    if val_d and "6577" in str(val_d):
+        buy_lot = ws_v11.cell(row=row, column=5).value
+        if buy_lot == 22:  # 9A9S 的 row
+            fill = ws_v11.cell(row=row, column=4).fill
+            rgb = getattr(getattr(fill, 'fgColor', None), 'rgb', None)
+            check("precomputed → 6577 row 仍塗黃 (使用 precomputed_top_buyer)", rgb == YELLOW)
+            break
+
+# ─── 12.6 v3.72.11 enricher circuit breaker ───
+print("\n12.6 v3.72.11 enricher circuit breaker (連續 3 fail → abort)")
+from src.analyzers.sniper_top_buyer_enricher import enrich_sniper_top_buyer
+
+# 10 檔股票, 全部 fetch 都失敗 → 應在 3 檔後 circuit break
+limit_up_summary_cb = {
+    'sniper_ranking': [
+        {
+            'master': '蔣承翰',
+            'branch_code': '9A9S',
+            'branch_name': '永豐金-南京',
+            'limit_up_details': [
+                {'code': f'CB{i:02d}', 'name': f'Stock{i}', 'buy_amt': 100} for i in range(10)
+            ]
+        }
+    ]
+}
+fetch_count_cb = [0]
+def spy_fetch_fail(code, timeout=15, max_retries=2):
+    fetch_count_cb[0] += 1
+    return None  # 全 fail
+
+with patch("src.audit.histock_branch_audit.fetch_histock_branch", side_effect=spy_fetch_fail):
+    result_cb = enrich_sniper_top_buyer(limit_up_summary_cb, {"蔣承翰"}, trade_date="20260731")
+
+# 只有 3 檔被 fetch, 之後 abort
+check("Circuit breaker 觸發: 只 fetch 3 檔 (連續 3 fail abort)", fetch_count_cb[0] == 3)
+check("Circuit breaker after 記錄 abort 位置", result_cb.get('circuit_break_after') == 3)
+check("Total targets = 10", result_cb.get('total_targets') == 10)
+
+# ─── 12. v3.72.8 Bug #8 histock 時間戳 footer + v3.72.10 TW timezone ───
+print("\n12. v3.72.8 histock timestamp footer + v3.72.10 TW tz")
 wb6 = Workbook()
 ws6 = wb6.active
 used = _write_histock_timestamp_footer(ws6, 100, stats_ok)
 check("attempted>0 → 寫時間戳 (used=1)", used == 1)
 val = ws6.cell(row=100, column=1).value
-check("時間戳含 'histock top-buyer 資料 fetched'", "histock top-buyer 資料 fetched" in (val or ""))
+check("時間戳含 'top-buyer 資料 fetched'", "top-buyer 資料 fetched" in (val or ""))
+# v3.72.10: 用 TW timezone
+check("v3.72.10 時間戳含 'TW' 標記", "TW" in (val or ""))
 
 # attempted=0 → 不寫
 wb7 = Workbook()
 ws7 = wb7.active
-stats_empty = {"attempted": 0, "success": 0, "stale_date": 0, "no_data": 0,
-               "http_error": 0, "net_zero_or_neg": 0}
+stats_empty = {"attempted": 0, "success": 0, "stale_date": 0, "fetch_fail": 0,
+               "empty_buys": 0, "http_error": 0, "net_zero_or_neg": 0}
 used = _write_histock_timestamp_footer(ws7, 100, stats_empty)
 check("attempted=0 → 不寫 (used=0)", used == 0)
+
+# ─── 13. v3.73.0 富邦 primary 路徑 ───
+print("\n13. v3.73.0 富邦 zco.djhtm primary (histock 降 fallback)")
+_fubon_patcher.stop()   # 停掉全域 None patch, 改用本節專屬 mock
+
+FUBON_MOCK = {
+    "6577": {"date": "2026/08/04", "stock_code": "6577", "source": "fubon",
+             "buys": [{"bno": "9A9S", "name": "永豐金-南京", "buy_lot": 22,
+                       "sell_lot": 0, "net": 22, "pct": "8.8%"}],
+             "sells": []},
+    "2330": {"date": "2026/08/04", "stock_code": "2330", "source": "fubon",
+             "buys": [{"bno": "1360", "name": "港商麥格理", "buy_lot": 1125,
+                       "sell_lot": 128, "net": 997, "pct": "2.45%"}],
+             "sells": []},
+    "STALE": {"date": "2026/08/03", "stock_code": "STALE", "source": "fubon",
+              "buys": [{"bno": "9A9S", "name": "永豐金-南京", "buy_lot": 5,
+                        "sell_lot": 0, "net": 5, "pct": "1%"}],
+              "sells": []},
+    "NEGNET": {"date": "2026/08/04", "stock_code": "NEGNET", "source": "fubon",
+               "buys": [{"bno": "9A9S", "name": "永豐金-南京", "buy_lot": 1,
+                         "sell_lot": 5, "net": 0, "pct": "0%"}],
+               "sells": []},
+}
+def mock_fubon(code, timeout=15, max_retries=2, delay_range=None):
+    return FUBON_MOCK.get(code)
+
+# 13a: 富邦成功 → 不呼叫 histock
+histock_called = [False]
+def spy_histock(code, timeout=15, max_retries=2):
+    histock_called[0] = True
+    return None
+
+_reset_histock_stats()
+with patch("src.fetchers.stock_branch_ranking.fetch_stock_branch_ranking",
+           side_effect=mock_fubon), \
+     patch("src.audit.histock_branch_audit.fetch_histock_branch",
+           side_effect=spy_histock):
+    cache = {}
+    r = _fetch_histock_top_buyer("6577", cache, trade_date="20260804")
+st = _get_histock_stats()
+check("富邦成功 → top bno = 9A9S", r == "9A9S")
+check("富邦成功 → 不 fallback 到 histock", histock_called[0] is False)
+check("stats.fubon_success == 1", st.get("fubon_success") == 1)
+check("stats.histock_success == 0", st.get("histock_success") == 0)
+
+# 13b: 富邦 stale → fallback histock
+_reset_histock_stats()
+HIST_OK = {"STALE": {"date": "2026/08/04",
+                     "buys": [{"bno": "9227", "net": 10}]}}
+def mock_hist_ok(code, timeout=15, max_retries=2):
+    return HIST_OK.get(code)
+with patch("src.fetchers.stock_branch_ranking.fetch_stock_branch_ranking",
+           side_effect=mock_fubon), \
+     patch("src.audit.histock_branch_audit.fetch_histock_branch",
+           side_effect=mock_hist_ok):
+    cache = {}
+    r = _fetch_histock_top_buyer("STALE", cache, trade_date="20260804")
+st = _get_histock_stats()
+check("富邦 stale → fallback histock 拿到 9227", r == "9227")
+check("stats.histock_success == 1 (fallback 生效)", st.get("histock_success") == 1)
+
+# 13c: 富邦 net<=0 → 直接 None (不 fallback, 因為資料本身有效只是沒淨買)
+_reset_histock_stats()
+with patch("src.fetchers.stock_branch_ranking.fetch_stock_branch_ranking",
+           side_effect=mock_fubon), \
+     patch("src.audit.histock_branch_audit.fetch_histock_branch",
+           side_effect=spy_histock):
+    cache = {}
+    r = _fetch_histock_top_buyer("NEGNET", cache, trade_date="20260804")
+st = _get_histock_stats()
+check("富邦 net=0 → return None", r is None)
+check("stats.net_zero_or_neg == 1", st.get("net_zero_or_neg") == 1)
+
+# 13d: 富邦 fetcher 真實 parser 驗證 (用 fixture HTML)
+from src.fetchers.stock_branch_ranking import parse_fubon_stock_page
+FIXTURE = '''<html>2026/08/04
+<TR>
+<TD class="t4t1" nowrap><a href="/z/zc/zco/zco0/zco0.djhtm?a=6577&b=9A9S&BHID=9A00">永豐金-南京</a></TD>
+<TD class="t3n1">22</TD><TD class="t3n1">0</TD><TD class="t3n1">22</TD><TD class="t3n1">8.8%</TD>
+<TD class="t4t1" nowrap><a href="/z/zc/zco/zco0/zco0.djhtm?a=6577&b=9800&BHID=9800">元大證券</a></TD>
+<TD class="t3n1">1</TD><TD class="t3n1">9</TD><TD class="t3n1">8</TD><TD class="t3n1">3.2%</TD>
+</tr></html>'''
+parsed = parse_fubon_stock_page(FIXTURE, "6577")
+check("parser: date = 2026/08/04", parsed and parsed.get("date") == "2026/08/04")
+check("parser: buys[0].bno = 9A9S (b= 參數非 BHID)",
+      parsed and parsed["buys"][0]["bno"] == "9A9S")
+check("parser: buys[0].net = 22", parsed and parsed["buys"][0]["net"] == 22)
+check("parser: sells[0].bno = 9800 + net 存負值",
+      parsed and parsed["sells"][0]["bno"] == "9800" and parsed["sells"][0]["net"] == -8)
+
+# 13e: 買賣側筆數不對稱 → bno 不可錯配 (v3.73.0 parser fix)
+ASYM = '''2026/08/04
+<TR>
+<TD class="t4t1" nowrap>&nbsp;</TD>
+<TD class="t3n1"></TD><TD class="t3n1"></TD><TD class="t3n1"></TD><TD class="t3n1"></TD>
+<TD class="t4t1" nowrap><a href="?a=X&b=9800&BHID=9800">元大證券</a></TD>
+<TD class="t3n1">1</TD><TD class="t3n1">9</TD><TD class="t3n1">8</TD><TD class="t3n1">3%</TD>
+</tr>'''
+pa = parse_fubon_stock_page(ASYM, "X")
+check("parser: 買超側空 → buys 不誤收賣方 bno", pa is not None and pa["buys"] == [])
+check("parser: 買超側空 → sells 仍正確 (9800)",
+      pa is not None and pa["sells"] and pa["sells"][0]["bno"] == "9800")
 
 # ─── 總結 ───
 print(f"\n{'─' * 60}")

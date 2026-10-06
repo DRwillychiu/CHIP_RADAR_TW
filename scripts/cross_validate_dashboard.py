@@ -430,16 +430,19 @@ else:
             # ── Layer 1: Excel cell value 必須 = daily_signal.confidence_pct ──
             if isinstance(q5_val, str):
                 err('Q5.L1', 'numeric', f'str: {q5_val!r}', 'cell type')
-            elif not _approx(float(q5_val), gt_confidence, tol=0.01):
-                err('Q5.L1', gt_confidence, q5_val, 'banner confidence_pct')
+            # v3.80.7: banner 改顯示 net_weight (強度), 不再顯示 confidence_pct
+            #   (v3.78.0 判定方向判定無 alpha; confidence 是 net 線性換算, 讀起來像勝率)
+            elif not _approx(float(q5_val), float(md.get('net_weight') or 0), tol=0.001):
+                err('Q5.L1', md.get('net_weight'), q5_val, 'banner net_weight')
             else:
-                print(f"  [L1 PASS] Excel value {q5_val} = daily_signal.confidence_pct {gt_confidence}")
+                print(f"  [L1 PASS] Excel value {q5_val} = daily_signal.net_weight {md.get('net_weight')}")
 
             # ── Layer 1.b: Format string 必須含正確的 direction/arrow/top_signal/focus_n ──
             arrow_map = {'偏多': '↑', '偏空': '↓', '中性': '↕'}
             expected_arrow = arrow_map.get(gt_direction, '↕')
             for expected_substr, label in [
-                ('明日預測', '解讀前綴'),   # v3.64.6: 明日預測 vs 今日市場
+                ('籌碼偏向', '解讀前綴'),   # v3.80.7: 原「明日預測」, 已退役為描述
+                ('描述非預測', '退役揭露'),
                 (expected_arrow, 'arrow'),
                 (gt_direction, 'direction'),
                 (gt_top_signal, 'top_signal'),

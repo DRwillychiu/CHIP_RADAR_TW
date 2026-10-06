@@ -25,21 +25,86 @@ on:
     #   同樣 git diff --quiet no-op,零成本。heartbeat.yml 00:30 TW 在此之後才檢查。
     - cron: '47 15 * * 1-5'
 
+  # v3.80.19 dev environment: a push to `dev` runs this whole workflow as a TEST
+  # run (see TEST_RUN below) with dev's code on main's latest data.
+  push:
+    branches: [dev]
+
   workflow_dispatch:
     inputs:
       force:
         description: '強制重抓 (忽略快取)'
         required: false
         default: 'false'
+      # v3.80.19: TEST run = same steps, but nothing is written back (no data
+      # commit, no DB artifact, no Issues); mail subject/body and the attached
+      # Excel are labelled TEST. Any ref other than main is always a TEST run.
+      test_run:
+        description: 'TEST run (no commit, labelled mail)'
+        required: false
+        default: 'false'
 
 permissions:
   contents: write
 
+# v3.80.5: 同一時間只允許一個 daily-full 在跑 (後到的排隊, 不取消正在跑的).
+# 2026-10-01 稽核: 本機 Task Scheduler 的 21:17/22:37 dispatch 與 GitHub 延遲到
+# 01:00-04:00 的 schedule run 常常重疊. 兩個 run 各自 checkout 舊版 → 各自寫
+# stock_history.json → push 衝突時 `git pull --rebase -X theirs` 讓後推的一方
+# 整段覆蓋前者. v3.79.5 的 14 天大盤回補就是這樣在 13 分鐘後被蓋掉的.
+# v3.80.19: TEST runs get their own group, so they never queue behind, delay or
+# cancel a production run (GitHub cancels the older *pending* run of a group).
+concurrency:
+  group: ${{ (github.ref != 'refs/heads/main' || inputs.test_run == 'true') && 'daily-full-test' || 'daily-full-crawl' }}
+  cancel-in-progress: false
+
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+      session: ${{ steps.gate.outputs.session }}
+    steps:
+      - name: Checkout (gate files only)
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            scripts/trading_gate.py
+            src
+            data/twse_holidays.json
+            data/latest.json
+          sparse-checkout-cone-mode: false
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Trading-day gate
+        id: gate
+        run: python scripts/trading_gate.py --kind evening --event "${{ github.event_name }}" --schedule "${{ github.event.schedule }}"
+
   crawl:
+    needs: gate
+    # fail-open: skip only when the gate ran and said no; a crashed gate must not
+    # silently cancel a trading-day run
+    if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.run == 'true') }}
     runs-on: ubuntu-latest
     # v3.28.0: 15 → 25; v3.32.2: 25 → 45 (81 分點 + master_profile + alliance + signals + DB)
-    timeout-minutes: 45
+    # v3.80.8: 45 → 75. 2026-10-01 富邦整晚偏慢: 21:17 跑 42.0 分 (6 分點逾時各耗 ~80s),
+    #   22:37 跑到 45.6 分被砍 — 分點抓完、自我修復也成功了, 但後處理沒跑完,
+    #   **被取消的 run 什麼都不會 commit**, 是最糟的結局. 平常 20~25 分,
+    #   75 分留給富邦偏慢 + v3.80.6 同輪補抓 (失敗分點 × ~30-80s) 的空間.
+    #   concurrency 已序列化, 拉長不會造成與下一個排程重疊寫入.
+    timeout-minutes: 75
+    # v3.80.15: issues: write so the alert steps below can open GitHub Issues
+    # (a job that sets permissions gets none it does not list)
+    permissions:
+      contents: write
+      issues: write
+    env:
+      # v3.80.19: 'true' for every run not on main (dev pushes) and for a manual
+      # run with test_run=true; scheduled runs are on main -> 'false'
+      TEST_RUN: ${{ github.ref != 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.test_run == 'true') }}
 
     steps:
       - name: Checkout repo
@@ -47,6 +112,16 @@ jobs:
         with:
           # v3.28.0: 顯式設定 timeout 給 git fetch (不然 default 沒有, 卡到死才 abort)
           fetch-depth: 1
+
+      # v3.80.19: dev's data/ may be days old (bot data commits land on main
+      # only) -> a TEST run from another branch uses main's latest data/ with
+      # its own code. Nothing of it is ever pushed back.
+      - name: Test run - use main's latest data
+        if: env.TEST_RUN == 'true' && github.ref != 'refs/heads/main'
+        run: |
+          git fetch --depth=1 origin main
+          git checkout FETCH_HEAD -- data/
+          echo "data/ taken from main $(git rev-parse --short FETCH_HEAD)"
       
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -90,8 +165,9 @@ jobs:
           # v3.55.0: Telegram 每日推播 (執行狀態 + 籌碼摘要 + 警報)。
           #   兩個 secret 缺任一 → alerts.send_telegram 自動走 test mode 只 print,
           #   不會讓 crawler 失敗。跟 GitHub 既有的 email/issue 通知並行,不取代。
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          #   v3.80.19: a TEST run gets no Telegram secrets -> alerts only print
+          TELEGRAM_BOT_TOKEN: ${{ env.TEST_RUN != 'true' && secrets.TELEGRAM_BOT_TOKEN || '' }}
+          TELEGRAM_CHAT_ID: ${{ env.TEST_RUN != 'true' && secrets.TELEGRAM_CHAT_ID || '' }}
           CHIP_RADAR_PREV_TRADE_DATE: ${{ steps.prev.outputs.trade_date }}
         run: |
           echo "🎯 STAGE=full (主爬蟲)"
@@ -103,7 +179,8 @@ jobs:
       #   crawler crash / timeout / checkout 失敗 → 內部推不到,由這步補
       #   → 兩條路互斥,永遠恰好一則,不會重複也不會漏。
       - name: Notify Telegram on crawler failure
-        if: always() && steps.crawl.outcome != 'success'
+        # v3.80.19: never from a TEST run
+        if: always() && steps.crawl.outcome != 'success' && env.TEST_RUN != 'true'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -133,6 +210,14 @@ jobs:
             -o /dev/null
           echo "::notice::已推 Telegram 失敗通知"
       
+      # v3.71.7: 抓 attstock.tw 處置股清單 (整合到「今日避開」)
+      # v3.80.14: 移到 Excel 重建之前 — 原本排在兩次產表之後, 當輪報表/Email
+      #   用的永遠是上一輪抓到的清單
+      - name: Refresh attstock disposal
+        run: |
+          python scripts/refresh_attstock_disposal.py
+        continue-on-error: true
+
       # v3.70.0 Phase 3.2 落地: rolling backtest + Excel regen
       # 在 crawler 結束後重 bootstrap phase32_backtest.json + 重 regen Excel
       # 這樣今日 Dashboard 的 alpha sub-banner 抓到含今日的新滾動數字
@@ -143,16 +228,20 @@ jobs:
           python scripts/daily_rolling_update.py
         continue-on-error: true
 
-      # v3.71.7: 抓 attstock.tw 處置股清單 (整合到「今日避開」)
-      - name: Refresh attstock disposal
-        run: |
-          python scripts/refresh_attstock_disposal.py
+      # v3.80.15: every row of the newest day sheet vs the Fubon source pages
+      # (date pinned) + official closes -> data/audit/source_audit_latest.json
+      # (gitignored). Own ~8 min budget; never fails or blocks the run.
+      - name: Source audit (Excel vs Fubon pages)
+        id: audit
         continue-on-error: true
+        timeout-minutes: 10
+        run: |
+          python scripts/source_audit.py
 
       # v3.31.14: 上傳更新後的 DB (GitHub Artifact, 90 天保留)
       # DB 不進 git (.gitignore) 但透過 artifact 在 workflow 間傳遞累積
       - name: Upload DB artifact
-        if: always()
+        if: always() && env.TEST_RUN != 'true'
         uses: actions/upload-artifact@v7
         with:
           name: chip-radar-db
@@ -160,9 +249,48 @@ jobs:
           retention-days: 90
           if-no-files-found: warn
 
+      # v3.80.19 TEST run only: label a copy of the Excel, keep it + the mail
+      # text as a 7-day run artifact
+      - name: Test run - label outputs
+        if: env.TEST_RUN == 'true'
+        run: |
+          PYTHONIOENCODING=utf-8 python - <<'PY'
+          import openpyxl
+          TAG = '🧪【測試階段・非正式】'
+          wb = openpyxl.load_workbook('data/reports/latest.xlsx')
+          days = sorted(n for n in wb.sheetnames if len(n) == 8 and n.isdigit())
+          targets = [wb.worksheets[0]] + ([wb[days[-1]]] if days else [])
+          for ws in targets:
+              ws.sheet_properties.tabColor = 'FFFF0000'
+              cells = [c for row in ws.iter_rows(min_row=1, max_row=3, max_col=8)
+                       for c in row if isinstance(c.value, str) and c.value.strip()]
+              if cells:
+                  cells[0].value = TAG + cells[0].value
+                  print('labelled', ws.title, cells[0].coordinate)
+          wb.save('data/reports/TEST_chip_radar_latest.xlsx')
+          print('sheets:', wb.sheetnames)
+          PY
+      - name: Test run - upload outputs
+        if: env.TEST_RUN == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-run-output
+          path: |
+            data/reports/TEST_chip_radar_latest.xlsx
+            data/reports/mobile_summary.txt
+          retention-days: 7
+          if-no-files-found: warn
+
       - name: Commit and push data
         id: commit
         run: |
+          # v3.80.19: a TEST run never commits; it still mails (labelled)
+          if [ "${{ env.TEST_RUN }}" = "true" ]; then
+            echo "::notice title=TEST RUN::Test run - data NOT committed, DB artifact NOT uploaded"
+            echo "data_changed=false" >> $GITHUB_OUTPUT
+            echo "send_mail=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions Bot"
           git add data/
@@ -175,6 +303,7 @@ jobs:
             exit 0
           fi
           echo "data_changed=true" >> $GITHUB_OUTPUT
+          echo "send_mail=true" >> $GITHUB_OUTPUT
 
           git commit -m "🔒 [FULL] Daily chip data $(TZ=Asia/Taipei date +%Y-%m-%d\ %H:%M)"
 
@@ -193,10 +322,20 @@ jobs:
       # v3.67.2 Phase 2.7: 萃取手機摘要 + 發送 email
       # 僅當 data 有變動才寄 (避免 no-op 重複寄)
       - name: Extract mobile summary
-        if: steps.commit.outputs.data_changed == 'true'
+        # v3.80.19: send_mail = data changed (production) or any TEST run
+        if: steps.commit.outputs.send_mail == 'true'
         id: summary
         run: |
-          # 抓 latest.xlsx 的「📱 手機摘要」sheet → 純文字
+          # v3.80.15: one-line source audit verdict goes first in the mail body
+          AUDIT_LINE=$(python scripts/source_audit.py --email-line || true)
+          [ -n "$AUDIT_LINE" ] || AUDIT_LINE="⚠️ 來源比對：今天沒有跑完"
+          if [ "${{ env.TEST_RUN }}" = "true" ]; then
+            AUDIT_LINE="🧪【測試階段】這封是測試信，不是正式日報（${{ github.ref_name }}）
+          資料沒有寫回雲端；正式排程照常跑、照常寄信
+          ────────────
+          $AUDIT_LINE"
+          fi
+          # v3.80.13: 讀 data/reports/mobile_summary.txt (手機摘要已不是 Excel 頁籤)
           SUMMARY=$(python scripts/extract_mobile_summary_text.py)
           # 也萃取 trade_date 給 subject 用
           TRADE_DATE=$(python -c "
@@ -209,6 +348,8 @@ jobs:
           # 寫進 GITHUB_OUTPUT (multi-line 用 heredoc 形式)
           {
             echo "summary<<MOBILE_EOF"
+            echo "$AUDIT_LINE"
+            echo ""
             echo "$SUMMARY"
             echo "MOBILE_EOF"
             echo "trade_date=$TRADE_DATE"
@@ -216,7 +357,7 @@ jobs:
 
       - name: Send daily summary email
         id: send_email
-        if: steps.commit.outputs.data_changed == 'true'
+        if: steps.commit.outputs.send_mail == 'true'
         uses: dawidd6/action-send-mail@v6
         with:
           server_address: smtp.gmail.com
@@ -224,11 +365,11 @@ jobs:
           secure: true
           username: willychiu77761@gmail.com
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: "📋 Chip Radar · ${{ steps.summary.outputs.trade_date }} 摘要"
+          subject: "${{ env.TEST_RUN == 'true' && '🧪【測試】' || '' }}📋 Chip Radar · ${{ steps.summary.outputs.trade_date }} 摘要"
           body: ${{ steps.summary.outputs.summary }}
           to: willychiu77761@gmail.com
           from: Chip Radar Bot <willychiu77761@gmail.com>
-          attachments: data/reports/latest.xlsx
+          attachments: ${{ env.TEST_RUN == 'true' && 'data/reports/TEST_chip_radar_latest.xlsx' || 'data/reports/latest.xlsx' }}
 
       # v3.71.12 D4: Email 寄送失敗 → 開 GitHub Issue alert
       # GitHub 預設會 email notification 你, 等於 fallback channel
@@ -264,3 +405,64 @@ jobs:
                 '解決後 close 此 issue.'
               ].join('\n'),
             });
+
+      # v3.80.15: source audit found rows that differ from the Fubon pages ->
+      # open one GitHub Issue per trade date (skipped while the same title is
+      # still open). Last step on purpose: its own failure must not trigger the
+      # email-failure alert above, and continue-on-error keeps the run green.
+      - name: Source audit mismatch alert (GitHub Issue)
+        if: ${{ !cancelled() && steps.audit.outputs.status == 'mismatch' && steps.commit.outputs.data_changed == 'true' }}
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            let a;
+            try {
+              a = JSON.parse(fs.readFileSync('data/audit/source_audit_latest.json', 'utf8'));
+            } catch (e) {
+              core.warning(`source audit json unreadable: ${e.message}`);
+              return;
+            }
+            const td = String(a.trade_date || '');
+            const date = td.length === 8 ? `${td.slice(0, 4)}-${td.slice(4, 6)}-${td.slice(6, 8)}` : td;
+            const n = a.mismatch_total || (a.mismatches || []).length;
+            const title = `🚨 來源比對不符 ${date}：${n} 列`;
+            const { owner, repo } = context.repo;
+            const open = await github.paginate(github.rest.issues.listForRepo,
+              { owner, repo, state: 'open', per_page: 100 });
+            if (open.some(i => i.title === title)) {
+              core.info(`open issue already exists: ${title}`);
+              return;
+            }
+            const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
+            const pair = v => Array.isArray(v) ? v.join(' / ') : '-';
+            const two = (o, a1, a2) => o ? `${o[a1]} / ${o[a2]}` : '-';
+            const list = a.mismatches || [];
+            const rows = list.map(m => '| ' + [
+              m.master, `${m.branch} (${m.bno})`, m.stock,
+              two(m.excel, 'buy_lot', 'sell_lot'), two(m.excel, 'buy_wan', 'sell_wan'),
+              two(m.expected, 'buy_lot', 'sell_lot'), two(m.expected, 'buy_wan', 'sell_wan'),
+              pair((m.source || {}).lots), pair((m.source || {}).amt_k),
+              (m.source || {}).close ?? '-', m.reason || '',
+            ].join(' | ') + ' |');
+            const body = [
+              `## 來源比對不符 ${date}`,
+              '',
+              `Excel 日表 ${a.sheet} 有 **${n}** 列與富邦原始分點頁 (指定日期 ${date}) 不符.`,
+              `共比對 ${a.rows} 列: ` + Object.entries(a.verdicts || {}).map(([k, v]) => `${k} ${v}`).join(', '),
+              `**Workflow run**: ${runUrl}`,
+              '',
+              '| 高手 | 分點 | 標的 | Excel 張 買/賣 | Excel 萬 買/賣 | 應為 張 | 應為 萬 | 來源張數頁 | 來源金額頁(仟元) | 收盤 | 原因 |',
+              '|---|---|---|---|---|---|---|---|---|---|---|',
+              ...rows,
+              n > list.length ? `\n(只列前 ${list.length} 列, 共 ${n} 列不符)` : '',
+              '',
+              '判定規則: src/audit/source_audit.py. 查明並修正後 close 此 issue.',
+            ].join('\n');
+            try {
+              await github.rest.issues.create({ owner, repo, title, body, labels: ['source-audit'] });
+            } catch (e) {
+              core.warning(`create with label failed (${e.message}); retrying without label`);
+              await github.rest.issues.create({ owner, repo, title, body });
+            }

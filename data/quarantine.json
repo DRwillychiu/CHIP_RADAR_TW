@@ -1,0 +1,108 @@
+{
+ "_doc": "Branch-days whose STORED data is known to be another branch's data. Readers blank these records at load time (buys/sells emptied, error set); the encrypted archive files are never rewritten, so removing an entry restores the original record. Matching is by exact, case-sensitive branch code and the file's trade date (YYYYMMDD). Helper: src/core/quarantine.py",
+ "entries": [
+  {
+   "code": "9A9g",
+   "name": "永豐金-內湖",
+   "dates": [
+    "20260609",
+    "20260617",
+    "20260623",
+    "20260716",
+    "20260721",
+    "20260728",
+    "20260731",
+    "20260803",
+    "20260810",
+    "20260811",
+    "20260821",
+    "20260827",
+    "20260908",
+    "20260909"
+   ],
+   "reason": "stored record is 9A9G (永豐金-天母) data: Fubon case collision on plain lettered bno",
+   "fixed_in": "v3.80.1 (hex bno) / v3.80.2 (page identity check)",
+   "found": "2026-09-25",
+   "evidence": "each stored day's top-5 net buys vs date-pinned hex-id page of 9A9g and of 9A9G, all 110 stored days; 20260924 was re-crawled correctly by 447cc3f and is not listed"
+  },
+  {
+   "code": "9A9G",
+   "name": "永豐金-天母",
+   "dates": [
+    "20260608",
+    "20260610",
+    "20260611",
+    "20260612",
+    "20260615",
+    "20260618",
+    "20260622",
+    "20260623",
+    "20260629",
+    "20260630",
+    "20260703",
+    "20260706",
+    "20260707",
+    "20260713",
+    "20260714",
+    "20260715",
+    "20260717",
+    "20260722",
+    "20260728",
+    "20260730",
+    "20260804",
+    "20260805",
+    "20260807",
+    "20260812",
+    "20260813",
+    "20260817",
+    "20260821",
+    "20260902",
+    "20260903",
+    "20260904",
+    "20260907",
+    "20260908",
+    "20260910",
+    "20260911",
+    "20260915",
+    "20260916",
+    "20260921",
+    "20260922"
+   ],
+   "reason": "stored record is 9A9g (永豐金-內湖) data: Fubon case collision on plain lettered bno",
+   "fixed_in": "v3.80.1 (hex bno) / v3.80.2 (page identity check)",
+   "found": "2026-09-25",
+   "evidence": "same scan as 9A9g"
+  }
+ ],
+ "_doc_code_aliases": "Stock codes stored wrong by the branch-page parser before v3.80.11: the link text is code+name glued together, and a name starting with capital letters (FT...) was read as part of the code. Readers rewrite these to the official code/name at load time (filter_day); stored files are never rewritten.",
+ "code_aliases": [
+  {
+   "from": "00961FT",
+   "to": "00961",
+   "name": "FT臺灣永續高息",
+   "reason": "parser read the FT name prefix as part of the code (fixed v3.80.11)",
+   "evidence": "Fubon <a href=\"javascript:Link2Stk('00961');\">00961FT臺灣永續高息</a>; TWSE MI_INDEX 20261005: 00961 FT臺灣永續高息"
+  },
+  {
+   "from": "00905FT",
+   "to": "00905",
+   "name": "FT臺灣Smart",
+   "reason": "parser read the FT name prefix as part of the code (fixed v3.80.11)",
+   "evidence": "TWSE MI_INDEX 20261005: 00905 FT臺灣Smart"
+  },
+  {
+   "from": "00899FT",
+   "to": "00899",
+   "name": "FT潔淨能源",
+   "reason": "parser read the FT name prefix as part of the code (fixed v3.80.11)",
+   "evidence": "TWSE MI_INDEX 20261005: 00899 FT潔淨能源"
+  },
+  {
+   "from": "00982BFT",
+   "to": "00982B",
+   "name": "FT投資級債20+",
+   "reason": "parser read the FT name prefix as part of the code (fixed v3.80.11)",
+   "evidence": "same parser pattern; TPEx daily quotes 20261005 list 00982B (close 9.02), not 00982BFT"
+  }
+ ]
+}

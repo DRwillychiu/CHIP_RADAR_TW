@@ -76,6 +76,7 @@ from crawler_pipeline import (
     compute_period_summaries, compute_limit_up_summary,
     compute_next_day_flip_verification, compute_master_summaries,
 )
+from quarantine import filter_day
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -177,6 +178,7 @@ def _post_auto_backfill_history(data_dir, password, industry_map):
                     _raw = json.loads(decrypt_data(_enc['data'], password))
                 else:
                     _raw = _enc
+                _raw = filter_day(_raw, _md)  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
                 _dq = {}
                 for _br in _raw.get('branches', []):
                     for _side in ('buys', 'sells'):
@@ -300,6 +302,7 @@ def _stage_load_yesterday_branches(data_dir, trade_date, password):
         if yest_raw.get("encrypted"):
             yest_plain = decrypt_data(yest_raw["data"], password)
             yest_data = json.loads(yest_plain)
+            yest_data = filter_day(yest_data, yest_date)  # v3.80.3: skip quarantined branch-days (data/quarantine.json)
             branches = yest_data.get("branches", [])
             print(f"  ✓ 載入昨日資料 ({yest_date}): {len(branches)} 個分點")
             return branches
@@ -380,6 +383,49 @@ def _post_disposal_snapshot(data_dir):
                 print(f"  ⚠️ disposal → DB 失敗: {type(_dbe2).__name__}")
     except Exception as _dse:
         print(f"  ⚠️ disposal snapshot 失敗 (不影響主流程): {type(_dse).__name__}: {_dse}")
+
+
+
+def retry_failed_branches(results, fetch_fn, classify_fn, pause=16.0, sleep_fn=None):
+    """v3.80.6 同輪補抓: 主迴圈跑完後, 對 error 的分點再抓一次 (就地替換 results).
+
+    2026-10-01 21:17 實例: 開跑前 7 分鐘富邦整段無回應, 前 5 個分點連續逾時,
+    之後 71 個全部成功. 每頁內建 3 次重試擠在 ~80 秒內撐不過整段停擺;
+    主迴圈跑完已過 ~30 分鐘, 這時回頭重抓幾乎必定成功.
+
+    Returns: (補回數, 第一個補回分點的 trade_date 或 None)
+    """
+    sleep_fn = sleep_fn or time.sleep
+    failed_idx = [k for k, r in enumerate(results) if r.get("error")]
+    if not failed_idx:
+        return 0, None
+    print()
+    print(f"  🔁 同輪補抓 {len(failed_idx)} 個失敗分點 (先休息 {pause:.0f} 秒)...")
+    sleep_fn(pause)
+    recovered, td = 0, None
+    for k in failed_idx:
+        r0 = results[k]
+        print(f"    ↻ {r0.get('master')} | {r0.get('name')} ({r0['code']}) ", end="", flush=True)
+        data = fetch_fn(r0["code"])
+        if data.get("error") or (not data.get("buys") and not data.get("sells")):
+            print(f"仍失敗: {data.get('error') or '無資料'}")
+        else:
+            for st in data.get("buys", []) + data.get("sells", []):
+                cinfo = classify_fn(st["code"], st["name"])
+                st["market_type"] = cinfo["category"]
+                st["market_type_simple"] = cinfo["category_simple"]
+                st["market_type_basic"] = cinfo["category_basic"]
+                st["industry"] = cinfo.get("industry", "")
+                st["is_ky"] = cinfo.get("is_ky", False)
+            results[k] = {**r0, "date": data.get("date"), "buys": data["buys"],
+                          "sells": data["sells"], "error": None,
+                          "recovered_in_retry_pass": True}
+            recovered += 1
+            td = td or data.get("date")
+            print(f"✓ 補回 買{len(data['buys'])}/賣{len(data['sells'])}")
+        sleep_fn(random.uniform(DELAY_MIN, DELAY_MAX))
+    print(f"  🔁 同輪補抓: 補回 {recovered}/{len(failed_idx)}")
+    return recovered, td
 
 
 def main():
@@ -467,6 +513,22 @@ def main():
             else:
                 time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))
     
+    # ════════════════════════════════════════════════════════════════
+    # v3.80.6 同輪補抓: 主迴圈跑完後, 失敗的分點再抓一次
+    # ════════════════════════════════════════════════════════════════
+    # 2026-10-01 21:17 實例: 開跑前 7 分鐘富邦整段無回應, [1]~[5] 連續逾時
+    # (另 [11] 一筆), 但 [12]~[82] 全部成功. 每頁內建的 3 次重試擠在 ~80 秒內,
+    # 撐不過整段停擺; 主迴圈跑完已過 ~30 分鐘, 這時回頭重抓幾乎必定成功.
+    # 原本只能等 22:37 兜底排程整輪重跑 (再花 40 分鐘), 且若兜底被 GitHub
+    # 延遲到凌晨, 當晚 21:58 寄出的 Email/Excel 就一直缺這幾個分點.
+    _rec, _td = retry_failed_branches(results, fetch_branch_combined, classify_stock_fn,
+                                      pause=COOL_DOWN_SECONDS * 2)
+    if _rec:
+        fail_count -= _rec
+        success_count += _rec
+        trade_date = trade_date or _td
+        print(f"  🔁 最終 成功 {success_count} / 失敗 {fail_count} / 無資料 {empty_count}")
+
     if not trade_date:
         trade_date = now_tw().strftime("%Y%m%d")
     
@@ -686,23 +748,25 @@ def main():
                     buy_lot_raw = s.get("buy_lot", 0) or 0
                     sell_lot_raw = s.get("sell_lot", 0) or 0
                     estimated = False
+                    # v3.80.1: 只對「沒出現在該頁」的欄位反推. 出現在頁上但為 0
+                    # 是真值 (例: 賣 355 股零股 → 張數頁 0), 原本被改成 1 張
                     # 買進: 高價股「金額榜上 + 張數榜沒上」→ 反推張數
-                    if buy_lot_raw == 0 and buy_amt_k > 0:
+                    if buy_lot_raw == 0 and buy_amt_k > 0 and not s.get("lot_listed", False):
                         s["buy_lot"] = max(1, round(buy_amt_k / cp_close))
                         s["buy_avg"] = round(cp_close, 2)
                         estimated = True
                     # 賣出: 同上
-                    if sell_lot_raw == 0 and sell_amt_k > 0:
+                    if sell_lot_raw == 0 and sell_amt_k > 0 and not s.get("lot_listed", False):
                         s["sell_lot"] = max(1, round(sell_amt_k / cp_close))
                         s["sell_avg"] = round(cp_close, 2)
                         estimated = True
                     # 反向: 低價股「張數榜上 + 金額榜沒上」→ 反推金額
                     # amt(仟元) = lot(張) × 1000股 × close(元/股) / 1000 = lot × close
-                    if buy_amt_k == 0 and buy_lot_raw > 0:
+                    if buy_amt_k == 0 and buy_lot_raw > 0 and not s.get("amt_listed", False):
                         s["buy_amt"] = int(round(buy_lot_raw * cp_close))
                         s["buy_avg"] = round(cp_close, 2)
                         estimated = True
-                    if sell_amt_k == 0 and sell_lot_raw > 0:
+                    if sell_amt_k == 0 and sell_lot_raw > 0 and not s.get("amt_listed", False):
                         s["sell_amt"] = int(round(sell_lot_raw * cp_close))
                         s["sell_avg"] = round(cp_close, 2)
                         estimated = True
@@ -776,8 +840,9 @@ def main():
     # 為前端 sniper card 提供「該股當日全市場買超#1」黃色 highlight 資料
     try:
         from src.analyzers.sniper_top_buyer_enricher import enrich_sniper_top_buyer
-        # SNIPER_MASTER_WHITELIST 定義在 excel_report, 這裡直接寫死 (跟 excel 一致)
-        SNIPER_MASTERS = {"蔣承翰"}
+        # v3.79.0: 原本這裡寫死 {"蔣承翰"}, 但 audit 另有一份 4 人的 SNIPER_MASTERS
+        # → 同名不同內容, 已分歧. 現統一由 master_tiers 提供, 且名稱經驗證.
+        from src.core.master_tiers import TOP_BUYER_HIGHLIGHT_MASTERS as SNIPER_MASTERS
         enrich_result = enrich_sniper_top_buyer(
             limit_up_summary, SNIPER_MASTERS, trade_date=trade_date)
         # 存 top-level 給前端 / 其他 consumer lookup
@@ -786,13 +851,21 @@ def main():
             'fetched_at': enrich_result.get('fetched_at'),
             'stats': enrich_result.get('stats', {}),
         }
-        n_top = len(enrich_result['top_buyer_index'])
+        # v3.73.1: 原 log 把「抓到榜單的檔數」誤寫成「他拿 #1 的檔數」, 改成分開列
+        top_index = enrich_result['top_buyer_index']
         stats = enrich_result.get('stats', {})
         att = stats.get('attempted', 0)
         succ = stats.get('success', 0)
         if att > 0:
-            print(f"  🌟 sniper top-buyer enrich: {succ}/{att} success | "
-                  f"{n_top} stocks matched (蔣承翰為 top #1)")
+            from src.core.branches import get_branches_by_master as _gbm
+            sniper_bnos = {b['code'] for m in SNIPER_MASTERS
+                           for b in _gbm(m, include_disabled=False)}
+            n_is_top = sum(1 for bno in top_index.values() if bno in sniper_bnos)
+            fubon_n = stats.get('fubon_success', 0)
+            histock_n = stats.get('histock_success', 0)
+            print(f"  🌟 sniper top-buyer enrich: {succ}/{att} 檔取得榜單 "
+                  f"(富邦{fubon_n}/histock{histock_n}) | "
+                  f"其中 {n_is_top} 檔 {'/'.join(sorted(SNIPER_MASTERS))} 為全市場買超 #1")
     except Exception as _e:
         print(f"  [sniper_top_buyer_enricher] 失敗 (不影響主流程): {_e}")
     
@@ -946,9 +1019,38 @@ def main():
                     stock_history = json.load(f)
             except Exception:
                 pass
-        print(f"\n[融資維持率] 計算個股市場估算維持率 (30日均價反推)...")
+        # v3.74.0: 公司行動 (除權息/減資/面額變更分割/現增) → 還原因子
+        # 30 日均價窗口若跨過這類事件, 未還原會得到無意義的均價
+        # (寶雅 5904 分割: 均價 475 vs 實際 77 → 維持率 26% 誤判斷頭)
+        corp_actions = None
+        try:
+            from src.fetchers.corporate_actions import build_action_map
+            ca = build_action_map(stock_history, months=3)
+            corp_actions = ca.get('actions')
+            ca_path = Path(data_dir) / 'corporate_actions.json'
+            with open(ca_path, 'w', encoding='utf-8') as f:
+                json.dump(ca, f, ensure_ascii=False, indent=2)
+            st = ca.get('stats', {})
+            print(f"  [公司行動] {len(corp_actions or {})} 檔有事件 "
+                  f"(官方 {st.get('official',0)} / 偵測 {st.get('inferred',0)}) → corporate_actions.json")
+        except Exception as _ce:
+            print(f"  ⚠️ 公司行動抓取失敗: {_ce} (維持率將退回未校正模式)")
+
+        # v3.74.1: 處置股融資成數 0.5 (非 0.6) — 用 0.6 會低估維持率約 17%
+        disposal_codes = set()
+        try:
+            from src.fetchers.disposal_fetcher import get_disposal_map
+            dm = get_disposal_map(str(data_dir)) or {}
+            disposal_codes = set((dm.get('sets') or {}).get('active') or [])
+            if disposal_codes:
+                print(f"  [處置股] {len(disposal_codes)} 檔處置中 → 維持率改用成數 0.5")
+        except Exception as _de:
+            print(f"  ⚠️ 處置股清單讀取失敗: {_de} (全部沿用成數 0.6)")
+
+        print(f"\n[融資維持率] 計算個股市場估算維持率 (30日均價反推, 已做公司行動還原)...")
         margin_maint_inject = margin_maintenance.inject_maintenance_into_stocks(
-            results, margin_all, daily_quotes_map, stock_history)
+            results, margin_all, daily_quotes_map, stock_history,
+            corporate_actions=corp_actions, disposal_codes=disposal_codes)
         margin_maint_summary = margin_maint_inject.get('summary')
         counts = (margin_maint_summary or {}).get('counts', {})
         print(f"  ✓ 注入 {margin_maint_inject['computed']} 筆分點個股維持率")
@@ -1034,6 +1136,8 @@ def main():
             daily_quotes_map=daily_quotes_map,
             industry_map=industry_map,
             branches_results=results,
+            # v3.74.1: 累積每日融資餘額 → 30 天後可改用融資加權成本算維持率
+            margin_all=locals().get('margin_all'),
         )
     except Exception as e:
         print(f"  ⚠️ 歷史累積失敗: {e}(不影響主流程)")
@@ -1335,6 +1439,7 @@ def main():
             branches_data=results,  # results = 56 個分點的 buys/sells
             trade_date=trade_date,
             output_dir=str(data_dir / "reports"),
+            limit_up_summary=limit_up_summary,  # v3.72.11 share single histock fetch
         )
         if excel_path:
             print(f"  [Excel 日報] 生成成功:{excel_path}")
@@ -1532,22 +1637,15 @@ def main_margin_only():
     print(f"  現有融資融券信心: {current_verification.get('confidence', 'N/A')}")
     
     # ===== 聰明跳過: 如果已經是 T-0 (最新交易日),跳過本次 =====
-    today_str = now_tw().strftime("%Y%m%d")
-    # 取最近一個交易日 (週末的情況: 若今天週六,最近交易日是週五)
-    import calendar
+    # 取最近一個交易日. v3.80.4: 改用交易日曆 — 原本只認週一~週五,
+    # 國定假日 (例: 2026-09-25 中秋) 會被當成交易日, 永遠不會「已是最新」.
+    # 語意不變: 交易日 08:00 起算今天, 其他時候 (08:00 前 / 休市日) 算上一個交易日.
+    from trading_calendar import is_trading_day, prev_trading_day
     now = now_tw()
-    check = now
-    for _ in range(5):
-        if check.weekday() < 5:  # 週一(0) ~ 週五(4)
-            break
-        check = check - timedelta(days=1)
-    latest_trade_day = check.strftime("%Y%m%d")
-    # 若已 8 點前，則上個交易日
-    if now.hour < 8:
-        yesterday = now - timedelta(days=1)
-        while yesterday.weekday() >= 5:
-            yesterday = yesterday - timedelta(days=1)
-        latest_trade_day = yesterday.strftime("%Y%m%d")
+    if now.hour >= 8 and is_trading_day(now.date()):
+        latest_trade_day = now.strftime("%Y%m%d")
+    else:
+        latest_trade_day = prev_trading_day(now.date()).strftime("%Y%m%d")
     
     if current_data_date and current_data_date >= latest_trade_day and current_verification.get('confidence') == 'high':
         print(f"\n✅ 現有融資融券資料已是 {current_data_date} (最新交易日)，跳過本次更新")

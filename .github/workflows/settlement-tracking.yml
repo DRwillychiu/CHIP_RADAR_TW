@@ -6,18 +6,50 @@ name: 9. Settlement Tracking (D-3 ~ D+1, 3x/day)
 # 改用固定 3 時段, 由 intraday_settlement / daily-full 等 script 內部判斷 D-? 才做事
 #
 # 配額: 4 天/月 × 3 = 12 次/月 × 10 min = 120 min/月
+# v3.80.4: 加交易日開關 gate job, 國定假日/颱風假不再空跑
 
 on:
   schedule:
-    # 週二-六 TW 13:30 / 17:30 / 21:30 (UTC 05:30 / 09:30 / 13:30)
-    - cron: '30 5,9,13 * * 2-6'
+    # 週一-五 TW 13:30 / 17:30 / 21:30 (UTC 05:30 / 09:30 / 13:30, 與 TW 同日)
+    # v3.79.1 修: 原為 '2-6' (TW 週二~週六). 結算日為每月第三個週三,
+    #   D-3~D+1 窗口必然涵蓋週一 (例 2026-09-16 結算 → 9/14 週一 = D-2),
+    #   舊設定該日整天不追蹤. 改 1-5 補上週一, 同時去掉無意義的週六。
+    - cron: '30 5,9,13 * * 1-5'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+      session: ${{ steps.gate.outputs.session }}
+    steps:
+      - name: Checkout (gate files only)
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            scripts/trading_gate.py
+            src
+            data/twse_holidays.json
+            data/latest.json
+          sparse-checkout-cone-mode: false
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Trading-day gate
+        id: gate
+        run: python scripts/trading_gate.py --kind day --event "${{ github.event_name }}" --schedule "${{ github.event.schedule }}"
+
   track:
+    needs: gate
+    # fail-open: skip only when the gate ran and said no; a crashed gate must not
+    # silently cancel a trading-day run
+    if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.run == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 

@@ -30,3 +30,17 @@ scripts/.certs/
 .tg_poll.lock
 .tg_work.lock
 .tg_worker.log
+
+# v3.76.0 TAIEX 錯位修復前的備份 (本機保留, 不進 git)
+data/backup_v3760/
+
+# v3.80.9 權證清理前的 stock_history 備份 (本機保留, 不進 git)
+data/backup_v3809/
+
+# v3.80.15 source audit result: rewritten every run (checked_at), so it must
+# not count as a data change for the nightly commit / email gate
+data/audit/
+
+# v3.80.16 diagram build scratch (docs/diagrams/build_diagrams.py)
+docs/diagrams/_*.html
+docs/diagrams/chrome_profile/

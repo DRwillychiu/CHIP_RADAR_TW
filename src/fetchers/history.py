@@ -39,19 +39,49 @@ Module: history.py (v3.15.2 新增)
 """
 
 import json
+import re
 import time
 import requests
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, Optional
+from typing import List, Dict, Any, Optional
 
 TW_TZ = timezone(timedelta(hours=8))
 
 HISTORY_FILE = 'stock_history.json'
 MAX_DAYS = 60  # v3.44.0: 30 → 60 配合 master_profile B3 時間衰減 60 天視窗 + 給 margin_maintenance 60 日均價選項
 
-# TWSE 大盤指數 API (FMTQIK 或 MI_INDEX)
+# v3.80.9: 上櫃權證不進 stock_history.
+#   TPEx 日收盤 (tpex_mainboard_daily_close_quotes ~10,657 列) 含整批權證:
+#   認購 70xxxx~73xxxx、認售尾碼 U (例 72050U). 2026-10-01 實測佔 stocks
+#   15,618 / 18,027 筆 (~16.7 MB, 約 7 成), 而 quad_hit_log / master_profiles /
+#   daily_trading_signals / multiday_backtest 引用次數為 0 — 純負擔.
+#   只比對 6 碼, 不會誤傷 4 碼個股 (7402 等) 與 00 開頭的 ETF/ETN (00981A 等, 有被引用).
+WARRANT_CODE_RE = re.compile(r'^7[0-3]\d{3}[0-9A-Z]$')
+
+
+def is_warrant_code(code: str) -> bool:
+    """v3.80.9: 是否為上櫃權證代號 (70xxxx~73xxxx, 含認售尾碼 U)."""
+    return bool(WARRANT_CODE_RE.match(code or ''))
+
+
+def prune_warrants(history: Dict[str, Any]) -> int:
+    """v3.80.9: 從 history["stocks"] 移除權證, 回傳移除筆數. 冪等.
+
+    每次 update_history 都跑, 不只靠一次性清理 — v3.80.5 教訓:
+    並行的 daily-full 以 `git pull --rebase -X theirs` 推送時會用舊版整段
+    覆蓋, 一次性修改可能被蓋回去; 讓每日流程自己清, 下一輪就會再收斂.
+    """
+    stocks = history.get("stocks") or {}
+    drop = [c for c in stocks if is_warrant_code(c)]
+    for c in drop:
+        del stocks[c]
+    return len(drop)
+
+# TWSE 大盤指數 API
+# v3.79.5: FMTQIK 升為主要來源, MI_INDEX 降為備援. 見 _fetch_taiex_fmtqik docstring.
 TAIEX_URL = 'https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX'
+FMTQIK_URL = 'https://www.twse.com.tw/rwd/zh/afterTrading/FMTQIK?date={ym}01&response=json'
 
 
 def _yyyymmdd_to_roc(yyyymmdd: str) -> str:
@@ -100,12 +130,28 @@ def _fetch_taiex_index(expected_trade_date: str = None,
             r.encoding = 'utf-8'
             data = json.loads(r.text)
 
-            # v3.27.3: 檢查回傳資料的 Date (MI_INDEX 每筆都有 Date 欄位)
+            # v3.27.3: 檢查回傳資料的日期
+            # ⚠️ v3.76.0 修: 原本寫 data[0].get('Date') — 但 MI_INDEX 是
+            #    **中文欄位名「日期」**, 不是英文 'Date'.
+            #    (對照: STOCK_DAY_ALL / TPEx daily 才是英文 'Date', 那兩處寫法正確)
+            #    → response_date 永遠是 '', 下面 `and response_date` 短路,
+            #      整個 stale guard 自 v3.27.3 起從未執行過一次.
+            #    後果: TWSE 尚未更新當日資料時 API 回前一交易日, 我們照樣寫入
+            #      history["market"][trade_date], 把昨天的指數貼上今天的標籤.
+            #      實測 55 筆 market 有 43 筆 (78%) 慢一天, 且 quote_date 全空.
+            #      連帶 temp_history.next_day_change_pct 60 筆中 47 筆記成
+            #      「訊號當日」而非「隔日」漲跌 → Q5 命中率評分全部失真.
             response_date = ""
             if isinstance(data, list) and data:
-                response_date = (data[0].get('Date') or '').strip()
+                row0 = data[0]
+                response_date = (row0.get('日期') or row0.get('Date') or '').strip()
+            if expected_roc and not response_date:
+                # v3.76.0: 拿不到日期就不能保證新鮮度 → 寧可不寫, 不寫錯的
+                print(f"    ⚠️ TAIEX MI_INDEX 回傳無日期欄位 (keys={list((data[0] if isinstance(data, list) and data else {}).keys())[:6]}) "
+                      f"→ 無法驗證新鮮度, 跳過本次更新")
+                return None
             if expected_roc and response_date and response_date != expected_roc:
-                print(f"    ⚠️ TAIEX MI_INDEX stale: 回傳 Date={response_date} ≠ 預期 {expected_roc} "
+                print(f"    ⚠️ TAIEX MI_INDEX stale: 回傳日期={response_date} ≠ 預期 {expected_roc} "
                       f"(today {expected_trade_date}) → 跳過本次更新,維持上次資料")
                 return None
 
@@ -145,6 +191,191 @@ def _fetch_taiex_index(expected_trade_date: str = None,
                 time.sleep(5)
 
     return None
+
+
+def _fetch_taiex_fmtqik(trade_date: str, timeout: int = 25) -> Optional[Dict[str, float]]:
+    """v3.79.5: 用 TWSE FMTQIK (盤後日成交統計) 抓指定交易日的加權指數.
+
+    為什麼把 FMTQIK 升為主要來源 (2026-09-22 稽核):
+      v3.76.0 修好 MI_INDEX 的 stale guard 之後, 問題從「寫入錯誤資料」
+      變成「幾乎沒有資料」— 60 個交易日有 15 天 (25%) 缺大盤, 且 8/31 起
+      幾乎全缺. 實測原因: 爬蟲時段 (延遲後約 TW 01:00-04:00) 去打 MI_INDEX,
+      它回的還是前一交易日, guard 正確擋下 → 該日就沒有大盤資料.
+      (實測 2026-09-22 23:30 呼叫仍回 1150921.)
+
+      FMTQIK 則是逐月回傳「已公布的每個交易日」, 同一時點實測已含 20260922
+      (收盤 47,800.17). 它也是 v3.76.0 backfill script 用來修復 55 筆歷史
+      資料的來源, 可靠性已驗證過.
+
+    回傳欄位刻意與 _fetch_taiex_index 對齊, 讓 update_history 不必分支:
+      {"index": 47800.17, "change_pct": 0.17, "quote_date": "1150922",
+       "source_api": "fmtqik"}
+
+    change_pct 用 FMTQIK 自己的「漲跌點數」÷ 前收算, 但 update_history
+    仍會用前一交易日 index 重算並覆蓋 (延續 v3.43.0「不信 API sign」原則).
+
+    Returns: dict 或 None (該月抓不到 / 該日尚未公布)
+    """
+    ym = trade_date[:6]
+    try:
+        from safe_fetch import safe_get
+        r = safe_get(FMTQIK_URL.format(ym=ym), source_id='TWSE_FMTQIK',
+                     max_retries=2, timeout=timeout,
+                     headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'zh-TW'})
+    except ImportError:
+        r = requests.get(FMTQIK_URL.format(ym=ym), timeout=timeout,
+                         headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'zh-TW'})
+    except Exception as e:
+        print(f"    ⚠️ FMTQIK 抓取失敗: {type(e).__name__}: {e}")
+        return None
+    try:
+        j = r.json()
+    except Exception:
+        return None
+    if j.get('stat') != 'OK':
+        print(f"    ⚠️ FMTQIK stat={j.get('stat')}")
+        return None
+
+    # data row: [日期(民國), 成交股數, 成交金額, 成交筆數, 加權指數, 漲跌點數]
+    for row in (j.get('data') or []):
+        try:
+            parts = str(row[0]).split('/')
+            if len(parts) != 3:
+                continue
+            d = f"{int(parts[0]) + 1911}{parts[1]}{parts[2]}"
+            if d != trade_date:
+                continue
+            close = float(str(row[4]).replace(',', ''))
+            chg_pts = float(str(row[5]).replace(',', '').replace('+', ''))
+            prev_close = close - chg_pts
+            pct = round(chg_pts / prev_close * 100, 2) if prev_close else 0.0
+            return {
+                "index": close,
+                "change_pct": pct,
+                "raw_pct_abs": abs(pct),
+                "raw_sign": '-' if chg_pts < 0 else '+',
+                "quote_date": f"{parts[0]}{parts[1]}{parts[2]}",
+                "source_api": "fmtqik",
+            }
+        except (ValueError, IndexError, TypeError):
+            continue
+    print(f"    ⚠️ FMTQIK 該月資料無 {trade_date} (可能尚未公布)")
+    return None
+
+
+def _fetch_fmtqik_month(ym: str, timeout: int = 25) -> Dict[str, float]:
+    """v3.80.5: 抓 FMTQIK 一整個月 → {YYYYMMDD: 加權指數}. 失敗回 {}."""
+    try:
+        try:
+            from safe_fetch import safe_get
+            r = safe_get(FMTQIK_URL.format(ym=ym), source_id='TWSE_FMTQIK',
+                         max_retries=2, timeout=timeout,
+                         headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'zh-TW'})
+        except ImportError:
+            r = requests.get(FMTQIK_URL.format(ym=ym), timeout=timeout,
+                             headers={'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'zh-TW'})
+        j = r.json()
+    except Exception as e:
+        print(f"    ⚠️ FMTQIK {ym} 抓取失敗: {type(e).__name__}")
+        return {}
+    if j.get('stat') != 'OK':
+        return {}
+    out = {}
+    for row in (j.get('data') or []):
+        try:
+            p = str(row[0]).split('/')
+            out[f"{int(p[0]) + 1911}{p[1]}{p[2]}"] = float(str(row[4]).replace(',', ''))
+        except (ValueError, IndexError, TypeError):
+            continue
+    return out
+
+
+def _prev_month(ym: str) -> str:
+    y, m = int(ym[:4]), int(ym[4:])
+    return f"{y - 1}12" if m == 1 else f"{y}{m - 1:02d}"
+
+
+def heal_market_gaps(history: Dict[str, Any], upto: str,
+                     fetch_month=None) -> List[str]:
+    """v3.80.5: 大盤缺口自我修復 — 每次 update_history 都跑, 冪等.
+
+    為什麼需要 (2026-10-01 稽核):
+      v3.79.5 (09/22 23:45) 用 FMTQIK 把 8/31~9/21 的 15 天缺口補到 60/60,
+      **13 分鐘後就被蓋掉**: 一個 23:35 啟動的 daily-full 先 checkout 了回補前
+      的版本, 跑完 push 衝突時走 `git pull --rebase --strategy-option=theirs`,
+      衝突區塊一律採用 runner 自己的版本 → 回補的 14 天整段消失, 之後 9 天
+      沒有人發現 (heartbeat 只檢查日期錯位與「最新一筆」落後, 不看中間缺口).
+
+      教訓: 一次性的手動回補, 在「多個排程會同時寫同一個檔」的環境裡不可靠.
+      只有讓**每日流程自己檢查並補缺口**, 才能保證最終一致 —
+      就算哪次又被 race 蓋掉, 下一次排程也會再補回來.
+
+    做法:
+      缺口 = history["dates"] (有個股資料的交易日, 上限 upto) 中, market 沒有的日子
+      無缺口 → 立即返回, 不打任何網路 (正常日零成本)
+      有缺口 → 抓涵蓋月份的 FMTQIK (含前一個月, 供第一天算漲跌幅),
+               補 index + quote_date, change_pct 以**官方前一交易日**重算.
+      另外, 缺口後第一個既有交易日的 change_pct 也要重算 —
+      它當初是對著「缺口前更早的一天」算的 (v3.79.5 實例: 09/10 正負號被翻轉).
+
+    Returns: 被補上的日期清單
+    """
+    market = history.setdefault("market", {})
+    gaps = sorted(d for d in history.get("dates", [])
+                  if d <= upto and d not in market)
+    if not gaps:
+        return []
+
+    fetch_month = fetch_month or _fetch_fmtqik_month
+    months = {d[:6] for d in gaps}
+    months |= {_prev_month(m) for m in months}
+    off: Dict[str, float] = {}
+    for ym in sorted(months):
+        off.update(fetch_month(ym))
+    if not off:
+        print(f"  ⚠️ [大盤自我修復] {len(gaps)} 天缺口, 但 FMTQIK 取不到資料 — 下次排程再試")
+        return []
+
+    od = sorted(off)
+    healed: List[str] = []
+    touched = set()
+    for d in gaps:
+        if d not in off:
+            continue                      # 官方也沒有 (非交易日或尚未公布)
+        i = od.index(d)
+        prev = off[od[i - 1]] if i > 0 else None
+        market[d] = {
+            "index": off[d],
+            "change_pct": round((off[d] - prev) / prev * 100, 2) if prev else None,
+            "quote_date": f"{int(d[:4]) - 1911}{d[4:]}",
+            "change_pct_source": "fmtqik_self_heal_v3.80.5",
+        }
+        healed.append(d)
+        touched.add(d)
+        # 缺口後第一個既有交易日: 它的 change_pct 當初對著錯的前一日算
+        if i + 1 < len(od):
+            nd = od[i + 1]
+            if nd in market and nd not in gaps:
+                touched.add(nd)
+
+    for d in touched - set(healed):
+        i = od.index(d)
+        if i == 0:
+            continue
+        prev = off[od[i - 1]]
+        new_pct = round((off[d] - prev) / prev * 100, 2)
+        old_pct = (market[d] or {}).get("change_pct")
+        if old_pct is None or abs(old_pct - new_pct) >= 0.02:
+            market[d]["change_pct"] = new_pct
+            market[d]["change_pct_source"] = "fmtqik_post_gap_recalc_v3.80.5"
+            print(f"    ↻ {d} change_pct {old_pct} → {new_pct} (缺口後錨點校正)")
+
+    if healed:
+        print(f"  🩹 [大盤自我修復] 補回 {len(healed)} 天: {healed}")
+    still = [d for d in gaps if d not in healed]
+    if still:
+        print(f"  ⚠️ [大盤自我修復] 仍缺 {len(still)} 天 (FMTQIK 尚無): {still}")
+    return healed
 
 
 def _load_history(history_path: Path) -> Dict[str, Any]:
@@ -215,6 +446,7 @@ def update_history(
     daily_quotes_map: Dict[str, Dict[str, Any]],
     industry_map: Dict[str, Any],
     branches_results: Optional[list] = None,
+    margin_all: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
     更新歷史資料檔,注入當日個股收盤、產業平均、大盤指數
@@ -225,6 +457,9 @@ def update_history(
         daily_quotes_map: {code: {close, change_pct, ...}}
         industry_map: industry_classifier 的對照表
         branches_results: 分點爬蟲結果 (拿 stock_name 用)
+        margin_all: v3.74.1 融資融券 {code: {margin_balance, ...}}
+                    → 每日存 margin_balance, 累積 30 天後可改用
+                      「融資餘額加權成本」取代單純均價 (更貼近真實建倉成本)
     
     Returns:
         更新後的 history 物件
@@ -233,7 +468,12 @@ def update_history(
     
     history_path = data_dir / HISTORY_FILE
     history = _load_history(history_path)
-    
+
+    # 0. v3.80.9: 清掉既有的權證 (冪等, 正常日為 0 筆)
+    pruned_warrants = prune_warrants(history)
+    if pruned_warrants:
+        print(f"  🗑️ [v3.80.9] 移除 {pruned_warrants} 檔既有權證")
+
     # 1. 建立股票代號 → 名稱的 map (從 branches_results 或 quotes)
     name_map = {}
     if branches_results:
@@ -252,7 +492,11 @@ def update_history(
     #   保留 v3.27.3 + v3.45.0 fetcher level stale 偵測 (TWSE response_date 比對) — 那才是真 stale.
     stock2ind = industry_map.get("stock_industry", {})
     added_stocks = 0
+    skipped_warrants = 0
     for code, quote in daily_quotes_map.items():
+        if is_warrant_code(code):   # v3.80.9
+            skipped_warrants += 1
+            continue
         close = quote.get("close", 0)
         change_pct = quote.get("change_pct", 0)
         if not close:
@@ -273,12 +517,23 @@ def update_history(
         if not history["stocks"][code].get("industry") and stock2ind.get(code):
             history["stocks"][code]["industry"] = stock2ind[code]
 
-        history["stocks"][code]["daily"][trade_date] = {
+        rec_day = {
             "close": round(close, 2),
             "change_pct": round(change_pct, 2),
         }
+        # v3.74.1: 累積融資餘額 (張) — 為「融資餘額加權成本」鋪路
+        # 現行 estimated_cost = 近 30 日單純均價, 假設融資均勻分布於 30 天;
+        # 實際上融資常集中在特定幾天建倉, 該假設會產生偏差
+        # (實測誤差中位數 6pp, >20pp 佔 11%).
+        # 有了每日餘額後可算: Σ(close × Δbalance) / Σ(Δbalance) — 真正的加權成本.
+        if margin_all:
+            mb = (margin_all.get(code) or {}).get("margin_balance")
+            if mb is not None:
+                rec_day["margin_balance"] = int(mb)
+        history["stocks"][code]["daily"][trade_date] = rec_day
     
-    print(f"  ✓ 累積 {len(daily_quotes_map)} 檔個股 ({added_stocks} 檔新增)")
+    print(f"  ✓ 累積 {len(daily_quotes_map) - skipped_warrants} 檔個股 ({added_stocks} 檔新增, "
+          f"略過 {skipped_warrants} 檔權證)")
     
     # 3. 計算產業平均漲跌
     industry_stats = {}  # industry -> [change_pcts]
@@ -301,9 +556,18 @@ def update_history(
         }
     print(f"  ✓ 運算 {len(industry_stats)} 個產業平均")
     
-    # 4. 抓大盤指數 (v3.27.3: 傳 trade_date 偵測 stale)
-    print(f"  [大盤] 抓取 TWSE 加權指數...")
-    taiex = _fetch_taiex_index(expected_trade_date=trade_date)
+    # 4. 抓大盤指數
+    #   v3.27.3: 傳 trade_date 偵測 stale
+    #   v3.79.5: FMTQIK 主 / MI_INDEX 備援. v3.76.0 修好 guard 後,
+    #     MI_INDEX 在爬蟲時段多半還沒更新 → guard 擋下 → 25% 交易日沒有大盤.
+    #     FMTQIK 同時點已有當日資料, 故改為優先.
+    print(f"  [大盤] 抓取 TWSE 加權指數 (FMTQIK 優先)...")
+    taiex = _fetch_taiex_fmtqik(trade_date)
+    if taiex:
+        print(f"    ✓ FMTQIK 命中 {trade_date}")
+    else:
+        print(f"    → FMTQIK 無資料, 退回 MI_INDEX")
+        taiex = _fetch_taiex_index(expected_trade_date=trade_date)
     if taiex:
         # v3.43.0 fix: 用前日 index 自己算 signed change_pct (絕對事實)
         # v3.45.0 (運4): 若 index 跟前日完全相同 (兜底排程在 TWSE 還沒更新前跑) →
@@ -349,6 +613,12 @@ def update_history(
     if trade_date not in history["dates"]:
         history["dates"].append(trade_date)
         history["dates"].sort()
+
+    # 5b. v3.80.5 大盤缺口自我修復 (無缺口時零成本, 不打網路)
+    try:
+        history["market_healed_last_run"] = heal_market_gaps(history, upto=trade_date)
+    except Exception as _he:
+        print(f"  ⚠️ [大盤自我修復] 失敗 (不影響主流程): {type(_he).__name__}: {_he}")
     
     # 6. 清除過舊資料
     _prune_old_data(history, MAX_DAYS)

@@ -42,6 +42,7 @@ try:
     from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
     from openpyxl.formatting.rule import ColorScaleRule, IconSetRule, CellIsRule, DataBarRule
     from openpyxl.worksheet.worksheet import Worksheet
+    from openpyxl.worksheet.properties import PageSetupProperties
     OPENPYXL_AVAILABLE = True
 except ImportError:
     OPENPYXL_AVAILABLE = False
@@ -53,16 +54,22 @@ MOBILE_SHEET_NAME = "📱 手機摘要"   # v3.67.1 Phase 2.7
 QUAD_TRACK_SHEET_NAME = "📈 Quad 實戰追蹤"   # v3.70.2 Phase 3.2 持續性追蹤
 PINNED_TRACK_SHEET_NAME = "📌 Pinned Master 追蹤"   # v3.71.18 L2
 QUAD_FAIL_SHEET_NAME = "📉 Quad 失效歸因"   # v3.70.3 Phase 3.2 失效學習
-ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME,
-                     QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME,
-                     PINNED_TRACK_SHEET_NAME]
+# v3.80.13 (使用者 2026-10-06): 頁籤只留 Dashboard + Pinned + 日期 sheet.
+# 手機摘要 / Quad 實戰追蹤 / Quad 失效歸因 不再放進 Excel. 手機摘要內容照樣產生,
+# 存成 reports/mobile_summary.txt, 每日 Email 改讀它 (scripts/extract_mobile_summary_text.py).
+ENRICHMENT_SHEETS = [DASHBOARD_SHEET_NAME, PINNED_TRACK_SHEET_NAME]
+MOBILE_SUMMARY_TXT = "mobile_summary.txt"
 # 舊 sheet 名 (給 cleanup 移除舊月檔殘留)
-LEGACY_ENRICHMENT_NAMES = ["📋 今日摘要", "🚨 異常警報", "📦 連續囤貨", "⚠️ 風險警示"]
+LEGACY_ENRICHMENT_NAMES = ["📋 今日摘要", "🚨 異常警報", "📦 連續囤貨", "⚠️ 風險警示",
+                           MOBILE_SHEET_NAME, QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME]
 
 try:
     from branches import MASTER_STYLES
 except ImportError:
     MASTER_STYLES = {}
+
+# v3.80.13: Dashboard 領頭欄改顯示分點名稱, 凱基-城中(UC) 名稱本身就帶 (UC),
+# v3.80.12 的「大戶(UC)」顯示 (UC_SHARED_MASTERS / _master_display) 不再需要, 已移除.
 
 SNIPER_STYLES = {"next_day_flipper", "day_trader"}
 
@@ -97,6 +104,7 @@ MASTER_BLOCK_COLORS = {
     "布哥/n_nchang":         {"header": "FF80DEEA", "body": "FFE0F7FA"},  # 青
     "強森":                  {"header": "FF80CBC4", "body": "FFE0F2F1"},  # 青綠
     "大牌分析師":            {"header": "FFAED581", "body": "FFF1F8E9"},  # 黃綠
+    "全村希望資本_村長":     {"header": "FF4FC3F7", "body": "FFE1F5FE"},  # 天藍 (v3.80.0)
     # ── Longterm 長線灰系 (2 個) ──
     "優式資本":              {"header": "FFBCAAA4", "body": "FFEFEBE9"},  # 灰棕
     "東億資本":              {"header": "FFB0BEC5", "body": "FFECEFF1"},  # 灰藍
@@ -267,7 +275,9 @@ MASTER_MAPPING: List[Dict] = [
         "name": "蔣承翰",
         "header_label": "分點",
         "branches": [
-            ("9227", "凱基-城中"),
+            # v3.79.3: (UC) 尾綴須與 branches.py canonical 一致, 否則
+            # _validate_master_mapping_vs_branches 會噴 master_mapping-name warning
+            ("9227", "凱基-城中(UC)"),
             ("9B18", "台新-建北"),
             ("9A9S", "永豐金-南京"),
         ],
@@ -285,6 +295,18 @@ MASTER_MAPPING: List[Dict] = [
         "branches": [
             ("700V", "兆豐-新竹"),
             ("9647", "富邦-新竹"),
+        ],
+    },
+    {
+        # v3.80.0: 使用者 2026-09-25 新增, 波段. 放最後 = 既有區塊位置不動
+        "name": "全村希望資本_村長",
+        "header_label": "分點",
+        "branches": [
+            ("8562", "新光-高雄"),
+            ("8847", "玉山-台南"),
+            ("9274", "凱基-鳳山"),    # v3.80.1
+            ("8564", "新光-台南"),    # v3.80.1
+            ("9306", "華南永昌-台南"),  # v3.80.1
         ],
     },
 ]
@@ -362,20 +384,35 @@ if _MASTER_MAPPING_WARNINGS:
         print(f"  ⚠️ {_w}", file=_sys.stderr)
 
 
-# v3.71.5 Phase 3.2 Premium Tier: master vol_spike 可靠度 (snapshot 2026-06-26)
-# source: scripts/analyze_master_vol_spike_reliability.py
-# 過去 33 picks / 9 trigger days backtest:
-#   竹科主力分點   9 picks  88.9% hit  +4.65% mean
-#   陳族元         6 picks  83.3% hit  +5.22% mean
-#   陳律師        18 picks  77.8% hit  +4.90% mean (主力 trigger, 3 days)
-#   其他 4 位 ≤75% hit
-# 門檻: ≥77% hit AND n ≥ 5 → premium tier (quad alpha 信心高)
-# ⚠️ 樣本仍小, 季度 review (next: 2026-09-30 後 60 天累積 → n→80+)
-PREMIUM_MASTERS: set = {
-    '陳律師',
-    '竹科主力分點',
-    '陳族元',
-}
+# v3.71.5 Phase 3.2 Premium Tier — ⚠️ v3.75.0 已改為動態計算
+#
+# 原始 snapshot (2026-06-26) 是 n=6~18 的小樣本結果:
+#   竹科主力分點   9 picks  88.9% hit
+#   陳族元         6 picks  83.3% hit
+#   陳律師        18 picks  77.8% hit
+#
+# 2026-08-23 稽核: 樣本累積後三位全數反轉 —
+#   竹科主力分點  12 picks  83.3%  (樣本仍不足)
+#   陳族元        13 picks  23.1%  (-60pp)
+#   陳律師        19 picks  31.6%  (-46pp)
+# 用凍結的小樣本名單標 ⭐⭐ 會讓使用者對已失效的訊號加重下注 → 改為每次讀實測.
+# v3.79.0: 定義已移到 src/core/master_tiers.py (唯一真相來源).
+# 這裡只 re-export 保持向後相容 —
+# 原本這段跟 crawler.py / audit / bootstrap_multiday_backtest 各有一份,
+# 已實際漂移到零交集 (詳見 master_tiers.py 檔頭).
+try:
+    from src.core.master_tiers import (
+        PREMIUM_MIN_N, PREMIUM_MIN_HIT_PCT, PREMIUM_MASTERS_FALLBACK,
+        get_premium_masters, refresh_premium_masters,
+        PREMIUM_MASTERS, _LazyPremiumSet,
+        _PREMIUM_CACHE,      # 同一個 dict 物件 — 既有 er._PREMIUM_CACHE.clear() 仍有效
+    )
+except ImportError:                       # src/ 已在 sys.path 的情境
+    from core.master_tiers import (       # type: ignore
+        PREMIUM_MIN_N, PREMIUM_MIN_HIT_PCT, PREMIUM_MASTERS_FALLBACK,
+        get_premium_masters, refresh_premium_masters,
+        PREMIUM_MASTERS, _LazyPremiumSet, _PREMIUM_CACHE,
+    )
 
 # v3.71.18 L 系列: PINNED_MASTERS — user 自定「常駐關注」 master
 # 跟 PREMIUM 不同:
@@ -667,14 +704,20 @@ def _write_header_row(ws: "Worksheet", row: int, header_label: str, include_mast
 
 
 # v3.72.7: histock fetch 統計 (P2 #5 — 監控 rate limit / block)
+# v3.72.10: 拆分 fetch_fail (fetch_histock_branch 回 None, 通常 HTTP/timeout/block)
+#           vs empty_buys (抓到 dict 但 buys 空, 真的沒資料)
 # 每次 build_day_sheet 開始清空, 結束 dump 到 stderr + 累加到 module-level 統計
 _HISTOCK_STATS = {
-    "attempted": 0,      # 呼叫次數
-    "success": 0,        # 成功抓到 buys
-    "stale_date": 0,     # v3.72.5 時效不符
-    "no_data": 0,        # 抓到但 empty
-    "http_error": 0,     # requests exception
-    "net_zero_or_neg": 0, # buys[0].net <= 0 (fix bug in this version)
+    "attempted": 0,       # 呼叫次數
+    "success": 0,         # 成功抓到 top #1 且 net>0
+    "stale_date": 0,      # v3.72.5 時效不符
+    "fetch_fail": 0,      # v3.72.10 fetch 回 None (HTTP/timeout/block)
+    "empty_buys": 0,      # v3.72.10 抓到 dict 但 buys 空 (真無資料)
+    "http_error": 0,      # Python 例外 (import fail 等)
+    "net_zero_or_neg": 0, # buys[0].net <= 0
+    # v3.73.0: 來源拆分 (富邦 primary / histock fallback)
+    "fubon_success": 0,   # 富邦 zco.djhtm 成功 (當日資料)
+    "histock_success": 0, # histock fallback 成功
 }
 
 
@@ -706,11 +749,49 @@ def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]],
     if stock_code in cache:
         return cache[stock_code]
     _HISTOCK_STATS["attempted"] += 1
+
+    # ─────────────────────────────────────────────────────────────
+    # v3.73.0 PRIMARY: 富邦 DJ zco.djhtm (個股分點進出)
+    # 動機: 2026-08-04 實測 histock 在 21:39 TW 仍是 T-1 資料, 我們三個排程
+    #       (21:17/22:37/23:47) 全部拿不到當日 → 時效 guard 擋掉 → 永遠沒 highlight.
+    #       富邦 21:17 就有當日資料, 且用跟 branches.py 相同的分點代號系統.
+    # ─────────────────────────────────────────────────────────────
+    try:
+        from src.fetchers.stock_branch_ranking import fetch_stock_branch_ranking
+        fb = fetch_stock_branch_ranking(stock_code, timeout=15, max_retries=2)
+        if fb and fb.get("buys"):
+            fb_date = (fb.get("date") or "").replace("/", "")
+            if trade_date and fb_date and fb_date != trade_date:
+                pass   # 富邦也過期 → 落到 histock fallback
+            else:
+                top = fb["buys"][0]
+                if int(top.get("net", 0) or 0) > 0:
+                    top_bno = top.get("bno")
+                    _HISTOCK_STATS["success"] += 1
+                    _HISTOCK_STATS["fubon_success"] += 1
+                    cache[stock_code] = top_bno
+                    return top_bno
+                _HISTOCK_STATS["net_zero_or_neg"] += 1
+                cache[stock_code] = None
+                return None
+    except Exception:
+        pass   # 富邦壞掉 → 落到 histock fallback
+
+    # ─────────────────────────────────────────────────────────────
+    # FALLBACK: histock (v3.72.4-12 原路徑)
+    # ─────────────────────────────────────────────────────────────
     try:
         from src.audit.histock_branch_audit import fetch_histock_branch
-        data = fetch_histock_branch(stock_code, timeout=8, max_retries=1)
-        if not data or not data.get('buys'):
-            _HISTOCK_STATS["no_data"] += 1
+        # v3.72.10: 從 timeout=8/retry=1 加大到 timeout=15/retry=2
+        data = fetch_histock_branch(stock_code, timeout=15, max_retries=2)
+        if not data:
+            # v3.72.10: fetch_histock_branch 內部 catch 所有 exception 回 None
+            # 這裡分開統計 (區分「無法連線」vs「連線 OK 但 buys 空」)
+            _HISTOCK_STATS["fetch_fail"] += 1
+            cache[stock_code] = None
+            return None
+        if not data.get('buys'):
+            _HISTOCK_STATS["empty_buys"] += 1
             cache[stock_code] = None
             return None
         # v3.72.5: 時效 guard
@@ -729,6 +810,7 @@ def _fetch_histock_top_buyer(stock_code: str, cache: Dict[str, Optional[str]],
             return None
         top_bno = top.get('bno')
         _HISTOCK_STATS["success"] += 1
+        _HISTOCK_STATS["histock_success"] += 1   # v3.73.0 來源標記
         cache[stock_code] = top_bno
         return top_bno
     except Exception:
@@ -924,22 +1006,40 @@ def _write_histock_status_notice(ws: "Worksheet", row: int, stats: Dict[str, int
     net_neg = stats.get("net_zero_or_neg", 0)
     success_rate = int(success / attempted * 100)
 
+    # v3.72.10: 新分類 fetch_fail (HTTP/timeout/block) vs empty_buys (真無資料)
+    fetch_fail = stats.get("fetch_fail", 0)
+    empty = stats.get("empty_buys", stats.get("no_data", 0))  # backward-compat
     # 主因判定
     if success == 0:
-        # 全 fail
-        if stale >= http_err and stale >= no_data:
-            reason = f"histock 資料仍是 T-1 (需等到當日盤後晚間 update)"
-        elif http_err >= no_data:
-            reason = f"histock 網站連線失敗 (rate limit / server down)"
+        # 全 fail (v3.73.0: 富邦 primary + histock fallback 都失敗才會到這)
+        if fetch_fail >= stale and fetch_fail >= empty and fetch_fail > 0:
+            reason = f"富邦 + histock 雙來源皆抓取失敗 (timeout / block, {fetch_fail} 次)"
+        elif stale >= empty:
+            reason = f"雙來源資料皆仍是 T-1 ({stale} 次, 需等盤後 update)"
         else:
-            reason = f"histock 分點榜無資料 (可能個股冷門)"
-        notice = f"⚠️ 本 Excel 無 top-buyer highlight — {reason} (histock: {attempted} 試, 0 success)"
+            reason = f"分點榜真無資料 ({empty} 次, 可能個股冷門)"
+        notice = f"⚠️ 本 Excel 無 top-buyer highlight — {reason} | attempted={attempted}, success=0"
     else:
         # 部分 fail
-        notice = f"⚠️ 部分 top-buyer highlight 缺 (histock: {success}/{attempted} = {success_rate}% success | stale={stale} http_err={http_err} no_data={no_data})"
+        fubon_n = stats.get("fubon_success", 0)
+        histock_n = stats.get("histock_success", 0)
+        notice = (f"⚠️ 部分 top-buyer highlight 缺 ({success}/{attempted} = {success_rate}% success"
+                  f" | 富邦={fubon_n} histock={histock_n} | fail={fetch_fail} stale={stale} empty={empty})")
 
-    # 用 orange fill 讓警示醒目
-    _write_notice_row(ws, row, notice)
+    # v3.72.12: 修文字溢出 bug — 之前只寫 D 欄且無 merge, 文字視覺上跨到 A-G 很亂
+    # 改成 merge A:L + 值放 A + center align + 加粗
+    c_a = ws.cell(row=row, column=1)
+    c_a.value = notice
+    c_a.font = Font(name=FONT_NAME, size=FONT_SIZE, bold=True, italic=False, color="FF6B4300")
+    c_a.alignment = _align_center()
+    # E-L 清掉可能殘留的 default format
+    for ci in range(2, 13):
+        cc = ws.cell(row=row, column=ci)
+        cc.value = None
+        cc.alignment = _align_center()
+    # merge A:L 讓警示佔完整寬度 + 集中
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=12)
+    # 橘色 fill 套整 row (merge 後 A cell 主導, 但仍每欄 fill 確保視覺一致)
     orange_fill = PatternFill("solid", fgColor="FFFFECB3")  # 淺橘
     for ci in range(1, 13):
         ws.cell(row=row, column=ci).fill = orange_fill
@@ -949,15 +1049,23 @@ def _write_histock_status_notice(ws: "Worksheet", row: int, stats: Dict[str, int
 def _write_histock_timestamp_footer(ws: "Worksheet", row: int, stats: Dict[str, int]) -> int:
     """Section 0 尾端加 histock 資料時間戳 (informational).
 
+    v3.72.10: 用 TW timezone (UTC+8), 修正 GH Actions 顯示 UTC 時間的 bug.
+
     Returns: 用了幾 rows.
     """
     attempted = stats.get("attempted", 0)
     if attempted == 0:
         return 0  # 沒 fetch → 不寫
     success = stats.get("success", 0)
-    from datetime import datetime as _dt
-    now = _dt.now().strftime("%Y-%m-%d %H:%M")
-    notice = f"ⓘ histock top-buyer 資料 fetched @ {now} | {success}/{attempted} success"
+    # v3.72.10: TW timezone (Asia/Taipei = UTC+8)
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    tw = _dt.now(_tz(_td(hours=8)))
+    now = tw.strftime("%Y-%m-%d %H:%M")
+    fubon_n = stats.get("fubon_success", 0)
+    histock_n = stats.get("histock_success", 0)
+    src = f"富邦{fubon_n}/histock{histock_n}" if (fubon_n or histock_n) else "無"
+    notice = (f"ⓘ top-buyer 資料 fetched @ {now} TW | {success}/{attempted} success"
+              f" | 來源: {src}")
     c_d = ws.cell(row=row, column=1)
     c_d.value = notice
     c_d.font = Font(name=FONT_NAME, size=10, bold=False, italic=True, color="FFAAAAAA")
@@ -970,7 +1078,9 @@ def _write_histock_timestamp_footer(ws: "Worksheet", row: int, stats: Dict[str, 
 #  Build single-day sheet
 # ============================================================
 
-def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str):
+def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str,
+                    precomputed_top_buyer: Optional[Dict[str, str]] = None,
+                    precomputed_stats: Optional[Dict[str, int]] = None):
     """
     Build one sheet matching manual template.
 
@@ -978,6 +1088,11 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
       ws: openpyxl Worksheet (will be populated, sheet title set externally)
       branches_data: list of branch dicts from crawler (each has code, name, buys, sells)
       trade_date: YYYYMMDD string (used only for fallback display)
+      precomputed_top_buyer: v3.72.11 — 若 crawler enricher 已 fetch histock, 直接用
+                            結果, 避免二次 fetch (省時間 + 避免 rate limit).
+                            None → build_day_sheet 自己 fetch (backward compat).
+      precomputed_stats: v3.72.11 — 對應 enricher 產出的 stats, 讓 warning row +
+                        timestamp footer 顯示 enricher 端的實際值.
 
     Returns:
       total_rows: number of rows written (1-indexed)
@@ -989,36 +1104,47 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
         if c:
             by_code[c] = b
 
-    # v3.72.4: 先掃 sniper master 買的漲停股 → fetch histock 全市場 top #1 買方
-    # 這樣才是「該股全市場分點榜 #1」而不是「tracked branches 內 #1」
-    # v3.72.7: reset histock fetch stats (per build)
-    _reset_histock_stats()
-    sniper_stock_codes: set = set()
-    for master in MASTER_MAPPING:
-        if not _is_sniper_master(master["name"]):
-            continue
-        for branch_code, _ in master["branches"]:
-            bdata = by_code.get(branch_code, {})
-            for s in (bdata.get("buys") or []):
-                if s.get("is_limit_up") and (s.get("net_amt", 0) > 0 or s.get("net_lot", 0) > 0):
-                    scode = s.get("code")
-                    if scode and not _is_excluded_by_market_type(s):
-                        sniper_stock_codes.add(scode)
-    top_net_buyer: Dict[str, str] = _build_top_net_buyer_index(
-        branches_data,
-        sniper_stock_codes=sniper_stock_codes if sniper_stock_codes else None,
-        trade_date=trade_date,  # v3.72.5 時效 guard
-    )
+    # v3.72.11: 若 crawler enricher 已 fetch, 直接用 (share single fetch)
+    if precomputed_top_buyer is not None:
+        # 用 enricher 的結果, 不重 fetch. Stats 也用 enricher 端的.
+        top_net_buyer = precomputed_top_buyer
+        # Update _HISTOCK_STATS from precomputed_stats so warning/footer render correctly
+        _reset_histock_stats()
+        if precomputed_stats:
+            for k, v in precomputed_stats.items():
+                if k in _HISTOCK_STATS:
+                    _HISTOCK_STATS[k] = v
+    else:
+        # v3.72.4: fallback — 掃 sniper master 買的漲停股 → fetch histock 全市場 top #1
+        # v3.72.7: reset histock fetch stats (per build)
+        _reset_histock_stats()
+        sniper_stock_codes: set = set()
+        for master in MASTER_MAPPING:
+            if not _is_sniper_master(master["name"]):
+                continue
+            for branch_code, _ in master["branches"]:
+                bdata = by_code.get(branch_code, {})
+                for s in (bdata.get("buys") or []):
+                    if s.get("is_limit_up") and (s.get("net_amt", 0) > 0 or s.get("net_lot", 0) > 0):
+                        scode = s.get("code")
+                        if scode and not _is_excluded_by_market_type(s):
+                            sniper_stock_codes.add(scode)
+        top_net_buyer = _build_top_net_buyer_index(
+            branches_data,
+            sniper_stock_codes=sniper_stock_codes if sniper_stock_codes else None,
+            trade_date=trade_date,  # v3.72.5 時效 guard
+        )
 
     # v3.72.7: dump histock fetch stats to stderr (監控 rate limit / block)
+    # v3.72.10: 增 fetch_fail / empty_buys 分類
     stats = _get_histock_stats()
     if stats["attempted"] > 0:
         success_rate = stats["success"] / stats["attempted"] * 100
         import sys as _sys
         print(f"[histock stats] {stats['attempted']} attempted "
               f"→ {stats['success']} success ({success_rate:.0f}%) | "
-              f"stale={stats['stale_date']} | no_data={stats['no_data']} | "
-              f"http_err={stats['http_error']} | net<=0={stats['net_zero_or_neg']}",
+              f"fetch_fail={stats.get('fetch_fail', 0)} | empty_buys={stats.get('empty_buys', 0)} | "
+              f"stale={stats['stale_date']} | http_err={stats['http_error']} | net<=0={stats['net_zero_or_neg']}",
               file=_sys.stderr)
         if success_rate < 50:
             print(f"⚠️ histock 成功率 {success_rate:.0f}% < 50% — 可能被 rate limit / 資料未 update", file=_sys.stderr)
@@ -1128,7 +1254,9 @@ def build_day_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str)
         ca = ws.cell(row=master_data_start, column=1)
         ca.value = master_name
         ca.font = _font_bold()
-        ca.alignment = _align_center()
+        # v3.80.1: wrap so a name wider than col A (~19 chars) is not clipped;
+        # names that already fit render exactly as before
+        ca.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
         if sniper_mode and master_has_limit_up:
             sniper_with_data += 1
@@ -1223,7 +1351,8 @@ def _section_header(ws, row: int, title: str, span_cols: int = 9, color: str = '
 def _compute_consensus_count(branches_data):
     """v3.64.3: 共用 helper — 算「強共識股」清單 (≥10 大戶 + ≥2 分點 + 排 ETF + net>0).
 
-    Returns: list of dict {code, name, master_count, branch_count, total_net_amt, masters}
+    Returns: list of dict {code, name, master_count, branch_count, total_net_amt, masters,
+                           master_net}  (master_net: {master: 該大戶在此股的淨買合計 仟元}, v3.80.10)
     與 Section 0 使用相同邏輯, 兩處共用避免 drift.
     """
     MIN_MASTER_COUNT = 10
@@ -1246,7 +1375,8 @@ def _compute_consensus_count(branches_data):
             })
             if not entry['name'] and s.get('name'):
                 entry['name'] = s.get('name')
-            entry['branches'].append({'master': m, 'branch_code': b_code, 'net_amt': net})
+            entry['branches'].append({'master': m, 'branch_code': b_code,
+                                      'branch_name': b.get('name', ''), 'net_amt': net})
     out = []
     for code, info in stock_map.items():
         if len(info['branches']) < 2:
@@ -1254,11 +1384,20 @@ def _compute_consensus_count(branches_data):
         masters = {br['master'] for br in info['branches']}
         if len(masters) < MIN_MASTER_COUNT:
             continue
+        master_net = {}
+        for br in info['branches']:
+            master_net[br['master']] = master_net.get(br['master'], 0) + br['net_amt']
+        # v3.80.13: 單一分點淨買最多的追蹤分點 (使用者 10/06: 分點背後不只一人,
+        # 不把金額歸給大戶加總); 同額時取代號較小者, 結果固定
+        top = min(info['branches'], key=lambda br: (-br['net_amt'], br['branch_code']))
         out.append({
             'code': code, 'name': info['name'],
             'master_count': len(masters),
             'branch_count': len(info['branches']),
             'masters': masters,
+            'master_net': master_net,
+            'top_branch': {'code': top['branch_code'], 'name': top['branch_name'],
+                           'master': top['master'], 'net_amt': top['net_amt']},
             'total_net_amt': sum(br['net_amt'] for br in info['branches']),
         })
     return out
@@ -1397,6 +1536,72 @@ def _get_recent_quad_codes(data_dir, days=7, today=None):
     return recent_codes
 
 
+def _quad_live_stats(data_dir):
+    """v3.75.0: 回傳 quad 的**實測**命中率, 取代硬編碼 78.9%.
+
+    背景 (2026-08-22 稽核):
+      78.9% 是 v3.70.5 用 n=38 算出來的. 樣本累到 233 後實測收斂到 49.4%,
+      quad_hit_log.vs_expected 自己就記著 delta_pp = -29.5.
+      Excel 原有 5 處硬寫 78.9%, 會讓使用者高估勝率而放大部位 → 直接的下注風險.
+
+    Returns dict:
+      n / hits / hit_rate_pct / ci_lo / ci_hi        (全期)
+      n30 / hit_rate_30d_pct                          (滾動 30 天)
+      baseline_pct                                    (對照組: 全共識股)
+      significant                                     (CI 是否與對照組不重疊)
+      label                                           (給 Excel 直接印的短字串)
+      stale                                           (True = 無資料, label 會說明)
+    """
+    out = {'n': 0, 'hits': 0, 'hit_rate_pct': None, 'ci_lo': None, 'ci_hi': None,
+           'n30': 0, 'hit_rate_30d_pct': None, 'baseline_pct': None,
+           'significant': None, 'label': '實測待累積', 'stale': True}
+    qhl = _read_json_safely(data_dir / 'quad_hit_log.json')
+    if not qhl:
+        return out
+    ra = qhl.get('rolling_all') or {}
+    n, hits = int(ra.get('n') or 0), int(ra.get('hits') or 0)
+    if n <= 0:
+        return out
+
+    import math
+    def _wilson(h, tot, z=1.96):
+        if tot <= 0:
+            return (None, None)
+        p = h / tot
+        d = 1 + z * z / tot
+        c = p + z * z / (2 * tot)
+        m = z * math.sqrt(p * (1 - p) / tot + z * z / (4 * tot * tot))
+        return round((c - m) / d * 100, 1), round((c + m) / d * 100, 1)
+
+    lo, hi = _wilson(hits, n)
+    out.update({'n': n, 'hits': hits, 'hit_rate_pct': round(hits / n * 100, 1),
+                'ci_lo': lo, 'ci_hi': hi, 'stale': False})
+
+    r30 = qhl.get('rolling_30d') or {}
+    if r30.get('n'):
+        out['n30'] = int(r30['n'])
+        out['hit_rate_30d_pct'] = round(int(r30.get('hits') or 0) / int(r30['n']) * 100, 1)
+
+    # 對照組 (全共識股) — 判斷 quad 是否真的比隨便挑共識股好
+    bt = _read_json_safely(data_dir / 'phase32_backtest.json') or {}
+    base = ((bt.get('summary') or {}).get('baseline') or {})
+    if base.get('n'):
+        b_lo, b_hi = _wilson(int(base.get('hits') or 0), int(base['n']))
+        out['baseline_pct'] = round(int(base.get('hits') or 0) / int(base['n']) * 100, 1)
+        if None not in (lo, hi, b_lo, b_hi):
+            out['significant'] = not (lo < b_hi and b_lo < hi)   # CI 不重疊 = 顯著
+
+    # 給 Excel 直接印的短標籤
+    parts = [f"實測 {out['hit_rate_pct']}% (n={n})"]
+    if lo is not None:
+        parts.append(f"CI {lo}-{hi}%")
+    if out['baseline_pct'] is not None:
+        sig = '顯著' if out['significant'] else '未達顯著'
+        parts.append(f"對照 {out['baseline_pct']}% → {sig}")
+    out['label'] = '  |  '.join(parts)
+    return out
+
+
 def _compute_quad_picks(consensus_picks, data_dir):
     """v3.70.0 Phase 3.2 落地: 識別今日符合三訊號疊加的 quad picks.
 
@@ -1508,7 +1713,8 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
         row += 1
 
     # v3.69.0 Phase 3.2: 三訊號疊加 alpha sub-banner
-    # 共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike = 78.9% hit (vs 44.1% baseline)
+    # 共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike
+    # ⚠️ v3.75.0: 原宣稱 78.9% (n=38) 已推翻, 改讀 _quad_live_stats() 實測
     # v3.70.2: +Wilson 95% CI + alpha 失效 alarm
     pb = _read_json_safely(data_dir / 'phase32_backtest.json')
     if pb and pb.get('summary'):
@@ -1744,8 +1950,11 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
 
     # v3.71.18 註腳 (加 📌 pinned 標記)
     pinned_str = ' / '.join(sorted(PINNED_MASTERS)) if PINNED_MASTERS else '無'
+    _qls = _quad_live_stats(data_dir)
+    _quad_lbl = ('實測待累積' if _qls['stale']
+                 else f"{_qls['hit_rate_pct']}% 實測 n={_qls['n']}")
     note_cell = ws.cell(row, 2,
-                         f"ⓘ 排序: 合計淨買金額 ↓  |  ⭐⭐ = premium quad (陳律師/竹科主力/陳族元, ≥77% hit)  |  ⭐ = 一般 quad (78.9%)  |  ⚠️ = 領頭獨佔 ≥50%  |  🔁 = 過去 7 天 quad 重複  |  📌 = 你關注的 master ({pinned_str}) 參與")
+                         f"ⓘ 排序: 合計淨買金額 ↓  |  ⭐⭐ = premium quad (陳律師/竹科主力/陳族元)  |  ⭐ = 一般 quad ({_quad_lbl})  |  ⚠️ = 領頭獨佔 ≥50%  |  🔁 = 過去 7 天 quad 重複  |  📌 = 你關注的 master ({pinned_str}) 參與")
     ws.merge_cells(f'B{row}:N{row}')
     note_cell.font = Font(name='Noto Sans TC', size=10, italic=True, color='FF7C2D12')
     note_cell.fill = _summary_fill('FFFFF7ED')   # 極淡橙底
@@ -1986,6 +2195,19 @@ def _build_section_consensus(ws, branches_data, data_dir, start_row, trade_date=
     return row
 
 
+def _fresh_attstock(data_dir, trade_date):
+    """v3.80.14: disposal_attstock.json 只有在「該交易日當天或之後」抓到才採用.
+    回傳 (data, None) 或 (None, 最後抓取日 'YYYY-MM-DD' / None).
+    2026-08-21 ~ 10-06 抓取一直失敗, 但 Email 照樣把 8/21 的「明日恐處置」當今天的寄出."""
+    d = _read_json_safely(Path(data_dir) / 'disposal_attstock.json')
+    if not d:
+        return None, None
+    fa = str(d.get('fetched_at') or '')
+    if fa[:10].replace('-', '') >= str(trade_date or '') and fa:
+        return d, None
+    return None, (fa[:10] or None)
+
+
 def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     """v3.67.1 Phase 2.7: 手機摘要 sheet.
 
@@ -1995,7 +2217,7 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
       3. 視覺不雜亂 — 單欄, section 空 1 行, 無格線
 
     內容 (4 個決策問題):
-      📅 明日預測 (Q5 direction)
+      🌡️ 今日籌碼偏向 (v3.80.7: 原「明日預測」, 已退役為描述)
       🎯 強共識 Top 5 (買什麼)
       🚫 今日避開 (除權息)
       📊 追蹤池方向 (淨買差 + vs 昨/5d)
@@ -2025,22 +2247,30 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     c.alignment = Alignment(horizontal='left', vertical='center')
     row += 2
 
-    # ── 📅 明日預測 ──
-    ws.cell(row, 3, "📅 明日預測").font = sec_font
+    # ── 🌡️ 今日籌碼偏向 (v3.80.7: 原「📅 明日預測 … %」) ──
+    # v3.78.0 已判定方向判定無 alpha (160 天 Δ+0.0pp) 並退役為「描述」,
+    # 但當時只改了網站與 daily_signal headline, 這裡 (= 每日 Email 第一行)
+    # 仍寫「明日預測 + 信心%」. confidence_pct 是 net_weight 的線性換算,
+    # 不是命中率, 讀起來卻像勝率 → 改顯示籌碼強度並註明非預測.
+    ws.cell(row, 3, "🌡️ 今日籌碼偏向").font = sec_font
     row += 1
     daily_signal = _read_json_safely(data_dir / 'daily_signal.json')
     md = (daily_signal or {}).get('market_direction') or {}
     direction = md.get('direction') or '—'
-    confidence = md.get('confidence_pct') or 0
+    net_w = md.get('net_weight')
     if direction == '偏多':
         arrow, q5_color = '↑', COLORS['tw_red']
     elif direction == '偏空':
         arrow, q5_color = '↓', COLORS['tw_green']
     else:
         arrow, q5_color = '↕', COLORS['text_neutral']
-    c_q5 = ws.cell(row, 3, f"{arrow} {direction} {confidence:.1f}%")
+    strength = f" (強度 {net_w:+.2f})" if isinstance(net_w, (int, float)) else ""
+    c_q5 = ws.cell(row, 3, f"{arrow} {direction}{strength}")
     c_q5.font = Font(name='Noto Sans TC', size=16, bold=True, color=q5_color)
     ws.row_dimensions[row].height = 24
+    row += 1
+    c_note = ws.cell(row, 3, "描述非預測 · 實測對明日方向無優勢 (Δ+0.0pp)")
+    c_note.font = Font(name='Noto Sans TC', size=9, color=COLORS['text_neutral'])
     row += 2
 
     # ── 🎯 強共識買超 Top 5 ──
@@ -2055,7 +2285,10 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     # v3.71.5: premium 在前, 一般在後
     premium_codes = mobile_quad.get('premium_codes', set())
     if mobile_quad['quad_picks']:
-        ws.cell(row, 3, "⭐ Quad 命中 (78.9% alpha)").font = Font(
+        _qls_m = _quad_live_stats(data_dir)
+        _m_lbl = ('實測待累積' if _qls_m['stale']
+                  else f"實測 {_qls_m['hit_rate_pct']}% n={_qls_m['n']}")
+        ws.cell(row, 3, f"⭐ Quad 命中 ({_m_lbl})").font = Font(
             name='Noto Sans TC', size=13, bold=True, color='FF059669')
         row += 1
         # premium picks 優先列前
@@ -2166,8 +2399,11 @@ def build_mobile_summary_sheet(ws, branches_data, trade_date, data_dir=None):
     else:
         ws.cell(row, 3, "今日無除權息").font = sub_font
     row += 1
-    # v3.71.7: 處置股 (attstock.tw API)
-    disp = _read_json_safely(data_dir / 'disposal_attstock.json')
+    # v3.71.7: 處置股 (attstock.tw API). v3.80.14: 過期資料不列, 改註明最後更新日
+    disp, disp_stale = _fresh_attstock(data_dir, trade_date)
+    if disp_stale:
+        ws.cell(row, 3, f"處置股資料未更新 (最後 {disp_stale}), 今日不列").font = sub_font
+        row += 1
     if disp:
         n_in = disp.get('count_in_disposal', 0)
         n_pending = disp.get('count_pending_1d', 0)
@@ -2403,7 +2639,7 @@ def build_quad_track_sheet(ws, data_dir):
     row += 1
     note = (f"註: trigger day = Q5 預測偏多 AND ≥1 master 量爆 (>2σ).\n"
             f"     picks = 該日所有共識股 ∩ ≥1 vol_spike master.\n"
-            f"     命中率 = 隔日漲幅 > 0 的比例. 預期 78.9% (Phase 3.2 backtest).\n"
+            f"     命中率 = 隔日漲幅 > 0 的比例. ⚠️ 原宣稱 78.9% 係 n=38 小樣本, 已被推翻; 實測見下方滾動統計.\n"
             f"     Per-master 命中率 < 整體 → 該 master 訊號偏弱; > 整體 → 訊號偏強.\n"
             f"     注意樣本小 (trigger days < 5) 時, 命中率 noise 偏大.")
     c_note = ws.cell(row, 2, note)
@@ -2415,151 +2651,63 @@ def build_quad_track_sheet(ws, data_dir):
     ws.freeze_panes = 'A6'
 
 
-def build_pinned_track_sheet(ws, branches_data, data_dir):
+def build_pinned_track_sheet(ws, branches_data, data_dir, trade_date=None):
     """v3.71.18 L2: pinned master 專屬追蹤 sheet.
 
-    對 PINNED_MASTERS 內每位 master 顯示:
-      [Header] master 名 + master_profile narrative + L1/L5/L6 stats
-      [Table 1] 今日 top buys (top 10, dedup 跨分點同股 + 合計)
-      [Table 2] 過去 30 天 連續加碼 stocks (從 master_profiles.consecutive_accumulation)
+    v3.80.16 (使用者 2026-10-06): 只保留「今日 Top 10 買進」, 改成與 Dashboard 相同的
+    報告版面. 拿掉 master_profile 敘述、alpha 統計與「連續囤貨」表 — 後者讀的是
+    master_profiles 舊格式 (list), 實際是 {'accumulation_stocks': [...]}, 上線以來一直
+    顯示「無連續囤貨資料」. 「買張」原本讀不存在的 'volume' 欄位 (永遠 0), 改為 buy_lot.
+    Top 10 = 該大戶所有追蹤分點的買進, 跨分點同股合計, 依買進金額排序, 排除 00 開頭 ETF.
     """
-    hdr_font = Font(name='Noto Sans TC', size=14, bold=True, color='FFB45309')
-    sub_font = Font(name='Noto Sans TC', size=10, color='FF666666')
-    val_font = Font(name='Noto Sans TC', size=11)
-    th_font = Font(name='Noto Sans TC', size=10, bold=True)
-    th_fill = PatternFill('solid', fgColor='FFFEF3C7')
-
-    # column widths
-    for col, w in [('A', 3), ('B', 22), ('C', 18), ('D', 14), ('E', 14),
-                    ('F', 14), ('G', 14), ('H', 18)]:
-        ws.column_dimensions[col].width = w
-
-    pms = _read_json_safely(data_dir / 'pinned_master_stats.json') or {}
-    mp = _read_json_safely(data_dir / 'master_profiles.json') or {}
-    mp_masters = mp.get('individual_masters') or {}
-    if not mp_masters and isinstance(mp.get('masters'), dict):
-        mp_masters = mp['masters']
-
+    if not trade_date:
+        trade_date = next((b.get('date') for b in branches_data if b.get('date')), '')
+    _pro_sheet_setup(ws, [('A', 2), ('B', 6), ('C', 10), ('D', 20), ('E', 18), ('F', 12), ('G', 12)])
     row = 2
+    first_body = None
     for m_name in sorted(PINNED_MASTERS):
-        # Header
-        c = ws.cell(row, 2, f"📌 {m_name}")
-        c.font = hdr_font
-        row += 1
-
-        # Narrative
-        prof = mp_masters.get(m_name, {})
-        narr = prof.get('narrative', '')
-        if narr:
-            c = ws.cell(row, 2, narr[:400])
-            c.font = sub_font
-            ws.merge_cells(f'B{row}:H{row+1}')
-            c.alignment = Alignment(wrap_text=True, vertical='top')
-            ws.row_dimensions[row].height = 28
-            ws.row_dimensions[row+1].height = 28
-            row += 2
-        row += 1
-
-        # L1/L5/L6 stats
-        m_stats = (pms.get('pinned_masters') or {}).get(m_name, {})
-        if m_stats.get('status') == 'ok':
-            for label, key in [('全部 picks', 'all_picks'),
-                                ('新標的', 'new_stocks'),
-                                ('連續加碼', 'accumulation')]:
-                s = m_stats.get(key) or {}
-                if not s.get('n'): continue
-                txt = (f"{label}: n={s['n']}  hit_1d={s.get('hit_1d',0)*100:.0f}%  "
-                       f"mean_1d={s.get('mean_1d',0):+.2f}%  hit_3d={s.get('hit_3d',0)*100:.0f}%  "
-                       f"mean_3d={s.get('mean_3d',0):+.2f}%  hit_5d={s.get('hit_5d',0)*100:.0f}%  "
-                       f"mean_5d={s.get('mean_5d',0):+.2f}%")
-                c = ws.cell(row, 2, txt)
-                c.font = Font(name='Noto Sans TC', size=10, color='FFB45309')
-                ws.merge_cells(f'B{row}:H{row}')
-                row += 1
-        else:
-            c = ws.cell(row, 2, "(歷史 alpha stats 待 weekly cron 跑 analyze_pinned_master_alpha.py)")
-            c.font = sub_font
-            row += 1
-        row += 1
-
-        # Table 1: 今日 top buys
-        ws.cell(row, 2, f"📊 {m_name} 今日 Top 10 買進 (跨分點同股合計)").font = th_font
-        row += 1
-        for col_i, header in enumerate(['#', '代號', '股名', '買金額(萬)', '買張', '漲跌%']):
-            c = ws.cell(row, 2 + col_i, header)
-            c.font = th_font; c.fill = th_fill
-            c.alignment = Alignment(horizontal='center')
-        row += 1
-
-        master_buys = []
-        for b in branches_data:
-            if b.get('master') == m_name:
-                for s in (b.get('buys') or []):
-                    code = s.get('code')
-                    if not code or code.startswith('00'): continue
-                    master_buys.append({
-                        'code': code, 'name': s.get('name', '—'),
-                        'amt': s.get('buy_amt') or 0,
-                        'volume': s.get('volume') or 0,
-                        'change_pct': s.get('change_pct'),
-                    })
+        own = [b for b in branches_data if b.get('master') == m_name]
         agg = {}
-        for b in master_buys:
-            key = b['code']
-            if key in agg:
-                agg[key]['amt'] += b['amt']
-                agg[key]['volume'] += b['volume']
+        for b in own:
+            for s in (b.get('buys') or []):
+                code = s.get('code')
+                if not code or code.startswith('00'):
+                    continue
+                a = agg.setdefault(code, {'code': code, 'name': s.get('name', '—'), 'amt': 0,
+                                          'lot': 0, 'change_pct': s.get('change_pct')})
+                a['amt'] += s.get('buy_amt') or 0
+                a['lot'] += s.get('buy_lot') or 0
+        top_buys = sorted(agg.values(), key=lambda x: (-x['amt'], x['code']))[:10]
+
+        where = (f"追蹤分點：{own[0].get('name') or own[0].get('code')}" if len(own) == 1
+                 else f"{len(own)} 個追蹤分點・跨分點同股合計")
+        row = _pro_title(ws, row, 'B', 'G', f"{m_name}　今日 Top 10 買進", trade_date,
+                         f"{where}・依買進金額排序（不含 ETF）")
+        rows = []
+        for i, b in enumerate(top_buys, 1):
+            chg = b.get('change_pct')
+            if chg is None:
+                chg_cell = ('—', _pro_font(11, False, _PRO_MUTED))
             else:
-                agg[key] = b
-        top_buys = sorted(agg.values(), key=lambda x: -x['amt'])[:10]
-        if top_buys:
-            for i, b in enumerate(top_buys, 1):
-                ws.cell(row, 2, i)
-                ws.cell(row, 3, b['code'])
-                ws.cell(row, 4, b['name'])
-                ws.cell(row, 5, round(b['amt'] / 10)).number_format = '#,##0'
-                ws.cell(row, 6, b['volume']).number_format = '#,##0'
-                chg = b.get('change_pct')
-                if chg is not None:
-                    c_chg = ws.cell(row, 7, chg / 100)
-                    c_chg.number_format = '0.00%;[Color10]-0.00%'
-                    if chg >= 0.01:
-                        c_chg.font = Font(name='Noto Sans TC', size=11, bold=True, color='FFC62828')
-                    elif chg <= -0.01:
-                        c_chg.font = Font(name='Noto Sans TC', size=11, bold=True, color='FF2E7D32')
-                row += 1
-        else:
-            ws.cell(row, 2, "今日無買進資料").font = sub_font
-            row += 1
-        row += 2
-
-        # Table 2: 連續加碼 (從 master_profile)
-        ws.cell(row, 2, f"📦 {m_name} 連續囤貨 (active)").font = th_font
-        row += 1
-        for col_i, header in enumerate(['#', '代號', '股名', '連續天數', '累計金額(萬)']):
-            c = ws.cell(row, 2 + col_i, header)
-            c.font = th_font; c.fill = th_fill
-            c.alignment = Alignment(horizontal='center')
-        row += 1
-
-        op = prof.get('operation_metrics', {}) if prof else {}
-        cons = op.get('consecutive_accumulation') or op.get('consecutive_active') or []
-        if isinstance(cons, list) and cons:
-            for i, item in enumerate(cons[:10], 1):
-                ws.cell(row, 2, i)
-                ws.cell(row, 3, item.get('code', '—'))
-                ws.cell(row, 4, item.get('name', '—'))
-                ws.cell(row, 5, item.get('days') or item.get('streak', '—'))
-                amt = item.get('total_amt') or item.get('cumulative_amt')
-                if amt:
-                    ws.cell(row, 5 if 'days' in item else 6, round(amt / 10)).number_format = '#,##0'
-                row += 1
-        else:
-            ws.cell(row, 2, "無連續囤貨資料 (待 master_profile 更新)").font = sub_font
-            row += 1
-        row += 3
-
-    ws.freeze_panes = 'A2'
+                color = 'FFC62828' if chg >= 0.01 else ('FF2E7D32' if chg <= -0.01 else _PRO_INK)
+                chg_cell = (chg / 100, _pro_font(11, abs(chg) >= 0.01, color))
+            rows.append([(i, _pro_font(10, False, _PRO_MUTED)), b['code'], b['name'],
+                         round(b['amt'] / 10), b['lot'], chg_cell])
+        body0, row = _pro_table(ws, row, 'B', ['#', '代號', '股名', '買金額(萬)', '買張', '漲跌%'],
+                                rows, ['center', 'center', 'left', 'right', 'right', 'right'],
+                                [None, None, None, '#,##0', '#,##0', '+0.00%;-0.00%;0.00%'],
+                                bar_col='E', empty_text='今日無買進資料')
+        first_body = first_body or body0
+        # col C holds the code: not bold (the shared table bolds the 2nd column)
+        for r in range(body0, body0 + len(rows)):
+            ws.cell(r, 3).font = _pro_font(11)
+            ws.cell(r, 4).font = _pro_font(11, True)
+        row = _pro_notes(ws, row, 'B', 'G', [
+            '買金額／買張＝該大戶各追蹤分點對同一檔的買進合計（金額為萬元）。',
+            '張數頁沒列出的個股，張數以 金額÷收盤價 估算。',
+            f"資料：富邦 DJ 分點進出・{_pro_date(trade_date)}　｜　Chip Radar TW",
+        ]) + 2
+    ws.freeze_panes = f'A{first_body}' if len(PINNED_MASTERS) == 1 and first_body else None
 
 
 def build_quad_failure_sheet(ws, data_dir):
@@ -2888,27 +3036,9 @@ def _update_load_timeseries(data_dir, trade_date, kpis, update=True):
     return {'yesterday': yesterday, 'avg5': avg5, 'days_history': len(past_idx)}
 
 
-def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
-                            all_branches=None, update_timeseries=True):
-    """Section A: 追蹤池摘要 (v3.64.3) — 10 秒判讀今天追蹤大戶在做什麼.
-
-    4 KPI 對應 4 個盤前 decision-making 問題:
-      Q1 活躍率      → 是否值得看細節?
-      Q2 淨買差      → 偏多/偏空 bias?
-      Q3 強共識股    → 是否有 conviction 還是散亂?
-      Q4 追蹤佔比    → vs 全市場誰更看多?
-
-    + Top 5 master + Top 5 個股 + 籌碼溫度 (後續 sections 保持不變).
-    """
-    label_font = Font(name='Noto Sans TC', size=10, color='FF666666')
-    val_font = Font(name='Noto Sans TC', size=14, bold=True)
-    hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
-    hdr_fill = _summary_fill('FFF0F0F0')
-
-    row = start_row
-    _section_header(ws, row, "▍ A. 追蹤池摘要 (10 秒判讀今日 13 位大戶在做什麼)")
-    row += 1
-
+def _compute_summary_kpis(branches_data, all_branches=None):
+    """v3.80.10: Section A 的 4 個 KPI (原本寫在 _build_section_summary 內, 原樣搬出).
+    Dashboard 只顯示強共識清單後, 仍由 build_dashboard_sheet 呼叫它更新 timeseries.json."""
     # ── 共同計算: sell_amt dedup helper (v3.64.1 Bug 1 fix) ──
     def _compute_buy_sell(blist):
         buy = sum((s.get('buy_amt') or 0) for b in blist for s in (b.get('buys') or []))
@@ -2927,7 +3057,7 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
     total_net = total_buy - total_sell
     net_billion = total_net / 100000   # 仟元 → 億元
 
-    # ── Q1: 活躍率 = 今天有 buys 的追蹤大戶 / 全追蹤大戶數 (13) ──
+    # ── Q1: 活躍率 = 今天有 buys 的追蹤大戶 / 全追蹤大戶數 ──
     active_masters = {b.get('master') for b in branches_data
                        if (b.get('buys') or []) and b.get('master')}
     total_masters = len(TRACKED_MASTERS)
@@ -2949,15 +3079,57 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         mkt_net_billion = 0
         track_share = 0
 
-    # ── v3.66.7 Phase 2.3: 時間維度 cache (今/昨/5日均) ──
-    ts = _update_load_timeseries(data_dir, trade_date, {
+    return {
+        'total_net': total_net, 'active_count': active_count, 'total_masters': total_masters,
         'q1_active_ratio': active_ratio,
         'q2_net_billion': net_billion,
         'q3_consensus_count': consensus_count,
         'q3_consensus_net_billion': consensus_net_billion,
         'q4_track_share': track_share,
         'q4_mkt_net_billion': mkt_net_billion,
-    }, update=update_timeseries)
+    }
+
+
+_TIMESERIES_KEYS = ('q1_active_ratio', 'q2_net_billion', 'q3_consensus_count',
+                    'q3_consensus_net_billion', 'q4_track_share', 'q4_mkt_net_billion')
+
+
+def _timeseries_kpis(k):
+    """The 6 KPIs timeseries.json stores (same keys as before v3.80.10)."""
+    return {key: k[key] for key in _TIMESERIES_KEYS}
+
+
+def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
+                            all_branches=None, update_timeseries=True):
+    """Section A: 追蹤池摘要 (v3.64.3) — 10 秒判讀今天追蹤大戶在做什麼.
+
+    4 KPI 對應 4 個盤前 decision-making 問題:
+      Q1 活躍率      → 是否值得看細節?
+      Q2 淨買差      → 偏多/偏空 bias?
+      Q3 強共識股    → 是否有 conviction 還是散亂?
+      Q4 追蹤佔比    → vs 全市場誰更看多?
+
+    + Top 5 master + Top 5 個股 + 籌碼溫度 (後續 sections 保持不變).
+    """
+    label_font = Font(name='Noto Sans TC', size=10, color='FF666666')
+    val_font = Font(name='Noto Sans TC', size=14, bold=True)
+    hdr_font = Font(name='Noto Sans TC', size=10, bold=True)
+    hdr_fill = _summary_fill('FFF0F0F0')
+
+    row = start_row
+    _section_header(ws, row, "▍ A. 追蹤池摘要 (10 秒判讀今日 13 位大戶在做什麼)")
+    row += 1
+
+    # v3.80.10: KPI 計算抽成 _compute_summary_kpis — Dashboard 不再畫本區塊時,
+    # 仍要每天更新 timeseries.json (手機摘要 / Email 的「vs 昨 / 5 日均」靠它)
+    k = _compute_summary_kpis(branches_data, all_branches)
+    total_net, net_billion = k['total_net'], k['q2_net_billion']
+    active_count, total_masters, active_ratio = k['active_count'], k['total_masters'], k['q1_active_ratio']
+    consensus_count, consensus_net_billion = k['q3_consensus_count'], k['q3_consensus_net_billion']
+    mkt_net_billion, track_share = k['q4_mkt_net_billion'], k['q4_track_share']
+
+    # ── v3.66.7 Phase 2.3: 時間維度 cache (今/昨/5日均) ──
+    ts = _update_load_timeseries(data_dir, trade_date, _timeseries_kpis(k), update=update_timeseries)
     y, a = ts['yesterday'], ts['avg5']
 
     # 累積中 (歷史不足) 顯示
@@ -3060,11 +3232,17 @@ def _build_section_summary(ws, branches_data, trade_date, data_dir, start_row,
         # 不加前綴用戶可能誤解為「今日市場偏多」, 實際是預測「明日 TAIEX 偏多」
         # 例: 58.7 + fmt '"📅 明日預測 ↑ 偏多 "0.0"% — P/C Ratio 主推 — 3 檔焦點"'
         # → 顯示: "📅 明日預測 ↑ 偏多 58.7% — P/C Ratio 主推 — 3 檔焦點"
-        q5_fmt = f'"📅 明日預測 {arrow} {direction} "0.0"% 信心 — {top_signal} 主推 — {focus_n} 檔焦點"'
+        # v3.80.7: v3.78.0 已判定方向判定無 alpha 並退役為「描述」—
+        # 「明日預測 … % 信心」改為「籌碼偏向 … 強度」, 數值改用 net_weight.
+        # ⚠️ Excel 數字格式的 ';' 會切成「正;負;零」三段 — 前後綴文字每段都要帶,
+        #    否則負值時前綴會消失.
+        _pre = f'"🌡️ 籌碼偏向 {arrow} {direction} · 強度 "'
+        _post = f'" — {top_signal} 主推 — {focus_n} 檔焦點 (描述非預測)"'
+        q5_fmt = f'{_pre}+0.00{_post};{_pre}-0.00{_post};{_pre}0.00{_post}'
 
         ws.merge_cells(f'B{row}:N{row}')
         c_q5 = ws[f'B{row}']
-        c_q5.value = float(confidence)
+        c_q5.value = float(md.get('net_weight') or 0)
         c_q5.number_format = q5_fmt
         c_q5.alignment = Alignment(horizontal='center', vertical='center')
         c_q5.font = Font(name='Noto Sans TC', size=12, bold=True, color=color)
@@ -3564,12 +3742,20 @@ def _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_d
             f"H {h_hot} 借券壓力")
 
     # ── v3.70.0 Phase 3.2 落地: Action 進場分級 ──
-    # quad 命中股 (Phase 3.2 三訊號齊聚, 預期 78.9% alpha) 優先, 其次一般共識.
+    # quad 命中股 (Phase 3.2 三訊號齊聚) 優先, 其次一般共識.
+    # ⚠️ v3.75.0: 勝率改讀實測值
     quad_info = _compute_quad_picks(consensus_stocks, data_dir)
     if quad_info['quad_picks']:
         # quad 優先 — 最多列前 3 quad picks
         quad_codes = ' / '.join(p['code'] for p in quad_info['quad_picks'][:3])
-        action_buy = f"🎯 quad 進場 (78.9% alpha): {quad_codes}"
+        _qls_a = _quad_live_stats(data_dir)
+        if _qls_a['stale']:
+            _a_lbl = '實測待累積'
+        else:
+            _a_lbl = f"實測 {_qls_a['hit_rate_pct']}%"
+            if not _qls_a['significant'] and _qls_a['baseline_pct'] is not None:
+                _a_lbl += f", 對照 {_qls_a['baseline_pct']}% 未達顯著"
+        action_buy = f"🎯 quad 進場 ({_a_lbl}): {quad_codes}"
         if len(quad_info['quad_picks']) > 3:
             action_buy += f" +{len(quad_info['quad_picks'])-3}"
         # 其他共識 (非 quad) 列為「📌 一般共識」(top 3 by net_amt 內排除 quad)
@@ -3595,7 +3781,9 @@ def _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_d
         n_total = len(today_ex_list)
         suffix = ' ...' if n_total > 3 else ''
         avoid_parts.append(f"除權息 {n_total} 檔: {today_ex_str}{suffix}")
-    disp_data = _read_json_safely(data_dir / 'disposal_attstock.json')
+    disp_data, disp_stale = _fresh_attstock(data_dir, trade_date)   # v3.80.14
+    if disp_stale:
+        avoid_parts.append(f"處置股資料未更新(最後 {disp_stale})")
     if disp_data:
         n_in = disp_data.get('count_in_disposal', 0)
         n_pending = disp_data.get('count_pending_1d', 0)
@@ -3778,54 +3966,228 @@ def _build_section_risk(ws, data_dir, start_row, trade_date: Optional[str] = Non
     return row
 
 
+# ─── v3.80.16 report look (Dashboard / Pinned) ───
+# One palette for the two front sheets: navy title + rule, KPI cards, navy table
+# header, zebra rows, right-aligned numbers with a light data bar, footnote.
+_PRO_FONT = 'Noto Sans TC'
+_PRO_NAVY = 'FF1F3A5F'
+_PRO_INK = 'FF1B2433'
+_PRO_MUTED = 'FF6B7686'
+_PRO_RULE = 'FFD9E0EA'
+_PRO_ZEBRA = 'FFF6F8FB'
+_PRO_CARD = 'FFF3F6FA'
+_PRO_BAR = 'FF9DB9E0'
+_PRO_WEEKDAY = '一二三四五六日'
+_CONSENSUS_MIN = 10   # same threshold as _compute_consensus_count
+
+
+def _pro_date(trade_date):
+    """'20261005' -> '2026/10/05（一）'; anything else passes through."""
+    try:
+        d = datetime.strptime(str(trade_date), '%Y%m%d')
+    except (TypeError, ValueError):
+        return str(trade_date or '')
+    return f"{d:%Y/%m/%d}（{_PRO_WEEKDAY[d.weekday()]}）"
+
+
+def _pro_font(size=11, bold=False, color=None):
+    return Font(name=_PRO_FONT, size=size, bold=bold, color=color or _PRO_INK)
+
+
+def _pro_sheet_setup(ws, widths):
+    """Column widths (col A = left margin), no gridlines, fit to one page wide."""
+    for col, w in widths:
+        ws.column_dimensions[col].width = w
+    ws.sheet_view.showGridLines = False
+    ws.sheet_properties.tabColor = _PRO_NAVY
+    if ws.sheet_properties.pageSetUpPr is None:
+        ws.sheet_properties.pageSetUpPr = PageSetupProperties()
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+
+
+def _pro_title(ws, row, first, last, title, trade_date, subtitle):
+    """Title (left) + date (right) on `row`, subtitle on row+1 above a navy rule.
+    Returns the next free row."""
+    split = chr(ord(last) - 2)                       # date takes the last 2 columns
+    ws.merge_cells(f'{first}{row}:{split}{row}')
+    c = ws[f'{first}{row}']
+    c.value = title
+    c.font = _pro_font(20, True, _PRO_NAVY)
+    c.alignment = Alignment(horizontal='left', vertical='bottom')
+    nxt = chr(ord(split) + 1)
+    ws.merge_cells(f'{nxt}{row}:{last}{row}')
+    c = ws[f'{nxt}{row}']
+    c.value = _pro_date(trade_date)
+    c.font = _pro_font(12, False, _PRO_MUTED)
+    c.alignment = Alignment(horizontal='right', vertical='bottom')
+    ws.row_dimensions[row].height = 34
+
+    ws.merge_cells(f'{first}{row + 1}:{last}{row + 1}')
+    c = ws[f'{first}{row + 1}']
+    c.value = subtitle
+    c.font = _pro_font(10, False, _PRO_MUTED)
+    c.alignment = Alignment(horizontal='left', vertical='center')
+    rule = Border(bottom=Side(style='medium', color=_PRO_NAVY))
+    for col in range(ord(first), ord(last) + 1):
+        ws[f'{chr(col)}{row + 1}'].border = rule
+    ws.row_dimensions[row + 1].height = 24
+    ws.row_dimensions[row + 2].height = 10
+    return row + 3
+
+
+def _pro_cards(ws, row, cards):
+    """KPI cards on rows row/row+1. cards = [(first_col, last_col, label, value)].
+    Returns the next free row."""
+    gap = Border(left=Side(style='thick', color='FFFFFFFF'))   # white seam between cards
+    fill = PatternFill('solid', fgColor=_PRO_CARD)
+    for k, (first, last, label, value) in enumerate(cards):
+        for r, text, font in ((row, label, _pro_font(9, False, _PRO_MUTED)),
+                              (row + 1, value, _pro_font(15, True, _PRO_NAVY))):
+            if first != last:
+                ws.merge_cells(f'{first}{r}:{last}{r}')
+            c = ws[f'{first}{r}']
+            c.value = text
+            c.font = font
+            c.alignment = Alignment(horizontal='left', vertical='center', indent=1)
+            for col in range(ord(first), ord(last) + 1):
+                cell = ws[f'{chr(col)}{r}']
+                cell.fill = fill
+                if k and col == ord(first):
+                    cell.border = gap
+    ws.row_dimensions[row].height = 20
+    ws.row_dimensions[row + 1].height = 32
+    ws.row_dimensions[row + 2].height = 12
+    return row + 3
+
+
+def _pro_table(ws, row, first, headers, rows, aligns, formats, bar_col=None,
+               empty_text='(無資料)'):
+    """Navy header + zebra body. headers/aligns/formats are per column starting at
+    `first`; rows = list of value lists (a value may be (value, Font) to override
+    the font). Returns (first_body_row, next_free_row)."""
+    col0 = ord(first)
+    last = chr(col0 + len(headers) - 1)
+    hdr_fill = PatternFill('solid', fgColor=_PRO_NAVY)
+    for i, h in enumerate(headers):
+        c = ws.cell(row, col0 - 64 + i, h)
+        c.font = _pro_font(11, True, 'FFFFFFFF')
+        c.fill = hdr_fill
+        c.alignment = Alignment(horizontal='right' if aligns[i] == 'right' else 'center',
+                                vertical='center', indent=1 if aligns[i] == 'right' else 0)
+    ws.row_dimensions[row].height = 26
+    body0 = row + 1
+    line = Border(bottom=Side(style='thin', color=_PRO_RULE))
+    zebra = PatternFill('solid', fgColor=_PRO_ZEBRA)
+    r = body0
+    for n, vals in enumerate(rows):
+        for i, v in enumerate(vals):
+            font = None
+            if isinstance(v, tuple):
+                v, font = v
+            c = ws.cell(r, col0 - 64 + i, v)
+            c.font = font or _pro_font(11, i == 1)
+            c.alignment = Alignment(horizontal=aligns[i], vertical='center',
+                                    indent=1 if aligns[i] in ('left', 'right') else 0)
+            if formats[i]:
+                c.number_format = formats[i]
+            c.border = line
+            if n % 2:
+                c.fill = zebra
+        ws.row_dimensions[r].height = 24
+        r += 1
+    if not rows:
+        ws.merge_cells(f'{first}{r}:{last}{r}')
+        c = ws.cell(r, col0 - 64, empty_text)
+        c.font = _pro_font(11, False, _PRO_MUTED)
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        ws.row_dimensions[r].height = 28
+        r += 1
+    elif bar_col:
+        ws.conditional_formatting.add(
+            f'{bar_col}{body0}:{bar_col}{r - 1}',
+            DataBarRule(start_type='num', start_value=0, end_type='max',
+                        color=_PRO_BAR, showValue=True))
+    return body0, r
+
+
+def _pro_notes(ws, row, first, last, lines):
+    """Grey footnote lines; returns the next free row."""
+    row += 1
+    for text in lines:
+        ws.merge_cells(f'{first}{row}:{last}{row}')
+        c = ws[f'{first}{row}']
+        c.value = text
+        c.font = _pro_font(9, False, _PRO_MUTED)
+        c.alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
+        ws.row_dimensions[row].height = 18
+        row += 1
+    return row
+
+
+def _build_strong_consensus_dashboard(ws, branches_data, trade_date):
+    """v3.80.10: 今日強共識買超清單 — 個股 / 代號 / 領頭分點 / 領頭金額(萬).
+
+    名單 = _compute_consensus_count (≥10 位追蹤大戶淨買 >0、≥2 分點、排除 00 開頭 ETF),
+    與手機摘要 / Section 0 同一套邏輯. 排序沿用 Section 0: 合計淨買 ↓, 大戶數 ↓.
+    v3.80.13 (使用者 2026-10-06): 領頭欄改為「追蹤分點中, 單日淨買金額最多的單一分點」,
+    金額 = 該分點自己的淨買 (仟元 ÷ 10 = 萬). 分點背後不只一人, 不再把金額加總歸給大戶.
+    v3.80.16 (使用者 2026-10-06): 內容不變, 改成報告版面 (標題列 / KPI 卡 / 表格 / 註腳).
+    """
+    picks = sorted(_compute_consensus_count(branches_data),
+                   key=lambda x: (-x['total_net_amt'], -x['master_count'], x['code']))
+    _pro_sheet_setup(ws, [('A', 2), ('B', 6), ('C', 18), ('D', 10), ('E', 26), ('F', 18)])
+    row = _pro_title(ws, 2, 'B', 'F', '今日強共識買超', trade_date,
+                     f"追蹤 {len(TRACKED_MASTERS)} 位大戶中，≥{_CONSENSUS_MIN} 位同日淨買的個股"
+                     f"（不含 ETF）・依合計淨買排序")
+
+    rows = []
+    for i, p in enumerate(picks, 1):
+        top = p['top_branch']
+        rows.append([(i, _pro_font(10, False, _PRO_MUTED)), p['name'], p['code'],
+                     top['name'] or top['code'], round(top['net_amt'] / 10)])
+    best = max(rows, key=lambda r: r[4]) if rows else None
+    row = _pro_cards(ws, row, [
+        ('B', 'C', '入選檔數', f"{len(rows)} 檔"),
+        ('D', 'E', '最大領頭金額', f"{best[4]:,} 萬・{best[1]}" if best else '—'),
+        ('F', 'F', '共識門檻', f"≥{_CONSENSUS_MIN} 位大戶"),
+    ])
+    _, row = _pro_table(ws, row, 'B', ['#', '個股', '代號', '領頭分點', '領頭金額(萬)'], rows,
+                        ['center', 'left', 'center', 'left', 'right'],
+                        [None, None, None, None, '#,##0'],
+                        empty_text='(今日無強共識股)')
+    _pro_notes(ws, row, 'B', 'F', [
+        '領頭分點＝追蹤分點中，當日淨買金額最多的單一分點；領頭金額＝該分點自己的淨買（萬元）。',
+        f"資料：富邦 DJ 分點進出・{_pro_date(trade_date)}　｜　Chip Radar TW",
+    ])
+    ws.freeze_panes = 'A9'
+    ws.print_title_rows = '8:8'
+
+
 def build_dashboard_sheet(ws: "Worksheet", branches_data: List[Dict], trade_date: str,
                             data_dir: Optional[Path] = None,
                             update_timeseries: bool = True):
-    """v3.62.1: 把 E1-E4 4 個 section 全部寫到單一 sheet (用戶要求).
-    順序: A 規模 → B Top master → C Top stocks → D 籌碼溫度
-        → E 異常警報 → F 連續囤貨 → G 注意股 → H 借券 → I 除權息
+    """📋 今日 Dashboard.
+    v3.80.10 (使用者 2026-10-05): 只呈現今日強共識買超清單 (≥10 位追蹤大戶共同淨買),
+    欄位 個股 / 代號 / 領頭大戶 / 領頭金額(萬). 仍更新 timeseries.json.
     """
     data_dir = data_dir or Path('data')
-    title_fill = _summary_fill('FF1F2A48')
-    title_font = _summary_font_header()
 
     # v3.63.2: 嚴格只保留追蹤清單內的大戶 (MASTER_MAPPING)
     # v3.64.3: 保留全市場 branches 供 Section A 計算「追蹤佔比 vs 全市場」
     all_branches = branches_data
     branches_data = _filter_tracked_branches(branches_data)
 
-    for col, w in [('A', 4), ('B', 22), ('C', 18), ('D', 22), ('E', 16),
-                    ('F', 22), ('G', 18), ('H', 22), ('I', 16)]:
-        ws.column_dimensions[col].width = w
-
-    # ── 大標題 ──
-    ws.merge_cells('B2:N2')
-    c = ws['B2']
-    c.value = (f"📋 Chip Radar 今日 Dashboard — "
-                f"{trade_date[:4]}/{trade_date[4:6]}/{trade_date[6:]} "
-                f"(追蹤 {len(TRACKED_MASTERS)} 位大戶)")
-    c.font = title_font
-    c.fill = title_fill
-    c.alignment = Alignment(horizontal='center', vertical='center')
-    ws.row_dimensions[2].height = 30
-
-    # ── v3.66.4 Phase 2.1: TL;DR + Action card (首屏 5 秒決策摘要) ──
-    _build_tldr_action_cards(ws, branches_data, all_branches, trade_date, data_dir)
-
-    # ── 各 section ──
-    row = 6   # v3.66.4: 從 row 4 → row 6 (讓 TL;DR + Action)
-    # v3.63.2: ★ Section 0 — 今日共同買超 (置於最前, 使用者最關注)
-    row = _build_section_consensus(ws, branches_data, data_dir, row, trade_date=trade_date)
-    row = _build_section_summary(ws, branches_data, trade_date, data_dir, row,
-                                   all_branches=all_branches,
-                                   update_timeseries=update_timeseries)
-    row = _build_section_alerts(ws, data_dir, row)
-    row = _build_section_accumulation(ws, data_dir, row)
-    row = _build_section_pivot(ws, branches_data, row)   # v3.63.0 E7 Pivot
-    row = _build_section_risk(ws, data_dir, row, trade_date=trade_date)
-
-    # v3.66.4: freeze pane 延伸到 row 5 (TL;DR + Action 永遠看得到)
-    ws.freeze_panes = 'A6'
+    # v3.80.10 (使用者 2026-10-05): Dashboard 只呈現「今日強共識買超」清單,
+    # 欄位 個股 / 代號 / 領頭大戶 / 領頭金額(萬). 其餘區塊不再畫, 但 KPI 照樣
+    # 寫進 timeseries.json — 手機摘要 (= 每日 Email) 的「vs 昨 / 5 日均」靠它.
+    _update_load_timeseries(data_dir, trade_date,
+                            _timeseries_kpis(_compute_summary_kpis(branches_data, all_branches)),
+                            update=update_timeseries)
+    _build_strong_consensus_dashboard(ws, branches_data, trade_date)
+    # 舊版多區塊 Dashboard (TL;DR、A 追蹤池、警報、囤貨、Pivot、風險) 見 git 1182f54;
+    # 各 _build_section_* 函式保留 (手機摘要等仍可能共用).
 
 
 # v3.62.0 → v3.62.1 backward compat: 舊 builder name 保留但呼叫 dashboard
@@ -3847,10 +4209,36 @@ def apply_pnl_color_scale(ws: "Worksheet", first_row: int, last_row: int, col_le
     ws.conditional_formatting.add(f'{col_letter}{first_row}:{col_letter}{last_row}', rule)
 
 
+def mobile_summary_text(ws) -> str:
+    """v3.80.13: 手機摘要 sheet → Email 純文字. 與 scripts/extract_mobile_summary_text.py
+    原本讀 latest.xlsx 的邏輯相同: C 欄由第 1 列起, 頭尾空行去掉, 連續空行壓成 1 行."""
+    lines = ['' if ws[f'C{r}'].value is None else str(ws[f'C{r}'].value)
+             for r in range(1, ws.max_row + 1)]
+    while lines and lines[0] == '':
+        lines.pop(0)
+    while lines and lines[-1] == '':
+        lines.pop()
+    out, prev_blank = [], False
+    for ln in lines:
+        if ln == '':
+            if not prev_blank:
+                out.append('')
+            prev_blank = True
+        else:
+            out.append(ln)
+            prev_blank = False
+    return '\n'.join(out)
+
+
 def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
-                              trade_date: str):
+                              trade_date: str,
+                              limit_up_summary: Optional[Dict] = None):
     """v3.31.0: 開啟既有月檔 (若有) 或新建, add/update 該日 sheet, save back.
-    sheet 名 = trade_date (YYYYMMDD), 同日重跑會覆寫該 sheet, sheets 按日期 desc 排序."""
+    sheet 名 = trade_date (YYYYMMDD), 同日重跑會覆寫該 sheet, sheets 按日期 desc 排序.
+
+    v3.72.11: 若 limit_up_summary 有 sniper_top_buyer_index (crawler enricher 產),
+    傳給 build_day_sheet 避免二次 fetch histock.
+    """
     if monthly_path.exists():
         try:
             wb = load_workbook(str(monthly_path))
@@ -3868,9 +4256,19 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     if trade_date in wb.sheetnames:
         wb.remove(wb[trade_date])
 
+    # v3.72.11: 從 limit_up_summary 拿 precomputed histock 結果
+    precomputed_top = None
+    precomputed_stats = None
+    if limit_up_summary:
+        precomputed_top = limit_up_summary.get('sniper_top_buyer_index')
+        meta = limit_up_summary.get('sniper_top_buyer_meta') or {}
+        precomputed_stats = meta.get('stats')
+
     # 新建該日 sheet (build_day_sheet 在 ws 內 render 老闆版)
     ws = wb.create_sheet(title=trade_date)
-    total_rows = build_day_sheet(ws, branches_data, trade_date)
+    total_rows = build_day_sheet(ws, branches_data, trade_date,
+                                  precomputed_top_buyer=precomputed_top,
+                                  precomputed_stats=precomputed_stats)
     # v3.64.0: 拿掉 L 欄 ColorScaleRule (用戶反饋: master block 紅/淡綠 fill +
     # 色階重疊變糊, 改用 _font_pnl_pos/neg 字色 (深紅/深綠) 直接清楚)
 
@@ -3889,46 +4287,30 @@ def _update_monthly_workbook(monthly_path: Path, branches_data: List[Dict],
     except Exception as _be:
         print(f"  [Excel] dashboard sheet build 失敗: {type(_be).__name__}: {_be}")
 
-    # v3.67.1 Phase 2.7: 手機摘要 sheet (Dashboard 後第 2 個)
-    if MOBILE_SHEET_NAME in wb.sheetnames:
-        wb.remove(wb[MOBILE_SHEET_NAME])
-    mobile_ws = wb.create_sheet(title=MOBILE_SHEET_NAME)
+    # v3.80.13: 手機摘要不再是 Excel 頁籤 — 在記憶體建一張暫時的 sheet, 轉成純文字
+    # 存 reports/mobile_summary.txt 給每日 Email. Quad 實戰追蹤 / 失效歸因 不再產生
+    # (舊月檔殘留由上面的 LEGACY_ENRICHMENT_NAMES 清掉).
+    _txt = monthly_path.parent / MOBILE_SUMMARY_TXT
+    _txt.unlink(missing_ok=True)   # 失敗時寧可沒有檔 (Email 步驟報錯), 也不寄前一天的內容
     try:
-        build_mobile_summary_sheet(mobile_ws, branches_data, trade_date, data_dir)
+        _tmp_ws = Workbook().active
+        build_mobile_summary_sheet(_tmp_ws, branches_data, trade_date, data_dir)
+        _txt.write_text(
+            mobile_summary_text(_tmp_ws) + '\n', encoding='utf-8')
     except Exception as _be:
-        print(f"  [Excel] mobile summary sheet build 失敗: {type(_be).__name__}: {_be}")
+        print(f"  [Excel] mobile summary text build 失敗: {type(_be).__name__}: {_be}")
 
-    # v3.70.2 Phase 3.2 持續性追蹤: Quad 實戰追蹤 sheet (Dashboard 後第 3 個)
-    if QUAD_TRACK_SHEET_NAME in wb.sheetnames:
-        wb.remove(wb[QUAD_TRACK_SHEET_NAME])
-    quad_ws = wb.create_sheet(title=QUAD_TRACK_SHEET_NAME)
-    try:
-        build_quad_track_sheet(quad_ws, data_dir)
-    except Exception as _be:
-        print(f"  [Excel] quad track sheet build 失敗: {type(_be).__name__}: {_be}")
-
-    # v3.70.3 Phase 3.2 失效歸因: Quad 失效歸因 sheet (Dashboard 後第 4 個)
-    if QUAD_FAIL_SHEET_NAME in wb.sheetnames:
-        wb.remove(wb[QUAD_FAIL_SHEET_NAME])
-    fail_ws = wb.create_sheet(title=QUAD_FAIL_SHEET_NAME)
-    try:
-        build_quad_failure_sheet(fail_ws, data_dir)
-    except Exception as _be:
-        print(f"  [Excel] quad failure sheet build 失敗: {type(_be).__name__}: {_be}")
-
-    # v3.71.18 L2: Pinned master 追蹤 sheet (Dashboard 後第 5 個)
+    # v3.71.18 L2: Pinned master 追蹤 sheet (Dashboard 後第 2 個)
     if PINNED_TRACK_SHEET_NAME in wb.sheetnames:
         wb.remove(wb[PINNED_TRACK_SHEET_NAME])
     pinned_ws = wb.create_sheet(title=PINNED_TRACK_SHEET_NAME)
     try:
-        build_pinned_track_sheet(pinned_ws, branches_data, data_dir)
+        build_pinned_track_sheet(pinned_ws, branches_data, data_dir, trade_date=trade_date)
     except Exception as _be:
         print(f"  [Excel] pinned track sheet build 失敗: {type(_be).__name__}: {_be}")
 
-    # 排序: dashboard → mobile → quad track → quad fail → pinned → 日期 sheets desc
-    enrichment = [DASHBOARD_SHEET_NAME, MOBILE_SHEET_NAME,
-                  QUAD_TRACK_SHEET_NAME, QUAD_FAIL_SHEET_NAME,
-                  PINNED_TRACK_SHEET_NAME]
+    # 排序: dashboard → pinned → 日期 sheets desc (v3.80.13)
+    enrichment = ENRICHMENT_SHEETS
     other_sheets = sorted([s for s in wb.sheetnames if s not in enrichment],
                             reverse=True)
     order = [s for s in enrichment if s in wb.sheetnames] + other_sheets
@@ -3989,7 +4371,8 @@ def _update_latest_multi_sheet(latest_path: Path, branches_data: List[Dict],
 # ============================================================
 
 def generate_excel_report(branches_data: List[Dict], trade_date: str,
-                           output_dir: str = "data/reports") -> Optional[str]:
+                           output_dir: str = "data/reports",
+                           limit_up_summary: Optional[Dict] = None) -> Optional[str]:
     """
     Generate Excel daily report (mimics manual 「分點觀察」 layout).
 
@@ -3997,6 +4380,9 @@ def generate_excel_report(branches_data: List[Dict], trade_date: str,
       branches_data: list of branch dicts from crawler (with buys/sells)
       trade_date: trading day in YYYYMMDD format (e.g. '20260508')
       output_dir: output directory (default 'data/reports')
+      limit_up_summary: v3.72.11 — 若有 (crawler 已跑 sniper_top_buyer_enricher),
+                       其 sniper_top_buyer_index + meta.stats 會直接用, 避免二次
+                       fetch histock. None → excel_report 自己 fetch (backward compat).
 
     Returns:
       file path of the daily snapshot on success, None on failure.
@@ -4030,7 +4416,9 @@ def generate_excel_report(branches_data: List[Dict], trade_date: str,
 
     try:
         # 1. 月檔: 開啟既有 (若有) 或新建, add/update 該日 sheet
-        _update_monthly_workbook(monthly_path, branches_data, trade_date)
+        # v3.72.11: 傳 limit_up_summary 讓 build_day_sheet 可用 precomputed histock 結果
+        _update_monthly_workbook(monthly_path, branches_data, trade_date,
+                                 limit_up_summary=limit_up_summary)
 
         # 2. latest.xlsx = 當月月檔的 copy (前端下載按鈕指向不變)
         import shutil

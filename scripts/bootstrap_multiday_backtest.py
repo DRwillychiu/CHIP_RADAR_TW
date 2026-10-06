@@ -37,7 +37,20 @@ QHL_PATH = ROOT / 'data' / 'quad_hit_log.json'
 SH_PATH = ROOT / 'data' / 'stock_history.json'
 OUT_PATH = ROOT / 'data' / 'multiday_backtest.json'
 
-PREMIUM_MASTERS = {'陳律師', '竹科主力分點', '陳族元'}
+# v3.79.0: 原本這裡硬寫 {'陳律師','竹科主力分點','陳族元'} — 與 excel_report 的
+# 動態 PREMIUM_MASTERS 已漂移到**零交集** (現動態值是 {'巨人傑'}).
+#
+# ⚠️ 但**不能**直接換成動態值 — 那會毀掉這支回測.
+#    名單本身是依績效挑的, 用「今天算出的名單」篩「全部歷史」= 完整 look-ahead.
+#    回測要的是時點快照, 所以改 import PREMIUM_MASTERS_SNAPSHOT (2026-06-26 凍結),
+#    理由完整寫在 src/core/master_tiers.py 第 4 節.
+try:
+    from src.core.master_tiers import (PREMIUM_MASTERS_SNAPSHOT as PREMIUM_MASTERS,
+                                       PREMIUM_SNAPSHOT_DATE, check_snapshot_leakage)
+except ImportError:
+    sys.path.insert(0, str(ROOT))
+    from src.core.master_tiers import (PREMIUM_MASTERS_SNAPSHOT as PREMIUM_MASTERS,
+                                       PREMIUM_SNAPSHOT_DATE, check_snapshot_leakage)
 
 # ── Combo definitions ──
 # 每個 combo 必含 description (經濟學解釋, 反 over-fit guard)
@@ -185,6 +198,16 @@ def main():
         'combos': results,
         'n_total': n_total,
         'is_cutoff_date': is_picks[-1]['date'] if is_picks else None,
+        # v3.79.0: premium_only 是「依績效挑出的 master」去篩 picks —
+        # 名單選擇本身帶偏誤, IS 段數字必然膨脹, 只有 OOS 段有參考價值.
+        'premium_selection': {
+            'masters': sorted(PREMIUM_MASTERS),
+            'snapshot_date': PREMIUM_SNAPSHOT_DATE,
+            'bias_note': ('名單依 2026-06-26 前的績效挑出 → IS 段為 in-sample, '
+                          '不可當預測力證據; 僅 OOS 段具參考價值'),
+            'leakage_warning': check_snapshot_leakage(
+                is_picks[-1]['date'] if is_picks else None),
+        },
         'split': '60/40',
     }, ensure_ascii=False, indent=2), encoding='utf-8')
     print(f"✅ 寫入 {OUT_PATH}")

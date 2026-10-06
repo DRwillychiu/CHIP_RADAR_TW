@@ -284,6 +284,40 @@ def compute_chip_temperature(raw_output, trade_date=None):
     }
 
 
+def _sync_temp_with_market(history, market):
+    """v3.80.5: temp_history 每筆的 taiex_* 與 next_day_change_pct 以 market 為準重算.
+
+    next_day = market 中 d 之後**緊接**的那個交易日的 change_pct.
+    只在 market 同時有 d 與下一交易日時才寫 — 拿不到就保留原值, 絕不寫成 None 蓋掉.
+    回傳 {'taiex_fixed': n, 'next_fixed': n}.
+    """
+    md = sorted(market)
+    pos = {d: i for i, d in enumerate(md)}
+    tf = nf = 0
+    for e in history:
+        d = e.get('date')
+        if d not in pos:
+            continue
+        m = market[d] or {}
+        if m.get('index') is not None and e.get('taiex_index') != m.get('index'):
+            e['taiex_index'] = m.get('index')
+        cp = m.get('change_pct')
+        if cp is not None and e.get('taiex_change_pct') != cp:
+            e['taiex_change_pct'] = cp
+            tf += 1
+        i = pos[d]
+        if i + 1 < len(md):
+            nx = (market[md[i + 1]] or {}).get('change_pct')
+            old = e.get('next_day_change_pct')
+            if nx is not None and (old is None or abs(old - nx) >= 0.02):
+                e['next_day_change_pct'] = nx
+                e['next_day_source'] = 'market_sync_v3.80.5'
+                nf += 1
+    if tf or nf:
+        print(f"  ↻ temp_history 對齊 market: taiex_change_pct 修 {tf} / next_day 修 {nf}")
+    return {'taiex_fixed': tf, 'next_fixed': nf}
+
+
 def update_temp_history(data_dir, trade_date, temp_result, max_days=60):
     """更新 data/temp_history.json (前端 chart 讀取 + v3.27.1 校準資料源).
 
@@ -305,6 +339,7 @@ def update_temp_history(data_dir, trade_date, temp_result, max_days=60):
 
     # 從 stock_history.json 讀今日大盤 TAIEX
     taiex_today = None
+    sh = None
     try:
         sh_file = data_dir / "stock_history.json"
         if sh_file.exists():
@@ -349,6 +384,17 @@ def update_temp_history(data_dir, trade_date, temp_result, max_days=60):
                 if i >= 1 and history[i-1].get('next_day_change_pct') is None:
                     history[i-1]['next_day_change_pct'] = taiex_today.get('change_pct')
                 break
+
+    # v3.80.5: 每次都以 stock_history.market 全量重新對齊 (冪等, 自我修復)
+    # 上面的「只回填前一筆、且只在 None 時填」有兩個盲點:
+    #   1. 某天大盤缺資料 → 那天之後永遠不會被補 (只看「今天」)
+    #   2. 已經填錯的值 (例: 對著錯的錨點算) 永遠不會被更正
+    # 2026-10-01 實測: taiex_change_pct 60 筆中 36 筆錯 / 18 筆 None.
+    # market 現在有 heal_market_gaps 保證完整, 這裡跟著它走即可.
+    try:
+        _sync_temp_with_market(history, (sh or {}).get('market') or {})
+    except Exception as _se:
+        print(f"  ⚠️ temp_history 對齊失敗 (不影響主流程): {type(_se).__name__}: {_se}")
 
     # 截斷
     history = history[-max_days:]

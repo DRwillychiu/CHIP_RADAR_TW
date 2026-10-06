@@ -3,18 +3,49 @@ name: 8. Intraday Settlement First Look (13:35 TW)
 # v3.41.0 (2026-06-19, Sprint 4):
 # 盤後 5 分鐘抓 TWSE 三大法人 first look
 # 不等 21:17 主排程, 提早 8 小時看到當日法人態勢
+# v3.80.4: 加交易日開關 gate job, 國定假日/颱風假不再空跑
 
 on:
   schedule:
-    # 週二-六 UTC 05:35 = TW 13:35 (盤後 5 分鐘)
-    - cron: '35 5 * * 2-6'
+    # 週一-五 UTC 05:35 = TW 13:35 (盤後 5 分鐘)
+    # v3.79.1 修: 原為 '2-6' (TW 週二~週六) → 每週一無盤中回顧, 週六空跑.
+    #   UTC 05:35 與 TW 13:35 同日, 故用 1-5 正確對應台股交易日.
+    - cron: '35 5 * * 1-5'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+      session: ${{ steps.gate.outputs.session }}
+    steps:
+      - name: Checkout (gate files only)
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            scripts/trading_gate.py
+            src
+            data/twse_holidays.json
+            data/latest.json
+          sparse-checkout-cone-mode: false
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Trading-day gate
+        id: gate
+        run: python scripts/trading_gate.py --kind day --event "${{ github.event_name }}" --schedule "${{ github.event.schedule }}"
+
   settlement:
+    needs: gate
+    # fail-open: skip only when the gate ran and said no; a crashed gate must not
+    # silently cancel a trading-day run
+    if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.run == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 

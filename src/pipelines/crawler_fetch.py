@@ -22,6 +22,9 @@ COOL_DOWN_EVERY = 10      # 每 N 個分點後長休息
 COOL_DOWN_SECONDS = 8
 
 URL_TPL = "https://fubon-ebrokerdj.fbs.com.tw/z/zg/zgb/zgb0.djhtm?a={code}&b={code}&c={mode}&d=1"
+# v3.80.2: the page names the branch it actually served, e.g. ('9A9G','9A9G','frm').
+# 2026-09-25: a plain 9A9g request was served as 9A9G -> used as an identity check.
+IDENTITY_RE = re.compile(r"\('([0-9A-Za-z]+)','([0-9A-Za-z]+)','frm'\)")
 HOME_URL = "https://fubon-ebrokerdj.fbs.com.tw/"
 
 UA_POOL = [
@@ -33,14 +36,19 @@ UA_POOL = [
 ROW_PATTERN = re.compile(
     r"<tr>\s*<td[^>]*id=\"oAddCheckbox\"[^>]*>\s*"
     r"(?:"
-    r"<SCRIPT[^>]*>\s*<!--\s*GenLink2stk\('(?:AS)?(\w+)',\s*'([^']+)'\)"
+    r"<SCRIPT[^>]*>\s*<!--\s*GenLink2stk\('(?:AS)?(?P<g_code>\w+)',\s*'(?P<g_name>[^']+)'\)"
     r"|"
-    r"<a[^>]*>([0-9A-Z]+)([^<]+)</a>"
+    # v3.80.11: code from the link target. The link TEXT is code+name glued
+    # together ("00961FT臺灣永續高息" for 00961 FT臺灣永續高息), so reading the
+    # code off the text swallowed a name that starts with capital letters.
+    r"<a[^>]*Link2Stk\('(?P<l_code>\w+)'\)[^>]*>(?P<l_text>[^<]+)</a>"
+    r"|"
+    r"<a[^>]*>(?P<a_code>[0-9A-Z]+)(?P<a_name>[^<]+)</a>"      # older pages, no Link2Stk
     r")"
     r".*?"
-    r"<td[^>]*>([\d,]+)</td>\s*"
-    r"<td[^>]*>([\d,]+)</td>\s*"
-    r"<td[^>]*>(-?[\d,]+)</td>",
+    r"<td[^>]*>(?P<v1>[\d,]+)</td>\s*"
+    r"<td[^>]*>(?P<v2>[\d,]+)</td>\s*"
+    r"<td[^>]*>(?P<v3>-?[\d,]+)</td>",
     re.DOTALL,
 )
 
@@ -50,21 +58,44 @@ def parse_region(html):
     """解析買超或賣超表格區塊"""
     rows = []
     for m in ROW_PATTERN.finditer(html):
-        code = m.group(1) or m.group(3)
-        name = (m.group(2) or m.group(4) or "").strip()
+        if m.group('l_code'):
+            code = m.group('l_code')
+            text = m.group('l_text').strip()
+            name = text[len(code):] if text.startswith(code) else text
+        else:
+            code = m.group('g_code') or m.group('a_code')
+            name = m.group('g_name') or m.group('a_name') or ""
+        name = name.strip()
         try:
-            v1 = int(m.group(5).replace(",", ""))
-            v2 = int(m.group(6).replace(",", ""))
-            v3 = int(m.group(7).replace(",", ""))
+            v1 = int(m.group('v1').replace(",", ""))
+            v2 = int(m.group('v2').replace(",", ""))
+            v3 = int(m.group('v3').replace(",", ""))
         except ValueError:
             continue
         rows.append({"code": code, "name": name, "v1": v1, "v2": v2, "v3": v3})
     return rows
 
 
-def fetch_branch_mode(branch_code, mode, max_retries=3):
-    """爬取指定分點的指定模式 (mode='B' 金額, mode='E' 張數)"""
-    url = URL_TPL.format(code=branch_code, mode=mode)
+def fubon_bno(branch_code):
+    """v3.80.1: bno as Fubon's own broker list (zbrokerjs) writes it.
+
+    Codes containing a letter are sent UTF-16BE hex encoded (9A9g ->
+    0039004100390067). Fubon does not tell letter case apart for the plain
+    form: 9A9g (永豐金-內湖) and 9A9G (永豐金-天母) collide, and which branch's
+    page comes back depends on what was requested first. Measured 2026-09-25:
+    plain 9A9g returned 天母's data; the hex form matched the date-pinned page
+    for all 38 lettered codes in WATCHED_BRANCHES. Digit-only codes unchanged.
+    """
+    if any(ch.isalpha() for ch in branch_code):
+        return ''.join(f'{ord(ch):04X}' for ch in branch_code)
+    return branch_code
+
+
+def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
+    """爬取指定分點的指定模式 (mode='B' 金額, mode='E' 張數)
+    top_n=None 保留整頁 (v3.80.1: 張數頁給 merge 查表用)"""
+    sent = fubon_bno(branch_code)
+    url = URL_TPL.format(code=sent, mode=mode)
     last_err = None
     for attempt in range(max_retries):
         try:
@@ -88,17 +119,27 @@ def fetch_branch_mode(branch_code, mode, max_retries=3):
                 time.sleep(5 + attempt * 3)
                 continue
             
+            # v3.80.2: 頁面自報的分點 != 我們要的 → 別的分點的資料, 寧可失敗也不收
+            id_m = IDENTITY_RE.search(html)
+            if id_m and id_m.group(2) != sent:
+                last_err = f"identity mismatch: sent {sent}, page is {id_m.group(2)}"
+                time.sleep(3 + attempt * 3)
+                continue
+            identity = "verified" if id_m else "unverified"
+            if not id_m:
+                print(f"\n::warning::{branch_code} mode {mode}: page has no branch-id marker, identity unverified")
+
             date_m = re.search(r"資料日期：(\d{8})", html)
             date = date_m.group(1) if date_m else None
             
             buy_idx = html.find("買超</td>")
             sell_idx = html.find("賣超</td>")
             if buy_idx < 0 or sell_idx < 0:
-                return {"date": date, "buys": [], "sells": [], "error": None}
+                return {"date": date, "buys": [], "sells": [], "error": None, "identity": identity}
             
-            buys = parse_region(html[buy_idx:sell_idx])[:TOP_N]
-            sells = parse_region(html[sell_idx:])[:TOP_N]
-            return {"date": date, "buys": buys, "sells": sells, "error": None}
+            buys = parse_region(html[buy_idx:sell_idx])[:top_n]
+            sells = parse_region(html[sell_idx:])[:top_n]
+            return {"date": date, "buys": buys, "sells": sells, "error": None, "identity": identity}
         except Exception as e:
             last_err = str(e)
             time.sleep(3 + attempt * 3)
@@ -123,26 +164,31 @@ def fetch_branch_combined(branch_code):
     }
     """
     # 爬金額模式
-    amt_result = fetch_branch_mode(branch_code, "B")
+    # v3.80.1: 整頁 (約 50 檔/邊) 當查表; 列的集合仍是前 TOP_N (見 merge_rows)
+    amt_result = fetch_branch_mode(branch_code, "B", top_n=None)
     if amt_result["error"]:
         return {"date": None, "buys": [], "sells": [], "error": amt_result["error"]}
     
     time.sleep(random.uniform(1.5, 2.5))  # 兩次請求之間的小停頓
     
-    # 爬張數模式
-    lot_result = fetch_branch_mode(branch_code, "E")
+    # 爬張數模式 — v3.80.1: 保留整頁 (約 50 檔/邊). 原本也截在 TOP_N=30,
+    # 張數榜第 31~50 名的股票真實張數被丟掉, 再被 crawler.py 用收盤價反推覆蓋
+    # (實測 8562 南亞科 真 59 張 → 顯示 58). 整頁只拿來查張數, 列數不變.
+    lot_result = fetch_branch_mode(branch_code, "E", top_n=None)
     if lot_result["error"]:
-        # 張數爬失敗也可以繼續，只是沒有張數資料
-        lot_result = {"date": None, "buys": [], "sells": [], "error": None}
+        # 張數爬失敗也可以繼續，只是沒有張數資料 (金額頁已驗證身分)
+        print(f"\n::warning::{branch_code} lots page failed ({lot_result['error']}); lots will be estimated")
+        lot_result = {"date": None, "buys": [], "sells": [], "error": None, "identity": "failed"}
     
     # 合併策略：聯集（不論在哪個排行）→ 最完整的當日交易紀錄
     # - 只在金額排行的 → 有 amt，lot 為 0（可能是高價股，張數少沒上榜）
     # - 只在張數排行的 → 有 lot，amt 為 0（可能是低價股，金額少沒上榜）
     # - 兩邊都有的 → amt + lot 都完整（可計算 FIFO 損益）
     def merge_rows(amt_rows, lot_rows):
-        amt_map = {r["code"]: r for r in amt_rows}
-        lot_map = {r["code"]: r for r in lot_rows}
-        all_codes = list({r["code"]: None for r in amt_rows + lot_rows}.keys())  # 保持順序（優先依金額排行）
+        amt_map = {r["code"]: r for r in amt_rows}   # 整頁: 查金額用
+        lot_map = {r["code"]: r for r in lot_rows}   # 整頁: 查張數用
+        # 列的集合維持 v3.80.0 以前: 金額前 TOP_N ∪ 張數前 TOP_N
+        all_codes = list({r["code"]: None for r in amt_rows[:TOP_N] + lot_rows[:TOP_N]}.keys())  # 保持順序（優先依金額排行）
         
         merged = []
         for code in all_codes:
@@ -223,6 +269,9 @@ def fetch_branch_combined(branch_code):
                 "buy_avg": buy_avg, "sell_avg": sell_avg,
                 "pnl_intraday": pnl_intraday,
                 "data_complete": has_amt and has_lot,  # 兩邊都有才能 FIFO
+                # v3.80.1: 該股有沒有出現在金額頁 / 張數頁. 有出現 = 數字是真的
+                # (張數頁寫 0 = 真的不足 1 張, 例如零股), crawler.py 只對「沒出現」反推
+                "amt_listed": has_amt, "lot_listed": has_lot,
                 "trade_style": trade_style,
                 "daytrade_ratio": daytrade_ratio,
                 "overnight_lots": overnight_lots,
@@ -232,6 +281,7 @@ def fetch_branch_combined(branch_code):
     
     return {
         "date": amt_result["date"] or lot_result["date"],
+        "identity": amt_result.get("identity"),   # v3.80.2: 金額頁身分 (verified / unverified)
         "buys": merge_rows(amt_result["buys"], lot_result["buys"]),
         "sells": merge_rows(amt_result["sells"], lot_result["sells"]),
         "error": None,

@@ -1,521 +1,71 @@
 {
   "summary": {
     "baseline": {
-      "n": 604,
-      "hits": 259,
-      "hit_rate": 0.4288079470198676,
-      "mean_change": -0.37327814569536427,
-      "median_change": -0.64,
+      "n": 665,
+      "hits": 297,
+      "hit_rate": 0.44661654135338347,
+      "mean_change": -0.04294736842105191,
+      "median_change": -0.13,
       "days": 59,
       "desc": "全部共識股 (對照)"
     },
     "e_anomaly_only": {
-      "n": 604,
-      "hits": 259,
-      "hit_rate": 0.4288079470198676,
-      "mean_change": -0.37327814569536427,
-      "median_change": -0.64,
+      "n": 660,
+      "hits": 296,
+      "hit_rate": 0.4484848484848485,
+      "mean_change": -0.016424242424241838,
+      "median_change": -0.1,
       "days": 59,
       "desc": "共識 ∩ ≥1 master 異常 (vol_spike OR new_stocks)"
     },
     "e_volume_spike_only": {
-      "n": 283,
-      "hits": 134,
-      "hit_rate": 0.4734982332155477,
-      "mean_change": 0.735547703180211,
-      "median_change": 0.0,
-      "days": 28,
+      "n": 100,
+      "hits": 35,
+      "hit_rate": 0.35,
+      "mean_change": -1.1700000000000004,
+      "median_change": -1.39,
+      "days": 10,
       "desc": "共識 ∩ ≥1 master volume_spike"
     },
     "e_new_stocks_only": {
-      "n": 604,
-      "hits": 259,
-      "hit_rate": 0.4288079470198676,
-      "mean_change": -0.37327814569536427,
-      "median_change": -0.64,
-      "days": 59,
+      "n": 632,
+      "hits": 290,
+      "hit_rate": 0.4588607594936709,
+      "mean_change": 0.08533227848101332,
+      "median_change": 0.0,
+      "days": 57,
       "desc": "共識 ∩ ≥1 master new_stocks"
     },
     "e_anomaly_q5_bull": {
-      "n": 509,
-      "hits": 227,
-      "hit_rate": 0.44597249508840864,
-      "mean_change": -0.1330058939096268,
-      "median_change": -0.61,
-      "days": 49,
+      "n": 476,
+      "hits": 213,
+      "hit_rate": 0.4474789915966387,
+      "mean_change": -0.026890756302520406,
+      "median_change": -0.32,
+      "days": 44,
       "desc": "共識 ∩ Q5 偏多 ∩ ≥1 master 異常 (3 訊號)"
     },
     "e_vol_spike_q5_bull": {
-      "n": 249,
-      "hits": 129,
-      "hit_rate": 0.5180722891566265,
-      "mean_change": 1.1917269076305215,
-      "median_change": 0.28,
-      "days": 25,
+      "n": 73,
+      "hits": 32,
+      "hit_rate": 0.4383561643835616,
+      "mean_change": 0.10095890410958928,
+      "median_change": -0.79,
+      "days": 8,
       "desc": "共識 ∩ Q5 偏多 ∩ ≥1 master volume_spike (嚴格 3 訊號)"
     },
     "q5_bull_only": {
-      "n": 509,
-      "hits": 227,
-      "hit_rate": 0.44597249508840864,
-      "mean_change": -0.1330058939096268,
-      "median_change": -0.61,
-      "days": 49,
+      "n": 479,
+      "hits": 214,
+      "hit_rate": 0.44676409185803756,
+      "mean_change": -0.03665970772442523,
+      "median_change": -0.32,
+      "days": 44,
       "desc": "共識 ∩ Q5 偏多 (Phase 3.1 對比)"
     }
   },
   "best": [],
   "per_day": [
-    {
-      "date": "20260506",
-      "next": "20260507",
-      "cons": 9,
-      "next_avail": 9,
-      "q5": null,
-      "vol_spike_masters": 5,
-      "new_stocks_masters": 12,
-      "e_hits": 0
-    },
-    {
-      "date": "20260507",
-      "next": "20260508",
-      "cons": 8,
-      "next_avail": 8,
-      "q5": null,
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 12,
-      "e_hits": 3
-    },
-    {
-      "date": "20260508",
-      "next": "20260511",
-      "cons": 10,
-      "next_avail": 10,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 12,
-      "e_hits": 9
-    },
-    {
-      "date": "20260511",
-      "next": "20260512",
-      "cons": 8,
-      "next_avail": 8,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 13,
-      "e_hits": 5
-    },
-    {
-      "date": "20260512",
-      "next": "20260513",
-      "cons": 8,
-      "next_avail": 8,
-      "q5": "偏多",
-      "vol_spike_masters": 4,
-      "new_stocks_masters": 13,
-      "e_hits": 3
-    },
-    {
-      "date": "20260513",
-      "next": "20260514",
-      "cons": 9,
-      "next_avail": 9,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 13,
-      "e_hits": 5
-    },
-    {
-      "date": "20260514",
-      "next": "20260515",
-      "cons": 10,
-      "next_avail": 10,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 13,
-      "e_hits": 3
-    },
-    {
-      "date": "20260515",
-      "next": "20260518",
-      "cons": 11,
-      "next_avail": 11,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 13,
-      "e_hits": 1
-    },
-    {
-      "date": "20260518",
-      "next": "20260519",
-      "cons": 10,
-      "next_avail": 10,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 13,
-      "e_hits": 2
-    },
-    {
-      "date": "20260519",
-      "next": "20260520",
-      "cons": 10,
-      "next_avail": 10,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 13,
-      "e_hits": 2
-    },
-    {
-      "date": "20260520",
-      "next": "20260521",
-      "cons": 12,
-      "next_avail": 12,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 13,
-      "e_hits": 11
-    },
-    {
-      "date": "20260521",
-      "next": "20260522",
-      "cons": 6,
-      "next_avail": 6,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 13,
-      "e_hits": 6
-    },
-    {
-      "date": "20260522",
-      "next": "20260525",
-      "cons": 6,
-      "next_avail": 6,
-      "q5": "偏多",
-      "vol_spike_masters": 4,
-      "new_stocks_masters": 13,
-      "e_hits": 5
-    },
-    {
-      "date": "20260525",
-      "next": "20260526",
-      "cons": 10,
-      "next_avail": 10,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 13,
-      "e_hits": 8
-    },
-    {
-      "date": "20260526",
-      "next": "20260527",
-      "cons": 11,
-      "next_avail": 11,
-      "q5": "偏多",
-      "vol_spike_masters": 3,
-      "new_stocks_masters": 13,
-      "e_hits": 6
-    },
-    {
-      "date": "20260527",
-      "next": "20260528",
-      "cons": 12,
-      "next_avail": 12,
-      "q5": "偏多",
-      "vol_spike_masters": 2,
-      "new_stocks_masters": 13,
-      "e_hits": 5
-    },
-    {
-      "date": "20260528",
-      "next": "20260529",
-      "cons": 13,
-      "next_avail": 13,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 12,
-      "e_hits": 11
-    },
-    {
-      "date": "20260529",
-      "next": "20260601",
-      "cons": 9,
-      "next_avail": 9,
-      "q5": "偏多",
-      "vol_spike_masters": 3,
-      "new_stocks_masters": 13,
-      "e_hits": 4
-    },
-    {
-      "date": "20260601",
-      "next": "20260602",
-      "cons": 11,
-      "next_avail": 11,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 13,
-      "e_hits": 6
-    },
-    {
-      "date": "20260602",
-      "next": "20260603",
-      "cons": 10,
-      "next_avail": 10,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 13,
-      "e_hits": 8
-    },
-    {
-      "date": "20260603",
-      "next": "20260604",
-      "cons": 12,
-      "next_avail": 12,
-      "q5": "偏多",
-      "vol_spike_masters": 2,
-      "new_stocks_masters": 13,
-      "e_hits": 8
-    },
-    {
-      "date": "20260604",
-      "next": "20260605",
-      "cons": 13,
-      "next_avail": 13,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 12,
-      "e_hits": 3
-    },
-    {
-      "date": "20260605",
-      "next": "20260608",
-      "cons": 11,
-      "next_avail": 11,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 10,
-      "e_hits": 0
-    },
-    {
-      "date": "20260608",
-      "next": "20260609",
-      "cons": 9,
-      "next_avail": 9,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 13,
-      "e_hits": 8
-    },
-    {
-      "date": "20260609",
-      "next": "20260610",
-      "cons": 11,
-      "next_avail": 11,
-      "q5": "偏多",
-      "vol_spike_masters": 2,
-      "new_stocks_masters": 13,
-      "e_hits": 1
-    },
-    {
-      "date": "20260610",
-      "next": "20260611",
-      "cons": 10,
-      "next_avail": 10,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 12,
-      "e_hits": 3
-    },
-    {
-      "date": "20260611",
-      "next": "20260612",
-      "cons": 11,
-      "next_avail": 11,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 12,
-      "e_hits": 10
-    },
-    {
-      "date": "20260612",
-      "next": "20260615",
-      "cons": 8,
-      "next_avail": 8,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 13,
-      "e_hits": 6
-    },
-    {
-      "date": "20260615",
-      "next": "20260616",
-      "cons": 7,
-      "next_avail": 7,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 13,
-      "e_hits": 3
-    },
-    {
-      "date": "20260616",
-      "next": "20260617",
-      "cons": 8,
-      "next_avail": 8,
-      "q5": "偏多",
-      "vol_spike_masters": 2,
-      "new_stocks_masters": 12,
-      "e_hits": 5
-    },
-    {
-      "date": "20260617",
-      "next": "20260618",
-      "cons": 14,
-      "next_avail": 14,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 12,
-      "e_hits": 8
-    },
-    {
-      "date": "20260618",
-      "next": "20260622",
-      "cons": 9,
-      "next_avail": 9,
-      "q5": "偏多",
-      "vol_spike_masters": 3,
-      "new_stocks_masters": 13,
-      "e_hits": 6
-    },
-    {
-      "date": "20260622",
-      "next": "20260623",
-      "cons": 11,
-      "next_avail": 11,
-      "q5": "偏多",
-      "vol_spike_masters": 2,
-      "new_stocks_masters": 13,
-      "e_hits": 1
-    },
-    {
-      "date": "20260623",
-      "next": "20260624",
-      "cons": 14,
-      "next_avail": 14,
-      "q5": "中性",
-      "vol_spike_masters": 3,
-      "new_stocks_masters": 10,
-      "e_hits": 5
-    },
-    {
-      "date": "20260624",
-      "next": "20260625",
-      "cons": 10,
-      "next_avail": 10,
-      "q5": "偏多",
-      "vol_spike_masters": 4,
-      "new_stocks_masters": 9,
-      "e_hits": 6
-    },
-    {
-      "date": "20260625",
-      "next": "20260626",
-      "cons": 11,
-      "next_avail": 11,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 12,
-      "e_hits": 2
-    },
-    {
-      "date": "20260626",
-      "next": "20260629",
-      "cons": 14,
-      "next_avail": 14,
-      "q5": "偏多",
-      "vol_spike_masters": 2,
-      "new_stocks_masters": 8,
-      "e_hits": 11
-    },
-    {
-      "date": "20260629",
-      "next": "20260630",
-      "cons": 12,
-      "next_avail": 12,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 12,
-      "e_hits": 9
-    },
-    {
-      "date": "20260630",
-      "next": "20260701",
-      "cons": 12,
-      "next_avail": 12,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 12,
-      "e_hits": 4
-    },
-    {
-      "date": "20260701",
-      "next": "20260702",
-      "cons": 13,
-      "next_avail": 13,
-      "q5": "偏多",
-      "vol_spike_masters": 1,
-      "new_stocks_masters": 12,
-      "e_hits": 3
-    },
-    {
-      "date": "20260702",
-      "next": "20260703",
-      "cons": 10,
-      "next_avail": 10,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 11,
-      "e_hits": 4
-    },
-    {
-      "date": "20260703",
-      "next": "20260706",
-      "cons": 11,
-      "next_avail": 11,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 13,
-      "e_hits": 3
-    },
-    {
-      "date": "20260706",
-      "next": "20260707",
-      "cons": 16,
-      "next_avail": 16,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 12,
-      "e_hits": 0
-    },
-    {
-      "date": "20260707",
-      "next": "20260708",
-      "cons": 7,
-      "next_avail": 7,
-      "q5": "中性",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 9,
-      "e_hits": 4
-    },
-    {
-      "date": "20260708",
-      "next": "20260709",
-      "cons": 9,
-      "next_avail": 9,
-      "q5": "偏多",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 9,
-      "e_hits": 5
-    },
     {
       "date": "20260709",
       "next": "20260713",
@@ -589,12 +139,12 @@
     {
       "date": "20260721",
       "next": "20260722",
-      "cons": 7,
-      "next_avail": 7,
+      "cons": 6,
+      "next_avail": 6,
       "q5": "偏多",
       "vol_spike_masters": 0,
       "new_stocks_masters": 9,
-      "e_hits": 7
+      "e_hits": 6
     },
     {
       "date": "20260722",
@@ -639,8 +189,8 @@
     {
       "date": "20260728",
       "next": "20260729",
-      "cons": 12,
-      "next_avail": 12,
+      "cons": 11,
+      "next_avail": 11,
       "q5": "偏空",
       "vol_spike_masters": 1,
       "new_stocks_masters": 9,
@@ -655,9 +205,459 @@
       "vol_spike_masters": 0,
       "new_stocks_masters": 7,
       "e_hits": 2
+    },
+    {
+      "date": "20260730",
+      "next": "20260731",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "偏空",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 3,
+      "e_hits": 13
+    },
+    {
+      "date": "20260731",
+      "next": "20260803",
+      "cons": 5,
+      "next_avail": 5,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 11,
+      "e_hits": 2
+    },
+    {
+      "date": "20260803",
+      "next": "20260804",
+      "cons": 10,
+      "next_avail": 10,
+      "q5": "偏多",
+      "vol_spike_masters": 1,
+      "new_stocks_masters": 7,
+      "e_hits": 8
+    },
+    {
+      "date": "20260804",
+      "next": "20260805",
+      "cons": 9,
+      "next_avail": 9,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 8,
+      "e_hits": 5
+    },
+    {
+      "date": "20260805",
+      "next": "20260806",
+      "cons": 12,
+      "next_avail": 12,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 6,
+      "e_hits": 8
+    },
+    {
+      "date": "20260806",
+      "next": "20260807",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "偏多",
+      "vol_spike_masters": 1,
+      "new_stocks_masters": 5,
+      "e_hits": 2
+    },
+    {
+      "date": "20260807",
+      "next": "20260810",
+      "cons": 14,
+      "next_avail": 14,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 4,
+      "e_hits": 11
+    },
+    {
+      "date": "20260810",
+      "next": "20260811",
+      "cons": 7,
+      "next_avail": 7,
+      "q5": "偏多",
+      "vol_spike_masters": 1,
+      "new_stocks_masters": 13,
+      "e_hits": 3
+    },
+    {
+      "date": "20260811",
+      "next": "20260812",
+      "cons": 8,
+      "next_avail": 8,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 10,
+      "e_hits": 2
+    },
+    {
+      "date": "20260812",
+      "next": "20260813",
+      "cons": 14,
+      "next_avail": 14,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 7,
+      "e_hits": 9
+    },
+    {
+      "date": "20260813",
+      "next": "20260814",
+      "cons": 15,
+      "next_avail": 15,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 10,
+      "e_hits": 6
+    },
+    {
+      "date": "20260814",
+      "next": "20260817",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "偏多",
+      "vol_spike_masters": 1,
+      "new_stocks_masters": 3,
+      "e_hits": 6
+    },
+    {
+      "date": "20260817",
+      "next": "20260818",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 3,
+      "e_hits": 0
+    },
+    {
+      "date": "20260818",
+      "next": "20260819",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 1,
+      "e_hits": 0
+    },
+    {
+      "date": "20260819",
+      "next": "20260820",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 5,
+      "e_hits": 7
+    },
+    {
+      "date": "20260820",
+      "next": "20260821",
+      "cons": 11,
+      "next_avail": 11,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 10,
+      "e_hits": 7
+    },
+    {
+      "date": "20260821",
+      "next": "20260824",
+      "cons": 5,
+      "next_avail": 5,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 11,
+      "e_hits": 1
+    },
+    {
+      "date": "20260824",
+      "next": "20260825",
+      "cons": 7,
+      "next_avail": 7,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 7,
+      "e_hits": 6
+    },
+    {
+      "date": "20260825",
+      "next": "20260826",
+      "cons": 11,
+      "next_avail": 11,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 7,
+      "e_hits": 8
+    },
+    {
+      "date": "20260826",
+      "next": "20260827",
+      "cons": 12,
+      "next_avail": 12,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 8,
+      "e_hits": 5
+    },
+    {
+      "date": "20260827",
+      "next": "20260828",
+      "cons": 8,
+      "next_avail": 8,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 9,
+      "e_hits": 4
+    },
+    {
+      "date": "20260828",
+      "next": "20260831",
+      "cons": 7,
+      "next_avail": 7,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 7,
+      "e_hits": 3
+    },
+    {
+      "date": "20260831",
+      "next": "20260901",
+      "cons": 15,
+      "next_avail": 15,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 5,
+      "e_hits": 10
+    },
+    {
+      "date": "20260901",
+      "next": "20260902",
+      "cons": 12,
+      "next_avail": 12,
+      "q5": "偏多",
+      "vol_spike_masters": 1,
+      "new_stocks_masters": 0,
+      "e_hits": 3
+    },
+    {
+      "date": "20260902",
+      "next": "20260903",
+      "cons": 19,
+      "next_avail": 19,
+      "q5": "中性",
+      "vol_spike_masters": 1,
+      "new_stocks_masters": 0,
+      "e_hits": 3
+    },
+    {
+      "date": "20260903",
+      "next": "20260904",
+      "cons": 14,
+      "next_avail": 14,
+      "q5": "偏空",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 4,
+      "e_hits": 11
+    },
+    {
+      "date": "20260904",
+      "next": "20260907",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 7,
+      "e_hits": 9
+    },
+    {
+      "date": "20260907",
+      "next": "20260908",
+      "cons": 12,
+      "next_avail": 12,
+      "q5": "偏多",
+      "vol_spike_masters": 1,
+      "new_stocks_masters": 5,
+      "e_hits": 1
+    },
+    {
+      "date": "20260908",
+      "next": "20260909",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 4,
+      "e_hits": 8
+    },
+    {
+      "date": "20260909",
+      "next": "20260910",
+      "cons": 12,
+      "next_avail": 12,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 7,
+      "e_hits": 3
+    },
+    {
+      "date": "20260910",
+      "next": "20260911",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "中性",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 5,
+      "e_hits": 1
+    },
+    {
+      "date": "20260911",
+      "next": "20260914",
+      "cons": 15,
+      "next_avail": 15,
+      "q5": "中性",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 3,
+      "e_hits": 2
+    },
+    {
+      "date": "20260914",
+      "next": "20260915",
+      "cons": 11,
+      "next_avail": 11,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 8,
+      "e_hits": 3
+    },
+    {
+      "date": "20260915",
+      "next": "20260916",
+      "cons": 9,
+      "next_avail": 9,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 3,
+      "e_hits": 8
+    },
+    {
+      "date": "20260916",
+      "next": "20260917",
+      "cons": 9,
+      "next_avail": 9,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 7,
+      "e_hits": 2
+    },
+    {
+      "date": "20260917",
+      "next": "20260918",
+      "cons": 14,
+      "next_avail": 14,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 3,
+      "e_hits": 13
+    },
+    {
+      "date": "20260918",
+      "next": "20260921",
+      "cons": 7,
+      "next_avail": 7,
+      "q5": "中性",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 10,
+      "e_hits": 4
+    },
+    {
+      "date": "20260921",
+      "next": "20260922",
+      "cons": 9,
+      "next_avail": 9,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 10,
+      "e_hits": 2
+    },
+    {
+      "date": "20260922",
+      "next": "20260923",
+      "cons": 9,
+      "next_avail": 9,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 5,
+      "e_hits": 5
+    },
+    {
+      "date": "20260923",
+      "next": "20260924",
+      "cons": 15,
+      "next_avail": 15,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 4,
+      "e_hits": 8
+    },
+    {
+      "date": "20260924",
+      "next": "20260929",
+      "cons": 19,
+      "next_avail": 19,
+      "q5": "中性",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 6,
+      "e_hits": 10
+    },
+    {
+      "date": "20260929",
+      "next": "20260930",
+      "cons": 19,
+      "next_avail": 19,
+      "q5": "偏空",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 3,
+      "e_hits": 11
+    },
+    {
+      "date": "20260930",
+      "next": "20261001",
+      "cons": 11,
+      "next_avail": 11,
+      "q5": "偏多",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 9,
+      "e_hits": 7
+    },
+    {
+      "date": "20261001",
+      "next": "20261002",
+      "cons": 11,
+      "next_avail": 11,
+      "q5": "中性",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 4,
+      "e_hits": 8
+    },
+    {
+      "date": "20261002",
+      "next": "20261005",
+      "cons": 15,
+      "next_avail": 15,
+      "q5": "偏多",
+      "vol_spike_masters": 1,
+      "new_stocks_masters": 2,
+      "e_hits": 11
     }
   ],
-  "updated_at": "2026-07-30T13:35:01.044658",
+  "updated_at": "2026-10-05T22:31:34.498331",
   "window_days": 59,
   "thresholds": {
     "anomaly_sigma": 2.0,

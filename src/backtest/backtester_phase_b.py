@@ -337,8 +337,29 @@ def universe_filter(stocks_universe: List[str],
 
 def save_results(results: Dict[str, Any],
                   out_path: str = 'data/backtest_phase_b_results.json') -> Path:
-    """寫 backtest_phase_b_results.json."""
+    """寫 backtest_phase_b_results.json.
+
+    ⚠️ v3.77.0 資料源分歧守門:
+      本模組 CLI 預設是 data/temp_history.json, 但現行 production 檔
+      實際是從 data/signal_history_official.json 產生的 (官方 FMTQIK backfill).
+      直接跑預設會**靜默換掉權重的資料基礎** — 權重是 infer_market_direction
+      的核心, 換源等於換掉整個方向判定的依據, 卻不會有任何提示.
+      → 覆寫前比對前一版 data_source, 不同就大聲警告.
+    """
     p = Path(out_path)
+    prev_src = None
+    if p.exists():
+        try:
+            prev_src = ((json.loads(p.read_text(encoding='utf-8')).get('_meta') or {})
+                        .get('data_source'))
+        except Exception:
+            pass
+    new_src = (results.get('_meta') or {}).get('data_source')
+    if prev_src and new_src and Path(prev_src).name != Path(new_src).name:
+        print(f"  ⚠️ Phase B 資料源改變: 前版「{prev_src}」→ 本次「{new_src}」")
+        print("     權重是方向判定的基礎, 換源會改變所有 direction 結論.")
+        print(f"     若非刻意, 請改用 --temp-history {prev_src} 重跑.")
+
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix('.tmp')
     tmp.write_text(json.dumps(results, ensure_ascii=False, indent=2),

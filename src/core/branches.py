@@ -202,7 +202,12 @@ WATCHED_BRANCHES = [
     # ─────────────────────────────────────────────────────────
     # 蔣承翰（3 個分點）- 全部漲停鎖定/隔日沖風格
     # ─────────────────────────────────────────────────────────
-    {"code": "9227", "name": "凱基-城中", "master": "蔣承翰",
+    # v3.79.3: 名稱尾綴 (UC) — 優式資本 (UC) 在凱基城中也有操作分點, 與蔣承翰
+    #   共用同一個 bno. 分點進出是「該分點全部主體的合計」, 拆不開, 所以
+    #   看到 9227 的數字時必須同時想到兩個主體, 尾綴就是這個提醒.
+    #   注意: 這不代表 master 改掛 UC — master 欄仍是蔣承翰 (主要操作者),
+    #   若要把 UC 當獨立主體追蹤, 應走 co_masters 而非改名.
+    {"code": "9227", "name": "凱基-城中(UC)", "master": "蔣承翰",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "9B18", "name": "台新-建北", "master": "蔣承翰",
@@ -266,8 +271,29 @@ WATCHED_BRANCHES = [
     {"code": "9614", "name": "富邦-基隆", "master": "林適中",
      "tags_personal": [], "tags_market": [],
      "enabled": True, "region": "domestic"},
- 
- 
+
+    # ─────────────────────────────────────────────────────────
+    # 全村希望資本_村長（5 個分點）— v3.80.0 使用者 2026-09-25 新增, 波段
+    # 代號出處: 富邦 zbrokerjs 券商清單 (8560 新光 / 8840 玉山 / 9200 凱基 /
+    #   9300 華南永昌), 使用者確認. v3.80.1 補 9274 / 8564 / 9306
+    # ─────────────────────────────────────────────────────────
+    {"code": "8562", "name": "新光-高雄", "master": "全村希望資本_村長",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "8847", "name": "玉山-台南", "master": "全村希望資本_村長",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9274", "name": "凱基-鳳山", "master": "全村希望資本_村長",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "8564", "name": "新光-台南", "master": "全村希望資本_村長",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+    {"code": "9306", "name": "華南永昌-台南", "master": "全村希望資本_村長",
+     "tags_personal": [], "tags_market": [],
+     "enabled": True, "region": "domestic"},
+
+
     # ═════════════════════════════════════════════════════════
     # v3.31.18: 使用者 Excel「分點人之秘密」交叉比對新增 (25 個分點)
     # ═════════════════════════════════════════════════════════
@@ -279,7 +305,9 @@ WATCHED_BRANCHES = [
     {"code": "585Q", "name": "統一-三多", "master": "呂金發",
      "tags_personal": ["太普高董事長"], "tags_market": [],
      "enabled": True, "region": "domestic"},
-    {"code": "962Q", "name": "富邦-北高雄", "master": "陳光裕",
+    # v3.80.2: 962Q 官方名 (TWSE OpenData_BRK02 / 富邦券商清單) = 富邦-港都.
+    #   6/05 從使用者 Excel 帶進來的寫法「富邦-北高雄」是同一分點 (使用者 9/25 確認)
+    {"code": "962Q", "name": "富邦-港都", "master": "陳光裕",
      "tags_personal": ["世德董事長"], "tags_market": [],
      "enabled": True, "region": "domestic"},
     {"code": "9676", "name": "富邦-仁愛", "master": "謝孟恭(股癌)",
@@ -578,6 +606,7 @@ MASTER_STYLES = {
     "林適中": ["swing"],                         # v3.31.8 補
     "竹科主力分點": ["swing"],                   # v3.31.8 補
     "謝明彧大哥(華南永昌)": ["swing"],          # v3.31.8 補
+    "全村希望資本_村長": ["swing"],              # v3.80.0 使用者 9/25 指定: 波段
     # 🌏 外資
     "高盛": ["foreign_ib"],
     "美林": ["foreign_ib"],

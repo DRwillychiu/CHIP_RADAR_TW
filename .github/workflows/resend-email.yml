@@ -1,0 +1,87 @@
+name: 11. Resend Daily Email (manual)
+
+# v3.79.4: 手動重寄每日摘要信.
+#
+# 為什麼需要這支:
+#   daily-full.yml 的寄信 step 條件是 data_changed == 'true', 也就是
+#   「這次 run 的 commit 有變動」才寄. 但有兩種情況會想重寄而資料沒變:
+#     1. 程式碼改了顯示邏輯 (例 v3.79.3 分點改名), 資料本身沒動
+#     2. 信沒收到 / 想再看一次
+#   這時重跑 daily-full 只會走到 no-op 就結束, 不會寄信, 而且還要花
+#   ~10 分鐘重爬一次全部分點 (無謂的 API 配額消耗).
+#
+#   本 workflow 不爬蟲、不 commit, 只做「讀現有 latest.xlsx → 萃取摘要
+#   → 寄信」, 約 30 秒. 純唯讀, 不會動到 repo 任何資料.
+#
+# 觸發: Actions 頁面 → 本 workflow → Run workflow
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  resend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install openpyxl
+
+      # latest.xlsx 不存在就直接失敗 — 寧可紅燈, 不要寄一封沒附件的信
+      - name: Verify workbook exists
+        run: |
+          if [ ! -f data/reports/latest.xlsx ]; then
+            echo "::error title=No workbook::data/reports/latest.xlsx 不存在, 無法寄信"
+            exit 1
+          fi
+          ls -la data/reports/latest.xlsx
+
+      - name: Extract mobile summary
+        id: summary
+        run: |
+          SUMMARY=$(python scripts/extract_mobile_summary_text.py)
+          if [ -z "$SUMMARY" ]; then
+            echo "::error title=Empty summary::手機摘要萃取為空, 不寄空信"
+            exit 1
+          fi
+          TRADE_DATE=$(python -c "
+          import json
+          with open('data/index.json', 'r', encoding='utf-8') as f:
+              d = json.load(f)
+          v = d.get('latest', '')
+          print(f'{v[:4]}/{v[4:6]}/{v[6:8]}' if len(v)==8 else v)
+          ")
+          {
+            echo "summary<<MOBILE_EOF"
+            echo "$SUMMARY"
+            echo "MOBILE_EOF"
+            echo "trade_date=$TRADE_DATE"
+          } >> $GITHUB_OUTPUT
+
+      - name: Send email
+        uses: dawidd6/action-send-mail@v6
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: willychiu77761@gmail.com
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "📋 Chip Radar · ${{ steps.summary.outputs.trade_date }} 摘要 (重寄)"
+          body: ${{ steps.summary.outputs.summary }}
+          to: willychiu77761@gmail.com
+          from: Chip Radar Bot <willychiu77761@gmail.com>
+          attachments: data/reports/latest.xlsx

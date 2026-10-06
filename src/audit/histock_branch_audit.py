@@ -77,7 +77,13 @@ BUY_AMT_WARN_PCT = 10.0   # 均價是近似,容忍寬一點
 BUY_AMT_ERROR_PCT = 30.0
 
 # Sniper masters (v3.26 SNIPER_STYLES)
-SNIPER_MASTERS = {'蔣承翰', '迷你哥', 'Tradow', '巨人傑'}
+# ⚠️ v3.79.0 修: 原本寫 '迷你哥', 但 MASTER_STYLES 的正式名稱是 '迷你哥/松山哥'
+#    → `br.get('master') in SNIPER_MASTERS` 對他永遠不成立, 是 silent no-op.
+#    改由 master_tiers 提供 (import 時會驗證每個名字真的存在).
+try:
+    from src.core.master_tiers import LIMIT_UP_SNIPERS as SNIPER_MASTERS
+except ImportError:
+    from core.master_tiers import LIMIT_UP_SNIPERS as SNIPER_MASTERS  # type: ignore
 
 
 # ════════════════════════════════════════════════════════════════════
