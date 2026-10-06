@@ -1,0 +1,47 @@
+name: 0. Tests (every push)
+
+# v3.80.15 (2026-10-06): the home-grown suite (tests/run_all.py) used to run only
+# on a laptop or inside a Claude session, so a push could break the nightly run
+# with nobody noticing. Now every push of code (any branch) runs the whole suite
+# in the cloud: a red X on the commit + GitHub's failure e-mail is the alarm.
+# The tests are offline (network calls are mocked) and need no secrets.
+# Bot data commits use GITHUB_TOKEN, which never triggers workflows, so the
+# 6+ daily data pushes do not run this.
+
+on:
+  push:
+    paths-ignore:
+      - 'data/**'
+      - 'docs/**'
+      - '**/*.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install requests cryptography openpyxl pyyaml
+
+      # runner clock is UTC, same as the production workflows
+      - name: Run all tests
+        run: python tests/run_all.py
