@@ -44,4 +44,13 @@ jobs:
 
       # runner clock is UTC, same as the production workflows
       - name: Run all tests
-        run: python tests/run_all.py
+        run: |
+          set -o pipefail
+          python tests/run_all.py 2>&1 | tee test_output.txt
+
+      # v3.80.25: job logs need a GitHub sign-in; put the failing test files and
+      # checks into annotations (visible through the public API / Actions page)
+      - name: Name failing tests
+        if: failure()
+        run: |
+          grep -E '^FAIL: |❌' test_output.txt | head -10 | sed 's/^/::error title=Test failed::/' || true
