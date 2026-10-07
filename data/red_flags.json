@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T03:39:15.980837+08:00",
+  "generated_at": "2026-10-08T04:20:51.043539+08:00",
   "trade_date": "20261007",
   "pump_suspicion": [
     {
@@ -575,13 +575,28 @@
       "rule": "C_distribution",
       "severity": "medium",
       "reasoning": "當日賣 1,969 張 (30 天均 321 張 × 6.1) + 近 5 天漲停 65 次"
+    },
+    {
+      "stock_code": "8021",
+      "stock_name": "尖點",
+      "branch_code": "9200",
+      "branch_name": "凱基證券",
+      "master": "凱基證券",
+      "sell_lot": 181,
+      "sell_amt_wan": 10048,
+      "avg_30d_sell_lot": 33.0,
+      "sell_vs_avg_x": 5.5,
+      "recent_5d_limit_up_count": 44,
+      "rule": "C_distribution",
+      "severity": "medium",
+      "reasoning": "當日賣 181 張 (30 天均 33 張 × 5.5) + 近 5 天漲停 44 次"
     }
   ],
   "summary": {
     "pump_count": 2,
     "wash_count": 30,
-    "distribution_count": 2,
-    "total": 34
+    "distribution_count": 3,
+    "total": 35
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
