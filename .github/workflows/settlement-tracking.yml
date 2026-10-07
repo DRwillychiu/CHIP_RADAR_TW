@@ -73,7 +73,11 @@ jobs:
         run: |
           # 用 crawler_pipeline._days_to_settlement 判斷是否 D-3 ~ D+1
           # 不在窗口 → 早退避免浪費配額
+          # v3.80.23: crawler_pipeline lives in src/pipelines; 'import src' adds it to
+          # sys.path. Before this the import failed and '|| echo in_window=false'
+          # hid it, so the monitor never ran (D0 2026-09-16 included).
           python -c "
+          import src
           from crawler_pipeline import _days_to_settlement
           from datetime import datetime, timezone, timedelta
           tw = datetime.now(timezone(timedelta(hours=8)))
@@ -83,7 +87,7 @@ jobs:
           print(f'days_to_settlement={d}, in_window={in_window}')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write(f'in_window={str(in_window).lower()}\n')
-          " || echo "in_window=false" >> "$GITHUB_OUTPUT"
+          " || { echo "::error title=Settlement window check failed::see the step log"; exit 1; }
 
       - name: Early exit (非結算窗口)
         if: steps.check.outputs.in_window != 'true'
