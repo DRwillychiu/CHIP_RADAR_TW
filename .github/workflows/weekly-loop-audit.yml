@@ -93,7 +93,10 @@ jobs:
           echo "🔬 上游 API 欄位名 vs 程式碼讀取欄位 比對"
           python scripts/audit_api_fields.py
 
+      # v3.80.24: commit the backtest results even when the API audit above is
+      # red (it failed 7 weeks in a row and froze these files at 2026-09-20)
       - name: Commit results
+        if: success() || failure()
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions Bot"

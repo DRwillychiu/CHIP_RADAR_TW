@@ -104,7 +104,7 @@ REGISTRY_RWD = [
      "fetchers/margin.py:fetch_margin_market_aggregate", [], True),
 ]
 
-FAIL = WARN = OK = 0
+FAIL = WARN = OK = FETCH = 0
 
 
 def _latest_trade_date() -> str:
@@ -120,10 +120,27 @@ def _latest_trade_date() -> str:
     return time.strftime('%Y%m%d')
 
 
-def probe(url, timeout=25):
-    r = requests.get(url, headers=UA, timeout=timeout)
-    r.raise_for_status()
-    return r.json()
+def probe(url, timeout=60, attempts=3, sleep=None):
+    # v3.80.24: retry + 60 s (TPEx daily_close_quotes is large; 25 s single
+    # tries broke with ChunkedEncodingError and failed the weekly run). A fetch
+    # that still fails is a WARN (::warning), not CRITICAL: CRITICAL = a field
+    # the code reads is gone, which only a successful fetch can show.
+    for i in range(1, attempts + 1):
+        try:
+            r = requests.get(url, headers=UA, timeout=timeout)
+            r.raise_for_status()
+            return r.json()
+        except (requests.RequestException, ValueError):
+            if i == attempts:
+                raise
+            (sleep or time.sleep)(5 * i)
+
+
+def fetch_failed(name, e):
+    global FETCH
+    FETCH += 1
+    print(f"⚠️  {name} — 抓取失敗 (重試 3 次) {type(e).__name__}: {e}")
+    print(f"::warning title=API audit fetch failed::{name} - {type(e).__name__} (fields not checked)")
 
 
 def report(name, reader, missing, present_sample, note="", critical=True):
@@ -156,8 +173,7 @@ def main():
         try:
             j = probe(url)
         except Exception as e:
-            print(f"❌ {name} — 抓取失敗 {type(e).__name__}: {e}")
-            globals()['FAIL'] = FAIL + 1
+            fetch_failed(name, e)
             continue
         if not isinstance(j, list) or not j:
             print(f"⚠️  {name} — 回傳非陣列或為空 (type={type(j).__name__})")
@@ -179,8 +195,7 @@ def main():
         try:
             j = probe(url)
         except Exception as e:
-            print(f"❌ {name} — 抓取失敗 {type(e).__name__}")
-            globals()['FAIL'] = FAIL + 1
+            fetch_failed(name, e)
             continue
         stat = j.get('stat')
         if stat != 'OK':
@@ -200,7 +215,7 @@ def main():
         time.sleep(0.5)
 
     print("\n" + "═" * 78)
-    print(f"結果: {OK} OK / {WARN} WARN / {FAIL} CRITICAL")
+    print(f"結果: {OK} OK / {WARN} WARN / {FETCH} 抓取失敗 / {FAIL} CRITICAL")
     print("═" * 78)
     if FAIL:
         print("\n⚠️ CRITICAL 代表程式碼讀的欄位在上游已不存在 —")
