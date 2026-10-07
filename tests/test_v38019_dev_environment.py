@@ -70,8 +70,9 @@ check("commit 步驟: 測試模式在 git add 之前就 exit 0",
       'env.TEST_RUN' in commit and commit.index('exit 0') < commit.index('git add data/'))
 check("測試模式: data_changed=false, send_mail=true",
       commit.index('data_changed=false') < commit.index('git add') and 'send_mail=true' in commit[:commit.index('git add')])
-check("正式模式有資料變動才 send_mail=true",
-      commit.count('send_mail=true') == 2 and commit.rindex('send_mail=true') > commit.index('data_changed=true'))
+# v3.80.22: production send_mail = mail_round verdict (default true), only after data_changed=true
+check("正式模式有資料變動才決定 send_mail (v3.80.22 由 mail_round 決定)",
+      commit.count('send_mail=true') == 1 and commit.index('send_mail=${SEND:-true}') > commit.index('data_changed=true'))
 check("DB artifact: 測試模式不上傳", "env.TEST_RUN != 'true'" in str(steps['Upload DB artifact'].get('if')))
 for n in ('Email failure alert (GitHub Issue)', 'Source audit mismatch alert (GitHub Issue)'):
     check(f"{n}: 只在 data_changed (測試模式恆 false)", "data_changed == 'true'" in str(steps[n].get('if')))

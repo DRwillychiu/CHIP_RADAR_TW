@@ -18,11 +18,12 @@ on:
     # 主排程: 台灣時間 21:17 (UTC 13:17) — 避開整點,延遲應 < 5min
     - cron: '17 13 * * 1-5'
     # 兜底排程 1: 台灣時間 22:37 (UTC 14:37) — 主排程被吃掉時補
-    # 若主排程已 commit,兜底跑到 git diff --quiet 自動 no-op,零成本
+    # v3.80.22: 這些 schedule 實際 02:00-06:00 才到,每次都會 commit (時間戳);
+    #   只有日表內容和上一輪不同才寄信 (scripts/mail_round.py)
     - cron: '37 14 * * 1-5'
     # v3.30.3 (2026-05-28): 兜底排程 2 台灣時間 23:47 (UTC 15:47)
     #   5/27-5/28 連兩天 21:17 + 22:37 都被 GitHub cron 吃掉,加第三層提高至少跑一次機率。
-    #   同樣 git diff --quiet no-op,零成本。heartbeat.yml 00:30 TW 在此之後才檢查。
+    #   heartbeat.yml 00:30 TW 在此之後才檢查。
     - cron: '47 15 * * 1-5'
 
   # v3.80.19 dev environment: a push to `dev` runs this whole workflow as a TEST
@@ -281,6 +282,16 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+      # v3.80.22 owner 2026-10-07: 21:17 / 22:37 (local scheduler dispatch) always
+      # mail; schedule re-runs mail only if the newest day sheet changed. Subject +
+      # first body line = round number + change vs the previous round. State file
+      # data/reports/mail_rounds.json goes into the data commit below.
+      - name: Mail round
+        id: round
+        continue-on-error: true
+        run: |
+          python scripts/mail_round.py --event "${{ github.event_name }}" ${{ env.TEST_RUN == 'true' && '--test' || '' }}
+
       - name: Commit and push data
         id: commit
         run: |
@@ -303,7 +314,9 @@ jobs:
             exit 0
           fi
           echo "data_changed=true" >> $GITHUB_OUTPUT
-          echo "send_mail=true" >> $GITHUB_OUTPUT
+          # v3.80.22: mail_round decides; empty (step failed) -> mail anyway
+          SEND="${{ steps.round.outputs.send }}"
+          echo "send_mail=${SEND:-true}" >> $GITHUB_OUTPUT
 
           git commit -m "🔒 [FULL] Daily chip data $(TZ=Asia/Taipei date +%Y-%m-%d\ %H:%M)"
 
@@ -320,15 +333,18 @@ jobs:
           done
 
       # v3.67.2 Phase 2.7: 萃取手機摘要 + 發送 email
-      # 僅當 data 有變動才寄 (避免 no-op 重複寄)
       - name: Extract mobile summary
-        # v3.80.19: send_mail = data changed (production) or any TEST run
+        # v3.80.19 / v3.80.22: send_mail = mail_round verdict (production) or any TEST run
         if: steps.commit.outputs.send_mail == 'true'
         id: summary
         run: |
           # v3.80.15: one-line source audit verdict goes first in the mail body
           AUDIT_LINE=$(python scripts/source_audit.py --email-line || true)
           [ -n "$AUDIT_LINE" ] || AUDIT_LINE="⚠️ 來源比對：今天沒有跑完"
+          # v3.80.22: round line first, then the audit verdict
+          ROUND_LINE="${{ steps.round.outputs.line }}"
+          [ -z "$ROUND_LINE" ] || AUDIT_LINE="$ROUND_LINE
+          $AUDIT_LINE"
           if [ "${{ env.TEST_RUN }}" = "true" ]; then
             AUDIT_LINE="🧪【測試階段】這封是測試信，不是正式日報（${{ github.ref_name }}）
           資料沒有寫回雲端；正式排程照常跑、照常寄信
@@ -365,7 +381,7 @@ jobs:
           secure: true
           username: willychiu77761@gmail.com
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: "${{ env.TEST_RUN == 'true' && '🧪【測試】' || '' }}📋 Chip Radar · ${{ steps.summary.outputs.trade_date }} 摘要"
+          subject: "${{ env.TEST_RUN == 'true' && '🧪【測試】' || '' }}📋 Chip Radar · ${{ steps.summary.outputs.trade_date }} 摘要${{ steps.round.outputs.tag }}"
           body: ${{ steps.summary.outputs.summary }}
           to: willychiu77761@gmail.com
           from: Chip Radar Bot <willychiu77761@gmail.com>
