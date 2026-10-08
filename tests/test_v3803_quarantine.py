@@ -116,6 +116,8 @@ ALLOW = {
     'src/audit/stress_test_data_integrity.py': 'raw-data integrity audit; must see what is stored',
     'scripts/sanity_check_618.py': 'one-off raw sanity check of 20260618',
     'scripts/trading_gate.py': 'reads only margin_verification from latest.json; never touches branch records',
+    'scripts/branch_performance_report.py': 'v3.84.0 decrypts only the peer map (not a day file); its DB rows are '
+                                            'filtered with quarantine.load()',
 }
 readers = []
 for p in [ROOT / 'crawler.py'] + sorted((ROOT / 'src').rglob('*.py')) + sorted((ROOT / 'scripts').rglob('*.py')):
