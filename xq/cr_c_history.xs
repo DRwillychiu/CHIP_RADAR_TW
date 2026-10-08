@@ -5,7 +5,9 @@
 //
 // Columns 1-60 : mfr_d0 .. mfr_d59  main-force net / volume, d0 = today,
 //                d1 = 1 trading day ago ... (0 when volume is 0)
-// Columns 61-80: t10r_d0 .. t10r_d19  top-10 brokers net / volume
+// Columns 61-99: t10r_d0 .. t10r_d38  top-10 brokers net / volume
+//                (99 = the OutputField index limit; one run gives the most data,
+//                 owner has 10 free runs a day)
 // History index [n] on GetField in screener scripts: XQ forum example with
 // setbarfreq("D") + settotalbar (checked 2026-10-08).
 // Owner rule exception (2026-10-08): only the GetField field names are Chinese.
@@ -177,3 +179,41 @@ v = GetField("成交量", "D")[18];
 if v > 0 then OutputField(79, GetField("綜合前十大券商買賣超張數", "D")[18] / v, 4, "t10r_d18") else OutputField(79, 0, 4, "t10r_d18");
 v = GetField("成交量", "D")[19];
 if v > 0 then OutputField(80, GetField("綜合前十大券商買賣超張數", "D")[19] / v, 4, "t10r_d19") else OutputField(80, 0, 4, "t10r_d19");
+v = GetField("成交量", "D")[20];
+if v > 0 then OutputField(81, GetField("綜合前十大券商買賣超張數", "D")[20] / v, 4, "t10r_d20") else OutputField(81, 0, 4, "t10r_d20");
+v = GetField("成交量", "D")[21];
+if v > 0 then OutputField(82, GetField("綜合前十大券商買賣超張數", "D")[21] / v, 4, "t10r_d21") else OutputField(82, 0, 4, "t10r_d21");
+v = GetField("成交量", "D")[22];
+if v > 0 then OutputField(83, GetField("綜合前十大券商買賣超張數", "D")[22] / v, 4, "t10r_d22") else OutputField(83, 0, 4, "t10r_d22");
+v = GetField("成交量", "D")[23];
+if v > 0 then OutputField(84, GetField("綜合前十大券商買賣超張數", "D")[23] / v, 4, "t10r_d23") else OutputField(84, 0, 4, "t10r_d23");
+v = GetField("成交量", "D")[24];
+if v > 0 then OutputField(85, GetField("綜合前十大券商買賣超張數", "D")[24] / v, 4, "t10r_d24") else OutputField(85, 0, 4, "t10r_d24");
+v = GetField("成交量", "D")[25];
+if v > 0 then OutputField(86, GetField("綜合前十大券商買賣超張數", "D")[25] / v, 4, "t10r_d25") else OutputField(86, 0, 4, "t10r_d25");
+v = GetField("成交量", "D")[26];
+if v > 0 then OutputField(87, GetField("綜合前十大券商買賣超張數", "D")[26] / v, 4, "t10r_d26") else OutputField(87, 0, 4, "t10r_d26");
+v = GetField("成交量", "D")[27];
+if v > 0 then OutputField(88, GetField("綜合前十大券商買賣超張數", "D")[27] / v, 4, "t10r_d27") else OutputField(88, 0, 4, "t10r_d27");
+v = GetField("成交量", "D")[28];
+if v > 0 then OutputField(89, GetField("綜合前十大券商買賣超張數", "D")[28] / v, 4, "t10r_d28") else OutputField(89, 0, 4, "t10r_d28");
+v = GetField("成交量", "D")[29];
+if v > 0 then OutputField(90, GetField("綜合前十大券商買賣超張數", "D")[29] / v, 4, "t10r_d29") else OutputField(90, 0, 4, "t10r_d29");
+v = GetField("成交量", "D")[30];
+if v > 0 then OutputField(91, GetField("綜合前十大券商買賣超張數", "D")[30] / v, 4, "t10r_d30") else OutputField(91, 0, 4, "t10r_d30");
+v = GetField("成交量", "D")[31];
+if v > 0 then OutputField(92, GetField("綜合前十大券商買賣超張數", "D")[31] / v, 4, "t10r_d31") else OutputField(92, 0, 4, "t10r_d31");
+v = GetField("成交量", "D")[32];
+if v > 0 then OutputField(93, GetField("綜合前十大券商買賣超張數", "D")[32] / v, 4, "t10r_d32") else OutputField(93, 0, 4, "t10r_d32");
+v = GetField("成交量", "D")[33];
+if v > 0 then OutputField(94, GetField("綜合前十大券商買賣超張數", "D")[33] / v, 4, "t10r_d33") else OutputField(94, 0, 4, "t10r_d33");
+v = GetField("成交量", "D")[34];
+if v > 0 then OutputField(95, GetField("綜合前十大券商買賣超張數", "D")[34] / v, 4, "t10r_d34") else OutputField(95, 0, 4, "t10r_d34");
+v = GetField("成交量", "D")[35];
+if v > 0 then OutputField(96, GetField("綜合前十大券商買賣超張數", "D")[35] / v, 4, "t10r_d35") else OutputField(96, 0, 4, "t10r_d35");
+v = GetField("成交量", "D")[36];
+if v > 0 then OutputField(97, GetField("綜合前十大券商買賣超張數", "D")[36] / v, 4, "t10r_d36") else OutputField(97, 0, 4, "t10r_d36");
+v = GetField("成交量", "D")[37];
+if v > 0 then OutputField(98, GetField("綜合前十大券商買賣超張數", "D")[37] / v, 4, "t10r_d37") else OutputField(98, 0, 4, "t10r_d37");
+v = GetField("成交量", "D")[38];
+if v > 0 then OutputField(99, GetField("綜合前十大券商買賣超張數", "D")[38] / v, 4, "t10r_d38") else OutputField(99, 0, 4, "t10r_d38");
