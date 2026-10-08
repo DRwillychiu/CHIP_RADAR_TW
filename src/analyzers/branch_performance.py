@@ -57,26 +57,27 @@ class Book:
     """FIFO lots of one (branch, stock). Money in NT$, quantity in shares."""
 
     def __init__(self, commission=COMMISSION, tax=TAX_SELL):
-        self.lots = deque()          # [shares, cost per share incl. buy commission]
+        self.lots = deque()          # [shares, cost per share incl. buy commission, buy day]
         self.commission, self.tax = commission, tax
         self.realized = 0.0
         self.unmatched_shares = 0
         self.sold_shares = 0
+        self.holds = []              # v3.82.1: [(shares, holding trading days)] of matched sells
         self.matched_cost = 0.0      # cost of the shares sold out of inventory
 
     @property
     def shares(self):
-        return sum(q for q, _ in self.lots)
+        return sum(lot[0] for lot in self.lots)
 
-    def buy(self, shares, price):
-        """-> cash out (NT$, incl. commission)."""
+    def buy(self, shares, price, day=None):
+        """-> cash out (NT$, incl. commission). day: trading-day ordinal (holding periods)."""
         if shares <= 0:
             return 0.0
         cost = shares * price * (1 + self.commission)
-        self.lots.append([shares, cost / shares])
+        self.lots.append([shares, cost / shares, day])
         return cost
 
-    def sell(self, shares, price):
+    def sell(self, shares, price, day=None):
         """-> cash in (NT$, net of commission + tax) for the matched part only."""
         if shares <= 0:
             return 0.0
@@ -89,6 +90,8 @@ class Book:
             proceeds += q * net_px
             self.realized += q * (net_px - lot[1])
             self.matched_cost += q * lot[1]
+            if day is not None and lot[2] is not None:
+                self.holds.append((q, day - lot[2]))
             lot[0] -= q
             left -= q
             if lot[0] == 0:
@@ -100,7 +103,7 @@ class Book:
         return self.shares * close if close else 0.0
 
     def cost_basis(self):
-        return sum(q * c for q, c in self.lots)
+        return sum(lot[0] * lot[1] for lot in self.lots)
 
 
 def modified_dietz(v_begin, v_end, flows, n_days):
@@ -122,7 +125,7 @@ def ols_beta_alpha(r, m):
     return beta, mr - beta * mm
 
 
-def evaluate(rows, closes, index, dates, warmup_rows=(), rf_annual=0.0, min_value=1_000_000):
+def evaluate(rows, closes, index, dates, warmup_rows=(), rf_annual=0.0, min_value=1_000_000, day_index=None):
     """One branch.
 
     rows        [{date, code, buy_lots, sell_lots, buy_amt, sell_amt}] inside the window
@@ -132,8 +135,9 @@ def evaluate(rows, closes, index, dates, warmup_rows=(), rf_annual=0.0, min_valu
     min_value   days whose start value + inflow is below this (NT$) get no daily return
     """
     books = defaultdict(Book)
+    di = day_index or {}
     for r in sorted(warmup_rows, key=lambda x: x["date"]):
-        _apply(books[r["code"]], r)
+        _apply(books[r["code"]], r, di.get(r["date"]))
     d0 = dates[0]
     v_begin = sum(b.value(closes.get(c, {}).get(d0)) for c, b in books.items())
     # GIPS period accounting: the opening inventory enters the window at its
@@ -145,6 +149,7 @@ def evaluate(rows, closes, index, dates, warmup_rows=(), rf_annual=0.0, min_valu
             for lot in b.lots:
                 lot[1] = px
         b.realized, b.matched_cost, b.unmatched_shares, b.sold_shares = 0.0, 0.0, 0, 0
+        b.holds = []
     by_day = defaultdict(list)
     for r in rows:
         if r["date"] in dates[1:]:
@@ -159,7 +164,7 @@ def evaluate(rows, closes, index, dates, warmup_rows=(), rf_annual=0.0, min_valu
         for r in by_day.get(d, []):
             b = books[r["code"]]
             before_real, before_cost = b.realized, b.matched_cost
-            out = _apply(b, r)
+            out = _apply(b, r, di.get(d))
             cf += out
             p = pos[r["code"]]
             p["pnl"] += b.realized - before_real
@@ -225,6 +230,9 @@ def evaluate(rows, closes, index, dates, warmup_rows=(), rf_annual=0.0, min_valu
     # position statistics
     pnls = [p["pnl"] for p in pos.values() if p["buy"] > 0 or p["sell_matched_cost"] > 0]
     wins, losses = [x for x in pnls if x > 0], [x for x in pnls if x < 0]
+    bought_shares = sum((r.get("buy_lots") or 0) * SHARES_PER_LOT for r in rows if r["date"] in dates[1:])
+    out.update(style_metrics([h for bk in books.values() for h in bk.holds],
+                             [r for r in rows if r["date"] in dates[1:]], bought_shares))
     out.update({
         "positions": len(pnls), "win_rate": len(wins) / len(pnls) if pnls else None,
         "avg_win": _mean(wins), "avg_loss": _mean(losses),
@@ -240,14 +248,55 @@ def _px(amt_k, lots):
     return amt_k * 1000 / (lots * SHARES_PER_LOT) if lots else 0.0
 
 
-def _apply(book, r):
+def _apply(book, r, day=None):
     """Apply one daily row to a book -> external cash flow (+ buy cost, - sell proceeds)."""
     cf = 0.0
     if r.get("buy_lots"):
-        cf += book.buy(r["buy_lots"] * SHARES_PER_LOT, _px(r["buy_amt"], r["buy_lots"]))
+        cf += book.buy(r["buy_lots"] * SHARES_PER_LOT, _px(r["buy_amt"], r["buy_lots"]), day)
     if r.get("sell_lots"):
-        cf -= book.sell(r["sell_lots"] * SHARES_PER_LOT, _px(r["sell_amt"], r["sell_lots"]))
+        cf -= book.sell(r["sell_lots"] * SHARES_PER_LOT, _px(r["sell_amt"], r["sell_lots"]), day)
     return cf
+
+
+def style_metrics(holds, rows, bought_shares):
+    """v3.82.1 owner 2026-10-08: judge performance together with the branch's style.
+
+    holds: [(shares, holding trading days)] of FIFO-matched sells in the window
+    rows : the window's daily rows (same-day two-sided trading = day-trade proxy;
+           FIFO hides a same-day round trip behind older inventory)
+    -> measured style + the evaluation horizon that fits it.
+    """
+    two = sum(min(r.get("buy_lots") or 0, r.get("sell_lots") or 0) for r in rows)
+    buys = sum(r.get("buy_lots") or 0 for r in rows)
+    two_sided = two / buys if buys else None
+    matched = sum(q for q, _ in holds)
+    out = {"two_sided_share": two_sided, "matched_share": (matched / bought_shares) if bought_shares else None,
+           "hold_median": None, "hold_le1": None, "hold_le5": None, "hold_gt20": None}
+    if matched:
+        acc, med = 0, None
+        for q, d in sorted(holds, key=lambda x: x[1]):
+            acc += q
+            if med is None and acc >= matched / 2:
+                med = d
+        out.update(hold_median=med,
+                   hold_le1=sum(q for q, d in holds if d <= 1) / matched,
+                   hold_le5=sum(q for q, d in holds if d <= 5) / matched,
+                   hold_gt20=sum(q for q, d in holds if d > 20) / matched)
+    if two_sided is not None and two_sided >= 0.5:
+        style = "day_trader"
+    elif out["hold_le1"] is not None and out["hold_le1"] >= 0.5:
+        style = "next_day_flipper"
+    elif out["hold_median"] is not None and out["hold_median"] <= 5:
+        style = "short_term"
+    elif out["hold_median"] is not None and out["hold_median"] <= 30 and (out["matched_share"] or 0) >= 0.3:
+        style = "swing"
+    elif out["matched_share"] is not None:
+        style = "longterm"
+    else:
+        style = None
+    out["style"] = style
+    out["horizon"] = "recent" if style in ("day_trader", "next_day_flipper", "short_term") else "full"
+    return out
 
 
 def _benchmark_pnl(flows, v_begin, index, dates):

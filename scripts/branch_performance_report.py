@@ -25,6 +25,7 @@ if str(ROOT) not in sys.path:
 import src  # noqa: F401,E402
 
 import branch_performance as bp  # noqa: E402
+import branch_relations as rel  # noqa: E402
 import quarantine  # noqa: E402
 
 SQL = ("SELECT dc.date, b.code AS bno, b.name AS bname, s.code AS code, "
@@ -147,24 +148,46 @@ def main(argv=None):
         geo = {}
     local = local_scores({b: [r for r in rs if dates[0] < r["date"] <= dates[-1]] for b, rs in by_branch.items()},
                          geo)
+    # v3.82.1: trading-day ordinals (holding periods) and the owner's declared styles
+    day_index = {d: i for i, d in enumerate(sorted({r["date"] for r in rows} | set(dates)))}
+    try:
+        from branches import MASTER_STYLES
+    except ImportError:
+        MASTER_STYLES = {}
     for bno, rs in sorted(by_branch.items()):
         warm = [r for r in rs if r["date"] < dates[0]]
         win = [r for r in rs if dates[0] <= r["date"] <= dates[-1]]
         if not win:
             continue
-        res = bp.evaluate(win, closes, index, dates, warmup_rows=warm, rf_annual=a.rf)
+        res = bp.evaluate(win, closes, index, dates, warmup_rows=warm, rf_annual=a.rf, day_index=day_index)
         legacy, legacy_wan = bp.legacy_owner_metric(legacy_rows([r for r in win if r["date"] > dates[0]]))
         res.update({"bno": bno, "name": names.get(bno), "masters": sorted(set(masters.get(bno, []))),
                     "rows": len(win), "active_days": len({r["date"] for r in win}),
                     "estimated_lot_rows": sum(1 for r in win if r["est"]),
                     "legacy_per_10m": legacy, "legacy_per_10m_wan": legacy_wan})
         rec = bp.evaluate([r for r in rs if d20[0] <= r["date"] <= d20[-1]], closes, index, d20,
-                          warmup_rows=[r for r in rs if r["date"] < d20[0]], rf_annual=a.rf)
+                          warmup_rows=[r for r in rs if r["date"] < d20[0]], rf_annual=a.rf, day_index=day_index)
         res.update({f"{k}_recent": rec[k] for k in ("info_ratio", "alpha_ann", "twr", "excess_pnl",
                                                      "total_pnl", "return_days", "positions")})
         res.update(local.get(bno, {}))
+        # v3.82.1 owner: judge performance on the horizon that fits the branch's style
+        res["declared_styles"] = sorted({st for m in res["masters"] for st in MASTER_STYLES.get(m, [])})
+        h = "_recent" if res.get("horizon") == "recent" else ""
+        res.update(matched_ir=res.get(f"info_ratio{h}"), matched_alpha=res.get(f"alpha_ann{h}"))
         results.append(res)
+    # v3.83.0 R2 co-trading on the window's visible rows (net buy amount per date x stock x branch)
+    cells = {}
+    for bno, rs in by_branch.items():
+        for r in rs:
+            if dates[0] < r["date"] <= dates[-1]:
+                cells.setdefault((r["date"], r["code"]), {})[bno] = (r["buy_amt"] or 0) - (r["sell_amt"] or 0)
+    edges = rel.co_trading(cells, dates[1:], masters={b: masters.get(b, []) for b in by_branch})
+    strong = [e for e in edges if e["p_value"] <= 1e-3 and e["lift"] >= 2]
+    relations = {"edges": strong[:400], "edges_total": len(edges), "strong_total": len(strong),
+                 "clusters": rel.clusters(edges), "params": {"big_q": rel.BIG_Q, "min_big_k": rel.MIN_BIG_K,
+                                                             "min_co": rel.MIN_CO, "lags": [0, 1]}}
     doc = {"window": [dates[0], dates[-1]], "trading_days": len(dates) - 1, "recent_window": [d20[0], d20[-1]],
+           "relations": relations,
            "assumptions": {"commission": bp.COMMISSION, "tax_sell": bp.TAX_SELL, "rf_annual": a.rf,
                            "lot_matching": "FIFO", "return": "Modified Dietz (GIPS) + daily TWR",
                            "visibility": "daily top-50 net-buy / net-sell lists only"},
