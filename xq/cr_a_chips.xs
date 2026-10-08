@@ -19,6 +19,8 @@
 // 18 seller_buyer_ratio (sellers / buyers)
 // 19 lock_rate (%)  20 mf_cost
 // 21 top10_net_5d  22 key_net_5d (sums)
+// 23 volume (index-0 volume; xq_import.py compares it with the export's own
+//    total-volume column to prove index 0 is the export's data date)
 // close vs main-force cost is computed locally from the export price column.
 // v4 (2026-10-08): the v3 run on the owner's XQ returned 0 stocks; the
 // export header named columns 1-20 and left 21-24 as generic columns, so
@@ -27,6 +29,10 @@
 // reached, unproven) are removed. Every field
 // left already returned data on the owner's XQ (probe run, or a named
 // column in the v3 export).
+// v4.1 (2026-10-08): the B run at 20:39 returned 10/07 values under a
+// 10/08 data date (all 1920 volumes equal the 10/07 total; foreign, trust,
+// dealer and margin equal TWSE 10/07). Column 23 makes the same check
+// possible for A.
 
 var: i(0), volNow(0), mfX(0), stopB(false), stopS(false), streakB(0), streakS(0);
 var: s5(0), s20(0), s60(0), t5(0), k5(0), nBuy(0), nSell(0), mfRatio(0), sbRatio(0);
@@ -91,3 +97,4 @@ OutputField(19, GetField("籌碼鎖定率", "D"), 2, "lock_rate");
 OutputField(20, GetField("主力成本", "D"), 2, "mf_cost");
 OutputField(21, t5, 0, "top10_net_5d");
 OutputField(22, k5, 0, "key_net_5d");
+OutputField(23, volNow, 0, "volume");

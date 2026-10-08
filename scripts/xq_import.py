@@ -70,6 +70,18 @@ def coverage(recs, cols):
     return {c: sum(1 for r in recs.values() if isinstance(r.get(c), float) and r[c] != 0) / n for c in cols}
 
 
+def day0_check(recs):
+    """v3.85.3: share of stocks whose script volume (GetField index 0) equals the
+    export's own 總量. Near 1 = index 0 is the export's data date; near 0 = the
+    script read an older day (seen on 2026-10-08: cr_b run at 20:39 returned
+    10/07 values under a 10/08 data date). None when the script has no volume."""
+    pairs = [(r["volume"], r["總量"]) for r in recs.values()
+             if isinstance(r.get("volume"), float) and isinstance(r.get("總量"), float) and r["總量"] > 0]
+    if not pairs:
+        return None
+    return sum(1 for a, b in pairs if a == b) / len(pairs)
+
+
 def main(argv=None):
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -81,15 +93,29 @@ def main(argv=None):
     ap.add_argument("--c", required=True)
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     a = ap.parse_args(argv)
-    merged, dates, report = {}, {}, {}
+    merged, dates, report, per = {}, {}, {}, {}
     for key, path in (("a", a.a), ("b", a.b), ("c", a.c)):
         d, recs, cols = read_export(path)
         dates[key] = d
-        report[key] = {"stocks": len(recs), "columns": len(cols), "coverage": coverage(recs, cols)}
+        per[key] = recs
+        report[key] = {"stocks": len(recs), "columns": len(cols), "coverage": coverage(recs, cols),
+                       "day0": day0_check(recs)}
         for code, rec in recs.items():
             merged.setdefault(code, {}).update(rec)
     if len({d for d in dates.values() if d}) > 1:
         print(f"⚠️ the three exports have different data dates: {dates}")
+    stale = [k for k, r in report.items() if r["day0"] is not None and r["day0"] < 0.9]
+    for k in stale:
+        print(f"⚠️ script {k}: index-0 volume equals the export 總量 for only {report[k]['day0']:.0%} of stocks "
+              f"-> it read an OLDER day than the data date; re-run it, do not use it")
+    # C has no volume column: it is tied to A instead (A mf_net_ratio vs C mfr_d0, both day 0)
+    both = [(r["mf_net_ratio"], per["c"][c]["mfr_d0"]) for c, r in per["a"].items()
+            if c in per["c"] and isinstance(r.get("mf_net_ratio"), float)
+            and isinstance(per["c"][c].get("mfr_d0"), float)]
+    if both:
+        same = sum(1 for x, y in both if abs(x - y) < 0.00051) / len(both)
+        print(f"  A vs C day 0 (mf_net_ratio == mfr_d0): {same:.0%} of {len(both)} stocks"
+              + ("" if same >= 0.9 else "  ⚠️ A and C read different days"))
     # v3.85.2: close vs main-force cost from the export's own price column (成交);
     # the screener script no longer reads Close
     for rec in merged.values():
@@ -106,8 +132,9 @@ def main(argv=None):
     for key, r in report.items():
         empty = [c for c, v in r["coverage"].items() if v == 0]
         low = [f"{c} {v:.0%}" for c, v in r["coverage"].items() if 0 < v < 0.2]
-        print(f"  script {key}: {r['stocks']} stocks, {r['columns']} columns; all-zero: {empty or '-'}; "
-              f"under 20% non-zero: {low or '-'}")
+        d0 = "-" if r["day0"] is None else f"{r['day0']:.0%}"
+        print(f"  script {key}: {r['stocks']} stocks, {r['columns']} columns; day-0 check {d0}; "
+              f"all-zero: {empty or '-'}; under 20% non-zero: {low or '-'}")
     return 0
 
 
