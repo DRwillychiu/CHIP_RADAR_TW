@@ -28,7 +28,7 @@ import branch_performance as bp  # noqa: E402
 import branch_relations as rel  # noqa: E402
 import quarantine  # noqa: E402
 
-SQL = ("SELECT dc.date, b.code AS bno, b.name AS bname, s.code AS code, "
+SQL = ("SELECT dc.date, b.code AS bno, b.name AS bname, s.code AS code, MAX(s.name) AS sname, "
        "MAX(dc.buy_lots) AS buy_lots, MAX(dc.sell_lots) AS sell_lots, "
        "MAX(dc.buy_amt) AS buy_amt, MAX(dc.sell_amt) AS sell_amt, MAX(dc.is_estimated_lot) AS est "
        "FROM daily_chips dc JOIN branches b ON dc.branch_id=b.id JOIN stocks s ON dc.stock_id=s.id "
@@ -183,6 +183,12 @@ def main(argv=None):
                 cells.setdefault((r["date"], r["code"]), {})[bno] = (r["buy_amt"] or 0) - (r["sell_amt"] or 0)
     edges = rel.co_trading(cells, dates[1:], masters={b: masters.get(b, []) for b in by_branch})
     strong = [e for e in edges if e["p_value"] <= 1e-3 and e["lift"] >= 2]
+    # v3.83.2: spell out the co-buy events of the notable edges (stock name, both net amounts)
+    sname = {r["code"]: r.get("sname") for r in rows}
+    for e in strong:
+        e["events"] = [{"x_date": dx, "y_date": dy, "code": c, "name": sname.get(c),
+                        "x_net_k": (cells.get((dx, c)) or {}).get(e["x"]),
+                        "y_net_k": (cells.get((dy, c)) or {}).get(e["y"])} for dx, dy, c in e.get("events", [])]
     relations = {"edges": strong[:400], "edges_total": len(edges), "strong_total": len(strong),
                  "clusters": rel.clusters(edges), "params": {"big_q": rel.BIG_Q, "min_big_k": rel.MIN_BIG_K,
                                                              "min_co": rel.MIN_CO, "lags": [0, 1]}}

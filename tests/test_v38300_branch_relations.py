@@ -53,6 +53,8 @@ xy, xf = get('X', 'Y', 0), get('X', 'F', 1)
 check("X 大買 → Y 同日跟買: lift > 3、p 極小", xy and xy['lift'] > 3 and xy['p_value'] < 1e-10,
       xy and (round(xy['lift'], 1), xy['p_value']))
 check("X 大買 → F 隔日跟買 (lag 1)", xf and xf['lift'] > 5 and xf['p_value'] < 1e-10, xf and round(xf['lift'], 1))
+check("v3.83.2 強邊帶出同步事件 (X 日期, Y 日期, 股票)", xf and xf['events'] and all(
+      dates.index(dy) == dates.index(dx) + 1 and (dx, c) in cells for dx, dy, c in xf['events']), xf and xf['events'][:2])
 check("F 同日不跟 (lag 0 沒有強邊)", (get('X', 'F', 0) or {'lift': 0})['lift'] < 2)
 noise = [e for e in edges if e['x'] in ('N1', 'N2') and e['y'] in ('N3', 'N4') and e['lag'] == 0]
 # few co-buys pass min_co by chance (selection inflates their lift) -> judge by significance

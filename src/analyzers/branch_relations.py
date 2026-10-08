@@ -23,6 +23,7 @@ from math import exp, lgamma, log
 BIG_Q = 0.9
 MIN_BIG_K = 10_000          # NT$10m: a "big buy" is at least this
 MIN_CO = 5
+MAX_EVENTS = 60            # co-buy events kept per notable edge (x date, y date, stock)
 
 
 def _binom_sf(k, n, p):
@@ -90,6 +91,7 @@ def co_trading(cells, dates, masters=None, lags=(0, 1), big_q=BIG_Q, min_big_k=M
         w = {y: n / rest for y, n in n_inc.items() if y != x}
         for lag in lags:
             counts, expected, n = defaultdict(int), defaultdict(float), 0
+            events = defaultdict(list)       # v3.83.2: which (date, stock) the co-buys were
             for d, c in xs:
                 i = pos.get(d)
                 if i is None or i + lag >= len(dates):
@@ -102,13 +104,17 @@ def co_trading(cells, dates, masters=None, lags=(0, 1), big_q=BIG_Q, min_big_k=M
                         expected[y] += min(1.0, k * wy)
                 for y in buyers:
                     counts[y] += 1
+                    if len(events[y]) < MAX_EVENTS:
+                        events[y].append((d, dates[i + lag], c))
             for y, co in counts.items():
                 e = expected[y]
                 if co < min_co or e <= 0:
                     continue
+                lift, pv = co / e, _poisson_sf(co, e)
                 out.append({"x": x, "y": y, "lag": lag, "n_big": n, "co": co, "expected": e,
-                            "lift": co / e, "p_value": _poisson_sf(co, e),
-                            "same_master": bool(set(masters.get(x, ())) & set(masters.get(y, ())))})
+                            "lift": lift, "p_value": pv,
+                            "same_master": bool(set(masters.get(x, ())) & set(masters.get(y, ()))),
+                            "events": events[y] if (lift >= 2 and pv <= 1e-2) else []})
     out.sort(key=lambda e: -e["lift"])
     return out
 
