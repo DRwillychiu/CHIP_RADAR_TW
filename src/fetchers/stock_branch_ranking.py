@@ -71,7 +71,22 @@ def reset_session() -> None:
 
 _ROW_RE = re.compile(r"<TR>\s*(<TD class=\"t4t1\".*?)</tr>", re.S | re.I)
 _TD_RE = re.compile(r"<TD[^>]*>(.*?)</TD>", re.S | re.I)
-_BNO_RE = re.compile(r"[?&]b=([0-9A-Za-z]{3,6})[&\"]", re.I)
+# v3.80.30: lettered branch codes are written as UTF-16BE hex in the link
+# (16 chars, e.g. 永豐金-匯立); {3,6} silently dropped those rows (2330 on
+# 2026-10-07: 15 rows on the page, 13 / 12 parsed).
+_BNO_RE = re.compile(r"[?&]b=([0-9A-Za-z]{3,})[&\"]", re.I)
+
+
+def _decode_bno(raw: str) -> str:
+    """'0036003000310064' -> '601d' (the code as branches.py writes it)."""
+    if len(raw) >= 8 and len(raw) % 4 == 0 and re.fullmatch(r"[0-9A-Fa-f]+", raw):
+        try:
+            s = bytes.fromhex(raw).decode("utf-16-be")
+            if s.isalnum():
+                return s
+        except ValueError:
+            pass
+    return raw
 _TAG_RE = re.compile(r"<[^>]+>")
 _DATE_RE = re.compile(r"(\d{4}/\d{2}/\d{2})")
 
@@ -118,9 +133,9 @@ def parse_fubon_stock_page(html: str, stock_code: str = "") -> Optional[Dict[str
         # v3.73.0: bno 從各自的 <TD> 內抽 (不能用整 row findall 再取 index —
         # 買賣側筆數不對稱時, 若買超側為空會把賣超側 bno 誤配給買超側)
         _bm = _BNO_RE.search(tds[0])
-        buy_bno = _bm.group(1) if _bm else ""
+        buy_bno = _decode_bno(_bm.group(1)) if _bm else ""
         _sm = _BNO_RE.search(tds[5])
-        sell_bno = _sm.group(1) if _sm else ""
+        sell_bno = _decode_bno(_sm.group(1)) if _sm else ""
 
         buy_name = _clean(tds[0])
         if buy_name and buy_bno:
