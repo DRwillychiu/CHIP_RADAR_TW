@@ -233,6 +233,8 @@ def evaluate(rows, closes, index, dates, warmup_rows=(), rf_annual=0.0, min_valu
     bought_shares = sum((r.get("buy_lots") or 0) * SHARES_PER_LOT for r in rows if r["date"] in dates[1:])
     out.update(style_metrics([h for bk in books.values() for h in bk.holds],
                              [r for r in rows if r["date"] in dates[1:]], bought_shares))
+    out.update(chase_metrics([r for r in rows if r["date"] in dates[1:]], closes, dates))
+    out.update(style_labels(out))
     out.update({
         "positions": len(pnls), "win_rate": len(wins) / len(pnls) if pnls else None,
         "avg_win": _mean(wins), "avg_loss": _mean(losses),
@@ -323,3 +325,62 @@ def legacy_owner_metric(stock_rows):
     avg_order = sum(w for _, _, w, _, _ in stock_rows) / len(stock_rows)
     legacy = ev / avg_order * 1000 if avg_order else None
     return legacy, (legacy / 10 if legacy is not None else None)
+
+
+STRONG_DAY = 0.05        # buy-day close change >= +5% counts as buying into strength
+
+
+def chase_metrics(rows, closes, dates):
+    """v3.82.2: next-day flippers buy into strength. Buy amount weighted: mean
+    close-to-close change of the stock on the buy day, share bought on days with
+    change >= +5%, share bought in limit-up stocks (row flag 'lu' when present)."""
+    prev = {d: dates[i - 1] for i, d in enumerate(dates) if i}
+    tot = wsum = strong = lu = 0.0
+    for r in rows:
+        amt = r.get("buy_amt") or 0
+        if amt <= 0 or not r.get("buy_lots"):
+            continue
+        c = closes.get(r["code"], {})
+        p0, p1 = c.get(prev.get(r["date"])), c.get(r["date"])
+        if not p0 or not p1:
+            continue
+        chg = p1 / p0 - 1
+        tot += amt
+        wsum += amt * chg
+        strong += amt if chg >= STRONG_DAY else 0.0
+        lu += amt if r.get("lu") else 0.0
+    if not tot:
+        return {"buy_day_change": None, "strong_day_buy_share": None, "limit_up_buy_share": None}
+    return {"buy_day_change": wsum / tot, "strong_day_buy_share": strong / tot, "limit_up_buy_share": lu / tot}
+
+
+# v3.82.2 thresholds calibrated on the owner's labels (2026-10-08) - see the spec
+SECONDARY_MIN = 0.37      # the other horizon is a second label when its share is >= 37%
+FLIP_MIN = 0.30           # next-day flipper needs >= 30% of matched shares held <= 1 day ...
+CHASE_MIN = None          # ... AND strong-day buying share >= CHASE_MIN (set after calibration)
+DAY_TRADE_MIN = 0.75      # same-day two-sided share; 55% was a swing / short branch (新光-新竹)
+
+
+def style_labels(m, secondary_min=None, flip_min=None, chase_min=None, day_trade_min=None):
+    """Multi-label style: primary 波段 (swing, held > 5 days) or 短線 (short, <= 5),
+    the other as secondary when large enough, plus 隔日沖 / 當沖 flags."""
+    secondary_min = SECONDARY_MIN if secondary_min is None else secondary_min
+    flip_min = FLIP_MIN if flip_min is None else flip_min
+    chase_min = CHASE_MIN if chase_min is None else chase_min
+    day_trade_min = DAY_TRADE_MIN if day_trade_min is None else day_trade_min
+    labels = []
+    short = m.get("hold_le5")
+    if short is not None:
+        swing = 1 - short
+        primary, other, other_share = ("swing", "short_term", short) if swing >= short else \
+            ("short_term", "swing", swing)
+        labels.append(primary)
+        if other_share >= secondary_min:
+            labels.append(other)
+    flip = m.get("hold_le1")
+    chase = m.get("strong_day_buy_share")
+    if flip is not None and flip >= flip_min and (chase_min is None or (chase is not None and chase >= chase_min)):
+        labels.append("next_day_flipper")
+    if (m.get("two_sided_share") or 0) >= day_trade_min:
+        labels.append("day_trader")
+    return {"style_labels": labels}

@@ -30,7 +30,7 @@ import quarantine  # noqa: E402
 
 SQL = ("SELECT dc.date, b.code AS bno, b.name AS bname, s.code AS code, MAX(s.name) AS sname, "
        "MAX(dc.buy_lots) AS buy_lots, MAX(dc.sell_lots) AS sell_lots, "
-       "MAX(dc.buy_amt) AS buy_amt, MAX(dc.sell_amt) AS sell_amt, MAX(dc.is_estimated_lot) AS est "
+       "MAX(dc.buy_amt) AS buy_amt, MAX(dc.sell_amt) AS sell_amt, MAX(dc.is_estimated_lot) AS est, MAX(dc.is_limit_up) AS lu "
        "FROM daily_chips dc JOIN branches b ON dc.branch_id=b.id JOIN stocks s ON dc.stock_id=s.id "
        "WHERE dc.source='raw' GROUP BY dc.date, b.code, s.code")
 
