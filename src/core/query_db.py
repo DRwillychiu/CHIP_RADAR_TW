@@ -70,14 +70,19 @@ PRESETS = {
         "HAVING COUNT(DISTINCT dc.date)>=5 "
         "ORDER BY days DESC, cum_buy_wan DESC LIMIT 30"),
 
+    # v3.80.29: same result, 185 s -> 9.4 s on the real DB (2026-10-08, 627k rows,
+    # 85 dates; result hash identical). Rows are first grouped per
+    # (date, stock, trader) - 65k groups hold 175k rows of multi-branch masters -
+    # and the pair count is the product of the two group sizes.
     9: ("派系初探: 兩 master 同檔同日買進次數 Top 20",
-        "WITH pairs AS ("
-        "  SELECT a.date, a.stock_id, a.trader_id AS t1, b.trader_id AS t2 "
-        "  FROM daily_chips a JOIN daily_chips b "
-        "  ON a.date=b.date AND a.stock_id=b.stock_id AND a.trader_id<b.trader_id "
-        "  WHERE a.buy_lots>0 AND b.buy_lots>0 AND a.source='raw') "
+        "WITH a AS (SELECT date, stock_id, trader_id, COUNT(*) AS n FROM daily_chips "
+        "  WHERE buy_lots>0 AND source='raw' GROUP BY date, stock_id, trader_id), "
+        "b AS (SELECT date, stock_id, trader_id, COUNT(*) AS n FROM daily_chips "
+        "  WHERE buy_lots>0 GROUP BY date, stock_id, trader_id), "
+        "pairs AS (SELECT a.trader_id AS t1, b.trader_id AS t2, a.stock_id, a.n * b.n AS w "
+        "  FROM a JOIN b ON a.date=b.date AND a.stock_id=b.stock_id AND a.trader_id<b.trader_id) "
         "SELECT t1.name AS master_a, t2.name AS master_b, "
-        "COUNT(*) AS co_buy_count, COUNT(DISTINCT pairs.stock_id) AS distinct_stocks "
+        "SUM(w) AS co_buy_count, COUNT(DISTINCT pairs.stock_id) AS distinct_stocks "
         "FROM pairs JOIN traders t1 ON pairs.t1=t1.id JOIN traders t2 ON pairs.t2=t2.id "
         "GROUP BY t1.name, t2.name ORDER BY co_buy_count DESC LIMIT 20"),
 
@@ -89,13 +94,17 @@ PRESETS = {
         "lu.date AS buy_date, lu.buy_lots, "
         "next_dc.date AS sell_date, next_dc.sell_lots, "
         "ROUND(100.0 * next_dc.sell_lots / lu.buy_lots, 1) AS flip_pct "
+        # v3.80.29: the sell must be on the NEXT trading day (was "any later day":
+        # 1.5M pairs on the real DB, so it was neither T+1 nor fast). Next day =
+        # MIN(date) > buy date via the date index; CROSS JOIN keeps lu as the
+        # outer loop. 65 s -> 0.46 s, same result with or without ANALYZE.
         "FROM lu_buys lu "
-        "LEFT JOIN daily_chips next_dc "
-        "  ON next_dc.trader_id=lu.trader_id AND next_dc.stock_id=lu.stock_id "
-        "  AND next_dc.date > lu.date AND next_dc.sell_lots > 0 "
+        "CROSS JOIN daily_chips next_dc "
+        "  ON next_dc.stock_id=lu.stock_id AND next_dc.trader_id=lu.trader_id "
+        "  AND next_dc.date=(SELECT MIN(date) FROM daily_chips WHERE date > lu.date) "
+        "  AND next_dc.sell_lots > 0 "
         "JOIN traders t ON lu.trader_id=t.id "
         "JOIN stocks s ON lu.stock_id=s.id "
-        "WHERE next_dc.date IS NOT NULL "
         "ORDER BY lu.date DESC, flip_pct DESC LIMIT 30"),
 
     11: ("處置股獵手: 處置中個股累積買進 Top trader",
@@ -285,6 +294,19 @@ def export_all_snapshot(out_path, db=DB, clock=None, log=print):
         return 'skipped'
     snapshot = {'queries': {}, 'count': 0, 'failed': [], 'db_signature': sig}
     t_all = clock()
+    # v3.80.29: planner statistics were never collected (no sqlite_stat1); ANALYZE
+    # takes ~0.5 s on the real DB and lets every preset pick the right index.
+    try:
+        if not Path(db).exists():
+            raise sqlite3.Error('DB missing')     # never create an empty DB file
+        c = sqlite3.connect(db)
+        try:
+            c.execute('ANALYZE')
+            c.commit()
+        finally:
+            c.close()
+    except sqlite3.Error as e:
+        log(f"  ⚠️ ANALYZE failed (snapshot continues): {e}")
     for k, (title, sql) in PRESETS.items():
         t0 = clock()
         result, err = fetch_rows(sql, db)
