@@ -154,6 +154,10 @@ def main(argv=None):
         from branches import MASTER_STYLES
     except ImportError:
         MASTER_STYLES = {}
+    try:
+        from branches import BRANCH_STYLES      # v3.82.2 owner branch labels
+    except ImportError:
+        BRANCH_STYLES = {}
     for bno, rs in sorted(by_branch.items()):
         warm = [r for r in rs if r["date"] < dates[0]]
         win = [r for r in rs if dates[0] <= r["date"] <= dates[-1]]
@@ -172,7 +176,15 @@ def main(argv=None):
         res.update(local.get(bno, {}))
         # v3.82.1 owner: judge performance on the horizon that fits the branch's style
         res["declared_styles"] = sorted({st for m in res["masters"] for st in MASTER_STYLES.get(m, [])})
-        h = "_recent" if res.get("horizon") == "recent" else ""
+        # v3.82.2: owner's branch label wins over the measured multi-label style
+        owner = BRANCH_STYLES.get(bno)
+        eff = list(owner) if owner else list(res.get("style_labels") or [])
+        res.update(owner_branch_styles=owner, effective_styles=eff,
+                   style_source="owner" if owner else "measured")
+        short = any(x in eff for x in ("short_term", "next_day_flipper", "day_trader"))
+        long_ = any(x in eff for x in ("swing", "longterm"))
+        res["judged_on"] = "both" if (short and long_) else ("recent" if short else "full")
+        h = "_recent" if res["judged_on"] == "recent" else ""
         res.update(matched_ir=res.get(f"info_ratio{h}"), matched_alpha=res.get(f"alpha_ann{h}"))
         results.append(res)
     # v3.83.0 R2 co-trading on the window's visible rows (net buy amount per date x stock x branch)

@@ -127,6 +127,19 @@ b.buy(1000, 11, day=5)
 b.sell(1500, 12, day=9)
 check("FIFO 持有天數: 1000 股 6 日、500 股 4 日", b.holds == [(1000, 6), (500, 4)], b.holds)
 
+print("\nH. v3.82.2 多重屬性 + 使用者標註 (2026-10-08)")
+lab = lambda **m: sorted(bp.style_labels(m)["style_labels"])
+check("新光-新竹: <=5 日 37% -> 波段/短線", lab(hold_le5=0.37, hold_le1=0.17, two_sided_share=0.55) == ["short_term", "swing"])
+check("凱基-城中型: <=1 日 69% -> 加上隔日沖", "next_day_flipper" in lab(hold_le5=0.80, hold_le1=0.69))
+check("強勢日門檻 = 當天漲幅 >= 7% (使用者 2026-10-08)", bp.STRONG_DAY == 0.07)
+check("同日雙邊 55% 不再算當沖 (門檻 75%)", "day_trader" not in lab(hold_le5=0.4, hold_le1=0.1, two_sided_share=0.55))
+import branches
+check("使用者標註的 5 個分點寫在 BRANCH_STYLES", set(branches.BRANCH_STYLES) == {"8563", "779Z", "9217", "9666", "9B18"}
+      and branches.BRANCH_STYLES["9B18"] == ["next_day_flipper", "short_term"])
+src_rep = (pathlib.Path(__file__).resolve().parent.parent / "scripts" / "branch_performance_report.py").read_text(encoding="utf-8")
+check("報告: 使用者標註優先, 評估期間依屬性 (both / recent / full)", 'style_source="owner" if owner else "measured"' in src_rep
+      and 'res["judged_on"] = "both"' in src_rep)
+
 print()
 print("─" * 72)
 print(f"  整體: {'✅ ALL PASS' if all_pass else '❌ HAS FAIL'}")

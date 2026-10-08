@@ -602,6 +602,17 @@ STYLE_LABELS = {
     "unknown":          {"icon": "❓", "label": "未分類", "color": "#64748b"},
 }
  
+# v3.82.2 owner 2026-10-08: branch-level style labels (override the measured style
+# in the branch classification; a master can trade differently per branch).
+# Values use the MASTER_STYLES vocabulary.
+BRANCH_STYLES = {
+    "8563": ["swing", "short_term"],        # 新光-新竹 (大牌分析師)
+    "779Z": ["swing", "short_term"],        # 國票-安和 (張濬安)
+    "9217": ["swing"],                      # 凱基-松山 (迷你哥/松山哥)
+    "9666": ["swing", "short_term"],        # 富邦-南屯 (民哥)
+    "9B18": ["next_day_flipper", "short_term"],  # 台新-建北 (蔣承翰)
+}
+
 MASTER_STYLES = {
     # 🇹🇼 國內高手
     "民哥": ["swing"],

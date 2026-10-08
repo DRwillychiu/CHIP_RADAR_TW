@@ -327,13 +327,13 @@ def legacy_owner_metric(stock_rows):
     return legacy, (legacy / 10 if legacy is not None else None)
 
 
-STRONG_DAY = 0.05        # buy-day close change >= +5% counts as buying into strength
+STRONG_DAY = 0.07        # owner 2026-10-08: buy-day close change >= +7% = buying into strength
 
 
 def chase_metrics(rows, closes, dates):
     """v3.82.2: next-day flippers buy into strength. Buy amount weighted: mean
     close-to-close change of the stock on the buy day, share bought on days with
-    change >= +5%, share bought in limit-up stocks (row flag 'lu' when present)."""
+    change >= +7%, share bought in limit-up stocks (row flag 'lu' when present)."""
     prev = {d: dates[i - 1] for i, d in enumerate(dates) if i}
     tot = wsum = strong = lu = 0.0
     for r in rows:
@@ -354,10 +354,17 @@ def chase_metrics(rows, closes, dates):
     return {"buy_day_change": wsum / tot, "strong_day_buy_share": strong / tot, "limit_up_buy_share": lu / tot}
 
 
-# v3.82.2 thresholds calibrated on the owner's labels (2026-10-08) - see the spec
-SECONDARY_MIN = 0.37      # the other horizon is a second label when its share is >= 37%
-FLIP_MIN = 0.30           # next-day flipper needs >= 30% of matched shares held <= 1 day ...
-CHASE_MIN = None          # ... AND strong-day buying share >= CHASE_MIN (set after calibration)
+# v3.82.2 thresholds, checked against the owner's 5 branch labels (2026-10-08):
+#   the other horizon is a second label at >= 37% (新光-新竹 37% short -> 波段/短線);
+#   next-day flipper = >= 45% of matched shares held <= 1 day, the profile of the
+#   textbook flippers 凱基-城中 69% / 台新-西松 52% / 富邦-嘉義 48%. Buying into
+#   strength did NOT separate the owner's flipper 台新-建北 (26% strong-day share)
+#   from his swing / short 富邦-南屯 (35%) and 國票-安和 (48%), so it is shown but
+#   not used (CHASE_MIN None). Rules match 3 of 5 labels exactly; owner labels in
+#   branches.BRANCH_STYLES win over the measured style.
+SECONDARY_MIN = 0.37
+FLIP_MIN = 0.45
+CHASE_MIN = None
 DAY_TRADE_MIN = 0.75      # same-day two-sided share; 55% was a swing / short branch (新光-新竹)
 
 
