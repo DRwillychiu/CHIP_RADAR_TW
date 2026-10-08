@@ -17,9 +17,16 @@
 // 10 top10_net  11 key_net  12 local_net  13 gov_net (broker groups)
 // 14 buyer_cnt  15 seller_cnt  16 branch_cnt  17 net_buy_branch_cnt
 // 18 seller_buyer_ratio (sellers / buyers)
-// 19 lock_rate (%)  20 mf_cost  21 mf_avg_buy_cost  22 mf_hold (estimated)
-// 23 top10_net_5d  24 key_net_5d (sums)
+// 19 lock_rate (%)  20 mf_cost
+// 21 top10_net_5d  22 key_net_5d (sums)
 // close vs main-force cost is computed locally from the export price column.
+// v4 (2026-10-08): the v3 run on the owner's XQ returned 0 stocks; the
+// export header named columns 1-20 and left 21-24 as generic columns, so
+// every stock stopped at the main-force average-buy-cost field (v3 column
+// 21). That field and the main-force holding field (v3 column 22, never
+// reached, unproven) are removed. Every field
+// left already returned data on the owner's XQ (probe run, or a named
+// column in the v3 export).
 
 var: i(0), volNow(0), mfX(0), stopB(false), stopS(false), streakB(0), streakS(0);
 var: s5(0), s20(0), s60(0), t5(0), k5(0), nBuy(0), nSell(0), mfRatio(0), sbRatio(0);
@@ -82,7 +89,5 @@ OutputField(17, GetField("分公司淨買超金額家數", "D"), 0, "net_buy_bra
 OutputField(18, sbRatio, 2, "seller_buyer_ratio");
 OutputField(19, GetField("籌碼鎖定率", "D"), 2, "lock_rate");
 OutputField(20, GetField("主力成本", "D"), 2, "mf_cost");
-OutputField(21, GetField("主力平均買超成本", "D"), 2, "mf_avg_buy_cost");
-OutputField(22, GetField("主力持股", "D"), 0, "mf_hold");
-OutputField(23, t5, 0, "top10_net_5d");
-OutputField(24, k5, 0, "key_net_5d");
+OutputField(21, t5, 0, "top10_net_5d");
+OutputField(22, k5, 0, "key_net_5d");

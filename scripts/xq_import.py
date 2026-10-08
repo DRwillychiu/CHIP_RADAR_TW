@@ -44,6 +44,10 @@ def read_export(path):
     ci = hdr.index("代碼")
     out = {}
     for r in rows[h + 1:]:
+        # v3.85.3: the last column (產業地位) is written unquoted, so a comma
+        # inside it splits the row (seen on 5464 霖宏); glue the tail back
+        if len(r) > len(hdr) and hdr[-1] == "產業地位":
+            r = r[:len(hdr) - 1] + [",".join(r[len(hdr) - 1:])]
         if len(r) != len(hdr) or not r[ci].strip():
             continue
         code = r[ci].strip().split(".")[0]
