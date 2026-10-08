@@ -179,7 +179,7 @@ index.html (~470KB)
 | 1 | Daily Full Crawl | 21:17 + 22:37 + 23:47 TW（三層兜底） | 主爬蟲 + Excel + DB + master_profile + signals |
 | 2 | Margin Refresh | 7 重排程 | 融資融券補抓 |
 | 3 | Keepalive | 週日 04:00 TW | 防 60 天 disable |
-| 4 | Security Audit | 週一 03:00 TW | pip-audit + safety |
+| 4 | Security Audit | 週一 03:00 TW | pip-audit (requirements + full env) |
 | 5 | Heartbeat | 00:30 + 09:00 TW | 資料新鮮度,stale 自動開 issue |
 | 6 | Pages Build | 自動 | GitHub Pages 部署 |
 

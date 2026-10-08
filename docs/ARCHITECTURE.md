@@ -306,7 +306,7 @@ return new TextDecoder().decode(plainBuf);
 | `daily-full.yml` | `17 13 * * 1-5` + `37 14 * * 1-5` | 21:17 + 22:37(兜底) | 主流程,timeout 25 min |
 | `margin-refresh.yml` | 7 個 schedule | 22:30/23:30/00:30/02:00/08:00/09:00/12:00 | 融資補抓(margin_only) |
 | `keepalive.yml` | `0 20 * * 0` | 週日 04:00 | 空 commit 防 60 天 disable |
-| `security-audit.yml` | `0 19 * * 0` | **週一 03:00**(v3.30.1) | pip-audit + safety scan |
+| `security-audit.yml` | `0 19 * * 0` | **週一 03:00**(v3.30.1) | pip-audit (requirements + full env) |
 
 雙保險:即使本地 Task Scheduler 沒觸發,GitHub cron 還是會跑(只是晚)。
 

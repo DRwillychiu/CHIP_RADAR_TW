@@ -61,7 +61,7 @@ concurrency:
 
 jobs:
   gate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       run: ${{ steps.gate.outputs.run }}
@@ -89,7 +89,7 @@ jobs:
     # fail-open: skip only when the gate ran and said no; a crashed gate must not
     # silently cancel a trading-day run
     if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.run == 'true') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # v3.28.0: 15 → 25; v3.32.2: 25 → 45 (81 分點 + master_profile + alliance + signals + DB)
     # v3.80.8: 45 → 75. 2026-10-01 富邦整晚偏慢: 21:17 跑 42.0 分 (6 分點逾時各耗 ~80s),
     #   22:37 跑到 45.6 分被砍 — 分點抓完、自我修復也成功了, 但後處理沒跑完,
