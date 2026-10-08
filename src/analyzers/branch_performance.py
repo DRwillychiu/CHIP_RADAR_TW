@@ -1,0 +1,272 @@
+"""v3.82.0 branch performance model (owner 2026-10-08: "losses and performance
+must follow the most complete, generally accepted financial model").
+
+Inputs per branch: daily rows (date, stock, buy_lots, sell_lots, buy_amt 仟元,
+sell_amt 仟元) and daily closes (+ TAIEX). Model:
+
+  Position accounting  FIFO lot matching per (branch, stock). Buy cost and sell
+                       proceeds include transaction costs: commission
+                       COMMISSION (both sides), securities transaction tax
+                       TAX_SELL (sells). Sells beyond the known inventory are
+                       "unmatched" (the shares were bought before the data
+                       starts): excluded from PnL and reported.
+  PnL                  realized (FIFO, net of costs) + unrealized (open lots
+                       marked to the close). Total PnL over the window =
+                       V_end - V_begin - net cash flow.
+  Returns              Modified Dietz over the window (GIPS) and a daily
+                       time-weighted return (TWR, flows at the start of day).
+  Risk                 annualized volatility, Sharpe, Sortino (rf configurable),
+                       max drawdown of the TWR index.
+  Benchmark            beta / Jensen's alpha vs TAIEX daily returns (OLS);
+                       information ratio; the same cash flows put into TAIEX
+                       give the benchmark PnL -> excess PnL.
+  Trade statistics     per stock position (all FIFO matches of one branch x
+                       stock in the window): win rate, payoff, profit factor,
+                       expectancy, PnL per NT$10M bought.
+  Owner's legacy       sell_lots x (sell_avg - buy_avg) per stock, mean over
+                       positions / mean buy amount x 1000 (每千萬期望值). That
+                       product is 仟元, so the legacy number is 10x the 萬 value;
+                       both are returned.
+
+Limitation (stated in every result): only the stocks a branch has in its daily
+top-50 net-buy / net-sell lists are visible, so a position's other days can be
+missing. Coverage figures are returned with each branch.
+"""
+from collections import defaultdict, deque
+from math import sqrt
+
+COMMISSION = 0.001425        # 0.1425% each side, undiscounted (conservative)
+TAX_SELL = 0.003             # 0.3% securities transaction tax on sells
+SHARES_PER_LOT = 1000
+TRADING_DAYS = 252
+TEN_MILLION = 10_000_000
+
+
+def _mean(xs):
+    return sum(xs) / len(xs) if xs else None
+
+
+def _std(xs):
+    if len(xs) < 2:
+        return None
+    m = _mean(xs)
+    return sqrt(sum((x - m) ** 2 for x in xs) / (len(xs) - 1))
+
+
+class Book:
+    """FIFO lots of one (branch, stock). Money in NT$, quantity in shares."""
+
+    def __init__(self, commission=COMMISSION, tax=TAX_SELL):
+        self.lots = deque()          # [shares, cost per share incl. buy commission]
+        self.commission, self.tax = commission, tax
+        self.realized = 0.0
+        self.unmatched_shares = 0
+        self.matched_cost = 0.0      # cost of the shares sold out of inventory
+
+    @property
+    def shares(self):
+        return sum(q for q, _ in self.lots)
+
+    def buy(self, shares, price):
+        """-> cash out (NT$, incl. commission)."""
+        if shares <= 0:
+            return 0.0
+        cost = shares * price * (1 + self.commission)
+        self.lots.append([shares, cost / shares])
+        return cost
+
+    def sell(self, shares, price):
+        """-> cash in (NT$, net of commission + tax) for the matched part only."""
+        if shares <= 0:
+            return 0.0
+        net_px = price * (1 - self.commission - self.tax)
+        left, proceeds = shares, 0.0
+        while left > 0 and self.lots:
+            lot = self.lots[0]
+            q = min(left, lot[0])
+            proceeds += q * net_px
+            self.realized += q * (net_px - lot[1])
+            self.matched_cost += q * lot[1]
+            lot[0] -= q
+            left -= q
+            if lot[0] == 0:
+                self.lots.popleft()
+        self.unmatched_shares += left
+        return proceeds
+
+    def value(self, close):
+        return self.shares * close if close else 0.0
+
+    def cost_basis(self):
+        return sum(q * c for q, c in self.lots)
+
+
+def modified_dietz(v_begin, v_end, flows, n_days):
+    """flows: [(day_index 0..n_days, amount)] external flows (+ in, - out)."""
+    cf = sum(a for _, a in flows)
+    denom = v_begin + sum(a * (n_days - d) / n_days for d, a in flows) if n_days else v_begin
+    return (v_end - v_begin - cf) / denom if denom > 0 else None
+
+
+def ols_beta_alpha(r, m):
+    """Daily OLS r = alpha + beta*m -> (beta, alpha_daily)."""
+    if len(r) < 10:
+        return None, None
+    mm, mr = _mean(m), _mean(r)
+    var = sum((x - mm) ** 2 for x in m)
+    if var == 0:
+        return None, None
+    beta = sum((x - mm) * (y - mr) for x, y in zip(m, r)) / var
+    return beta, mr - beta * mm
+
+
+def evaluate(rows, closes, index, dates, warmup_rows=(), rf_annual=0.0, min_value=1_000_000):
+    """One branch.
+
+    rows        [{date, code, buy_lots, sell_lots, buy_amt, sell_amt}] inside the window
+    warmup_rows same shape, before the window: build the opening inventory only
+    closes      {code: {date: close}};  index {date: TAIEX close}
+    dates       window trading dates, ascending; dates[0] = valuation start
+    min_value   days whose start value + inflow is below this (NT$) get no daily return
+    """
+    books = defaultdict(Book)
+    for r in sorted(warmup_rows, key=lambda x: x["date"]):
+        _apply(books[r["code"]], r)
+    d0 = dates[0]
+    v_begin = sum(b.value(closes.get(c, {}).get(d0)) for c, b in books.items())
+    # GIPS period accounting: the opening inventory enters the window at its
+    # beginning market value, so the window's PnL starts from the d0 close and
+    # nothing realized during the warm-up counts.
+    for c, b in books.items():
+        px = closes.get(c, {}).get(d0)
+        if px:
+            for lot in b.lots:
+                lot[1] = px
+        b.realized, b.matched_cost, b.unmatched_shares = 0.0, 0.0, 0
+    by_day = defaultdict(list)
+    for r in rows:
+        if r["date"] in dates[1:]:
+            by_day[r["date"]].append(r)
+    n = len(dates) - 1
+    flows, daily_r, daily_m, pnl_series = [], [], [], []
+    v_prev, last_close = v_begin, {}
+    pos = defaultdict(lambda: {"buy": 0.0, "sell_matched_cost": 0.0, "pnl": 0.0})
+    bought_total = 0.0
+    for i, d in enumerate(dates[1:], start=1):
+        cf = 0.0
+        for r in by_day.get(d, []):
+            b = books[r["code"]]
+            before_real, before_cost = b.realized, b.matched_cost
+            out = _apply(b, r)
+            cf += out
+            p = pos[r["code"]]
+            p["pnl"] += b.realized - before_real
+            p["sell_matched_cost"] += b.matched_cost - before_cost
+            if r.get("buy_lots"):
+                spent = r["buy_lots"] * SHARES_PER_LOT * _px(r["buy_amt"], r["buy_lots"]) * (1 + COMMISSION)
+                p["buy"] += spent
+                bought_total += spent
+        v = 0.0
+        for c, b in books.items():
+            px = closes.get(c, {}).get(d) or last_close.get(c)
+            if px:
+                last_close[c] = px
+            v += b.value(px)
+        if cf:
+            flows.append((i, cf))
+        pnl_t = v - v_prev - cf
+        pnl_series.append(pnl_t)
+        base = v_prev + max(cf, 0.0)
+        if base >= min_value and index.get(d) and index.get(dates[i - 1]):
+            daily_r.append(pnl_t / base)
+            daily_m.append(index[d] / index[dates[i - 1]] - 1)
+        v_prev = v
+    v_end = v_prev
+    total_pnl = v_end - v_begin - sum(a for _, a in flows)
+    # unrealized PnL of the open lots at the end, per stock (for position stats)
+    d_end = dates[-1]
+    for c, b in books.items():
+        px = closes.get(c, {}).get(d_end) or last_close.get(c)
+        if px and b.shares and c in pos:
+            pos[c]["pnl"] += b.value(px) - b.cost_basis()
+    out = {"v_begin": v_begin, "v_end": v_end, "total_pnl": total_pnl,
+           "realized_pnl": sum(b.realized for b in books.values()),
+           "bought": bought_total, "days": n,
+           "md_return": modified_dietz(v_begin, v_end, flows, n),
+           "unmatched_shares": sum(b.unmatched_shares for b in books.values())}
+    # time-weighted return + risk
+    twr, peak, mdd, idx = 1.0, 1.0, 0.0, 1.0
+    for x in daily_r:
+        idx *= 1 + x
+        peak = max(peak, idx)
+        mdd = min(mdd, idx / peak - 1)
+    twr = idx - 1 if daily_r else None
+    rf_d = rf_annual / TRADING_DAYS
+    ex = [x - rf_d for x in daily_r]
+    sd, down = _std(daily_r), [x for x in ex if x < 0]
+    dd = sqrt(sum(x * x for x in down) / len(ex)) if ex and down else None
+    beta, alpha_d = ols_beta_alpha(daily_r, daily_m)
+    act = [x - y for x, y in zip(daily_r, daily_m)]
+    out.update({
+        "twr": twr, "return_days": len(daily_r),
+        "vol_ann": sd * sqrt(TRADING_DAYS) if sd else None,
+        "sharpe": (_mean(ex) / sd * sqrt(TRADING_DAYS)) if sd else None,
+        "sortino": (_mean(ex) / dd * sqrt(TRADING_DAYS)) if dd else None,
+        "max_drawdown": mdd if daily_r else None,
+        "beta": beta, "alpha_ann": alpha_d * TRADING_DAYS if alpha_d is not None else None,
+        "info_ratio": (_mean(act) / _std(act) * sqrt(TRADING_DAYS)) if _std(act) else None,
+        "benchmark_pnl": _benchmark_pnl(flows, v_begin, index, dates),
+    })
+    out["excess_pnl"] = (total_pnl - out["benchmark_pnl"]) if out["benchmark_pnl"] is not None else None
+    # position statistics
+    pnls = [p["pnl"] for p in pos.values() if p["buy"] > 0 or p["sell_matched_cost"] > 0]
+    wins, losses = [x for x in pnls if x > 0], [x for x in pnls if x < 0]
+    out.update({
+        "positions": len(pnls), "win_rate": len(wins) / len(pnls) if pnls else None,
+        "avg_win": _mean(wins), "avg_loss": _mean(losses),
+        "payoff": (_mean(wins) / -_mean(losses)) if wins and losses else None,
+        "profit_factor": (sum(wins) / -sum(losses)) if losses else None,
+        "expectancy": _mean(pnls),
+        "pnl_per_10m": total_pnl / bought_total * TEN_MILLION if bought_total else None,
+    })
+    return out
+
+
+def _px(amt_k, lots):
+    return amt_k * 1000 / (lots * SHARES_PER_LOT) if lots else 0.0
+
+
+def _apply(book, r):
+    """Apply one daily row to a book -> external cash flow (+ buy cost, - sell proceeds)."""
+    cf = 0.0
+    if r.get("buy_lots"):
+        cf += book.buy(r["buy_lots"] * SHARES_PER_LOT, _px(r["buy_amt"], r["buy_lots"]))
+    if r.get("sell_lots"):
+        cf -= book.sell(r["sell_lots"] * SHARES_PER_LOT, _px(r["sell_amt"], r["sell_lots"]))
+    return cf
+
+
+def _benchmark_pnl(flows, v_begin, index, dates):
+    """Same flows (and starting value) put into TAIEX at that day's close."""
+    if not index.get(dates[0]) or not index.get(dates[-1]):
+        return None
+    units, cf_sum = v_begin / index[dates[0]], 0.0
+    for d_i, a in flows:
+        px = index.get(dates[d_i])
+        if not px:
+            return None
+        units += a / px
+        cf_sum += a
+    return units * index[dates[-1]] - v_begin - cf_sum
+
+
+def legacy_owner_metric(stock_rows):
+    """Owner's sheet: stock_rows [(buy_lots, sell_lots, buy_wan, buy_avg, sell_avg)] aggregated
+    per stock over the window. -> (legacy 每千萬期望值 as in the sheet, same in 萬)."""
+    if not stock_rows:
+        return None, None
+    pnl = [s * (sa - ba) for _, s, _, ba, sa in stock_rows]       # 張 x 元 = 仟元
+    ev = sum(pnl) / len(pnl)
+    avg_order = sum(w for _, _, w, _, _ in stock_rows) / len(stock_rows)
+    legacy = ev / avg_order * 1000 if avg_order else None
+    return legacy, (legacy / 10 if legacy is not None else None)
