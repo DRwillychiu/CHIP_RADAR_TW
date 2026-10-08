@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   gate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       run: ${{ steps.gate.outputs.run }}
@@ -50,7 +50,7 @@ jobs:
     # fail-open: skip only when the gate ran and said no; a crashed gate must not
     # silently cancel a trading-day run
     if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.run == 'true') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
