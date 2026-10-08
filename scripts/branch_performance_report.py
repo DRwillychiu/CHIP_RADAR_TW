@@ -26,6 +26,7 @@ import src  # noqa: F401,E402
 
 import branch_performance as bp  # noqa: E402
 import branch_relations as rel  # noqa: E402
+import peer_spillover as ps  # noqa: E402
 import quarantine  # noqa: E402
 
 SQL = ("SELECT dc.date, b.code AS bno, b.name AS bname, s.code AS code, MAX(s.name) AS sname, "
@@ -124,6 +125,7 @@ def main(argv=None):
     ap.add_argument("--rf", type=float, default=0.0, help="annual risk-free rate for Sharpe / Sortino")
     ap.add_argument("--geo", default=str(ROOT / "data" / "branch_geo.json"))
     ap.add_argument("--recent", type=int, default=20, help="trading days of the recent window")
+    ap.add_argument("--peers", default="", help="v3.84.0 encrypted peer map (XQ-derived, never in the repo)")
     a = ap.parse_args(argv)
 
     hist = json.loads(Path(a.history).read_text(encoding="utf-8"))
@@ -209,8 +211,18 @@ def main(argv=None):
                                                              "min_co": rel.MIN_CO, "lags": [0, 1],
                                                              "max_q": rel.MAX_Q,
                                                              "min_overlap_days": rel.MIN_OVERLAP_DAYS}}
+    # v3.84.0 R3 peer spillover (needs the encrypted peer map; skipped without it)
+    peers = None
+    if a.peers and Path(a.peers).exists():
+        from crawler_output import decrypt_data
+        pm = json.loads(decrypt_data(json.loads(Path(a.peers).read_text(encoding="utf-8"))["token"],
+                                     os.environ["CHIP_RADAR_PASSWORD"]))
+        bigs = rel.big_buys(cells)
+        events = [(b, d, c) for b, xs in bigs.items() for d, c in xs]
+        peers = ps.spillover(cells, dates[1:], pm["groups"], pm["rank"], events)
+        peers["map_source"] = pm.get("source")
     doc = {"window": [dates[0], dates[-1]], "trading_days": len(dates) - 1, "recent_window": [d20[0], d20[-1]],
-           "relations": relations,
+           "relations": relations, "peers": peers,
            "assumptions": {"commission": bp.COMMISSION, "tax_sell": bp.TAX_SELL, "rf_annual": a.rf,
                            "lot_matching": "FIFO", "return": "Modified Dietz (GIPS) + daily TWR",
                            "visibility": "daily top-50 net-buy / net-sell lists only"},
