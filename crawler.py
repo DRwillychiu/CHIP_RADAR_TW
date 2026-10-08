@@ -67,7 +67,9 @@ from crawler_fetch import (
     TOP_N, DELAY_MIN, DELAY_MAX, COOL_DOWN_EVERY, COOL_DOWN_SECONDS,
     URL_TPL, HOME_URL, UA_POOL, ROW_PATTERN,
     parse_region, fetch_branch_mode, fetch_branch_combined,
+    FETCH_STATS, pause as _fetch_pause,
 )
+from phase_timer import PhaseTimer   # v3.80.27 crawl timing
 from crawler_pipeline import (
     TW_TZ, now_tw, BASELINE_DATE, TEMP_THRESHOLDS,
     _temp_signal_score, _days_to_settlement,
@@ -501,6 +503,8 @@ def main():
     if len(password) < 6:
         print("⚠️  警告：密碼太短（< 6 字元）")
     
+    _tm = PhaseTimer()   # v3.80.27: per-stage timing -> ::notice + data/crawl_timing.json
+    _tm.phase('準備')
     print(f"[{now_tw().strftime('%Y-%m-%d %H:%M:%S')}] 開始爬取 {len(WATCHED_BRANCHES)} 個分點 (🔒 加密+📊 FIFO 模式)")
     
     # 去除重複分點
@@ -518,6 +522,7 @@ def main():
     today_str = now_tw().strftime("%Y%m%d")
     classify_stock_fn, _ = get_classifier(data_dir, today_str)
     
+    _tm.phase('富邦分點頁')
     # 爬取所有分點
     results = []
     trade_date = None
@@ -573,9 +578,9 @@ def main():
         if i < len(unique_branches) - 1:
             if (i + 1) % COOL_DOWN_EVERY == 0:
                 print(f"    ⏸  休息 {COOL_DOWN_SECONDS} 秒...")
-                time.sleep(COOL_DOWN_SECONDS)
+                _fetch_pause(COOL_DOWN_SECONDS)
             else:
-                time.sleep(random.uniform(DELAY_MIN, DELAY_MAX))
+                _fetch_pause(random.uniform(DELAY_MIN, DELAY_MAX))
     
     # ════════════════════════════════════════════════════════════════
     # v3.80.6 同輪補抓: 主迴圈跑完後, 失敗的分點再抓一次
@@ -585,6 +590,7 @@ def main():
     # 撐不過整段停擺; 主迴圈跑完已過 ~30 分鐘, 這時回頭重抓幾乎必定成功.
     # 原本只能等 22:37 兜底排程整輪重跑 (再花 40 分鐘), 且若兜底被 GitHub
     # 延遲到凌晨, 當晚 21:58 寄出的 Email/Excel 就一直缺這幾個分點.
+    _tm.phase('同輪補抓+日期一致')
     _rec, _td = retry_failed_branches(results, fetch_branch_combined, classify_stock_fn,
                                       pause=COOL_DOWN_SECONDS * 2)
     if _rec:
@@ -631,6 +637,7 @@ def main():
     # 正常流程：FIFO 累積 + 寫入新資料
     # ════════════════════════════════════════════════════════════════
     
+    _tm.phase('FIFO部位')
     # ===== 更新 FIFO 部位 =====
     print(f"\n[FIFO] 更新累積部位...")
     positions = load_positions(data_dir, password)
@@ -640,6 +647,7 @@ def main():
     # v3.7 新增：抓取三大法人 + 收盤行情，注入到每檔股票
     # v3.14.2: 傳入 priority_codes 供 MIS fallback 補抓
     # ════════════════════════════════════════════════════════════════
+    _tm.phase('三大法人+收盤行情')
     print(f"\n[公開資訊] 抓取三大法人與收盤行情...")
     
     # 收集我的分點出現的所有股票代號（供 fallback 使用）
@@ -975,6 +983,7 @@ def main():
     # ════════════════════════════════════════════════════════════════
     # v3.7 新增：建立全市場法人排行（前 100 名各類）
     # ════════════════════════════════════════════════════════════════
+    _tm.phase('全市場排行')
     print(f"[公開資訊] 建立全市場排行...")
     
     # 為了讓前端能查股票名稱，建立 code → name 對照（從分點資料）
@@ -1030,6 +1039,7 @@ def main():
     # v3.14.4 升級：加入 HiStock 日期驗證 + STAGE 模式
     # ════════════════════════════════════════════════════════════════
     STAGE = os.environ.get('CHIP_RADAR_STAGE', 'full').strip().lower()
+    _tm.phase('融資融券')
     print(f"\n[融資融券] 抓取全市場融資融券資料... (STAGE={STAGE})")
     margin_all = {}
     margin_filtered = {}
@@ -1080,6 +1090,7 @@ def main():
     except Exception as e:
         print(f"  ⚠️ 融資金額 aggregate 抓取失敗: {e}（信號 5 略過）")
     
+    _tm.phase('融資維持率')
     # ════════════════════════════════════════════════════════════════
     # v3.37.0 stage 5.5: 融資維持率估算 + 注入 (B5+B6 後新增)
     # ════════════════════════════════════════════════════════════════
@@ -1139,6 +1150,7 @@ def main():
     except Exception as e:
         print(f"  ⚠️ 維持率計算失敗: {e} (不影響主流程)")
 
+    _tm.phase('產業分類')
     # ════════════════════════════════════════════════════════════════
     # v3.15.0 新增：產業分類注入
     # ════════════════════════════════════════════════════════════════
@@ -1159,6 +1171,7 @@ def main():
         print(f"  ⚠️ 產業分類失敗: {e}（不影響主流程）")
         import traceback; traceback.print_exc()
 
+    _tm.phase('TDCC集保')
     # ════════════════════════════════════════════════════════════════
     # v3.37.0 stage 6.5: TDCC 集保大戶持股注入 (週頻 cache, 不打網路)
     # ════════════════════════════════════════════════════════════════
@@ -1176,6 +1189,7 @@ def main():
     except Exception as e:
         print(f"  ⚠️ TDCC 注入失敗: {e} (不影響主流程)")
 
+    _tm.phase('操縱偵測')
     # ════════════════════════════════════════════════════════════════
     # v3.40.0 B6 (機構級 P0): 操縱 / 對敲 / 出貨偵測
     # 拉抬 (A_pump) + Wash trade (B_wash) + 出貨 (C_distribution)
@@ -1203,6 +1217,7 @@ def main():
     except Exception as e:
         print(f"  ⚠️ 操縱偵測失敗: {e} (不影響主流程)")
     
+    _tm.phase('歷史累積')
     # ════════════════════════════════════════════════════════════════
     # v3.15.2 新增：歷史資料累積 (for 三線比較圖)
     # ════════════════════════════════════════════════════════════════
@@ -1220,6 +1235,7 @@ def main():
         print(f"  ⚠️ 歷史累積失敗: {e}(不影響主流程)")
         import traceback; traceback.print_exc()
     
+    _tm.phase('期貨選擇權')
     # ════════════════════════════════════════════════════════════════
     # v3.17 新增:期貨選擇權籌碼
     # ════════════════════════════════════════════════════════════════
@@ -1267,6 +1283,7 @@ def main():
         print(f"  ⚠️ 期貨籌碼抓取失敗: {e}(不影響主流程)")
         import traceback; traceback.print_exc()
     
+    _tm.phase('MOPS內部人+重訊')
     # ════════════════════════════════════════════════════════════════
     # v3.20: MOPS 內部人 + 重大訊息
     # ════════════════════════════════════════════════════════════════
@@ -1338,6 +1355,7 @@ def main():
         print(f"  ⚠️ MOPS 抓取失敗: {e}")
         import traceback; traceback.print_exc()
     
+    _tm.phase('組裝當日資料')
     # ═════════════════════════════════════════════════════════════════
     # v3.40.0 B3 (機構級 P0): _meta 欄位 — 「6/12 算的結論用什麼演算法版本?」
     # 載入 config/algo_params.yaml 取 algo_version, 注入 sourcing trail
@@ -1437,6 +1455,7 @@ def main():
         "announcements": announcements,
     }
 
+    _tm.phase('主力成本線')
     # ════════════════════════════════════════════════════════════════
     # v3.48.0 Tier 2 整合: 注入主力成本線 5d/20d + premium% 到每筆 stock
     # 用 60 天 stock_history.json (B3 master_profile 同 window) 計算
@@ -1453,6 +1472,7 @@ def main():
     except Exception as _mfce:
         print(f"  ⚠️ main_force_cost inject 失敗: {type(_mfce).__name__}: {_mfce}")
 
+    _tm.phase('rankings檔')
     # ════════════════════════════════════════════════════════════════
     # v3.53.0 (長3) lazy load: 寫 institutional_rankings + margin_rankings
     # 為獨立 unencrypted JSON (公開資料無需加密). 前端 tab 06/08 開啟時才 fetch
@@ -1478,6 +1498,7 @@ def main():
     except Exception as _lle:
         print(f"  ⚠️ lazy load JSON 寫入失敗: {type(_lle).__name__}: {_lle}")
 
+    _tm.phase('推播警報')
     # ════════════════════════════════════════════════════════════════
     # v3.20: 推播警報系統 (在加密前用 raw_output 跑警報)
     # ════════════════════════════════════════════════════════════════
@@ -1507,6 +1528,7 @@ def main():
     except Exception as _e:
         print(f"  [event_logger] flush 失敗 (不影響主流程): {_e}")
     
+    _tm.phase('Excel日報')
     # ════════════════════════════════════════════════════════════════
     # v3.22+v3.23+v3.24: 老闆版 Excel 日報 (嚴格模仿手動版「分點觀察」)
     # ════════════════════════════════════════════════════════════════
@@ -1538,6 +1560,7 @@ def main():
     except Exception as e:
         print(f"  [Excel 日報] 生成失敗:{e}")
 
+    _tm.phase('溫度計')
     # ════════════════════════════════════════════════════════════════
     # v3.25: 籌碼溫度計分數 + 30 天歷史累積 (前端 chart 用)
     # ════════════════════════════════════════════════════════════════
@@ -1566,6 +1589,7 @@ def main():
     except Exception as e:
         print(f"  [溫度計] 失敗: {e}")
 
+    _tm.phase('AI解讀')
     # ════════════════════════════════════════════════════════════════
     # v3.30.0 AI 解讀層: trade_pattern + insight_narrative (per stock)
     # 規則式分類 + 模板式 50-100 字 narrative, 前端 popup 讀
@@ -1591,6 +1615,7 @@ def main():
     except Exception as _tpe:
         print(f"  [Trade Pattern] 失敗 (不影響主流程): {_tpe}")
 
+    _tm.phase('加密寫檔')
     plaintext = json.dumps(raw_output, ensure_ascii=False)
     print(f"[加密] 原始大小: {len(plaintext)/1024:.1f} KB")
     encrypted_token = encrypt_data(plaintext, password)
@@ -1645,15 +1670,24 @@ def main():
     
     # v3.47.0 後2: 6 個 post-processing block 全部抽成 _post_* helper
     # main() 從 1225 → ~1010 行, 各 stage 獨立易測 / 易換序 / 易加新模組
+    _tm.phase('報表')
     _post_generate_reports(data_dir, password)
+    _tm.phase('大戶畫像')
     _post_build_master_profile(data_dir, password)
+    _tm.phase('DB寫入')
     _post_upsert_db(raw_output, trade_date, data_dir)
+    _tm.phase('歸檔')
     _post_archive_rotate(data_dir)
+    _tm.phase('歷史回補')
     _post_auto_backfill_history(data_dir, password, industry_map)
+    _tm.phase('處置快照')
     _post_disposal_snapshot(data_dir)
+    _tm.phase('Tier2市場資料')
     _post_refresh_tier2_market_data(data_dir)   # v3.48.0: 注意/借券/除權息
+    _tm.phase('DB快照')
     _post_export_db_query_snapshot(data_dir)    # v3.61.0 Sprint 24: DB query snapshot
 
+    _tm.report(FETCH_STATS, data_dir, trade_date)
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")
     print(f"  成功: {success_count} / 失敗: {fail_count} / 無資料: {empty_count}")

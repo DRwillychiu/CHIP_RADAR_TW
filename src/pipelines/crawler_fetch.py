@@ -21,6 +21,15 @@ DELAY_MAX = 4.0           # 請求間隔最大秒
 COOL_DOWN_EVERY = 10      # 每 N 個分點後長休息
 COOL_DOWN_SECONDS = 8
 
+# v3.80.27: counters for the crawl timing annotation (phase_timer.py)
+FETCH_STATS = {"requests": 0, "retries": 0, "net_s": 0.0, "sleep_s": 0.0}
+
+
+def pause(seconds):
+    """time.sleep that is counted in FETCH_STATS['sleep_s']."""
+    FETCH_STATS["sleep_s"] += seconds
+    time.sleep(seconds)
+
 URL_TPL = "https://fubon-ebrokerdj.fbs.com.tw/z/zg/zgb/zgb0.djhtm?a={code}&b={code}&c={mode}&d=1"
 # v3.80.2: the page names the branch it actually served, e.g. ('9A9G','9A9G','frm').
 # 2026-09-25: a plain 9A9g request was served as 9A9G -> used as an identity check.
@@ -98,6 +107,8 @@ def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
     url = URL_TPL.format(code=sent, mode=mode)
     last_err = None
     for attempt in range(max_retries):
+        if attempt:
+            FETCH_STATS["retries"] += 1
         try:
             s = requests.Session()
             s.headers.update({
@@ -108,22 +119,27 @@ def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
                 "Referer": HOME_URL,
                 "Connection": "keep-alive",
             })
-            r = s.get(url, timeout=20)
+            FETCH_STATS["requests"] += 1
+            t_req = time.monotonic()
+            try:
+                r = s.get(url, timeout=20)
+            finally:
+                FETCH_STATS["net_s"] += time.monotonic() - t_req
             if r.status_code != 200:
                 last_err = f"HTTP {r.status_code}"
-                time.sleep(3 + attempt * 3)
+                pause(3 + attempt * 3)
                 continue
             html = r.content.decode("big5", errors="replace")
             if len(html) < 5000:
                 last_err = f"頁面過小 ({len(html)}b)"
-                time.sleep(5 + attempt * 3)
+                pause(5 + attempt * 3)
                 continue
             
             # v3.80.2: 頁面自報的分點 != 我們要的 → 別的分點的資料, 寧可失敗也不收
             id_m = IDENTITY_RE.search(html)
             if id_m and id_m.group(2) != sent:
                 last_err = f"identity mismatch: sent {sent}, page is {id_m.group(2)}"
-                time.sleep(3 + attempt * 3)
+                pause(3 + attempt * 3)
                 continue
             identity = "verified" if id_m else "unverified"
             if not id_m:
@@ -142,7 +158,7 @@ def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
             return {"date": date, "buys": buys, "sells": sells, "error": None, "identity": identity}
         except Exception as e:
             last_err = str(e)
-            time.sleep(3 + attempt * 3)
+            pause(3 + attempt * 3)
     return {"date": None, "buys": [], "sells": [], "error": last_err}
 
 
@@ -169,7 +185,7 @@ def fetch_branch_combined(branch_code):
     if amt_result["error"]:
         return {"date": None, "buys": [], "sells": [], "error": amt_result["error"]}
     
-    time.sleep(random.uniform(1.5, 2.5))  # 兩次請求之間的小停頓
+    pause(random.uniform(1.5, 2.5))  # 兩次請求之間的小停頓
     
     # 爬張數模式 — v3.80.1: 保留整頁 (約 50 檔/邊). 原本也截在 TOP_N=30,
     # 張數榜第 31~50 名的股票真實張數被丟掉, 再被 crawler.py 用收盤價反推覆蓋
