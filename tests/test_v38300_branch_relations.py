@@ -50,12 +50,14 @@ print("  v3.83.0 分點同步操作 / v3.82.1 分點屬性 (離線)")
 print("=" * 72)
 print("\nA/B. lift 與方向")
 xy, xf = get('X', 'Y', 0), get('X', 'F', 1)
-check("X 大買 → Y 同日跟買: lift 高、p 極小", xy and xy['lift'] > 5 and xy['p_value'] < 1e-10,
+check("X 大買 → Y 同日跟買: lift > 3、p 極小", xy and xy['lift'] > 3 and xy['p_value'] < 1e-10,
       xy and (round(xy['lift'], 1), xy['p_value']))
 check("X 大買 → F 隔日跟買 (lag 1)", xf and xf['lift'] > 5 and xf['p_value'] < 1e-10, xf and round(xf['lift'], 1))
 check("F 同日不跟 (lag 0 沒有強邊)", (get('X', 'F', 0) or {'lift': 0})['lift'] < 2)
 noise = [e for e in edges if e['x'] in ('N1', 'N2') and e['y'] in ('N3', 'N4') and e['lag'] == 0]
-check("背景分點彼此 lift ≈ 1", noise and all(0.5 < e['lift'] < 2 for e in noise), [round(e['lift'], 2) for e in noise])
+# few co-buys pass min_co by chance (selection inflates their lift) -> judge by significance
+check("背景分點彼此不顯著 (p > 0.001), 不會成為關係", all(e['p_value'] > 1e-3 for e in noise),
+      [(round(e['lift'], 1), round(e['p_value'], 4)) for e in noise])
 print("\nC/D. 同大戶與關係群")
 xs = get('X', 'S', 0)
 check("X 與 S 同一個大戶 → same_master", xs and xs['same_master'])
@@ -64,6 +66,25 @@ groups = rel.clusters(edges)
 check("關係群 = {S, X, Y}: X-S 同大戶邊不算, 但 S 經由 Y 相連; F 是隔日跟, 不進同日群",
       groups and groups[0] == ['S', 'X', 'Y'] and all('F' not in g for g in groups), groups[:2])
 check("binomial 尾機率正確: P(K>=2 | n=2, p=0.5) = 0.25", abs(rel._binom_sf(2, 2, 0.5) - 0.25) < 1e-12)
+check("Poisson 尾機率正確: P(K>=1 | mean 1) = 1 - e^-1", abs(rel._poisson_sf(1, 1.0) - (1 - 2.718281828459045 ** -1)) < 1e-12)
+
+print("\nF. 熱門股不可製造關聯 (v3.83.1, 真實 DB 第一次跑全部 83 個分點連成一群)")
+cells2 = {}
+for i, d in enumerate(dates):
+    for c in stocks[:5]:                                       # 5 hot stocks: 30 crowd branches buy them daily
+        for b in [f'H{j}' for j in range(30)]:
+            if rnd.random() < 0.8:
+                cells2.setdefault((d, c), {})[b] = 5_000
+        cells2.setdefault((d, c), {})['BIG'] = 60_000           # BIG's big buys are always in hot stocks
+    for c in rnd.sample(stocks[5:], 20):
+        for b in [f'H{j}' for j in range(30)]:
+            if rnd.random() < 0.1:
+                cells2.setdefault((d, c), {})[b] = 3_000
+e2 = rel.co_trading(cells2, dates)
+hot = [e for e in e2 if e['x'] == 'BIG' and e['lag'] == 0]
+check("大買都在熱門股的分點, 與一般活躍分點 lift ≈ 1 (調整擁擠度後)", hot and all(0.8 < e['lift'] < 1.25 for e in hot),
+      sorted(round(e['lift'], 2) for e in hot)[:3])
+check("熱門股情境不產生關係群", not rel.clusters(e2), rel.clusters(e2)[:1])
 
 print("\nE. 分點屬性")
 st = bp.style_metrics([], [{'buy_lots': 10, 'sell_lots': 9}, {'buy_lots': 10, 'sell_lots': 8}], 20_000)

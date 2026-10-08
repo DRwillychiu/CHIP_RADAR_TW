@@ -7,9 +7,14 @@ big buy     (date, code) where branch X's net buy is in X's own top BIG_Q of its
             net-buy amounts (and >= MIN_BIG_K 仟元).
 co-buy      branch Y net-buys the same stock on date + lag (lag 0 = same day,
             lag 1 = next trading day -> Y follows X).
-lift        P(Y co-buys | X big-buys) / P(Y net-buys a random visible cell of that
-            lag's dates). Base rate over all visible (date, code) cells.
-p_value     exact binomial upper tail P(K >= co | n = X's big buys, p = base).
+lift        observed co-buys / expected co-buys. v3.83.1: the expectation is
+            crowdedness-adjusted - on a target cell with k other buyers, Y is
+            expected there with probability min(1, k * w_Y), w_Y = Y's share of all
+            buy incidences. Hot stocks that everyone buys therefore do not create
+            links (the first real-DB run with a marginal base rate linked all 83
+            branches into one cluster).
+p_value     Poisson upper tail P(K >= co | mean = expected) (Poisson-binomial
+            approximation).
 Only visible rows exist, so co-buys are undercounted: lifts are conservative.
 """
 from collections import defaultdict
@@ -50,38 +55,59 @@ def big_buys(cells, big_q=BIG_Q, min_big_k=MIN_BIG_K):
     return out
 
 
+def _poisson_sf(k, lam):
+    """P(K >= k) for K ~ Poisson(lam)."""
+    if k <= 0:
+        return 1.0
+    if lam <= 0:
+        return 0.0
+    term = exp(-lam)
+    cdf = term
+    for i in range(1, k):
+        term *= lam / i
+        cdf += term
+    return max(0.0, 1.0 - cdf)
+
+
 def co_trading(cells, dates, masters=None, lags=(0, 1), big_q=BIG_Q, min_big_k=MIN_BIG_K, min_co=MIN_CO):
-    """-> [{x, y, lag, n_big, co, cond, base, lift, p_value, same_master}] sorted by lift."""
+    """-> [{x, y, lag, n_big, co, expected, lift, p_value, same_master}] sorted by lift."""
     masters = masters or {}
     pos = {d: i for i, d in enumerate(dates)}
     buys_by_cell = {k: {b for b, a in row.items() if a > 0} for k, row in cells.items()}
-    n_cells = len(cells) or 1
-    base = defaultdict(float)
-    for k, bs in buys_by_cell.items():
+    n_inc = defaultdict(int)
+    for bs in buys_by_cell.values():
         for b in bs:
-            base[b] += 1 / n_cells
+            n_inc[b] += 1
+    total_inc = sum(n_inc.values())
     bigs = big_buys(cells, big_q, min_big_k)
     out = []
     for x, xs in bigs.items():
         if not xs:
             continue
+        rest = total_inc - n_inc.get(x, 0)
+        if rest <= 0:
+            continue
+        w = {y: n / rest for y, n in n_inc.items() if y != x}
         for lag in lags:
-            counts = defaultdict(int)
-            n = 0
+            counts, expected, n = defaultdict(int), defaultdict(float), 0
             for d, c in xs:
                 i = pos.get(d)
                 if i is None or i + lag >= len(dates):
                     continue
                 n += 1
-                for y in buys_by_cell.get((dates[i + lag], c), ()):
-                    if y != x:
-                        counts[y] += 1
+                buyers = buys_by_cell.get((dates[i + lag], c), set()) - {x}
+                k = len(buyers)
+                if k:
+                    for y, wy in w.items():
+                        expected[y] += min(1.0, k * wy)
+                for y in buyers:
+                    counts[y] += 1
             for y, co in counts.items():
-                if co < min_co or base[y] <= 0 or n == 0:
+                e = expected[y]
+                if co < min_co or e <= 0:
                     continue
-                cond = co / n
-                out.append({"x": x, "y": y, "lag": lag, "n_big": n, "co": co, "cond": cond, "base": base[y],
-                            "lift": cond / base[y], "p_value": _binom_sf(co, n, base[y]),
+                out.append({"x": x, "y": y, "lag": lag, "n_big": n, "co": co, "expected": e,
+                            "lift": co / e, "p_value": _poisson_sf(co, e),
                             "same_master": bool(set(masters.get(x, ())) & set(masters.get(y, ())))})
     out.sort(key=lambda e: -e["lift"])
     return out
