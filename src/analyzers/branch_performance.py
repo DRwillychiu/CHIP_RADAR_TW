@@ -61,6 +61,7 @@ class Book:
         self.commission, self.tax = commission, tax
         self.realized = 0.0
         self.unmatched_shares = 0
+        self.sold_shares = 0
         self.matched_cost = 0.0      # cost of the shares sold out of inventory
 
     @property
@@ -80,6 +81,7 @@ class Book:
         if shares <= 0:
             return 0.0
         net_px = price * (1 - self.commission - self.tax)
+        self.sold_shares += shares
         left, proceeds = shares, 0.0
         while left > 0 and self.lots:
             lot = self.lots[0]
@@ -142,7 +144,7 @@ def evaluate(rows, closes, index, dates, warmup_rows=(), rf_annual=0.0, min_valu
         if px:
             for lot in b.lots:
                 lot[1] = px
-        b.realized, b.matched_cost, b.unmatched_shares = 0.0, 0.0, 0
+        b.realized, b.matched_cost, b.unmatched_shares, b.sold_shares = 0.0, 0.0, 0, 0
     by_day = defaultdict(list)
     for r in rows:
         if r["date"] in dates[1:]:
@@ -193,7 +195,9 @@ def evaluate(rows, closes, index, dates, warmup_rows=(), rf_annual=0.0, min_valu
            "realized_pnl": sum(b.realized for b in books.values()),
            "bought": bought_total, "days": n,
            "md_return": modified_dietz(v_begin, v_end, flows, n),
-           "unmatched_shares": sum(b.unmatched_shares for b in books.values())}
+           "unmatched_shares": sum(b.unmatched_shares for b in books.values()),
+           "sold_shares": sum(b.sold_shares for b in books.values())}
+    out["unmatched_ratio"] = out["unmatched_shares"] / out["sold_shares"] if out["sold_shares"] else None
     # time-weighted return + risk
     twr, peak, mdd, idx = 1.0, 1.0, 0.0, 1.0
     for x in daily_r:

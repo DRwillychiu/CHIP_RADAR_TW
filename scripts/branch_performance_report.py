@@ -67,6 +67,49 @@ def legacy_rows(rows):
     return out
 
 
+SIX = ("臺北市", "新北市", "桃園市", "臺中市", "臺南市", "高雄市")
+
+
+def local_scores(win_by_branch, geo):
+    """v3.82.0 地緣: share of a branch's window buy amount in companies of its own
+    district / city, and the lift over the all-branch average share."""
+    comp, brs = geo.get("companies", {}), geo.get("branches", {})
+    tot, by_d, by_c, stocks = defaultdict(float), defaultdict(lambda: defaultdict(float)),         defaultdict(lambda: defaultdict(float)), defaultdict(lambda: defaultdict(set))
+    for bno, rs in win_by_branch.items():
+        for r in rs:
+            amt = r["buy_amt"] or 0
+            if amt <= 0:
+                continue
+            tot[bno] += amt
+            c = comp.get(r["code"]) or {}
+            if c.get("city"):
+                by_c[bno][c["city"]] += amt
+            if c.get("dist"):
+                by_d[bno][(c["city"], c["dist"])] += amt
+                stocks[bno][(c["city"], c["dist"])].add(r["code"])
+    all_tot = sum(tot.values()) or 1.0
+    base_d, base_c = defaultdict(float), defaultdict(float)
+    for bno in tot:
+        for k, v in by_d[bno].items():
+            base_d[k] += v / all_tot
+        for k, v in by_c[bno].items():
+            base_c[k] += v / all_tot
+    out = {}
+    for bno in tot:
+        g = brs.get(bno) or {}
+        rec = {"geo_city": g.get("city"), "geo_dist": g.get("dist"), "geo_src": g.get("src")}
+        if g.get("city") in SIX and tot[bno] > 0:
+            sc = by_c[bno].get(g["city"], 0.0) / tot[bno]
+            rec.update(local_city_share=sc, local_city_lift=sc / base_c[g["city"]] if base_c[g["city"]] else None)
+            if g.get("dist"):
+                k = (g["city"], g["dist"])
+                sd = by_d[bno].get(k, 0.0) / tot[bno]
+                rec.update(local_dist_share=sd, local_dist_lift=sd / base_d[k] if base_d[k] else None,
+                           local_dist_stocks=len(stocks[bno].get(k, ())))
+        out[bno] = rec
+    return out
+
+
 def main(argv=None):
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -78,6 +121,8 @@ def main(argv=None):
     ap.add_argument("--out", default=str(ROOT / "branch_performance.json"))
     ap.add_argument("--encrypt", action="store_true")
     ap.add_argument("--rf", type=float, default=0.0, help="annual risk-free rate for Sharpe / Sortino")
+    ap.add_argument("--geo", default=str(ROOT / "data" / "branch_geo.json"))
+    ap.add_argument("--recent", type=int, default=20, help="trading days of the recent window")
     a = ap.parse_args(argv)
 
     hist = json.loads(Path(a.history).read_text(encoding="utf-8"))
@@ -95,6 +140,13 @@ def main(argv=None):
         by_branch[r["bno"]].append(r)
         names[r["bno"]] = r["bname"]
     results = []
+    d20 = dates[-(a.recent + 1):]
+    try:
+        geo = json.loads(Path(a.geo).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        geo = {}
+    local = local_scores({b: [r for r in rs if dates[0] < r["date"] <= dates[-1]] for b, rs in by_branch.items()},
+                         geo)
     for bno, rs in sorted(by_branch.items()):
         warm = [r for r in rs if r["date"] < dates[0]]
         win = [r for r in rs if dates[0] <= r["date"] <= dates[-1]]
@@ -106,8 +158,13 @@ def main(argv=None):
                     "rows": len(win), "active_days": len({r["date"] for r in win}),
                     "estimated_lot_rows": sum(1 for r in win if r["est"]),
                     "legacy_per_10m": legacy, "legacy_per_10m_wan": legacy_wan})
+        rec = bp.evaluate([r for r in rs if d20[0] <= r["date"] <= d20[-1]], closes, index, d20,
+                          warmup_rows=[r for r in rs if r["date"] < d20[0]], rf_annual=a.rf)
+        res.update({f"{k}_recent": rec[k] for k in ("info_ratio", "alpha_ann", "twr", "excess_pnl",
+                                                     "total_pnl", "return_days", "positions")})
+        res.update(local.get(bno, {}))
         results.append(res)
-    doc = {"window": [dates[0], dates[-1]], "trading_days": len(dates) - 1,
+    doc = {"window": [dates[0], dates[-1]], "trading_days": len(dates) - 1, "recent_window": [d20[0], d20[-1]],
            "assumptions": {"commission": bp.COMMISSION, "tax_sell": bp.TAX_SELL, "rf_annual": a.rf,
                            "lot_matching": "FIFO", "return": "Modified Dietz (GIPS) + daily TWR",
                            "visibility": "daily top-50 net-buy / net-sell lists only"},
