@@ -104,7 +104,7 @@ check("關鍵段落都有: 富邦分點頁 / 同輪補抓 / 三大法人 / 融�
                                'MOPS內部人+重訊', 'Excel日報', '歷史回補')))
 i_rep, i_done = main.find('_tm.report(FETCH_STATS, data_dir, trade_date)'), main.find('✅ 完成！')
 check("結尾 report 在「完成」之前", 0 < i_rep < i_done)
-check("分點間停頓改用計數版 pause", '_fetch_pause(random.uniform(DELAY_MIN, DELAY_MAX))' in main
+check("分點間停頓改用計數版 pause", '_fetch_pause(polite_gap())' in main   # v3.80.28 gap
       and '_fetch_pause(COOL_DOWN_SECONDS)' in main)
 
 print()

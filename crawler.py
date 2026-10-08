@@ -67,7 +67,7 @@ from crawler_fetch import (
     TOP_N, DELAY_MIN, DELAY_MAX, COOL_DOWN_EVERY, COOL_DOWN_SECONDS,
     URL_TPL, HOME_URL, UA_POOL, ROW_PATTERN,
     parse_region, fetch_branch_mode, fetch_branch_combined,
-    FETCH_STATS, pause as _fetch_pause,
+    FETCH_STATS, pause as _fetch_pause, polite_gap,
 )
 from phase_timer import PhaseTimer   # v3.80.27 crawl timing
 from crawler_pipeline import (
@@ -453,7 +453,7 @@ def reconcile_branch_dates(results, fetch_fn, classify_fn, pause=16.0, sleep_fn=
                           "error": f"stale data date {r0['date']} (round date {newest}); refetch got {got}"}
             failed += 1
             print(f"✗ 仍不是 {newest} ({got}) → 不收")
-        sleep_fn(random.uniform(DELAY_MIN, DELAY_MAX))
+        sleep_fn(polite_gap())
     print(f"  📅 日期一致性: 換上 {fixed} / 不收 {failed} / 無資料 {emptied} (全部以 {newest} 為準)")
     return fixed, failed, emptied, newest
 
@@ -489,7 +489,7 @@ def retry_failed_branches(results, fetch_fn, classify_fn, pause=16.0, sleep_fn=N
             recovered += 1
             td = td or data.get("date")
             print(f"✓ 補回 買{len(data['buys'])}/賣{len(data['sells'])}")
-        sleep_fn(random.uniform(DELAY_MIN, DELAY_MAX))
+        sleep_fn(polite_gap())
     print(f"  🔁 同輪補抓: 補回 {recovered}/{len(failed_idx)}")
     return recovered, td
 
@@ -580,7 +580,7 @@ def main():
                 print(f"    ⏸  休息 {COOL_DOWN_SECONDS} 秒...")
                 _fetch_pause(COOL_DOWN_SECONDS)
             else:
-                _fetch_pause(random.uniform(DELAY_MIN, DELAY_MAX))
+                _fetch_pause(polite_gap())
     
     # ════════════════════════════════════════════════════════════════
     # v3.80.6 同輪補抓: 主迴圈跑完後, 失敗的分點再抓一次
@@ -1317,33 +1317,32 @@ def main():
             if len(watched_codes) >= 50:
                 break
         
-        print(f"  [MOPS] 抓取 {len(watched_codes)} 檔個股董監持股...")
-        for i, code in enumerate(list(watched_codes)[:50]):
+        # v3.80.28: monthly data -> one MOPS fetch per stock per month (cache below)
+        holdings, _hs = insiders.fetch_director_holdings_cached(
+            sorted(watched_codes)[:50], td.year, td.month,
+            data_dir / 'cache' / 'director_holdings.json')
+        print(f"  [MOPS] 董監持股 {len(holdings)} 檔 (快取 {_hs['cached']} / 新抓 {_hs['fetched']}"
+              f" / 失敗 {_hs['failed']})")
+        for code, d in holdings.items():
             try:
-                d = insiders.fetch_director_holdings(code, td.year, td.month)
-                if d:
-                    # 偵測異動 (沒有前期資料,只偵測高設質)
-                    alerts_list = insiders.detect_insider_changes(d, prev=None)
-                    if alerts_list:
-                        # 找 stock name
-                        stock_name = ''
-                        for br in (results or []):
-                            for s in (br.get('buys', []) or []):
-                                if s.get('code') == code:
-                                    stock_name = s.get('name', '')
-                                    break
-                            if stock_name: break
-                        insider_data[code] = {
-                            'name': stock_name,
-                            'directors_count': d['directors_count'],
-                            'total_pledge_ratio': d['total_pledge_ratio'],
-                            'high_pledge_count': d['high_pledge_count'],
-                            'alerts': alerts_list,
-                        }
-                # 限流防禦
-                if i < len(watched_codes) - 1:
-                    import time as _t
-                    _t.sleep(2)
+                # 偵測異動 (沒有前期資料,只偵測高設質)
+                alerts_list = insiders.detect_insider_changes(d, prev=None)
+                if alerts_list:
+                    # 找 stock name
+                    stock_name = ''
+                    for br in (results or []):
+                        for s in (br.get('buys', []) or []):
+                            if s.get('code') == code:
+                                stock_name = s.get('name', '')
+                                break
+                        if stock_name: break
+                    insider_data[code] = {
+                        'name': stock_name,
+                        'directors_count': d['directors_count'],
+                        'total_pledge_ratio': d['total_pledge_ratio'],
+                        'high_pledge_count': d['high_pledge_count'],
+                        'alerts': alerts_list,
+                    }
             except Exception as e:
                 print(f"    ⚠️ {code} 失敗: {e}")
                 continue

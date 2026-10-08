@@ -16,13 +16,28 @@ import requests
 # ========== 爬蟲參數 ==========
 
 TOP_N = 30                # 每個分點保留的買/賣超前 N 檔
-DELAY_MIN = 2.0           # 請求間隔最小秒
-DELAY_MAX = 4.0           # 請求間隔最大秒
+# v3.80.28 (owner 2026-10-08): proven floor = the source audit's 1.1 s gap
+# (~100 Fubon pages a round, 4-5 rounds a night, 0 failures) + 0.5 s margin
+# the owner required -> never below 1.6 s. Was 2-4 s between branches and
+# 1.5-2.5 s between a branch's two pages.
+DELAY_MIN = 1.6           # 請求間隔最小秒 (絕不低於此值)
+DELAY_MAX = 2.1           # 請求間隔最大秒
+SLOW_FACTOR_MAX = 2.0     # 出錯後停頓加倍 (3.2-4.2 s, 不低於舊值), 整輪維持
 COOL_DOWN_EVERY = 10      # 每 N 個分點後長休息
 COOL_DOWN_SECONDS = 8
 
 # v3.80.27: counters for the crawl timing annotation (phase_timer.py)
-FETCH_STATS = {"requests": 0, "retries": 0, "net_s": 0.0, "sleep_s": 0.0}
+FETCH_STATS = {"requests": 0, "retries": 0, "net_s": 0.0, "sleep_s": 0.0, "slow_factor": 1.0}
+
+
+def polite_gap():
+    """Gap before the next Fubon request: DELAY_MIN..DELAY_MAX, times the slow factor."""
+    return random.uniform(DELAY_MIN, DELAY_MAX) * FETCH_STATS["slow_factor"]
+
+
+def slow_down():
+    """v3.80.28: any failed page doubles the gap for the rest of the run."""
+    FETCH_STATS["slow_factor"] = min(SLOW_FACTOR_MAX, FETCH_STATS["slow_factor"] * 2)
 
 
 def pause(seconds):
@@ -109,6 +124,7 @@ def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
     for attempt in range(max_retries):
         if attempt:
             FETCH_STATS["retries"] += 1
+            slow_down()
         try:
             s = requests.Session()
             s.headers.update({
@@ -185,7 +201,7 @@ def fetch_branch_combined(branch_code):
     if amt_result["error"]:
         return {"date": None, "buys": [], "sells": [], "error": amt_result["error"]}
     
-    pause(random.uniform(1.5, 2.5))  # 兩次請求之間的小停頓
+    pause(polite_gap())  # 兩次請求之間的小停頓 (v3.80.28: 1.6-2.1 s)
     
     # 爬張數模式 — v3.80.1: 保留整頁 (約 50 檔/邊). 原本也截在 TOP_N=30,
     # 張數榜第 31~50 名的股票真實張數被丟掉, 再被 crawler.py 用收盤價反推覆蓋
