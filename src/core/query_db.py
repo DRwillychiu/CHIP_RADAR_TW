@@ -235,13 +235,62 @@ def run_explain(sql, db=DB):
     print(format_table(cols, rows))
 
 
-def export_all_snapshot(out_path, db=DB):
-    """v3.61.0: 跑全 preset 包成 snapshot JSON (給 chip_radar 前端 Tab 12 用)."""
-    snapshot = {'queries': {}, 'count': 0, 'failed': []}
+SIGNATURE_SQL = (
+    # v3.80.28: what the presets read; any new / changed / removed row changes it
+    "SELECT 'daily_chips', MAX(date), COUNT(*), TOTAL(net_amt), TOTAL(buy_lots), TOTAL(sell_lots)"
+    " FROM daily_chips",
+    "SELECT 'daily_records', MAX(date), COUNT(*) FROM daily_records",
+    "SELECT 'disposal_history', MAX(date), COUNT(*) FROM disposal_history",
+)
+
+
+def db_signature(db=DB):
+    """v3.80.28: cheap fingerprint of the DB content the presets read (None if unreadable)."""
+    try:
+        # read-only: a missing DB must not be created as an empty file
+        conn = sqlite3.connect(Path(db).resolve().as_uri() + '?mode=ro', uri=True)
+        try:
+            parts = []
+            for sql in SIGNATURE_SQL:
+                try:
+                    parts.append(list(conn.execute(sql).fetchone()))
+                except sqlite3.Error:
+                    parts.append(None)     # table missing in an old DB
+            return json.dumps(parts, ensure_ascii=False)
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        return None
+
+
+def export_all_snapshot(out_path, db=DB, clock=None, log=print):
+    """v3.61.0: 跑全 preset 包成 snapshot JSON (給 chip_radar 前端 Tab 12 用).
+
+    v3.80.28 (owner 2026-10-08): ~4 min a round and re-run on every re-run of
+    the night. Skipped when the DB fingerprint equals the one stored in the
+    existing snapshot; every query is timed (elapsed_s per query, the slowest
+    three go to a ::notice) so the slow ones can be fixed one by one.
+    Returns 'skipped' or 'written'.
+    """
+    import time
+    clock = clock or time.monotonic
+    sig = db_signature(db)
+    try:
+        old = json.loads(Path(out_path).read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        old = {}
+    if sig is not None and old.get('db_signature') == sig:
+        log(f"✓ snapshot skipped: DB unchanged since {old.get('generated_from', '?')}")
+        log("::notice title=DB snapshot::skipped (DB unchanged since the last round)")
+        return 'skipped'
+    snapshot = {'queries': {}, 'count': 0, 'failed': [], 'db_signature': sig}
+    t_all = clock()
     for k, (title, sql) in PRESETS.items():
+        t0 = clock()
         result, err = fetch_rows(sql, db)
+        elapsed = round(clock() - t0, 2)
         if err:
-            snapshot['failed'].append({'q': k, 'title': title, 'error': err})
+            snapshot['failed'].append({'q': k, 'title': title, 'error': err, 'elapsed_s': elapsed})
             continue
         cols, rows = result
         snapshot['queries'][str(k)] = {
@@ -251,12 +300,24 @@ def export_all_snapshot(out_path, db=DB):
             'rows': rows[:200],   # 每 query 限 200 行 (snapshot 不要太大)
             'row_count': len(rows),
             'truncated': len(rows) > 200,
+            'elapsed_s': elapsed,
         }
         snapshot['count'] += 1
+    snapshot['elapsed_s'] = round(clock() - t_all, 2)
+    try:
+        snapshot['generated_from'] = json.loads(sig)[0][1] if sig else None
+    except (ValueError, TypeError, IndexError):
+        snapshot['generated_from'] = None
     Path(out_path).write_text(json.dumps(snapshot, ensure_ascii=False, indent=1),
                                 encoding='utf-8')
-    print(f"✓ snapshot {snapshot['count']} queries → {out_path}"
-          + (f" ({len(snapshot['failed'])} failed)" if snapshot['failed'] else ''))
+    log(f"✓ snapshot {snapshot['count']} queries → {out_path}"
+        + (f" ({len(snapshot['failed'])} failed)" if snapshot['failed'] else ''))
+    timed = [(q['elapsed_s'], k, q['title']) for k, q in snapshot['queries'].items()]
+    timed += [(f['elapsed_s'], str(f['q']), f['title']) for f in snapshot['failed']]
+    top = sorted(timed, reverse=True)[:3]
+    log(f"::notice title=DB snapshot::total {snapshot['elapsed_s']:.1f}s | slowest: "
+        + " | ".join(f"Q{k} {t} {s:.1f}s" for s, k, t in top))
+    return 'written'
 
 
 def main():

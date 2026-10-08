@@ -270,6 +270,52 @@ def detect_insider_changes(curr: Dict[str, Any], prev: Optional[Dict[str, Any]])
 #  2. 當日重大訊息
 # ════════════════════════════════════════════════════════════════════
 
+def fetch_director_holdings_cached(codes, year: int, month: int, cache_path, gap_s: float = 2.0,
+                                   fetch=None, sleep=None):
+    """v3.80.28: director holdings are monthly data (2026-10-08: 2330 identical for
+    08 / 09 / 10), but the crawl fetched 50 stocks every round (~4 min, 2 s apart).
+    Now one fetch per stock per month; the cache file holds the current month only.
+    Failures (None) are not cached, so they are retried next round.
+
+    Returns ({code: holdings}, {'cached': n, 'fetched': n, 'failed': n}).
+    """
+    import json
+    import os
+    fetch = fetch or fetch_director_holdings
+    sleep = sleep or time.sleep
+    month_key = f"{year:04d}{month:02d}"
+    try:
+        with open(cache_path, encoding='utf-8') as f:
+            cache = json.load(f)
+    except (OSError, ValueError):
+        cache = {}
+    held = cache.get('holdings', {}) if cache.get('month') == month_key else {}
+    out, stats, first = {}, {'cached': 0, 'fetched': 0, 'failed': 0}, True
+    for code in codes:
+        if code in held:
+            out[code] = held[code]
+            stats['cached'] += 1
+            continue
+        if not first:
+            sleep(gap_s)                 # rate limit between real MOPS requests only
+        first = False
+        try:
+            d = fetch(code, year, month)
+        except Exception:
+            d = None
+        if d:
+            out[code] = held[code] = d
+            stats['fetched'] += 1
+        else:
+            stats['failed'] += 1
+    if stats['fetched']:
+        os.makedirs(os.path.dirname(str(cache_path)) or '.', exist_ok=True)
+        with open(cache_path, 'w', encoding='utf-8') as f:
+            json.dump({'month': month_key, 'holdings': held}, f, ensure_ascii=False, indent=1)
+            f.write('\n')
+    return out, stats
+
+
 def fetch_daily_announcements(year: int, month: int, day: int, market: str = 'sii', retries: int = 3) -> List[Dict[str, Any]]:
     """
     抓當日重大訊息

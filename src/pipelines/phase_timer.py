@@ -51,6 +51,8 @@ class PhaseTimer:
         if stats:
             text += (f" || Fubon {stats.get('requests', 0)} req, {stats.get('retries', 0)} retries,"
                      f" net {fmt(stats.get('net_s', 0))}, pauses {fmt(stats.get('sleep_s', 0))}")
+            if stats.get('slow_factor', 1.0) > 1.0:
+                text += f", slowed x{stats['slow_factor']:g} after errors"
         slow = [f"{n} {fmt(s)} ({s / total:.0%} of the crawl)" for n, s in self.phases
                 if s >= SLOW_S and total > 0]
         return text, slow
