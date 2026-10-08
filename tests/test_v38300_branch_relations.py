@@ -88,6 +88,28 @@ check("大買都在熱門股的分點, 與一般活躍分點 lift ≈ 1 (調整�
       sorted(round(e['lift'], 2) for e in hot)[:3])
 check("熱門股情境不產生關係群", not rel.clusters(e2), rel.clusters(e2)[:1])
 
+print("\nG. v3.83.3 多重檢定與重疊天數 (焦家 x 村長: 統一-內湖只追蹤 3 天, 13,251 組同時檢定)")
+fake = [{"p_value": p, "lift": 1, "same_master": False} for p in (0.001, 0.01, 0.02, 0.04, 0.5)]
+ranked = sorted(fake, key=lambda e: e["p_value"])
+m, prev = len(ranked), 1.0
+for rank in range(m, 0, -1):
+    prev = min(prev, ranked[rank - 1]["p_value"] * m / rank)
+    ranked[rank - 1]["q"] = prev
+check("BH q-value 手算: p=(.001,.01,.02,.04,.5) -> q=(.005,.025,.0333,.05,.5)",
+      [round(e["q"], 4) for e in ranked] == [0.005, 0.025, 0.0333, 0.05, 0.5])
+qs = sorted((e["p_value"], e["q_value"]) for e in edges)
+check("模組算出的 q 值單調且 >= p", all(q >= p - 1e-15 for p, q in qs)
+      and all(qs[i][1] <= qs[i + 1][1] + 1e-15 for i in range(len(qs) - 1)))
+cells3 = {k: dict(v) for k, v in cells.items()}
+for d in dates[-4:]:                                    # NEW only exists 4 days, always with X
+    for c in [c for (dd, c), row in cells3.items() if dd == d and row.get('X', 0) >= 50_000]:
+        cells3[(d, c)]['NEW'] = 30_000
+e3 = rel.co_trading(cells3, dates)
+xn = next((e for e in e3 if e['x'] == 'X' and e['y'] == 'NEW' and e['lag'] == 0), None)
+check("只有 4 天共同資料的強同步 → overlap_days < 20, 不算關係",
+      xn and xn['overlap_days'] < rel.MIN_OVERLAP_DAYS and not rel.is_relation(xn), xn and xn['overlap_days'])
+check("X-Y 長期同步仍是關係", rel.is_relation(get('X', 'Y', 0)))
+
 print("\nE. 分點屬性")
 st = bp.style_metrics([], [{'buy_lots': 10, 'sell_lots': 9}, {'buy_lots': 10, 'sell_lots': 8}], 20_000)
 check("同日雙邊 >= 50% → 當沖型, 用近期評估", st['style'] == 'day_trader' and st['horizon'] == 'recent', st['style'])

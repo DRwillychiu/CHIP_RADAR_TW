@@ -182,7 +182,9 @@ def main(argv=None):
             if dates[0] < r["date"] <= dates[-1]:
                 cells.setdefault((r["date"], r["code"]), {})[bno] = (r["buy_amt"] or 0) - (r["sell_amt"] or 0)
     edges = rel.co_trading(cells, dates[1:], masters={b: masters.get(b, []) for b in by_branch})
-    strong = [e for e in edges if e["p_value"] <= 1e-3 and e["lift"] >= 2]
+    # v3.83.3: notable = FDR q <= 1%, lift >= 2; a relation (clusters) also needs q <= 0.1%,
+    # lift >= 3 and >= 20 common visible days (branch_relations.is_relation)
+    strong = [e for e in edges if e.get("q_value", 1) <= 1e-2 and e["lift"] >= 2]
     # v3.83.2: spell out the co-buy events of the notable edges (stock name, both net amounts)
     sname = {r["code"]: r.get("sname") for r in rows}
     for e in strong:
@@ -190,8 +192,11 @@ def main(argv=None):
                         "x_net_k": (cells.get((dx, c)) or {}).get(e["x"]),
                         "y_net_k": (cells.get((dy, c)) or {}).get(e["y"])} for dx, dy, c in e.get("events", [])]
     relations = {"edges": strong[:400], "edges_total": len(edges), "strong_total": len(strong),
+                 "relations_total": sum(1 for e in edges if rel.is_relation(e)),
                  "clusters": rel.clusters(edges), "params": {"big_q": rel.BIG_Q, "min_big_k": rel.MIN_BIG_K,
-                                                             "min_co": rel.MIN_CO, "lags": [0, 1]}}
+                                                             "min_co": rel.MIN_CO, "lags": [0, 1],
+                                                             "max_q": rel.MAX_Q,
+                                                             "min_overlap_days": rel.MIN_OVERLAP_DAYS}}
     doc = {"window": [dates[0], dates[-1]], "trading_days": len(dates) - 1, "recent_window": [d20[0], d20[-1]],
            "relations": relations,
            "assumptions": {"commission": bp.COMMISSION, "tax_sell": bp.TAX_SELL, "rf_annual": a.rf,
