@@ -86,6 +86,12 @@ def main(argv=None):
             merged.setdefault(code, {}).update(rec)
     if len({d for d in dates.values() if d}) > 1:
         print(f"⚠️ the three exports have different data dates: {dates}")
+    # v3.85.2: close vs main-force cost from the export's own price column (成交);
+    # the screener script no longer reads Close
+    for rec in merged.values():
+        px, cost = rec.get("成交"), rec.get("mf_cost")
+        if isinstance(px, float) and isinstance(cost, float) and cost > 0:
+            rec["close_vs_mf_cost"] = px / cost - 1
     day = next((d for d in dates.values() if d), "unknown")
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
