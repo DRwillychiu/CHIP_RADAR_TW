@@ -84,11 +84,40 @@ jobs:
         id: gate
         run: python scripts/trading_gate.py --kind evening --event "${{ github.event_name }}" --schedule "${{ github.event.schedule }}"
 
-  crawl:
+  # v3.80.31 (owner 2026-10-08): the late schedule re-runs first re-audit the
+  # stored day (~100 Fubon requests, ~2 min) instead of a full crawl (~264
+  # requests, ~20 min). Only when the stored round was clean (audit ok, 0 failed
+  # branches) and still matches the source is the crawl job skipped; anything
+  # else -> verdict full -> the crawl runs as before. Dispatch runs never come here.
+  light:
     needs: gate
+    if: ${{ !cancelled() && github.event_name == 'schedule' && github.ref == 'refs/heads/main' && needs.gate.outputs.run == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      verdict: ${{ steps.light.outputs.verdict }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install requests openpyxl
+      - name: Light verification (re-audit the stored day)
+        id: light
+        continue-on-error: true
+        run: python scripts/light_verify.py --session "${{ needs.gate.outputs.session }}"
+
+  crawl:
+    needs: [gate, light]
     # fail-open: skip only when the gate ran and said no; a crashed gate must not
-    # silently cancel a trading-day run
-    if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.run == 'true') }}
+    # silently cancel a trading-day run. v3.80.31: also skipped when the light
+    # verification proved the stored day (a failed / skipped light job -> crawl runs)
+    if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.run == 'true') && needs.light.outputs.verdict != 'verified' }}
     runs-on: ubuntu-24.04
     # v3.28.0: 15 → 25; v3.32.2: 25 → 45 (81 分點 + master_profile + alliance + signals + DB)
     # v3.80.8: 45 → 75. 2026-10-01 富邦整晚偏慢: 21:17 跑 42.0 分 (6 分點逾時各耗 ~80s),
@@ -234,7 +263,7 @@ jobs:
         id: round
         continue-on-error: true
         run: |
-          python scripts/mail_round.py --event "${{ github.event_name }}" ${{ env.TEST_RUN == 'true' && '--test' || '' }}
+          python scripts/mail_round.py --event "${{ github.event_name }}" --audit-status "${{ steps.audit.outputs.status }}" ${{ env.TEST_RUN == 'true' && '--test' || '' }}
 
       - name: Commit and push data
         id: commit

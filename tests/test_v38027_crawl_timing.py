@@ -102,7 +102,7 @@ check("分段 >= 25 且不重複", len(names) >= 25 and len(set(names)) == len(n
 check("關鍵段落都有: 富邦分點頁 / 同輪補抓 / 三大法人 / 融資融券 / MOPS / Excel日報 / 歷史回補",
       all(n in names for n in ('富邦分點頁', '同輪補抓+日期一致', '三大法人+收盤行情', '融資融券',
                                'MOPS內部人+重訊', 'Excel日報', '歷史回補')))
-i_rep, i_done = main.find('_tm.report(FETCH_STATS, data_dir, trade_date)'), main.find('✅ 完成！')
+i_rep, i_done = main.find('_tm.report(FETCH_STATS, data_dir, trade_date'), main.find('✅ 完成！')   # v3.80.31 adds crawl=
 check("結尾 report 在「完成」之前", 0 < i_rep < i_done)
 check("分點間停頓改用計數版 pause", '_fetch_pause(polite_gap())' in main   # v3.80.28 gap
       and '_fetch_pause(COOL_DOWN_SECONDS)' in main)

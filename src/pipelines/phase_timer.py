@@ -57,7 +57,7 @@ class PhaseTimer:
                 if s >= SLOW_S and total > 0]
         return text, slow
 
-    def report(self, stats=None, data_dir=None, trade_date=None, log=print):
+    def report(self, stats=None, data_dir=None, trade_date=None, log=print, crawl=None):
         try:
             self.phase(None)
             text, slow = self.lines(stats)
@@ -65,11 +65,11 @@ class PhaseTimer:
             for w in slow:
                 log(f"::warning title=Slow stage::{w}")
             if data_dir is not None:
-                self._append(data_dir, trade_date, stats)
+                self._append(data_dir, trade_date, stats, crawl)
         except Exception as e:  # pragma: no cover - never break the crawl
             log(f"  ⚠️ crawl timing report failed: {type(e).__name__}: {e}")
 
-    def _append(self, data_dir, trade_date, stats):
+    def _append(self, data_dir, trade_date, stats, crawl=None):
         path = os.path.join(str(data_dir), "crawl_timing.json")
         try:
             with open(path, encoding="utf-8") as f:
@@ -83,6 +83,7 @@ class PhaseTimer:
             "total_s": round(self.total(), 1),
             "phases": [[n, round(s, 1)] for n, s in self.phases],
             "fubon": {k: (round(v, 1) if isinstance(v, float) else v) for k, v in (stats or {}).items()},
+            "crawl": crawl,          # v3.80.31: {success, fail, empty} branches of the round
         })
         with open(path, "w", encoding="utf-8") as f:
             json.dump({"runs": runs[-KEEP:]}, f, ensure_ascii=False, indent=1)

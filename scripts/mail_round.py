@@ -67,7 +67,7 @@ def _changed_names(old, new):
     return "、".join(names)
 
 
-def decide(state, trade_date, count, digest, branches, event, test, now):
+def decide(state, trade_date, count, digest, branches, event, test, now, audit=None):
     """Pure decision. Returns (new_state, out) with out = {send, round, line, tag}."""
     same_day = isinstance(state, dict) and state.get("trade_date") == trade_date
     rounds = list(state.get("rounds") or []) if same_day else []
@@ -93,7 +93,8 @@ def decide(state, trade_date, count, digest, branches, event, test, now):
     line = f"🔁 第 {n} 輪（{now:%H:%M}）：{count} 列{desc}"
 
     rounds.append({"round": n, "at": now.isoformat(timespec="seconds"), "event": event,
-                   "rows": count, "hash": digest, "mailed": send})
+                   "rows": count, "hash": digest, "mailed": send,
+                   "audit": audit or None})       # v3.80.31: source-audit verdict of the round
     new_state = {"trade_date": trade_date, "rounds": rounds, "branches": branches}
     return new_state, {"send": send, "round": n, "line": line, "tag": tag}
 
@@ -132,6 +133,7 @@ def main(argv=None):
     ap.add_argument("--test", action="store_true")
     ap.add_argument("--xlsx", default=str(DEFAULT_XLSX))
     ap.add_argument("--state", default=str(DEFAULT_STATE))
+    ap.add_argument("--audit-status", default="")   # v3.80.31: steps.audit.outputs.status
     args = ap.parse_args(argv)
     state_path = Path(args.state)
     try:
@@ -143,7 +145,7 @@ def main(argv=None):
         except (OSError, ValueError):
             state = {}
         new_state, out = decide(state, trade_date, count, digest, branches,
-                                args.event, args.test, datetime.now(TW))
+                                args.event, args.test, datetime.now(TW), audit=args.audit_status)
         if not args.test:
             state_path.parent.mkdir(parents=True, exist_ok=True)
             state_path.write_text(json.dumps(new_state, ensure_ascii=False, indent=1) + "\n",

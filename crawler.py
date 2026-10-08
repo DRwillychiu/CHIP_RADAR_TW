@@ -1678,7 +1678,8 @@ def main():
     _tm.phase('DB快照')
     _post_export_db_query_snapshot(data_dir)    # v3.61.0 Sprint 24: DB query snapshot
 
-    _tm.report(FETCH_STATS, data_dir, trade_date)
+    _tm.report(FETCH_STATS, data_dir, trade_date,
+               crawl={"success": success_count, "fail": fail_count, "empty": empty_count})
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")
     print(f"  成功: {success_count} / 失敗: {fail_count} / 無資料: {empty_count}")
