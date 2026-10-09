@@ -73,7 +73,10 @@ TWSE_HEADERS = {"User-Agent": _UA, "Accept": "application/json, text/plain, */*"
 TPEX_HEADERS = {"User-Agent": _UA, "Accept": "application/json, text/plain, */*",
                 "Referer": "https://www.tpex.org.tw/"}
 
-FUBON_GAP_S = 1.1          # pause between two Fubon requests
+# v3.85.6 (owner 2026-10-09): 1.1 -> the shared 1.6 s floor (light_verify and
+# transfer_watch use this pacer too)
+from src.core.fubon_pacing import FUBON_MIN_GAP_S, note_request  # noqa: E402
+FUBON_GAP_S = FUBON_MIN_GAP_S   # pause between two Fubon requests
 FUBON_TIMEOUT_S = 20       # per request (crawler uses 20 too)
 CLOSE_TIMEOUT_S = 20
 PAGE_ATTEMPTS = 2          # one retry per page while the budget lasts
@@ -427,6 +430,7 @@ class _Pacer:
         if self.n:
             self.sleep(self.gap_s)
         self.n += 1
+        note_request()                  # v3.85.6: measured gap
 
 
 def fetch_branch_pages(branch_code, trade_date, get, pacer):

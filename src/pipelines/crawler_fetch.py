@@ -13,6 +13,8 @@ import random
 
 import requests
 
+from src.core.fubon_pacing import FUBON_MIN_GAP_S, FUBON_MAX_GAP_S, note_request
+
 # ========== 爬蟲參數 ==========
 
 TOP_N = 30                # 每個分點保留的買/賣超前 N 檔
@@ -20,8 +22,9 @@ TOP_N = 30                # 每個分點保留的買/賣超前 N 檔
 # (~100 Fubon pages a round, 4-5 rounds a night, 0 failures) + 0.5 s margin
 # the owner required -> never below 1.6 s. Was 2-4 s between branches and
 # 1.5-2.5 s between a branch's two pages.
-DELAY_MIN = 1.6           # 請求間隔最小秒 (絕不低於此值)
-DELAY_MAX = 2.1           # 請求間隔最大秒
+# v3.85.6: the values live in src/core/fubon_pacing.py (one source for every Fubon caller)
+DELAY_MIN = FUBON_MIN_GAP_S   # 請求間隔最小秒 (絕不低於此值)
+DELAY_MAX = FUBON_MAX_GAP_S   # 請求間隔最大秒
 SLOW_FACTOR_MAX = 2.0     # 出錯後停頓加倍 (3.2-4.2 s, 不低於舊值), 整輪維持
 COOL_DOWN_EVERY = 10      # 每 N 個分點後長休息
 COOL_DOWN_SECONDS = 8
@@ -137,6 +140,7 @@ def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
             })
             FETCH_STATS["requests"] += 1
             t_req = time.monotonic()
+            note_request()          # v3.85.6: measured gap -> data/fubon_pacing_log.json
             try:
                 r = s.get(url, timeout=20)
             finally:

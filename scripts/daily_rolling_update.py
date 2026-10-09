@@ -107,5 +107,8 @@ lp = ROOT / 'data' / 'reports' / 'latest.xlsx'
 _update_monthly_workbook(mp, data['branches'], target_date, transfer_fetch=False)
 shutil.copy2(str(mp), str(lp))
 print(f"  Regen OK: {mp.name} + latest.xlsx")
+# v3.85.6: any Fubon request made by this regen (zco) -> data/fubon_pacing_log.json
+from src.core.fubon_pacing import append_log as _pacing_log
+_pacing_log("rolling_excel", str(ROOT / 'data' / 'fubon_pacing_log.json'))
 print()
 print(f"== Rolling update DONE ==")

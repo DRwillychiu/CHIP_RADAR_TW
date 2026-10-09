@@ -1680,6 +1680,10 @@ def main():
 
     _tm.report(FETCH_STATS, data_dir, trade_date,
                crawl={"success": success_count, "fail": fail_count, "empty": empty_count})
+    # v3.85.6: measured Fubon gaps of this run -> data/fubon_pacing_log.json (weekly check)
+    from src.core.fubon_pacing import append_log as _pacing_log, summary as _pacing_summary
+    _pacing_log("crawler", os.path.join(str(data_dir), "fubon_pacing_log.json"))
+    print(f"  富邦請求間隔: {_pacing_summary()}")
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")
     print(f"  成功: {success_count} / 失敗: {fail_count} / 無資料: {empty_count}")
