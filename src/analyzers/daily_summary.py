@@ -249,6 +249,38 @@ def build_summary(days, stock_history=None, attstock=None, official_names=None):
             txt += f"，其中 {len(risk_top)} 檔在強籌名單"
         s.append(txt + "。")
 
+    # v3.87.0 one headline + one note under each big number (owner 2026-10-09:
+    # Japanese-ad style, "簡潔，卻又非常清楚重點"); the page only displays them
+    if len(top) >= 2:
+        headline = f"{name(top[0][0])}、{name(top[1][0])}被最多大戶同時布局"
+    elif top:
+        headline = f"{name(top[0][0])}被最多大戶同時布局"
+    else:
+        headline = "今晚沒有 3 位以上大戶同時布局的股票"
+    if frn and frn_net is not None:
+        headline += f"；外資券商合計{'賣超' if frn_net < 0 else '買超'} {abs(frn_net):,.1f} 億"
+
+    def pick(rows):
+        if not rows:
+            return ""
+        if (rows[0]["net_yi"] or 0) > 0:
+            return f"買最多 {rows[0]['master']} {_fmt_yi(rows[0]['net_yi'])}"
+        return f"賣最多 {rows[-1]['master']} {_fmt_yi(rows[-1]['net_yi'])}"
+
+    def pick_foreign(rows):
+        if not rows:
+            return ""
+        if (rows[-1]["net_yi"] or 0) < 0:
+            return f"賣最多 {rows[-1]['master']} {_fmt_yi(rows[-1]['net_yi'])}"
+        return f"買最多 {rows[0]['master']} {_fmt_yi(rows[0]['net_yi'])}"
+
+    notes = {
+        "strong": f"昨 {len(prev3)}・新進 {len(new3)}",
+        "domestic": f"{len(dpm)} 位合計" + (f"・{pick(dom)}" if dom else ""),
+        "foreign": f"{len(frn)} 家合計" + (f"・{pick_foreign(frn)}" if frn else ""),
+        "risk": ("・".join(name(c) for c in sorted(pend)) or "無") + f"（處置中 {len(in_disp)}）",
+    }
+
     crawled = str(today.get("crawled_at") or "")
     d0 = dt.date(int(date[:4]), int(date[4:6]), int(date[6:]))
     return {
@@ -258,6 +290,8 @@ def build_summary(days, stock_history=None, attstock=None, official_names=None):
         "crawled_at": crawled[11:16] if len(crawled) >= 16 else "",
         "window_days": min(W, len(days)),
         "fubon": {"ok": today.get("success") or 0, "total": (today.get("success") or 0) + (today.get("failed") or 0)},
+        "headline": headline,
+        "notes": notes,
         "sentences": s,
         "kpis": kpis,
         "strong_top": top_rows,

@@ -87,8 +87,14 @@ for d in sells:
     for b in d['data']['branches']:
         for r in b['buys']:
             r['net_lot'], r['net_amt'] = -abs(r['net_lot']), -abs(r['net_amt'])
-s2 = ds.build_summary(sells)['sentences'][1]
+s2_all = ds.build_summary(sells)
+s2 = s2_all['sentences'][1]
 check("全部淨賣時不寫「最大買方」, 外資寫「賣最多」", '最大買方' not in s2 and '沒有大戶淨買' in s2 and '賣最多 高盛' in s2, s2)
+check("全部淨賣: 大標題寫外資賣超, 說明句寫賣最多", s2_all['headline'].endswith('外資券商合計賣超 0.1 億')
+      and '賣最多' in s2_all['notes']['domestic'] and '賣最多 高盛' in s2_all['notes']['foreign'], (s2_all['headline'], s2_all['notes']))
+check("大標題: 強籌最集中兩檔 + 外資券商買賣超", s['headline'] == '台積電、鴻海被最多大戶同時布局；外資券商合計買超 0.1 億', s['headline'])
+check("說明句: 強籌 / 本土 / 外資 / 風險", s['notes'] == {'strong': '昨 1・新進 1', 'domestic': '4 位合計・買最多 甲 +0.2',
+      'foreign': '1 家合計・買最多 高盛 +0.1', 'risk': '台積電（處置中 1）'}, s['notes'])
 check("處置雷達: 明日恐處置 2330 台積電 (強籌 4 位)",
       s['risk']['pending'] == [{'code': '2330', 'name': '台積電', 'strong_masters': 4}] and s['risk']['in_disposal'] == 1)
 check("只有 1 天也能產生 (不當機)", ds.build_summary(days[:1])['kpis']['strong_prev'] == 0)
@@ -147,7 +153,9 @@ used_k = set(re.findall(r'\bk\.(\w+)', js))
 check("網頁用到的 KPI 欄位, 產生器都有", used_k <= set(k), sorted(used_k - set(k)))
 used_s = set(re.findall(r'\bs\.(\w+)', js))
 check("網頁用到的頂層欄位, 產生器都有", used_s <= set(s), sorted(used_s - set(s)))
-check("文字一律先 escape 再加粗", "escHtml(String(s || '')).replace(/\\*\\*(.+?)\\*\\*/g, '<b>$1</b>')" in js)
+used_n = set(re.findall(r'\bn\.(\w+)', js))
+check("網頁用到的說明句, 產生器都有", bool(used_n) and used_n <= set(s['notes']), sorted(used_n - set(s['notes'])))
+check("大標題與說明句一律 escape 後才放進頁面", 'escHtml(headline)' in js and "escHtml(note || '')" in js)
 
 # E. the nightly workflow
 print("\n[E] daily-full 每晚流程")

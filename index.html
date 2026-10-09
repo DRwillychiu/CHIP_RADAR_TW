@@ -3815,60 +3815,75 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   .tab { padding: 6px 10px; font-size: 11px; }
   th, td { padding: 6px 8px; font-size: 11px; }
 }
-/* v3.86.0 今日總整理 (first page after unlock). Scoped to .ds; colours come from the
-   site theme (red = up / buy, green = down / sell, purple = risk), so light mode works too. */
-.ds{--ds-up:var(--red);--ds-down:var(--green);--ds-acc:var(--gold-bright);--ds-risk:var(--purple);padding:4px 2px;display:flex;flex-direction:column;gap:10px;font-variant-numeric:tabular-nums}
-.ds-hdr{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px}
-.ds-hdr h2{margin:0;font-size:22px;color:var(--text)}
-.ds-meta{color:var(--text-2);font-size:13px}
-.ds-pill{border:1px solid var(--line-2);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--text-2)}
+/* v3.87.0 今日總整理, Japanese ad / IR "At a glance" style (owner 2026-10-09: "更精簡…
+   參考日系的UI/UX廣告界面", variant B dark). Hairlines instead of cards, one headline,
+   four big numbers, three short lists; colours from the site theme (light mode works). */
+.ds{--ds-acc:var(--gold);padding:26px 8px 6px;max-width:1280px;margin:0 auto;font-variant-numeric:tabular-nums;color:var(--text)}
+.ds-eye{display:flex;justify-content:space-between;align-items:baseline;gap:8px 20px;flex-wrap:wrap;font-size:12px;letter-spacing:.2em;color:var(--text-3)}
+.ds-eye b{color:var(--text);font-weight:600}
+.ds-eye .r{display:flex;gap:18px;letter-spacing:.08em}
+.ds-xl{background:none;border:0;padding:0;color:var(--ds-acc);font:inherit;letter-spacing:.08em;cursor:pointer}
 .ds-ok{color:var(--green)}.ds-bad{color:var(--red)}
-.ds-read{margin-left:auto;color:var(--text-3);font-size:12px}
-.ds-card{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;min-width:0}
-.ds-card h3{margin:0 0 8px;font-size:15px;color:var(--text);display:flex;align-items:baseline;gap:6px}
-.ds-link{margin-left:auto;font-size:12px;font-weight:400;color:var(--blue);cursor:pointer;background:none;border:0;padding:0;white-space:nowrap}
-#main-content.ds-on .tabs{margin-bottom:10px}
-.ds-card h3 small{color:var(--text-3);font-weight:400;font-size:12px}
-.ds-big ol{margin:0;padding-left:22px;font-size:15px;line-height:1.7;color:var(--text)}
-.ds-big b{color:var(--ds-acc)}
-.ds-kpis{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
-.ds-kpi{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-width:0}
-.ds-kl{font-size:11.5px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ds-kv{font-size:19px;font-weight:700;color:var(--text);margin:3px 0 2px;white-space:nowrap}
-.ds-kv small{font-size:12px;font-weight:500;color:var(--text-2)}
-.ds-kd{font-size:12px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ds-up{color:var(--ds-up)}.ds-down{color:var(--ds-down)}.ds-flat{color:var(--text-2)}.ds-risk{color:var(--ds-risk)}.ds-acc{color:var(--ds-acc)}
-.ds-grid3{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px}
-.ds table{width:100%;min-width:0;border-collapse:collapse;font-size:13.5px}
-.ds th{font-size:11.5px;color:var(--text-3);font-weight:500;text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
-.ds td{padding:5px 6px;border-bottom:1px solid var(--line);color:var(--text);white-space:nowrap}
-.ds .r{text-align:right}.ds .dim{color:var(--text-3)}.ds .code{color:var(--text-3);font-size:12px;margin-left:5px}
-.ds-tag{display:inline-block;font-size:11.5px;border:1px solid currentColor;border-radius:999px;padding:0 8px;margin-right:8px}
-.ds-badge{font-size:11px;border-radius:4px;padding:0 5px;margin-left:6px;border:1px solid var(--ds-risk);color:var(--ds-risk)}
-.ds-new{font-size:11px;border-radius:4px;padding:0 5px;margin-left:6px;border:1px solid var(--ds-acc);color:var(--ds-acc)}
-.ds-chg ul{list-style:none;margin:0;padding:0}
-.ds-chg li{padding:6px 0;border-bottom:1px solid var(--line);color:var(--text-2);line-height:1.5}
-.ds-chg li:last-child{border:0}
-.ds-h3b{margin-top:10px!important}
-.ds-bottom{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:10px}
-.ds-frow{display:flex;flex-wrap:wrap;align-items:center;gap:3px 14px;color:var(--text-2);font-size:12.5px}
-.ds-frow .rt{color:var(--text);font-weight:600;white-space:nowrap}.ds-fc{white-space:nowrap;color:var(--text)}.ds-fc b{font-weight:600;margin-left:4px}
-.ds-fi{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);color:var(--text)}
-.ds-fi b{font-weight:600}
-.ds-more{display:block;text-align:right;margin-top:6px;font-size:12px;color:var(--blue);cursor:pointer;background:none;border:0;width:100%;padding:0}
-.ds-note{font-size:11.5px;color:var(--text-3);margin-top:6px}
-.ds-riskbar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;border-color:rgba(168,85,247,.45);color:var(--text-2)}
-.ds-riskbar .rt{color:var(--ds-risk);font-weight:600;white-space:nowrap}
+.ds-h1{font-size:34px;font-weight:700;line-height:1.4;letter-spacing:.03em;margin:18px 0 0;color:var(--text)}
+.ds-nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:2px solid var(--text);border-bottom:1px solid var(--line);margin:32px 0 0}
+.ds-n{padding:20px 24px 22px;border-left:1px solid var(--line);min-width:0}
+.ds-n:first-child{border-left:0;padding-left:0}
+.ds-k{font-size:11px;letter-spacing:.2em;color:var(--text-3);display:flex;gap:10px}
+.ds-k b{color:var(--ds-acc);font-weight:600}
+.ds-lbl{font-size:14px;font-weight:600;margin-top:8px;letter-spacing:.06em;color:var(--text)}
+.ds-v{font-size:56px;font-weight:300;letter-spacing:-.025em;line-height:1.05;margin:8px 0 10px;white-space:nowrap}
+.ds-v small{font-size:16px;font-weight:400;margin-left:6px;color:var(--text-3);letter-spacing:0}
+.ds-d{font-size:13px;color:var(--text-3);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-n.ds-tap{cursor:pointer}.ds-n.ds-tap:hover .ds-lbl{color:var(--ds-acc)}
+.ds-n .ds-more{font-size:11px;color:var(--ds-acc);margin-left:8px;letter-spacing:.08em;font-weight:400}
+.ds-fx{display:none;flex-wrap:wrap;gap:6px 26px;padding:14px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--text-2)}
+.ds-fx.open{display:flex}
+.ds-fx b{font-weight:600;margin-left:6px}
+.ds-cols{display:grid;grid-template-columns:1.15fr 1.1fr .85fr;gap:56px;margin-top:30px}
+.ds-col h3{display:flex;gap:10px;align-items:baseline;font-size:11px;letter-spacing:.22em;color:var(--text-3);font-weight:500;margin:0;padding-bottom:10px;border-bottom:1px solid var(--text)}
+.ds-col h3 b{color:var(--text);font-size:14px;letter-spacing:.06em;font-weight:600}
+.ds-col h3 .ds-go{margin-left:auto;background:none;border:0;padding:0;color:var(--ds-acc);font:inherit;font-size:11px;letter-spacing:.08em;cursor:pointer}
+.ds ul{list-style:none;margin:0;padding:0}
+.ds li{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px;color:var(--text)}
+.ds-nm{flex:0 0 150px;white-space:nowrap}.ds-nm em{font-style:normal;color:var(--text-3);font-size:12px;margin-left:8px}
+.ds-nm i{font-style:normal;font-size:11px;color:var(--ds-acc);margin-left:8px;letter-spacing:.1em}
+.ds-bar{flex:1;height:2px;background:var(--line)}.ds-bar b{display:block;height:2px;background:var(--ds-acc)}
+.ds-cnt{flex:0 0 52px;text-align:right;font-size:17px}.ds-cnt small{font-size:11px;color:var(--text-3);margin-left:3px}
+.ds-lb{flex:0 0 46px;font-size:12px;letter-spacing:.12em;color:var(--text-3);white-space:nowrap}
+.ds-mkt .ds-lb{flex-basis:78px}
+.ds-chg li>span:last-child{line-height:1.5}
+.ds-mv{flex:1}
+.ds-up{color:var(--red)}.ds-down{color:var(--green)}.ds-flat{color:var(--text-3)}.ds-sub{color:var(--text-3);font-size:13px}
+.ds-foot{display:flex;justify-content:space-between;gap:8px 24px;flex-wrap:wrap;margin-top:24px;font-size:11.5px;color:var(--text-3);letter-spacing:.04em}
+.ds-empty{padding:60px 20px;text-align:center;color:var(--text-2);line-height:2}
+.ds-empty button{background:none;border:0;color:var(--ds-acc);cursor:pointer;font:inherit}
 #main-content.ds-on > .status-bar,#main-content.ds-on > .accuracy-badge-bar,#main-content.ds-on > #excelDownloadBtn,#main-content.ds-on > #chipTemperature,#main-content.ds-on > #smartRetailContrast,#main-content.ds-on > #tempHistoryWrap,#main-content.ds-on > .market-global-bar{display:none!important}
-.ds-xl{cursor:pointer;background:none;color:var(--text-2)}.ds-xl:hover{color:var(--text);border-color:var(--gold)}
+#main-content.ds-on .tabs{margin-bottom:0}
 .ds-status{position:fixed;left:12px;bottom:12px;z-index:9998;background:var(--bg-3);border:1px solid var(--line-2);color:var(--text-2);font-size:12px;padding:5px 12px;border-radius:999px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow)}
 .ds-status button{background:none;border:1px solid var(--gold);color:var(--gold);border-radius:999px;padding:0 8px;cursor:pointer}
 .ds-spin{width:10px;height:10px;border:2px solid var(--line-2);border-top-color:var(--gold);border-radius:50%;display:inline-block;animation:dsspin .8s linear infinite}
 @keyframes dsspin{to{transform:rotate(360deg)}}
-.ds-empty{padding:60px 20px;text-align:center;color:var(--text-2);line-height:2}
-@media (max-width:1100px){.ds-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.ds-grid3,.ds-bottom{grid-template-columns:1fr}}
-.ds-tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
-@media (max-width:560px){.ds-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ds-read{margin-left:0}.ds-big ol{font-size:14px}.ds .code{display:none}.ds th{white-space:normal}.ds td{padding:5px 4px;font-size:12.5px}}
+@media (max-width:1100px){.ds-cols{grid-template-columns:1fr;gap:28px}.ds-nums{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ds-n:nth-child(3){border-left:0;padding-left:0}.ds-n:nth-child(n+3){border-top:1px solid var(--line)}}
+@media (max-width:560px){.ds{padding-top:16px}.ds-h1{font-size:23px}.ds-v{font-size:40px}.ds-n{padding:16px 12px 16px}
+  .ds-n:nth-child(odd){padding-left:0}.ds-nm{flex-basis:118px}.ds li{font-size:14px}.ds-d{white-space:normal}}
+
+/* v3.87.0 slim header + text tabs, the same hairline style on every page */
+header{background:var(--bg);backdrop-filter:none}
+.header-inner{padding:12px 32px}
+.logo-cn{font-family:'Noto Sans TC',sans-serif;font-size:16px;font-weight:700;letter-spacing:.14em;background:none;-webkit-text-fill-color:var(--text);color:var(--text)}
+.logo-en{letter-spacing:.24em}
+.auto-badge,.lock-badge{display:none}
+.header-actions{gap:18px}
+.header-actions .btn{background:none;border:0;color:var(--text-2);padding:6px 2px;font-size:13px;letter-spacing:.06em;box-shadow:none}
+.header-actions .btn:hover{color:var(--text);background:none}
+.header-actions .btn.danger:hover{color:var(--red)}
+.tabs{gap:0;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:2px}.tabs::-webkit-scrollbar-track{background:transparent}
+.tab{padding:14px 13px;font-size:13px;letter-spacing:.04em}
+.tab.active{color:var(--text);border-bottom-color:var(--text)}
+.tab-num,.tab.tab-tier-core::before,.tab.tab-tier-query::before,.tab.tab-tier-config::before{display:none}
+@media (max-width:768px){.header-inner{padding:10px 16px}.tab{padding:10px 10px;font-size:12px}}
 </style>
 </head>
 <body>
@@ -3916,10 +3931,10 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
     <div class="header-actions">
-      <button class="btn" onclick="reloadData()">🔄 重新載入</button>
-      <button class="btn" onclick="toggleHelp()">❓ 說明</button>
-      <button class="btn" onclick="toggleChangelog()" title="更新日誌">📋 更新</button>
-      <button class="btn danger" onclick="lockApp()">🔒 鎖定</button>
+      <button class="btn" onclick="reloadData()">重新載入</button>
+      <button class="btn" onclick="toggleHelp()">說明</button>
+      <button class="btn" onclick="toggleChangelog()" title="更新日誌">更新</button>
+      <button class="btn danger" onclick="lockApp()">鎖定</button>
     </div>
   </div>
 </header>
@@ -3999,22 +4014,22 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   <!-- v3.59.0 (Sprint 22 P0-C): tablist ARIA + 鍵盤導航
        Arrow keys 左右移動 focus, Home/End 跳首尾, Enter/Space 啟用 -->
   <div class="tabs" role="tablist" aria-label="主功能分頁">
-    <button class="tab tab-tier-core active" data-tab="summary" role="tab" aria-selected="true" aria-controls="panel-summary" tabindex="0"><span class="tab-num">00</span>📋 今日總整理</button>
-    <button class="tab tab-tier-core" data-tab="today3" role="tab" aria-selected="false" aria-controls="panel-today3" tabindex="-1"><span class="tab-num">01</span>🌅 今日三視角</button>
-    <button class="tab tab-tier-core" data-tab="overview" role="tab" aria-selected="false" aria-controls="panel-overview" tabindex="-1"><span class="tab-num">02</span>🔥 共買榜</button>
-    <button class="tab tab-tier-query" data-tab="branches" role="tab" aria-selected="false" aria-controls="panel-branches" tabindex="-1"><span class="tab-num">03</span>📊 分點動態</button>
-    <button class="tab tab-tier-query" data-tab="ranking" role="tab" aria-selected="false" aria-controls="panel-ranking" tabindex="-1"><span class="tab-num">04</span>🏆 累積排行</button>
-    <button class="tab tab-tier-core" data-tab="masterview" role="tab" aria-selected="false" aria-controls="panel-masterview" tabindex="-1"><span class="tab-num">05</span>👤 高手合併視圖</button>
-    <button class="tab tab-tier-query" data-tab="institutional" role="tab" aria-selected="false" aria-controls="panel-institutional" tabindex="-1"><span class="tab-num">06</span>🏛️ 三大法人</button>
-    <button class="tab tab-tier-query" data-tab="futures" role="tab" aria-selected="false" aria-controls="panel-futures" tabindex="-1"><span class="tab-num">07</span>🎯 期貨情報</button>
-    <button class="tab tab-tier-query" data-tab="margin" role="tab" aria-selected="false" aria-controls="panel-margin" tabindex="-1"><span class="tab-num">08</span>💹 融資融券</button>
-    <button class="tab tab-tier-query" data-tab="limitup" role="tab" aria-selected="false" aria-controls="panel-limitup" tabindex="-1"><span class="tab-num">09</span>🎯 漲停狙擊</button>
-    <button class="tab tab-tier-query" data-tab="stock" role="tab" aria-selected="false" aria-controls="panel-stock" tabindex="-1"><span class="tab-num">10</span>📈 個股追蹤</button>
-    <button class="tab tab-tier-query" data-tab="master" role="tab" aria-selected="false" aria-controls="panel-master" tabindex="-1"><span class="tab-num">11</span>👥 單分點偏好</button>
-    <button class="tab tab-tier-config" data-tab="reports" role="tab" aria-selected="false" aria-controls="panel-reports" tabindex="-1"><span class="tab-num">12</span>📊 報告中心</button>
-    <button class="tab tab-tier-core" data-tab="masterprofile" role="tab" aria-selected="false" aria-controls="panel-masterprofile" tabindex="-1"><span class="tab-num">13</span>📊 大戶畫像</button>
-    <button class="tab tab-tier-core" data-tab="holdings" role="tab" aria-selected="false" aria-controls="panel-holdings" tabindex="-1"><span class="tab-num">14</span>🏦 持股結構</button>
-    <button class="tab tab-tier-config" data-tab="watchlist" role="tab" aria-selected="false" aria-controls="panel-watchlist" tabindex="-1"><span class="tab-num">15</span>⚙️ 關注設定</button>
+    <button class="tab tab-tier-core active" data-tab="summary" role="tab" aria-selected="true" aria-controls="panel-summary" tabindex="0"><span class="tab-num">00</span>今日總整理</button>
+    <button class="tab tab-tier-core" data-tab="today3" role="tab" aria-selected="false" aria-controls="panel-today3" tabindex="-1"><span class="tab-num">01</span>今日三視角</button>
+    <button class="tab tab-tier-core" data-tab="overview" role="tab" aria-selected="false" aria-controls="panel-overview" tabindex="-1"><span class="tab-num">02</span>共買榜</button>
+    <button class="tab tab-tier-query" data-tab="branches" role="tab" aria-selected="false" aria-controls="panel-branches" tabindex="-1"><span class="tab-num">03</span>分點動態</button>
+    <button class="tab tab-tier-query" data-tab="ranking" role="tab" aria-selected="false" aria-controls="panel-ranking" tabindex="-1"><span class="tab-num">04</span>累積排行</button>
+    <button class="tab tab-tier-core" data-tab="masterview" role="tab" aria-selected="false" aria-controls="panel-masterview" tabindex="-1"><span class="tab-num">05</span>高手合併視圖</button>
+    <button class="tab tab-tier-query" data-tab="institutional" role="tab" aria-selected="false" aria-controls="panel-institutional" tabindex="-1"><span class="tab-num">06</span>三大法人</button>
+    <button class="tab tab-tier-query" data-tab="futures" role="tab" aria-selected="false" aria-controls="panel-futures" tabindex="-1"><span class="tab-num">07</span>期貨情報</button>
+    <button class="tab tab-tier-query" data-tab="margin" role="tab" aria-selected="false" aria-controls="panel-margin" tabindex="-1"><span class="tab-num">08</span>融資融券</button>
+    <button class="tab tab-tier-query" data-tab="limitup" role="tab" aria-selected="false" aria-controls="panel-limitup" tabindex="-1"><span class="tab-num">09</span>漲停狙擊</button>
+    <button class="tab tab-tier-query" data-tab="stock" role="tab" aria-selected="false" aria-controls="panel-stock" tabindex="-1"><span class="tab-num">10</span>個股追蹤</button>
+    <button class="tab tab-tier-query" data-tab="master" role="tab" aria-selected="false" aria-controls="panel-master" tabindex="-1"><span class="tab-num">11</span>單分點偏好</button>
+    <button class="tab tab-tier-config" data-tab="reports" role="tab" aria-selected="false" aria-controls="panel-reports" tabindex="-1"><span class="tab-num">12</span>報告中心</button>
+    <button class="tab tab-tier-core" data-tab="masterprofile" role="tab" aria-selected="false" aria-controls="panel-masterprofile" tabindex="-1"><span class="tab-num">13</span>大戶畫像</button>
+    <button class="tab tab-tier-core" data-tab="holdings" role="tab" aria-selected="false" aria-controls="panel-holdings" tabindex="-1"><span class="tab-num">14</span>持股結構</button>
+    <button class="tab tab-tier-config" data-tab="watchlist" role="tab" aria-selected="false" aria-controls="panel-watchlist" tabindex="-1"><span class="tab-num">15</span>關注設定</button>
   </div>
 
   <!-- 00 今日總整理 (v3.86.0, first page after unlock) -->
@@ -9957,72 +9972,72 @@ function _dsUpDn(v, nd = 2, unit = '%') {
   const a = v > 0 ? '▲' : v < 0 ? '▼' : '■';
   return `<span class="${_dsCls(v)}">${a} ${Math.abs(v).toFixed(nd)}${unit}</span>`;
 }
-function _dsText(s) { return escHtml(String(s || '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
 function _dsGo(tab) { const b = document.querySelector(`.tab[data-tab="${tab}"]`); if (b) b.click(); }
+function _dsToggleForeign() {
+  const el = document.getElementById('dsFx');
+  if (el) el.classList.toggle('open');
+}
+const _DS_CHG_LABEL = [['新進強籌', '新進'], ['跌出', '跌出'], ['主力暴增', '暴增'], ['強籌∩風險', '風險']];
 function renderDailySummary() {
   const box = document.getElementById('summary-container');
   if (!box) return;
   const s = DAILY_SUMMARY;
   if (!s) {
     box.innerHTML = `<div class="ds-empty">今日總整理尚未產生（每晚抓取完成後產生）。<br>
-      <button class="ds-more" style="text-align:center" onclick="_dsGo('today3')">先看今日三視角 →</button></div>`;
+      <button onclick="_dsGo('today3')">先看今日三視角 →</button></div>`;
     return;
   }
-  const k = s.kpis || {};
-  const kpi = (label, val, sub) =>
-    `<div class="ds-kpi"><div class="ds-kl">${label}</div><div class="ds-kv">${val}</div><div class="ds-kd">${sub}</div></div>`;
-  const oi = k.fut_foreign_oi;
-  const kpis = [
-    kpi('加權指數', k.taiex == null ? '—' : _dsNum(k.taiex, 0), _dsUpDn(k.taiex_chg_pct)),
-    kpi('外資台指期淨單', oi == null ? '—' : (oi < 0 ? '−' : '') + _dsNum(oi, 0),
-        k.fut_foreign_oi_chg == null ? '' : `<span class="${_dsCls(k.fut_foreign_oi_chg)}">${_dsSign(k.fut_foreign_oi_chg, 0)} 口</span>`),
-    kpi('P/C（未平倉）', k.pc_ratio == null ? '—' : k.pc_ratio.toFixed(2), `<span class="ds-flat">${_dsSign(k.pc_ratio_chg, 2)}</span>`),
-    kpi('融資增減', `${_dsSign(k.margin_chg_yi)}<small> 億</small>`, `<span class="ds-flat">昨 ${_dsSign(k.margin_chg_yi_prev)}</span>`),
-    kpi('本土大戶淨買', `${_dsSign(k.domestic_net_yi)}<small> 億</small>`, `<span class="ds-flat">${k.domestic_masters ?? '—'} 位 · 不含外資</span>`),
-    kpi('外資大戶淨買', `${_dsSign(k.foreign_net_yi)}<small> 億</small>`, `<span class="ds-flat">${k.foreign_brokers ?? '—'} 家券商</span>`),
-    kpi('強籌 3 位以上', `${k.strong_count ?? '—'}<small> 檔</small>`, `<span class="ds-flat">昨 ${k.strong_prev ?? '—'} · 新進 ${k.strong_new ?? '—'}</span>`),
-    kpi('處置／明日恐處置', `<span class="ds-risk">${k.disposal_in ?? '—'}／${k.disposal_pending ?? '—'}</span>`, '<span class="ds-flat">檔</span>'),
-  ].join('');
-  const strong = (s.strong_top || []).map(r => {
-    const badge = r.risk ? `<span class="ds-badge">${escHtml(r.risk)}</span>` : '';
-    const nw = r.new ? '<span class="ds-new">新進</span>' : '';
-    return `<tr><td><b>${escHtml(r.name)}</b><span class="code">${escHtml(r.code)}</span>${badge}${nw}</td>
-      <td class="r"><span class="ds-acc">●</span> ${r.masters}</td><td class="r">${r.net10_yi == null ? '—' : _dsNum(r.net10_yi, 1)}</td>
-      <td class="r">${_dsUpDn(r.chg_pct)}</td></tr>`;
-  }).join('') || '<tr><td colspan="4" class="dim">今晚沒有 3 位以上大戶同時布局的股票</td></tr>';
-  const changes = (s.changes || []).map(c =>
-    `<li><span class="ds-tag ${c.kind === 'up' ? 'ds-up' : c.kind === 'risk' ? 'ds-risk' : 'ds-flat'}">${escHtml(c.tag)}</span>${escHtml(c.text)}</li>`
-  ).join('') || '<li>和昨天相比沒有明顯變化</li>';
-  const player = p => `<tr><td>${escHtml(p.master)}</td><td class="r ${_dsCls(p.net_yi)}">${_dsSign(p.net_yi)}</td>
-      <td class="dim">${escHtml(p.best_name || '')} ${p.best_code ? _dsSign(p.best_yi) : ''}</td></tr>`;
-  const dom = (s.domestic_top || []).map(player).join('');
-  const frn = (s.foreign || []).map(p =>
-    `<span class="ds-fc">${escHtml(p.master)}<b class="${_dsCls(p.net_yi)}">${_dsSign(p.net_yi)}</b></span>`).join('');
-  const rk = s.risk || {};
-  const pend = (rk.pending || []).map(p =>
-    `<b>${escHtml(p.name)}</b> ${escHtml(p.code)}${p.strong_masters >= 3 ? `（強籌 ${p.strong_masters} 位）` : ''}`).join('、') || '無';
+  // v3.87.0: one headline, four big numbers, three short lists (all wording comes
+  // from scripts/build_daily_summary.py; this function only lays it out)
+  const k = s.kpis || {}, n = s.notes || {};
+  const d = String(s.date || '');
+  const date = d.length === 8 ? `${d.slice(0, 4)}.${d.slice(4, 6)}.${d.slice(6)}` : '—';
   const fb = s.fubon || {};
   const fbOk = fb.total && fb.ok === fb.total;
+  const headline = s.headline || String((s.sentences || [])[0] || '').replace(/\*\*/g, '');
+  const big = (no, en, label, value, unit, note, tap = false) =>
+    `<div class="ds-n${tap ? ' ds-tap' : ''}"${tap ? ' onclick="_dsToggleForeign()"' : ''}><div class="ds-k"><b>${no}</b>${en}</div><div class="ds-lbl">${label}</div>
+      <div class="ds-v">${value}<small>${unit}</small></div><div class="ds-d">${escHtml(note || '')}</div></div>`;
+  const frn = s.foreign || [];
+  const nums = [
+    big('01', 'STRONG CHIPS', '強籌', k.strong_count ?? '—', '檔', n.strong),
+    big('02', 'DOMESTIC', '本土大戶', _dsSign(k.domestic_net_yi), '億', n.domestic),
+    big('03', 'FOREIGN', `外資大戶${frn.length ? '<span class="ds-more">明細 ▾</span>' : ''}`, _dsSign(k.foreign_net_yi), '億', n.foreign,
+        frn.length > 0),
+    big('04', 'RISK', '明日恐處置', k.disposal_pending ?? '—', '檔', n.risk),
+  ].join('');
+  const fx = frn.map(p => `<span>${escHtml(p.master)}<b class="${_dsCls(p.net_yi)}">${_dsSign(p.net_yi)}</b></span>`).join('');
+  const top = s.strong_top || [];
+  const mx = Math.max(1, ...top.map(r => r.masters || 0));
+  const strong = top.map(r => `<li><span class="ds-nm">${escHtml(r.name)}<em>${escHtml(r.code)}</em>${r.new ? '<i>新進</i>' : ''}</span>
+      <span class="ds-bar"><b style="width:${Math.round((r.masters || 0) / mx * 100)}%"></b></span>
+      <span class="ds-cnt">${r.masters}<small>位</small></span></li>`).join('') || '<li class="ds-sub">今晚沒有 3 位以上大戶同時布局的股票</li>';
+  const chg = (s.changes || []).filter(c => !String(c.tag).startsWith('期貨')).map(c => {   // futures sit in MARKET
+    const lab = (_DS_CHG_LABEL.find(([t]) => String(c.tag).startsWith(t)) || [null, c.tag])[1];
+    return `<li><span class="ds-lb">${escHtml(lab)}</span><span>${escHtml(c.text)}</span></li>`;
+  }).join('') || '<li class="ds-sub">和昨天相比沒有明顯變化</li>';
+  const oi = k.fut_foreign_oi, oiChg = k.fut_foreign_oi_chg, pct = k.taiex_chg_pct;
+  const mkt = [
+    ['加權指數', k.taiex == null ? '—' : _dsNum(k.taiex, 0), _dsUpDn(pct)],
+    ['外資台指期', oi == null ? '—' : `淨${oi < 0 ? '空' : '多'} ${_dsNum(oi, 0)} 口`,
+      oiChg == null ? '' : `<span class="ds-sub">${(oiChg < 0) === (oi < 0) ? '增' : '減'} ${_dsNum(oiChg, 0)}</span>`],
+    ['融資', `${_dsSign(k.margin_chg_yi)} 億`, `<span class="ds-sub">昨 ${_dsSign(k.margin_chg_yi_prev)}</span>`],
+    ['P/C', k.pc_ratio == null ? '—' : k.pc_ratio.toFixed(2), `<span class="ds-sub">${_dsSign(k.pc_ratio_chg, 2)}</span>`],
+  ].map(([a, b, c]) => `<li><span class="ds-lb">${a}</span><span class="ds-mv">${b}</span>${c}</li>`).join('');
   box.innerHTML = `<div class="ds">
-    <div class="ds-hdr"><h2>今日總整理</h2>
-      <span class="ds-meta">${formatDate(s.date)}（${escHtml(s.weekday || '')}）· 爬取 ${escHtml(s.crawled_at || '—')}</span>
-      <span class="ds-pill"><span class="${fbOk ? 'ds-ok' : 'ds-bad'}">●</span> 富邦 ${fb.ok ?? '—'}/${fb.total ?? '—'}</span>
-      <button class="ds-pill ds-xl" onclick="document.getElementById('excelDownloadBtn').click()">⬇ Excel 日報</button>
-      <span class="ds-read">讀完約 1 分鐘</span></div>
-    <section class="ds-card ds-big"><h3>1 分鐘重點</h3><ol>${(s.sentences || []).map(x => `<li>${_dsText(x)}</li>`).join('')}</ol></section>
-    <section class="ds-card"><div class="ds-kpis">${kpis}</div></section>
-    <div class="ds-grid3">
-      <section class="ds-card"><h3>強籌前 5<small>3 位以上大戶同時布局</small><button class="ds-link" onclick="_dsGo('overview')">看共買榜 →</button></h3>
-        <div class="ds-tw"><table><thead><tr><th>股票</th><th class="r">主力</th><th class="r">${s.window_days || 10}日淨買(億)</th><th class="r">今日</th></tr></thead><tbody>${strong}</tbody></table></div>
-        <div class="ds-note">每位大戶近 ${s.window_days || 10} 日淨買 ≥ 3,000 萬、買超 ≥ 5 天、仍在高點 80% 以上 · 共 ${k.strong_count ?? 0} 檔</div>
-        </section>
-      <section class="ds-card ds-chg"><h3>今天變了什麼</h3><ul>${changes}</ul></section>
-      <section class="ds-card"><h3>本土大戶前 5<small>今晚淨買(億)</small><button class="ds-link" onclick="_dsGo('masterview')">高手合併視圖 →</button></h3><div class="ds-tw"><table><tbody>${dom}</tbody></table></div>
-        <h3 class="ds-h3b">外資大戶<small>${(s.foreign || []).length} 家 · 合計 ${_dsSign(k.foreign_net_yi)} 億 · 另列，不算在本土</small></h3>
-        <div class="ds-frow">${frn || '<span class="dim">今晚無資料</span>'}</div></section>
-    </div>
-    <section class="ds-card ds-riskbar"><span class="rt">處置雷達</span>
-      <span>處置中 <b class="ds-risk">${rk.in_disposal ?? '—'}</b> 檔 · 明日恐處置 <b class="ds-risk">${(rk.pending || []).length}</b> 檔：${pend}</span></section>
+    <div class="ds-eye"><span><b>SUMMARY</b>　${date}（${escHtml(s.weekday || '')}）</span>
+      <span class="r"><span>爬取 ${escHtml(s.crawled_at || '—')}</span><span><span class="${fbOk ? 'ds-ok' : 'ds-bad'}">●</span> 富邦 ${fb.ok ?? '—'}/${fb.total ?? '—'}</span>
+      <button class="ds-xl" onclick="document.getElementById('excelDownloadBtn').click()">Excel 日報 ↓</button></span></div>
+    <h2 class="ds-h1">${escHtml(headline)}</h2>
+    <section class="ds-nums">${nums}</section>
+    <div class="ds-fx" id="dsFx">${fx}</div>
+    <section class="ds-cols">
+      <div class="ds-col"><h3><b>強籌前 5</b>STRONG CHIPS<button class="ds-go" onclick="_dsGo('overview')">共買榜 →</button></h3><ul>${strong}</ul></div>
+      <div class="ds-col ds-chg"><h3><b>今天變了什麼</b>CHANGES</h3><ul>${chg}</ul></div>
+      <div class="ds-col ds-mkt"><h3><b>市場</b>MARKET<button class="ds-go" onclick="_dsGo('futures')">期貨 →</button></h3><ul>${mkt}</ul></div>
+    </section>
+    <div class="ds-foot"><span>強籌：每位大戶近 ${s.window_days || 10} 日淨買 ≥ 3,000 萬、買超 ≥ 5 天、仍在高點 80% 以上，3 位以上同時布局。外資券商另列，不算在本土。</span>
+      <span>資料：富邦分點・TWSE／TPEx・期交所・attstock</span></div>
   </div>`;
 }
 
