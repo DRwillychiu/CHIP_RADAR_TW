@@ -4,10 +4,12 @@ from types import SimpleNamespace as NS
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 import src  # noqa: F401 — side effect: 把 src/* 8 子目錄加進 sys.path
 
-"""v3.80.19 dev 環境 (使用者 2026-10-06): push 到 dev = 測試模式跑 daily-full — 離線
+"""v3.80.19 dev 環境 (使用者 2026-10-06): dev 的程式 = 測試模式跑 daily-full — 離線
+v3.85.5 (使用者 2026-10-09): push 不再自動觸發; 測試跑改手動, 且 20:30-07:00 一律擋下
 
 正式排程 (main) 絕不能被測試模式影響:
-  A. 觸發: 只有 dev 的 push 會觸發; 3 個正式排程不變
+  A. 觸發: 沒有 push 觸發; 3 個正式排程不變
+  D. 測試跑不和正式排程時段重疊
   B. 每種觸發情境實際算出 TEST_RUN 與 concurrency group (把 GitHub 表達式轉成 Python 計算)
   C. 測試模式不寫回: 不 commit、不上傳 DB、不開 Issue; 信件/Excel 標【測試】
 """
@@ -41,7 +43,8 @@ print("  v3.80.19 dev 環境 / 測試模式 (離線)")
 print("=" * 72)
 
 print("\nA. 觸發")
-check("push 只限 dev 分支", on.get('push') == {'branches': ['dev']}, on.get('push'))
+# v3.85.5 (owner 2026-10-09): pushes no longer start a TEST run; TEST runs are manual only
+check("沒有 push 觸發 (dev 的測試跑改手動)", 'push' not in on, on.get('push'))
 check("正式排程仍是 21:17 / 22:37 / 23:47 (平日)",
       [c['cron'] for c in on.get('schedule', [])] == ['17 13 * * 1-5', '37 14 * * 1-5', '47 15 * * 1-5'])
 check("手動觸發有 test_run 選項, 預設 false",
@@ -53,8 +56,8 @@ CASES = [
     ('正式排程 (main)',                 NS(ref='refs/heads/main', event_name='schedule'), NO_INPUT, False),
     ('手動觸發 main, 不勾 test_run',     NS(ref='refs/heads/main', event_name='workflow_dispatch'), NS(test_run='false'), False),
     ('手動觸發 main, test_run=true',    NS(ref='refs/heads/main', event_name='workflow_dispatch'), NS(test_run='true'), True),
-    ('push 到 dev',                     NS(ref='refs/heads/dev', event_name='push'), NO_INPUT, True),
     ('手動觸發 dev, 不勾 test_run',      NS(ref='refs/heads/dev', event_name='workflow_dispatch'), NS(test_run='false'), True),
+    ('手動觸發 dev, test_run=true',     NS(ref='refs/heads/dev', event_name='workflow_dispatch'), NS(test_run='true'), True),
 ]
 for label, g, i, want in CASES:
     test_run = bool(gh_eval(job['env']['TEST_RUN'], g, i))
@@ -87,6 +90,25 @@ check("非 main 的測試: 用 main 最新的 data/ (dev 的 data 可能是舊�
 names = [s.get('name') for s in job['steps']]
 check("main 資料覆蓋在 checkout 之後、爬蟲之前",
       names.index('Checkout repo') < names.index("Test run - use main's latest data") < names.index('Run full crawler'))
+
+print("\nD. 測試跑不和正式排程重疊 (v3.85.5)")
+guard = steps.get('Test run - outside the production window') or {}
+check("有時段守門步驟, 只在測試模式執行", guard.get('if') == "env.TEST_RUN == 'true'", guard.get('if'))
+check("守門在 checkout 之後的第一步 (任何富邦請求之前)",
+      names.index('Checkout repo') + 1 == names.index('Test run - outside the production window'))
+run = guard.get('run', '')
+check("擋 20:30-07:00 台北時間, 擋下時 exit 1",
+      'TZ=Asia/Taipei' in run and '-ge 2030' in run and '-lt 700' in run and 'exit 1' in run)
+
+
+def window_refuses(hm):
+    """Same arithmetic as the bash step: refuse when HHMM >= 2030 or < 700."""
+    return int(hm) >= 2030 or int(hm) < 700
+
+
+for hm, want in (('2016', False), ('2030', True), ('2117', True), ('0030', True), ('0559', True),
+                 ('0700', False), ('1300', False)):
+    check(f"  {hm} → {'擋' if want else '放行'}", window_refuses(hm) is want)
 
 print()
 print("─" * 72)

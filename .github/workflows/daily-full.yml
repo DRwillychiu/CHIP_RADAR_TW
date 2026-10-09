@@ -26,10 +26,12 @@ on:
     #   heartbeat.yml 00:30 TW 在此之後才檢查。
     - cron: '47 15 * * 1-5'
 
-  # v3.80.19 dev environment: a push to `dev` runs this whole workflow as a TEST
-  # run (see TEST_RUN below) with dev's code on main's latest data.
-  push:
-    branches: [dev]
+  # v3.80.19 dev environment: TEST run = dev's code on main's latest data.
+  # v3.85.5 (owner 2026-10-09 "確保不會在優化過程影響到main的主系統運作"): a push
+  # to dev no longer starts a TEST run by itself - every push (docs too) used to
+  # crawl ~264 Fubon pages. TEST runs are manual only (Actions -> Run workflow
+  # -> branch dev) and are refused inside the production window (see the crawl
+  # job's first step).
 
   workflow_dispatch:
     inputs:
@@ -132,8 +134,8 @@ jobs:
       contents: write
       issues: write
     env:
-      # v3.80.19: 'true' for every run not on main (dev pushes) and for a manual
-      # run with test_run=true; scheduled runs are on main -> 'false'
+      # v3.80.19: 'true' for every run not on main (manual runs on dev) and for a
+      # manual run with test_run=true; scheduled runs are on main -> 'false'
       TEST_RUN: ${{ github.ref != 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.test_run == 'true') }}
 
     steps:
@@ -142,6 +144,19 @@ jobs:
         with:
           # v3.28.0: 顯式設定 timeout 給 git fetch (不然 default 沒有, 卡到死才 abort)
           fetch-depth: 1
+
+      # v3.85.5 (owner 2026-10-09): a TEST run crawls Fubon as well, so it must
+      # not overlap the production window (21:17 / 22:37 / 23:47 runs, late
+      # arrivals 02:00-06:00): 20:30-07:00 Taipei is refused before any request.
+      - name: Test run - outside the production window
+        if: env.TEST_RUN == 'true'
+        run: |
+          HM=$(TZ=Asia/Taipei date +%H%M)
+          if [ "$((10#$HM))" -ge 2030 ] || [ "$((10#$HM))" -lt 700 ]; then
+            echo "::error::TEST run refused at ${HM} Taipei: 20:30-07:00 belongs to the production crawl"
+            exit 1
+          fi
+          echo "TEST run allowed at ${HM} Taipei"
 
       # v3.80.19: dev's data/ may be days old (bot data commits land on main
       # only) -> a TEST run from another branch uses main's latest data/ with
