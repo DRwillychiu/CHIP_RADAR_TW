@@ -3815,6 +3815,56 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   .tab { padding: 6px 10px; font-size: 11px; }
   th, td { padding: 6px 8px; font-size: 11px; }
 }
+/* v3.86.0 今日總整理 (first page after unlock). Scoped to .ds; colours come from the
+   site theme (red = up / buy, green = down / sell, purple = risk), so light mode works too. */
+.ds{--ds-up:var(--red);--ds-down:var(--green);--ds-acc:var(--gold-bright);--ds-risk:var(--purple);padding:4px 2px;display:flex;flex-direction:column;gap:10px;font-variant-numeric:tabular-nums}
+.ds-hdr{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px}
+.ds-hdr h2{margin:0;font-size:22px;color:var(--text)}
+.ds-meta{color:var(--text-2);font-size:13px}
+.ds-pill{border:1px solid var(--line-2);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--text-2)}
+.ds-ok{color:var(--green)}.ds-bad{color:var(--red)}
+.ds-read{margin-left:auto;color:var(--text-3);font-size:12px}
+.ds-card{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;min-width:0}
+.ds-card h3{margin:0 0 8px;font-size:15px;color:var(--text);display:flex;align-items:baseline;gap:6px}
+.ds-link{margin-left:auto;font-size:12px;font-weight:400;color:var(--blue);cursor:pointer;background:none;border:0;padding:0;white-space:nowrap}
+#main-content.ds-on .tabs{margin-bottom:10px}
+.ds-card h3 small{color:var(--text-3);font-weight:400;font-size:12px}
+.ds-big ol{margin:0;padding-left:22px;font-size:15px;line-height:1.7;color:var(--text)}
+.ds-big b{color:var(--ds-acc)}
+.ds-kpis{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px}
+.ds-kpi{background:var(--bg-3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-width:0}
+.ds-kl{font-size:11.5px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-kv{font-size:19px;font-weight:700;color:var(--text);margin:3px 0 2px;white-space:nowrap}
+.ds-kv small{font-size:12px;font-weight:500;color:var(--text-2)}
+.ds-kd{font-size:12px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-up{color:var(--ds-up)}.ds-down{color:var(--ds-down)}.ds-flat{color:var(--text-2)}.ds-risk{color:var(--ds-risk)}.ds-acc{color:var(--ds-acc)}
+.ds-grid3{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px}
+.ds table{width:100%;min-width:0;border-collapse:collapse;font-size:13.5px}
+.ds th{font-size:11.5px;color:var(--text-3);font-weight:500;text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+.ds td{padding:5px 6px;border-bottom:1px solid var(--line);color:var(--text);white-space:nowrap}
+.ds .r{text-align:right}.ds .dim{color:var(--text-3)}.ds .code{color:var(--text-3);font-size:12px;margin-left:5px}
+.ds-tag{display:inline-block;font-size:11.5px;border:1px solid currentColor;border-radius:999px;padding:0 8px;margin-right:8px}
+.ds-badge{font-size:11px;border-radius:4px;padding:0 5px;margin-left:6px;border:1px solid var(--ds-risk);color:var(--ds-risk)}
+.ds-new{font-size:11px;border-radius:4px;padding:0 5px;margin-left:6px;border:1px solid var(--ds-acc);color:var(--ds-acc)}
+.ds-chg ul{list-style:none;margin:0;padding:0}
+.ds-chg li{padding:6px 0;border-bottom:1px solid var(--line);color:var(--text-2);line-height:1.5}
+.ds-chg li:last-child{border:0}
+.ds-h3b{margin-top:10px!important}
+.ds-bottom{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:10px}
+.ds-frow{display:flex;flex-wrap:wrap;align-items:center;gap:3px 14px;color:var(--text-2);font-size:12.5px}
+.ds-frow .rt{color:var(--text);font-weight:600;white-space:nowrap}.ds-fc{white-space:nowrap;color:var(--text)}.ds-fc b{font-weight:600;margin-left:4px}
+.ds-fi{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);color:var(--text)}
+.ds-fi b{font-weight:600}
+.ds-more{display:block;text-align:right;margin-top:6px;font-size:12px;color:var(--blue);cursor:pointer;background:none;border:0;width:100%;padding:0}
+.ds-note{font-size:11.5px;color:var(--text-3);margin-top:6px}
+.ds-riskbar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;border-color:rgba(168,85,247,.45);color:var(--text-2)}
+.ds-riskbar .rt{color:var(--ds-risk);font-weight:600;white-space:nowrap}
+#main-content.ds-on > .status-bar,#main-content.ds-on > .accuracy-badge-bar,#main-content.ds-on > #excelDownloadBtn,#main-content.ds-on > #chipTemperature,#main-content.ds-on > #smartRetailContrast,#main-content.ds-on > #tempHistoryWrap,#main-content.ds-on > .market-global-bar{display:none!important}
+.ds-xl{cursor:pointer;background:none;color:var(--text-2)}.ds-xl:hover{color:var(--text);border-color:var(--gold)}
+.ds-empty{padding:60px 20px;text-align:center;color:var(--text-2);line-height:2}
+@media (max-width:1100px){.ds-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.ds-grid3,.ds-bottom{grid-template-columns:1fr}}
+.ds-tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:560px){.ds-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ds-read{margin-left:0}.ds-big ol{font-size:14px}.ds .code{display:none}.ds th{white-space:normal}.ds td{padding:5px 4px;font-size:12.5px}}
 </style>
 </head>
 <body>
@@ -3870,7 +3920,7 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   </div>
 </header>
 
-<main id="main-content" role="main" aria-label="主內容">
+<main id="main-content" class="ds-on" role="main" aria-label="主內容">
   <div class="status-bar">
     <div class="status-info">
       <div><span class="label">資料日期</span><span class="val" id="tradeDate">—</span></div>
@@ -3945,7 +3995,8 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   <!-- v3.59.0 (Sprint 22 P0-C): tablist ARIA + 鍵盤導航
        Arrow keys 左右移動 focus, Home/End 跳首尾, Enter/Space 啟用 -->
   <div class="tabs" role="tablist" aria-label="主功能分頁">
-    <button class="tab tab-tier-core active" data-tab="today3" role="tab" aria-selected="true" aria-controls="panel-today3" tabindex="0"><span class="tab-num">01</span>🌅 今日三視角</button>
+    <button class="tab tab-tier-core active" data-tab="summary" role="tab" aria-selected="true" aria-controls="panel-summary" tabindex="0"><span class="tab-num">00</span>📋 今日總整理</button>
+    <button class="tab tab-tier-core" data-tab="today3" role="tab" aria-selected="false" aria-controls="panel-today3" tabindex="-1"><span class="tab-num">01</span>🌅 今日三視角</button>
     <button class="tab tab-tier-core" data-tab="overview" role="tab" aria-selected="false" aria-controls="panel-overview" tabindex="-1"><span class="tab-num">02</span>🔥 共買榜</button>
     <button class="tab tab-tier-query" data-tab="branches" role="tab" aria-selected="false" aria-controls="panel-branches" tabindex="-1"><span class="tab-num">03</span>📊 分點動態</button>
     <button class="tab tab-tier-query" data-tab="ranking" role="tab" aria-selected="false" aria-controls="panel-ranking" tabindex="-1"><span class="tab-num">04</span>🏆 累積排行</button>
@@ -3962,8 +4013,13 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
     <button class="tab tab-tier-config" data-tab="watchlist" role="tab" aria-selected="false" aria-controls="panel-watchlist" tabindex="-1"><span class="tab-num">15</span>⚙️ 關注設定</button>
   </div>
 
-  <!-- 01 今日三視角 (新主頁) -->
-  <div class="panel active" id="panel-today3" role="tabpanel" aria-label="today3 分頁內容">
+  <!-- 00 今日總整理 (v3.86.0, first page after unlock) -->
+  <div class="panel active" id="panel-summary" role="tabpanel" aria-label="今日總整理">
+    <div id="summary-container"><div class="ds-empty">🔄 載入今日總整理中...</div></div>
+  </div>
+
+  <!-- 01 今日三視角 -->
+  <div class="panel" id="panel-today3" role="tabpanel" aria-label="today3 分頁內容">
     <div class="controls">
       <div class="control-group">
         <span class="control-label">觀察角度</span>
@@ -9161,11 +9217,14 @@ document.querySelectorAll('.tab').forEach(btn => {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
     document.getElementById('panel-help').style.display = 'none';
+    // v3.86.0: banners above the tab bar stay hidden on the summary page only
+    document.getElementById('main-content').classList.toggle('ds-on', btn.dataset.tab === 'summary');
     // v3.60.0: 各頁按需渲染 — first time 才 render, 之後 cache DOM 直接顯示
     const tab = btn.dataset.tab;
     if (_TAB_RENDERED.has(tab)) return;   // cache hit: skip re-render
     _TAB_RENDERED.add(tab);
-    if (tab === 'today3') renderToday3();
+    if (tab === 'summary') renderDailySummary();
+    else if (tab === 'today3') renderToday3();
     else if (tab === 'ranking') renderRanking();
     else if (tab === 'masterview') renderMasterView();
     else if (tab === 'institutional') renderInstitutional();
@@ -9350,7 +9409,8 @@ function showAccuracyModal() {
 document.addEventListener('keydown', (e) => {
   if (!SESSION_PASSWORD) return;
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-  const tabs = document.querySelectorAll('.tab');
+  const tabs = document.querySelectorAll('.tab:not([data-tab="summary"])');   // v3.86.0: 1-9 keep their tabs
+  if (e.key === '`') { _dsGo('summary'); return; }
   if (e.key >= '1' && e.key <= '9') {
     if (tabs[parseInt(e.key)-1]) tabs[parseInt(e.key)-1].click();
   } else if (e.key === '0') {
@@ -9783,10 +9843,114 @@ function setTodayScope(s) {
   renderToday3();
 }
 
+// ========== 00 今日總整理 (v3.86.0) ==========
+// Owner 2026-10-09: "登錄後的第一頁，絕對就是當日的總整理…能夠人在1分鐘讀完的資訊".
+// data/daily_summary.json is built every night by scripts/build_daily_summary.py
+// (same encrypted envelope as the day files). Always the newest night.
+let DAILY_SUMMARY = null;
+let _DS_TOKEN = null;
+async function loadDailySummary() {
+  const r = await fetchWithTimeout(`${DATA_BASE}/daily_summary.json?t=${Date.now()}`, {cache: 'no-store'}, 10000);
+  if (!r.ok) return null;
+  const enc = await r.json();
+  if (!enc || !enc.data) return null;
+  if (enc.data === _DS_TOKEN && DAILY_SUMMARY) return DAILY_SUMMARY;   // unchanged: skip the decrypt
+  const plain = enc.encrypted ? await decryptToken(enc.data, SESSION_PASSWORD, enc.iterations) : enc.data;
+  _DS_TOKEN = enc.data;
+  return typeof plain === 'string' ? JSON.parse(plain) : plain;
+}
+function refreshDailySummary() {
+  loadDailySummary()
+    .then(s => { DAILY_SUMMARY = s; renderDailySummary(); })
+    .catch(e => { console.warn('[今日總整理] load failed', e); renderDailySummary(); });
+}
+function _dsNum(v, nd) {
+  return Math.abs(v).toLocaleString('en-US', {minimumFractionDigits: nd, maximumFractionDigits: nd});
+}
+function _dsSign(v, nd = 1) {
+  if (v === null || v === undefined) return '—';
+  return (v > 0 ? '+' : v < 0 ? '−' : '±') + _dsNum(v, nd);
+}
+function _dsCls(v) { return v > 0 ? 'ds-up' : v < 0 ? 'ds-down' : 'ds-flat'; }
+function _dsUpDn(v, nd = 2, unit = '%') {
+  if (v === null || v === undefined) return '<span class="ds-flat">—</span>';
+  const a = v > 0 ? '▲' : v < 0 ? '▼' : '■';
+  return `<span class="${_dsCls(v)}">${a} ${Math.abs(v).toFixed(nd)}${unit}</span>`;
+}
+function _dsText(s) { return escHtml(String(s || '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); }
+function _dsGo(tab) { const b = document.querySelector(`.tab[data-tab="${tab}"]`); if (b) b.click(); }
+function renderDailySummary() {
+  const box = document.getElementById('summary-container');
+  if (!box) return;
+  const s = DAILY_SUMMARY;
+  if (!s) {
+    box.innerHTML = `<div class="ds-empty">今日總整理尚未產生（每晚抓取完成後產生）。<br>
+      <button class="ds-more" style="text-align:center" onclick="_dsGo('today3')">先看今日三視角 →</button></div>`;
+    return;
+  }
+  const k = s.kpis || {};
+  const kpi = (label, val, sub) =>
+    `<div class="ds-kpi"><div class="ds-kl">${label}</div><div class="ds-kv">${val}</div><div class="ds-kd">${sub}</div></div>`;
+  const oi = k.fut_foreign_oi;
+  const kpis = [
+    kpi('加權指數', k.taiex == null ? '—' : _dsNum(k.taiex, 0), _dsUpDn(k.taiex_chg_pct)),
+    kpi('外資台指期淨單', oi == null ? '—' : (oi < 0 ? '−' : '') + _dsNum(oi, 0),
+        k.fut_foreign_oi_chg == null ? '' : `<span class="${_dsCls(k.fut_foreign_oi_chg)}">${_dsSign(k.fut_foreign_oi_chg, 0)} 口</span>`),
+    kpi('P/C（未平倉）', k.pc_ratio == null ? '—' : k.pc_ratio.toFixed(2), `<span class="ds-flat">${_dsSign(k.pc_ratio_chg, 2)}</span>`),
+    kpi('融資增減', `${_dsSign(k.margin_chg_yi)}<small> 億</small>`, `<span class="ds-flat">昨 ${_dsSign(k.margin_chg_yi_prev)}</span>`),
+    kpi('本土大戶淨買', `${_dsSign(k.domestic_net_yi)}<small> 億</small>`, `<span class="ds-flat">${k.domestic_masters ?? '—'} 位 · 不含外資</span>`),
+    kpi('外資大戶淨買', `${_dsSign(k.foreign_net_yi)}<small> 億</small>`, `<span class="ds-flat">${k.foreign_brokers ?? '—'} 家券商</span>`),
+    kpi('強籌 3 位以上', `${k.strong_count ?? '—'}<small> 檔</small>`, `<span class="ds-flat">昨 ${k.strong_prev ?? '—'} · 新進 ${k.strong_new ?? '—'}</span>`),
+    kpi('處置／明日恐處置', `<span class="ds-risk">${k.disposal_in ?? '—'}／${k.disposal_pending ?? '—'}</span>`, '<span class="ds-flat">檔</span>'),
+  ].join('');
+  const strong = (s.strong_top || []).map(r => {
+    const badge = r.risk ? `<span class="ds-badge">${escHtml(r.risk)}</span>` : '';
+    const nw = r.new ? '<span class="ds-new">新進</span>' : '';
+    return `<tr><td><b>${escHtml(r.name)}</b><span class="code">${escHtml(r.code)}</span>${badge}${nw}</td>
+      <td class="r"><span class="ds-acc">●</span> ${r.masters}</td><td class="r">${r.net10_yi == null ? '—' : _dsNum(r.net10_yi, 1)}</td>
+      <td class="r">${_dsUpDn(r.chg_pct)}</td></tr>`;
+  }).join('') || '<tr><td colspan="4" class="dim">今晚沒有 3 位以上大戶同時布局的股票</td></tr>';
+  const changes = (s.changes || []).map(c =>
+    `<li><span class="ds-tag ${c.kind === 'up' ? 'ds-up' : c.kind === 'risk' ? 'ds-risk' : 'ds-flat'}">${escHtml(c.tag)}</span>${escHtml(c.text)}</li>`
+  ).join('') || '<li>和昨天相比沒有明顯變化</li>';
+  const player = p => `<tr><td>${escHtml(p.master)}</td><td class="r ${_dsCls(p.net_yi)}">${_dsSign(p.net_yi)}</td>
+      <td class="dim">${escHtml(p.best_name || '')} ${p.best_code ? _dsSign(p.best_yi) : ''}</td></tr>`;
+  const dom = (s.domestic_top || []).map(player).join('');
+  const frn = (s.foreign || []).map(p =>
+    `<span class="ds-fc">${escHtml(p.master)}<b class="${_dsCls(p.net_yi)}">${_dsSign(p.net_yi)}</b></span>`).join('');
+  const rk = s.risk || {};
+  const pend = (rk.pending || []).map(p =>
+    `<b>${escHtml(p.name)}</b> ${escHtml(p.code)}${p.strong_masters >= 3 ? `（強籌 ${p.strong_masters} 位）` : ''}`).join('、') || '無';
+  const fb = s.fubon || {};
+  const fbOk = fb.total && fb.ok === fb.total;
+  box.innerHTML = `<div class="ds">
+    <div class="ds-hdr"><h2>今日總整理</h2>
+      <span class="ds-meta">${formatDate(s.date)}（${escHtml(s.weekday || '')}）· 爬取 ${escHtml(s.crawled_at || '—')}</span>
+      <span class="ds-pill"><span class="${fbOk ? 'ds-ok' : 'ds-bad'}">●</span> 富邦 ${fb.ok ?? '—'}/${fb.total ?? '—'}</span>
+      <button class="ds-pill ds-xl" onclick="document.getElementById('excelDownloadBtn').click()">⬇ Excel 日報</button>
+      <span class="ds-read">讀完約 1 分鐘</span></div>
+    <section class="ds-card ds-big"><h3>1 分鐘重點</h3><ol>${(s.sentences || []).map(x => `<li>${_dsText(x)}</li>`).join('')}</ol></section>
+    <section class="ds-card"><div class="ds-kpis">${kpis}</div></section>
+    <div class="ds-grid3">
+      <section class="ds-card"><h3>強籌前 5<small>3 位以上大戶同時布局</small><button class="ds-link" onclick="_dsGo('overview')">看共買榜 →</button></h3>
+        <div class="ds-tw"><table><thead><tr><th>股票</th><th class="r">主力</th><th class="r">${s.window_days || 10}日淨買(億)</th><th class="r">今日</th></tr></thead><tbody>${strong}</tbody></table></div>
+        <div class="ds-note">每位大戶近 ${s.window_days || 10} 日淨買 ≥ 3,000 萬、買超 ≥ 5 天、仍在高點 80% 以上 · 共 ${k.strong_count ?? 0} 檔</div>
+        </section>
+      <section class="ds-card ds-chg"><h3>今天變了什麼</h3><ul>${changes}</ul></section>
+      <section class="ds-card"><h3>本土大戶前 5<small>今晚淨買(億)</small><button class="ds-link" onclick="_dsGo('masterview')">高手合併視圖 →</button></h3><div class="ds-tw"><table><tbody>${dom}</tbody></table></div>
+        <h3 class="ds-h3b">外資大戶<small>${(s.foreign || []).length} 家 · 合計 ${_dsSign(k.foreign_net_yi)} 億 · 另列，不算在本土</small></h3>
+        <div class="ds-frow">${frn || '<span class="dim">今晚無資料</span>'}</div></section>
+    </div>
+    <section class="ds-card ds-riskbar"><span class="rt">處置雷達</span>
+      <span>處置中 <b class="ds-risk">${rk.in_disposal ?? '—'}</b> 檔 · 明日恐處置 <b class="ds-risk">${(rk.pending || []).length}</b> 檔：${pend}</span></section>
+  </div>`;
+}
+
 function renderAll() {
   if (!CURRENT_DATA) return;
   // v3.60.0 (Sprint 23 P0-E): WATCHLIST 變化 → tab cache 全 invalidate
   if (typeof markTabsDirty === 'function') markTabsDirty('WATCHLIST changed');
+  refreshDailySummary();   // v3.86.0
   renderToday3();
   renderOverview();
   renderBranches();
