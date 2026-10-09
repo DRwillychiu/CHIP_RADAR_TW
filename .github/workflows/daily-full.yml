@@ -259,6 +259,21 @@ jobs:
           wb.save('data/reports/TEST_chip_radar_latest.xlsx')
           print('sheets:', wb.sheetnames)
           PY
+      # v3.85.7 (owner 2026-10-09 "先在dev環境跑一周再說"): the soak week reads the
+      # measured Fubon gaps of each TEST run from the run summary
+      - name: Test run - Fubon pacing summary
+        if: always() && env.TEST_RUN == 'true'
+        run: |
+          {
+            echo "### 富邦請求間隔（本輪測試跑實測，底線 1.6 秒）"
+            echo '```json'
+            if [ -f data/fubon_pacing_log.json ]; then
+              python -c "import json; [print(json.dumps(e, ensure_ascii=False)) for e in json.load(open('data/fubon_pacing_log.json', encoding='utf-8'))[-6:]]"
+            else
+              echo "no data/fubon_pacing_log.json written (no Fubon request measured)"
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Test run - upload outputs
         if: env.TEST_RUN == 'true'
         uses: actions/upload-artifact@v7
@@ -267,6 +282,7 @@ jobs:
           path: |
             data/reports/TEST_chip_radar_latest.xlsx
             data/reports/mobile_summary.txt
+            data/fubon_pacing_log.json
           retention-days: 7
           if-no-files-found: warn
 

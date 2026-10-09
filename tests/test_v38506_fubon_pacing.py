@@ -101,6 +101,15 @@ check("跑 check_fubon_pacing.py, 失敗開 Issue",
       any('check_fubon_pacing.py' in (s.get('run') or '') for s in steps)
       and any(s.get('if') == 'failure()' and 'issues.create' in s.get('with', {}).get('script', '') for s in steps))
 
+print("\nG. dev 試跑一週 (v3.85.7): 測試跑把實測間隔寫進執行摘要與 artifact")
+df = yaml.safe_load(open(ROOT / '.github/workflows/daily-full.yml', encoding='utf-8'))
+cs = {s.get('name'): s for s in df['jobs']['crawl']['steps']}
+summ = cs.get('Test run - Fubon pacing summary') or {}
+check("測試跑有間隔摘要步驟 (失敗也要寫)", 'always()' in str(summ.get('if')) and "TEST_RUN == 'true'" in str(summ.get('if'))
+      and 'GITHUB_STEP_SUMMARY' in summ.get('run', '') and 'fubon_pacing_log.json' in summ.get('run', ''))
+up = cs.get('Test run - upload outputs') or {}
+check("測試跑 artifact 帶 fubon_pacing_log.json", 'data/fubon_pacing_log.json' in up.get('with', {}).get('path', ''))
+
 print()
 print("─" * 72)
 print(f"  整體: {'✅ ALL PASS' if all_pass else '❌ HAS FAIL'}")
