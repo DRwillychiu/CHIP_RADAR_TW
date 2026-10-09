@@ -125,7 +125,10 @@ with tempfile.TemporaryDirectory() as td:
 # D. the page
 print("\n[D] index.html 接線")
 h = (ROOT / 'index.html').read_text(encoding='utf-8')
-nav = re.search(r'<div class="tabs" role="tablist"[^>]*>(.*?)</div>', h, re.S).group(1)
+if 'id="panel-summary"' not in h and (ROOT / 'preview' / 'index.html').exists():
+    h = (ROOT / 'preview' / 'index.html').read_text(encoding='utf-8')   # main during the soak: the page lives at /preview/
+    print("  (main: 檢查 preview/index.html)")
+nav =re.search(r'<div class="tabs" role="tablist"[^>]*>(.*?)</div>', h, re.S).group(1)
 btns = re.findall(r'<button class="([^"]*)" data-tab="(\w+)" role="tab" aria-selected="(\w+)"', nav)
 check("分頁列第一顆是今日總整理, 預設選中", btns[0][1] == 'summary' and 'active' in btns[0][0] and btns[0][2] == 'true', btns[0])
 check("其他分頁都不是預設 (今日三視角退為第二)", all('active' not in c and sel == 'false' for c, _, sel in btns[1:]) and btns[1][1] == 'today3')
