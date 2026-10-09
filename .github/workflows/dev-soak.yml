@@ -1,0 +1,36 @@
+# v3.85.7 (owner 2026-10-09): "先在dev環境跑一周再說，先確認到底實際執行有沒有額外狀況。"
+# GitHub runs schedules only on the default branch, so this tiny workflow on main
+# starts one TEST run of dev's code every weekday morning of the soak week.
+# A TEST run never writes back (no data commit, no DB artifact, no Issues),
+# sends a mail labelled 🧪【測試】 and is refused 20:30-07:00 by dev's own
+# window guard. After SOAK_END it does nothing; delete it when dev is merged.
+name: "Dev Soak (TEST run of dev, 08:30)"
+
+on:
+  schedule:
+    - cron: '30 0 * * 1-5'    # 08:30 Taipei Mon-Fri (UTC 00:30), before the open, Fubon idle
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+env:
+  SOAK_END: '20261016'          # last day of the soak week (Taipei date)
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Inside the soak week?
+        id: win
+        run: |
+          TODAY=$(TZ=Asia/Taipei date +%Y%m%d)
+          if [ "$TODAY" -le "$SOAK_END" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+          echo "today $TODAY, soak ends $SOAK_END"
+      - name: Start a TEST run of dev
+        if: steps.win.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run daily-full.yml --repo "${{ github.repository }}" --ref dev -f test_run=true
