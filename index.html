@@ -3861,6 +3861,10 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
 .ds-riskbar .rt{color:var(--ds-risk);font-weight:600;white-space:nowrap}
 #main-content.ds-on > .status-bar,#main-content.ds-on > .accuracy-badge-bar,#main-content.ds-on > #excelDownloadBtn,#main-content.ds-on > #chipTemperature,#main-content.ds-on > #smartRetailContrast,#main-content.ds-on > #tempHistoryWrap,#main-content.ds-on > .market-global-bar{display:none!important}
 .ds-xl{cursor:pointer;background:none;color:var(--text-2)}.ds-xl:hover{color:var(--text);border-color:var(--gold)}
+.ds-status{position:fixed;left:12px;bottom:12px;z-index:9998;background:var(--bg-3);border:1px solid var(--line-2);color:var(--text-2);font-size:12px;padding:5px 12px;border-radius:999px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow)}
+.ds-status button{background:none;border:1px solid var(--gold);color:var(--gold);border-radius:999px;padding:0 8px;cursor:pointer}
+.ds-spin{width:10px;height:10px;border:2px solid var(--line-2);border-top-color:var(--gold);border-radius:50%;display:inline-block;animation:dsspin .8s linear infinite}
+@keyframes dsspin{to{transform:rotate(360deg)}}
 .ds-empty{padding:60px 20px;text-align:center;color:var(--text-2);line-height:2}
 @media (max-width:1100px){.ds-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}.ds-grid3,.ds-bottom{grid-template-columns:1fr}}
 .ds-tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -6076,13 +6080,27 @@ function tableToCSV(tableSelector, tabLabel) {
 //   每次解密後記錄 latest.json 的 crawled_at, 偵測到後端推新檔時
 //   自動清空 CURRENT_DATA + ALL_HISTORY + 重抓 (避免用舊資料做決策)
 let CURRENT_CRAWLED_AT = null;
+let CURRENT_LATEST_ETAG = null;   // v3.86.1
 const REVALIDATE_INTERVAL_MS = 5 * 60 * 1000;   // 5 分鐘檢查一次後端 crawled_at
+
+async function _latestStamp() {
+  try {
+    const h = await fetchWithTimeout(`${DATA_BASE}/latest.json?t=${Date.now()}`, { method: 'HEAD', cache: 'no-store' }, 8000);
+    if (!h.ok) return null;
+    return h.headers.get('etag') || h.headers.get('last-modified') || null;
+  } catch (e) { return null; }
+}
 
 async function revalidateCache() {
   if (!SESSION_PASSWORD) return;   // 未解鎖時不檢查
+  if (!CURRENT_CRAWLED_AT) return;  // v3.86.1: day data still loading in the background
   try {
+    // v3.86.1: HEAD first (no body); the 2 MB file is downloaded only when Pages has a new version
+    const stamp = await _latestStamp();
+    if (stamp && CURRENT_LATEST_ETAG && stamp === CURRENT_LATEST_ETAG) return;
     const r = await fetchWithTimeout(`${DATA_BASE}/latest.json?t=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) return;
+    CURRENT_LATEST_ETAG = r.headers.get('etag') || r.headers.get('last-modified') || stamp || null;
     const enc = await r.json();
     const serverCrawled = enc.crawled_at;
     if (serverCrawled && CURRENT_CRAWLED_AT && serverCrawled !== CURRENT_CRAWLED_AT) {
@@ -6240,6 +6258,23 @@ async function attemptUnlock() {
   btn.innerHTML = '<span class="login-spinner"></span>解密驗證中...';
   errEl.classList.remove('show');
   try {
+    // v3.86.1: check the password on the 2 KB summary and show page 1 at once; the
+    // 2 MB day file loads in the background (GitHub Pages ~40 KB/s here: 40-65 s).
+    const sumEnv = await _fetchSummaryEnvelope();
+    if (sumEnv) {
+      const s = JSON.parse(await decryptToken(sumEnv.data, password, sumEnv.iterations));   // wrong password throws
+      SESSION_PASSWORD = password;
+      DAILY_SUMMARY = s;
+      _DS_TOKEN = sumEnv.data;
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('appContent').classList.add('unlocked');
+      input.value = '';
+      btn.disabled = false; btn.textContent = '解 鎖';
+      renderDailySummary();
+      _loadDayDataInBackground();
+      return;
+    }
+    // no summary file yet: the old path (wait for the day file)
     const r = await fetchWithTimeout(`${DATA_BASE}/latest.json?t=${Date.now()}`);
     if (!r.ok) {
       errEl.textContent = '找不到資料檔案';
@@ -6274,8 +6309,49 @@ async function attemptUnlock() {
   }
 }
 
+// v3.86.1 helpers for the summary-first unlock
+async function _fetchSummaryEnvelope() {
+  try {
+    const r = await fetchWithTimeout(`${DATA_BASE}/daily_summary.json?t=${Date.now()}`, {cache: 'no-store'}, 8000);
+    if (!r.ok) return null;
+    const enc = await r.json();
+    return (enc && enc.encrypted && enc.data) ? enc : null;
+  } catch (e) { return null; }
+}
+let _DAY_LOADING = null;
+function _setDataStatus(state) {
+  let el = document.getElementById('dsDataStatus');
+  if (state === 'ok') { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'dsDataStatus'; el.className = 'ds-status'; document.body.appendChild(el); }
+  el.innerHTML = state === 'loading'
+    ? '<span class="ds-spin"></span>其他分頁資料下載中…'
+    : '其他分頁資料下載失敗 <button onclick="_loadDayDataInBackground()">重試</button>';
+}
+function _loadDayDataInBackground() {
+  if (_DAY_LOADING) return _DAY_LOADING;
+  _setDataStatus('loading');
+  _DAY_LOADING = (async () => {
+    const r = await fetchWithTimeout(`${DATA_BASE}/latest.json?t=${Date.now()}`, {}, 30000);
+    if (!r.ok) throw new Error('latest.json HTTP ' + r.status);
+    CURRENT_LATEST_ETAG = r.headers.get('etag') || r.headers.get('last-modified') || null;
+    const enc = await r.json();
+    const data = JSON.parse(await decryptToken(enc.data, SESSION_PASSWORD, enc.iterations));
+    CURRENT_CRAWLED_AT = data.crawled_at || enc.crawled_at || null;
+    ALL_HISTORY[enc.trade_date || data.trade_date] = data;
+    // the day tabs are usable once CURRENT_DATA is set; positions etc. keep loading inside init()
+    const done = init();
+    let finished = false;
+    done.finally(() => { finished = true; });
+    while (!CURRENT_DATA && !finished) await new Promise(res => setTimeout(res, 200));
+    _setDataStatus(CURRENT_DATA ? 'ok' : 'fail');
+    await done;
+  })().catch(e => { console.error('[day data] background load failed', e); _DAY_LOADING = null; _setDataStatus('fail'); });
+  return _DAY_LOADING;
+}
+
 function lockApp() {
   if (!confirm('確定要鎖定？')) return;
+  _DAY_LOADING = null; CURRENT_LATEST_ETAG = null; DAILY_SUMMARY = null; _DS_TOKEN = null;   // v3.86.1
   SESSION_PASSWORD = null;
   CURRENT_CRAWLED_AT = null;   // P0-4
   CURRENT_DATA = null; ALL_HISTORY = {}; AVAILABLE_DATES = []; POSITIONS = null; WATCHLIST = new Set();
@@ -6304,7 +6380,13 @@ async function loadIndex() {
   } catch (e) { return null; }
 }
 
-async function loadDate(date) {
+const _DAY_INFLIGHT = {};   // v3.86.1: one request per date at a time
+function loadDate(date) {
+  if (ALL_HISTORY[date]) return Promise.resolve(ALL_HISTORY[date]);
+  if (!_DAY_INFLIGHT[date]) _DAY_INFLIGHT[date] = _loadDate(date).finally(() => { delete _DAY_INFLIGHT[date]; });
+  return _DAY_INFLIGHT[date];
+}
+async function _loadDate(date) {
   if (ALL_HISTORY[date]) return ALL_HISTORY[date];
   if (!SESSION_PASSWORD) return null;
   try {
@@ -9223,15 +9305,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     const tab = btn.dataset.tab;
     if (_TAB_RENDERED.has(tab)) return;   // cache hit: skip re-render
     _TAB_RENDERED.add(tab);
-    if (tab === 'summary') renderDailySummary();
-    else if (tab === 'today3') renderToday3();
-    else if (tab === 'ranking') renderRanking();
-    else if (tab === 'masterview') renderMasterView();
-    else if (tab === 'institutional') renderInstitutional();
-    else if (tab === 'futures') renderFutures();
-    else if (tab === 'reports') { renderReport(); renderDbQuery(); }
-    else if (tab === 'margin') renderMarginPanel();
-    else if (tab === 'limitup') renderLimitUpPanel();
+    renderTabNow(tab);   // v3.86.1: one dispatch for clicks and renderAll
   });
   // v3.59.0 (Sprint 22 P0-C): WAI-ARIA tablist 鍵盤標準 — Arrow/Home/End
   btn.addEventListener('keydown', (e) => {
@@ -9488,7 +9562,13 @@ let CURRENT_TREND_CHART = null;   // Chart.js 實例
 let CURRENT_TREND_STOCK = null;   // 當前顯示的股票代碼
 let CURRENT_TREND_DAYS = 10;      // 當前觀察天數
 
-async function loadStockHistory() {
+let _SH_INFLIGHT = null;   // v3.86.1: one 9.5 MB request at a time
+function loadStockHistory() {
+  if (STOCK_HISTORY_CACHE) return Promise.resolve(STOCK_HISTORY_CACHE);
+  if (!_SH_INFLIGHT) _SH_INFLIGHT = _loadStockHistory().finally(() => { _SH_INFLIGHT = null; });
+  return _SH_INFLIGHT;
+}
+async function _loadStockHistory() {
   if (STOCK_HISTORY_CACHE) return STOCK_HISTORY_CACHE;
   try {
     const r = await fetchWithTimeout('data/stock_history.json?_=' + Date.now());
@@ -9951,12 +10031,27 @@ function renderAll() {
   // v3.60.0 (Sprint 23 P0-E): WATCHLIST 變化 → tab cache 全 invalidate
   if (typeof markTabsDirty === 'function') markTabsDirty('WATCHLIST changed');
   refreshDailySummary();   // v3.86.0
-  renderToday3();
-  renderOverview();
-  renderBranches();
-  renderStockTrace();
-  renderMasterPref();
+  // v3.86.1: only the tab on screen renders now; the others render the first time
+  // they are opened (renderMasterPref used to pull 4 more day files at every login)
   renderMasterViewInit();
+  const _active = document.querySelector('.tab.active')?.dataset.tab;
+  if (_active && _active !== 'summary') { _TAB_RENDERED.add(_active); renderTabNow(_active); }
+}
+
+function renderTabNow(tab) {
+  if (tab === 'summary') renderDailySummary();
+  else if (tab === 'today3') renderToday3();
+  else if (tab === 'overview') renderOverview();
+  else if (tab === 'branches') renderBranches();
+  else if (tab === 'ranking') renderRanking();
+  else if (tab === 'masterview') renderMasterView();
+  else if (tab === 'institutional') renderInstitutional();
+  else if (tab === 'futures') renderFutures();
+  else if (tab === 'reports') { renderReport(); renderDbQuery(); }
+  else if (tab === 'margin') renderMarginPanel();
+  else if (tab === 'limitup') renderLimitUpPanel();
+  else if (tab === 'stock') renderStockTrace();
+  else if (tab === 'master') renderMasterPref();
 }
 
 // ========== 01 共買榜 ==========
