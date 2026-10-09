@@ -76,6 +76,7 @@ TPEX_HEADERS = {"User-Agent": _UA, "Accept": "application/json, text/plain, */*"
 # v3.85.6 (owner 2026-10-09): 1.1 -> the shared 1.6 s floor (light_verify and
 # transfer_watch use this pacer too)
 from src.core.fubon_pacing import FUBON_MIN_GAP_S, note_request  # noqa: E402
+from src.core.fubon_codec import decode_fubon  # noqa: E402
 FUBON_GAP_S = FUBON_MIN_GAP_S   # pause between two Fubon requests
 FUBON_TIMEOUT_S = 20       # per request (crawler uses 20 too)
 CLOSE_TIMEOUT_S = 20
@@ -450,7 +451,7 @@ def fetch_branch_pages(branch_code, trade_date, get, pacer):
             if status != 200:
                 last = f"HTTP {status}"
                 continue
-            html = body.decode("big5", errors="replace") if isinstance(body, bytes) else body
+            html = decode_fubon(body) if isinstance(body, bytes) else body   # v3.85.8 cp950
             try:
                 pages[mode] = page_maps(parse_fubon_page(html, sent, trade_date))
                 break

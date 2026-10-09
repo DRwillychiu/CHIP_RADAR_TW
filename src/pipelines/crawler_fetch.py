@@ -14,6 +14,7 @@ import random
 import requests
 
 from src.core.fubon_pacing import FUBON_MIN_GAP_S, FUBON_MAX_GAP_S, note_request
+from src.core.fubon_codec import decode_fubon
 
 # ========== 爬蟲參數 ==========
 
@@ -149,7 +150,7 @@ def fetch_branch_mode(branch_code, mode, max_retries=3, top_n=TOP_N):
                 last_err = f"HTTP {r.status_code}"
                 pause(3 + attempt * 3)
                 continue
-            html = r.content.decode("big5", errors="replace")
+            html = decode_fubon(r.content)     # v3.85.8: cp950, not big5 (立碁 8111)
             if len(html) < 5000:
                 last_err = f"頁面過小 ({len(html)}b)"
                 pause(5 + attempt * 3)
