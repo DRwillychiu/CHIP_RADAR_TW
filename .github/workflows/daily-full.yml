@@ -192,6 +192,16 @@ jobs:
           python scripts/refresh_attstock_disposal.py
         continue-on-error: true
 
+      # v3.86.0 今日總整理 (the site's first page): data/daily_summary.json from the
+      # last 12 day files + tonight's attstock list. Rewritten only when it changed;
+      # never blocks the run.
+      - name: Build daily summary
+        env:
+          CHIP_RADAR_PASSWORD: ${{ secrets.CHIP_RADAR_PASSWORD }}
+        run: |
+          python scripts/build_daily_summary.py
+        continue-on-error: true
+
       # v3.70.0 Phase 3.2 落地: rolling backtest + Excel regen
       # 在 crawler 結束後重 bootstrap phase32_backtest.json + 重 regen Excel
       # 這樣今日 Dashboard 的 alpha sub-banner 抓到含今日的新滾動數字
@@ -252,6 +262,7 @@ jobs:
           path: |
             data/reports/TEST_chip_radar_latest.xlsx
             data/reports/mobile_summary.txt
+            data/daily_summary.json
           retention-days: 7
           if-no-files-found: warn
 
