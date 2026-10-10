@@ -92,6 +92,19 @@ raw = [dj[max(0, m.start() - 14):m.end() + 4] for m in uses
 check("抽屜裡從資料來的名稱 / 代號 / 大戶 / 風險 一律 escape (或只當判斷條件)", len(uses) >= 9 and not raw, raw)
 check("手機: 從下方拉出的全寬面板", re.search(r'@media \(max-width:560px\)\{\s*\.dr\{top:auto;width:100vw', h) is not None)
 
+print("\n[E] 看板頁: 大數字 + 前 5 名, 完整表格在抽屜 (v3.91.0)")
+bj = h[h.index('// ========== v3.91.0 board pages'):h.index('function renderAll() {')]
+check("共買榜是看板頁 (前 5 列、前 4 欄)", "overview: { src: 'overviewResult'" in bj and 'cols: 4, rows: 5' in bj)
+check("看板只藏不刪: 前 5 列以外、前 4 欄以外用 CSS 收起", '.bd-table.bd-r5 tbody tr:nth-child(n+6){display:none}' in h
+      and '.bd-table.bd-c4 th:nth-child(n+5),.bd-table.bd-c4 td:nth-child(n+5){display:none}' in h)
+check("每次重畫都自動套用 (MutationObserver), 不改原本的畫法", 'new MutationObserver(() => _boardify(tab))' in bj)
+check("抽屜裡是完整表格的即時副本 (排序 / 篩選後跟著更新)", 'cloneNode(true)' in bj and 'if (_DR_SRC === tab) _boardFill(tab);' in bj)
+check("抽屜開 / 關都重設來源", h.count('_DR_SRC = null') >= 2)
+check("完整表格用寬抽屜", ".dr.dr-wide{width:min(1360px,96vw)}" in h and "classList.add('dr-wide')" in bj)
+check("從抽屜點個股: 個股明細疊在抽屜上面", '.overlay{z-index:9994!important}.drawer{z-index:9995!important}' in h)
+check("大數字格 = 路線色色帶 + 編號 (S02 ...)", '.stat-box .label::before{content:var(--L) counter(sec,decimal-leading-zero)' in h)
+check("分頁不再用 style containment (它會把每格編號都變 01)", '.panel,.stat-row{contain:layout!important}' in h)
+
 print()
 print("─" * 72)
 print(f"  整體: {'✅ ALL PASS' if all_pass else '❌ HAS FAIL'}")
