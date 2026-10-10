@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from src.analyzers.daily_summary import W, build_summary          # noqa: E402
+from src.analyzers.daily_summary import W, TREND_DAYS, build_summary   # noqa: E402
 from src.pipelines.crawler_output import encrypt_data, decrypt_data, PBKDF2_ITERATIONS  # noqa: E402
 from src.core.quarantine import filter_day                     # noqa: E402
 
@@ -55,7 +55,7 @@ def _json(p):
 
 
 def build(data_dir, password):
-    days = load_days(data_dir, password, W + 2)
+    days = load_days(data_dir, password, TREND_DAYS + W + 1)   # v3.89.0: full window for every trend day
     cats = (_json(data_dir / "stock_categories.json").get("classifications") or {})
     official = {c: v.get("name") for c, v in cats.items() if isinstance(v, dict) and v.get("name")}
     return build_summary(days, _json(data_dir / "stock_history.json"),
