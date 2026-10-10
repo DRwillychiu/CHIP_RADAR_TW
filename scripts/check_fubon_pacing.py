@@ -22,6 +22,10 @@ if str(ROOT) not in sys.path:
 from src.core.fubon_pacing import FUBON_MIN_GAP_S, TOLERANCE_S  # noqa: E402
 
 TW = timezone(timedelta(hours=8))
+# v3.95.0: the measurement reached production with V1.0 on 2026-10-10 (a Saturday); the first
+# production crawl that writes the log is the 2026-10-12 run. Trading days before it cannot have a
+# log, so they do not count as silence (the first weekly check, 2026-10-11, would raise a false Issue).
+MEASURED_SINCE = "20261012"
 
 
 def _load(path):
@@ -44,7 +48,7 @@ def check(log, trade_dates, now, days=7):
             continue
         if at >= since:
             recent.append(e)
-    window_days = [d for d in trade_dates if since.strftime("%Y%m%d") <= d <= now.strftime("%Y%m%d")]
+    window_days = [d for d in trade_dates if max(since.strftime("%Y%m%d"), MEASURED_SINCE) <= d <= now.strftime("%Y%m%d")]
     bad = [e for e in recent if (e.get("below_floor") or 0) > 0
            or (e.get("min_gap_s") is not None and e["min_gap_s"] < FUBON_MIN_GAP_S - TOLERANCE_S)]
     crawler_runs = [e for e in recent if e.get("component") == "crawler"]

@@ -91,6 +91,10 @@ check("有一筆 1.1 s → 不通過", cfp.check(bad, days, now)[0] is False)
 check("有交易日卻沒有主爬蟲紀錄 (沉默) → 不通過", cfp.check(good[1:], days, now)[0] is False)
 check("7 天前的紀錄不算", cfp.check([{**good[0], "at": "2026-10-01 21:40"}], [], now)[0] is True)
 check("整週休市且無紀錄 → 通過", cfp.check([], [], now)[0] is True)
+first = datetime(2026, 10, 11, 21, 0, tzinfo=TW)   # v3.95.0 the first weekly run, before any production log
+check("量測上線 (10/12) 前的交易日不算沉默 → 第一次週檢查不誤報",
+      cfp.check([], ["20261005", "20261006", "20261007", "20261008"], first)[0] is True)
+check("上線後的交易日沒紀錄 → 仍然不通過", cfp.check([], ["20261012", "20261013"], now)[0] is False)
 
 print("\nF. 排程")
 wf = yaml.safe_load(open(ROOT / '.github/workflows/fubon-pacing-weekly.yml', encoding='utf-8'))
