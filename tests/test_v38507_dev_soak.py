@@ -1,10 +1,10 @@
-# v3.85.7 dev soak: one TEST run of dev every weekday 08:30 during the soak week - offline
+# v3.85.7 dev soak - retired in v3.95.0 when dev was merged into main - offline
 import sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-"""Owner 2026-10-09: "先在dev環境跑一周再說". Schedules only run on main, so a
-small workflow on main dispatches daily-full on ref dev with test_run=true."""
-import yaml
+"""Owner 2026-10-10 "這四項，現在立即解決": dev (Fubon pacing v3.85.6, cp950 v3.85.8) is merged
+into main before the soak week ended, so the nightly production run uses that code and the
+08:30 TEST-run scheduler (dev-soak.yml) is removed, as its own header asked."""
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 all_pass = True
@@ -17,27 +17,14 @@ def check(label, ok, detail=''):
         all_pass = False
 
 
-wf = yaml.safe_load(open(ROOT / '.github/workflows/dev-soak.yml', encoding='utf-8'))
-steps = wf['jobs']['dispatch']['steps']
-run_all = '\n'.join(s.get('run', '') for s in steps)
 print("=" * 72)
-print("  v3.85.7 dev soak (離線)")
+print("  v3.85.7 dev soak 已收 (v3.95.0, 離線)")
 print("=" * 72)
-crons = [c['cron'] for c in wf[True]['schedule']]
-check("平日 08:30 台北 (UTC 00:30 一~五), 在測試跑允許時段 07:00-20:30 內", crons == ['30 0 * * 1-5'], crons)
-check("只派 dev 的 TEST run", '--ref dev' in run_all and '-f test_run=true' in run_all and 'daily-full.yml' in run_all)
-check("只要 actions: write (不寫 repo 內容)", wf['permissions'] == {'actions': 'write', 'contents': 'read'}, wf['permissions'])
-check("試跑週結束後自動不做事", wf['env'].get('SOAK_END', '').isdigit() and '-le "$SOAK_END"' in run_all
-      and steps[1].get('if') == "steps.win.outputs.run == 'true'")
-
-
-def inside(today, end):
-    return int(today) <= int(end)
-
-
-end = wf['env']['SOAK_END']
-check("結束日當天仍跑、隔天起停", inside(end, end) and not inside(str(int(end) + 1), end))
-
+check("08:30 試跑排程已移除 (dev 已併入 main)", not (ROOT / '.github/workflows/dev-soak.yml').exists())
+check("試跑驗的程式在 main 上: 富邦間隔 + cp950 解碼",
+      (ROOT / 'src/core/fubon_pacing.py').exists() and (ROOT / 'src/core/fubon_codec.py').exists())
+wf = (ROOT / '.github/workflows/daily-full.yml').read_text(encoding='utf-8')
+check("dev 推送不再自動觸發 TEST run", 'branches: [dev]' not in wf)
 print()
 print("─" * 72)
 print(f"  整體: {'✅ ALL PASS' if all_pass else '❌ HAS FAIL'}")

@@ -136,6 +136,9 @@ def main(argv=None):
         if doc.get("error"):
             print(f"  error: {doc['error']}")
         annotate(doc)
+        # v3.85.6: measured Fubon gaps of the audit -> data/fubon_pacing_log.json (weekly check)
+        from src.core.fubon_pacing import append_log
+        append_log("source_audit")
     except Exception as e:
         print(f"::warning title=來源比對出錯::{_esc(f'{type(e).__name__}: {e}')}")
     write_output(status)

@@ -33,6 +33,9 @@ from typing import Any, Dict, List, Optional
 
 import requests
 
+from src.core.fubon_pacing import FUBON_MIN_GAP_S, note_request
+from src.core.fubon_codec import decode_fubon
+
 FUBON_STOCK_URL = "https://fubon-ebrokerdj.fbs.com.tw/z/zc/zco/zco.djhtm?a={code}"
 FUBON_HOME = "https://fubon-ebrokerdj.fbs.com.tw/"
 
@@ -173,7 +176,7 @@ def parse_fubon_stock_page(html: str, stock_code: str = "") -> Optional[Dict[str
 
 def fetch_stock_branch_ranking(stock_code: str, timeout: int = 15,
                                 max_retries: int = 2,
-                                delay_range: tuple = (1.5, 3.0)) -> Optional[Dict[str, Any]]:
+                                delay_range: tuple = (FUBON_MIN_GAP_S, 3.0)) -> Optional[Dict[str, Any]]:
     """抓單一個股的分點買賣超榜 (當日).
 
     Args:
@@ -190,11 +193,13 @@ def fetch_stock_branch_ranking(stock_code: str, timeout: int = 15,
     for attempt in range(max_retries):
         try:
             if delay_range:
-                time.sleep(random.uniform(*delay_range))
+                time.sleep(random.uniform(max(FUBON_MIN_GAP_S, delay_range[0]),
+                                          max(FUBON_MIN_GAP_S, delay_range[1])))
+            note_request()                  # v3.85.6: measured gap
             r = s.get(url, timeout=timeout)
             if r.status_code == 200:
-                r.encoding = r.apparent_encoding or "utf-8"
-                parsed = parse_fubon_stock_page(r.text, stock_code)
+                # v3.85.8: cp950 always; apparent_encoding guessed per page
+                parsed = parse_fubon_stock_page(decode_fubon(r.content), stock_code)
                 if parsed:
                     return parsed
                 # 200 但 parse 不出 → 可能個股冷門無資料, 不重試

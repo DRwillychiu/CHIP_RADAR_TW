@@ -1,0 +1,52 @@
+# v3.85.6 (owner 2026-10-09): "富邦稽核路徑的請求間隔...統一成 1.6 秒。同時也要定時每周驗證是否間隔時間有改變。"
+# Reads the measured gaps every Fubon-using run appended to data/fubon_pacing_log.json
+# and opens an Issue when a gap fell below 1.6 s or the measurement went silent.
+name: "Fubon Pacing Weekly Check"
+
+on:
+  schedule:
+    - cron: '0 13 * * 0'      # Sunday 21:00 Taipei (UTC 13:00 Sunday)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout (check files only)
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            scripts/check_fubon_pacing.py
+            src
+            data/fubon_pacing_log.json
+            data/index.json
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Check measured Fubon gaps (last 7 days)
+        run: python scripts/check_fubon_pacing.py --days 7 --report pacing_report.md
+
+      - name: Open an Issue when the check fails
+        if: failure()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.existsSync('pacing_report.md')
+              ? fs.readFileSync('pacing_report.md', 'utf8')
+              : 'The weekly Fubon pacing check failed before writing its report - see the run log.';
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title: '🐢 富邦請求間隔週檢查未通過',
+              body: body + `\n\nRun: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              assignees: ['DRwillychiu'],
+            });

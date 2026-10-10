@@ -104,6 +104,26 @@ def _post_generate_reports(data_dir, password):
         import traceback; traceback.print_exc()
 
 
+def _repair_names_map(data_dir, results=None):
+    """v3.85.8: code -> clean stock name; the official list first, then tonight's Fubon rows.
+    Never raises: a cosmetic repair must not stop the nightly crawl."""
+    try:
+        from src.fetchers.market_classifier import load_cache
+        from src.core.fubon_codec import is_broken
+        api, _ = load_cache(Path(data_dir) / "stock_categories.json")
+        names = {c: v["name"] for c, v in (api or {}).items()
+                 if isinstance(v, dict) and v.get("name") and not is_broken(v["name"])}
+        for br in results or []:
+            for s in (br.get("buys") or []) + (br.get("sells") or []):
+                c, n = str(s.get("code") or "").strip(), (s.get("name") or "").strip()
+                if c and n and c not in names and not is_broken(n):
+                    names[c] = n
+        return names
+    except Exception as e:
+        print(f"  ⚠️ [v3.85.8] 股名修正表建立失敗, 本次不修: {e}")
+        return {}
+
+
 def _post_build_master_profile(data_dir, password):
     """v3.30.14: master_profile 自動生成 (15 標籤 + per-branch + 族群 + 處置股)."""
     try:
@@ -111,6 +131,10 @@ def _post_build_master_profile(data_dir, password):
         history = mp.load_history(str(data_dir), window_days=None, password=password)
         if history:
             mp_result = mp.build_all_profiles(history, data_dir=str(data_dir))
+            from src.core.fubon_codec import repair_stock_names
+            _fx = repair_stock_names(mp_result, _repair_names_map(data_dir))   # v3.85.8
+            if _fx:
+                print(f"[Master Profile] 修正 {_fx} 個亂碼股名")
             mp_path = data_dir / "master_profiles.json"
             with open(mp_path, "w", encoding="utf-8") as f:
                 json.dump(mp_result, f, ensure_ascii=False, indent=2)
@@ -977,6 +1001,13 @@ def main():
             print(f"  🎯 最高出貨率：{top['master']} - 整體 {top['overall_flip_ratio']:.1f}% "
                   f"（昨買 {top['total_yesterday_buy_lot']} 張 → 今賣 {top['total_today_sell_lot']} 張）")
     
+    try:
+        from src.core.fubon_codec import repair_stock_names
+        _fx = repair_stock_names(positions, _repair_names_map(data_dir, results))   # v3.85.8
+        if _fx:
+            print(f"[FIFO] 修正 {_fx} 個亂碼股名")
+    except Exception as e:
+        print(f"  ⚠️ [v3.85.8] 持倉股名修正失敗, 照常存檔: {e}")
     save_positions(positions, data_dir, password)
     print(f"[FIFO] 累積部位已更新，涉及 {len(positions.get('branches', {}))} 個分點")
     
@@ -1220,6 +1251,7 @@ def main():
             daily_quotes_map=daily_quotes_map,
             industry_map=industry_map,
             branches_results=results,
+            official_names=_repair_names_map(data_dir, results),   # v3.85.8
             # v3.74.1: 累積每日融資餘額 → 30 天後可改用融資加權成本算維持率
             margin_all=locals().get('margin_all'),
         )
@@ -1680,6 +1712,10 @@ def main():
 
     _tm.report(FETCH_STATS, data_dir, trade_date,
                crawl={"success": success_count, "fail": fail_count, "empty": empty_count})
+    # v3.85.6: measured Fubon gaps of this run -> data/fubon_pacing_log.json (weekly check)
+    from src.core.fubon_pacing import append_log as _pacing_log, summary as _pacing_summary
+    _pacing_log("crawler", os.path.join(str(data_dir), "fubon_pacing_log.json"))
+    print(f"  富邦請求間隔: {_pacing_summary()}")
     print(f"\n[{now_tw().strftime('%H:%M:%S')}] ✅ 完成！")
     print(f"  資料日期: {trade_date}")
     print(f"  成功: {success_count} / 失敗: {fail_count} / 無資料: {empty_count}")

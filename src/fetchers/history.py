@@ -46,6 +46,8 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Optional
 
+from src.core.fubon_codec import is_broken
+
 TW_TZ = timezone(timedelta(hours=8))
 
 HISTORY_FILE = 'stock_history.json'
@@ -447,6 +449,7 @@ def update_history(
     industry_map: Dict[str, Any],
     branches_results: Optional[list] = None,
     margin_all: Optional[Dict[str, Dict[str, Any]]] = None,
+    official_names: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
     """
     更新歷史資料檔,注入當日個股收盤、產業平均、大盤指數
@@ -510,8 +513,9 @@ def update_history(
             }
             added_stocks += 1
 
-        # 補名稱(若之前沒有但這次有)
-        if not history["stocks"][code].get("name") and name_map.get(code):
+        # 補名稱(若之前沒有或是亂碼, 這次有乾淨的) - v3.85.8 亂碼也換
+        cur_name = history["stocks"][code].get("name")
+        if (not cur_name or is_broken(cur_name)) and name_map.get(code) and not is_broken(name_map[code]):
             history["stocks"][code]["name"] = name_map[code]
         # 補產業(若之前沒有但這次有)
         if not history["stocks"][code].get("industry") and stock2ind.get(code):
@@ -534,6 +538,16 @@ def update_history(
     
     print(f"  ✓ 累積 {len(daily_quotes_map) - skipped_warrants} 檔個股 ({added_stocks} 檔新增, "
           f"略過 {skipped_warrants} 檔權證)")
+
+    # v3.85.8: stocks not traded tonight keep a broken name forever unless fixed here
+    fixed_names = 0
+    for code, st in history["stocks"].items():
+        good = (official_names or {}).get(code)
+        if is_broken(st.get("name")) and good and not is_broken(good):
+            st["name"] = good
+            fixed_names += 1
+    if fixed_names:
+        print(f"  ✓ [v3.85.8] 修正 {fixed_names} 個亂碼股名")
     
     # 3. 計算產業平均漲跌
     industry_stats = {}  # industry -> [change_pcts]
