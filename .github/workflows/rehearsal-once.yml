@@ -1,0 +1,54 @@
+# v3.95.2 (owner 2026-10-10 "A"): one TEST run of the whole nightly crawl on Sunday 2026-10-11,
+# before the first production run of V1.0 (Monday 10/12 21:17 Taipei). GitHub runs schedules only on
+# the default branch, so this file on main dispatches daily-full on ref dev with test_run=true
+# (dev = main). A TEST run never writes back (no data commit, no DB artifact, no Issues), sends a
+# mail labelled 🧪【測試】 and is refused 20:30-07:00 by its own window guard.
+# 09:00 is the run; 13:00 is a back-up for a dropped schedule and does nothing when a dev TEST run
+# already started that day. Any other date: nothing. Delete this file on Monday 2026-10-12.
+name: "Rehearsal (one TEST run, 2026-10-11)"
+
+on:
+  schedule:
+    - cron: '0 1 11 10 *'     # 09:00 Taipei on 10/11 (UTC 01:00)
+    - cron: '0 5 11 10 *'     # 13:00 Taipei on 10/11 (UTC 05:00), back-up only
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+env:
+  RUN_ON: '20261011'
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Only on the rehearsal day, inside the TEST window
+        id: win
+        run: |
+          TODAY=$(TZ=Asia/Taipei date +%Y%m%d)
+          HM=$(TZ=Asia/Taipei date +%H%M)
+          if [ "$TODAY" = "$RUN_ON" ] && [ "$((10#$HM))" -ge 700 ] && [ "$((10#$HM))" -lt 2000 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "today $TODAY $HM Taipei, rehearsal day $RUN_ON"
+      - name: Skip when a dev TEST run already started today
+        id: dup
+        if: steps.win.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          N=$(gh run list --repo "${{ github.repository }}" --workflow daily-full.yml --branch dev \
+                --event workflow_dispatch --limit 20 --json createdAt \
+                --jq '[.[] | select(.createdAt >= "2026-10-10T23:00:00Z")] | length')
+          echo "dev TEST runs already started on the rehearsal day: $N"
+          if [ "$N" -gt 0 ]; then echo "go=false" >> "$GITHUB_OUTPUT"; else echo "go=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Start one TEST run of dev
+        if: steps.win.outputs.run == 'true' && steps.dup.outputs.go == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run daily-full.yml --repo "${{ github.repository }}" --ref dev -f test_run=true
