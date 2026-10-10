@@ -26,6 +26,7 @@ KEEP_HIGH = 0.8
 MIN_MASTERS = 3
 FOREIGN_REGIONS = ("us", "eu", "asia")
 SURGE = 3                 # masters added since yesterday to call it a surge
+TREND_DAYS = 20           # v3.89.0 sparklines on the page (owner 2026-10-10)
 BROKEN = "�"
 WEEKDAY = "一二三四五六日"
 
@@ -90,6 +91,18 @@ def ranked(hold):
 
 def _yi(k):
     return None if k is None else round(k / 1e5, 1)
+
+
+def day_flows(rs, foreign):
+    """(domestic, foreign) net of one day in 仟元, ordinary shares only."""
+    dom = frn = 0
+    for b, r in rs.items():
+        tot = sum(a for c, (_, a, _) in r.items() if is_common(c))
+        if b in foreign:
+            frn += tot
+        else:
+            dom += tot
+    return dom, frn
 
 
 def _clean(name):
@@ -281,6 +294,25 @@ def build_summary(days, stock_history=None, attstock=None, official_names=None):
         "risk": ("・".join(name(c) for c in sorted(pend)) or "無") + f"（處置中 {len(in_disp)}）",
     }
 
+    # v3.89.0 20-day trends for the sparklines; the strong count of each day uses its
+    # own full 10-day window (scripts/build_daily_summary.py loads TREND_DAYS + W + 1 days)
+    span = range(max(0, T - TREND_DAYS + 1), T + 1)
+    flows = [day_flows(rows[u], foreign) for u in span]
+
+    def fut(u, key):
+        return ((days[u]["data"].get("futures_data") or {}).get("summary") or {}).get(key)
+
+    trends = {
+        "dates": [days[u]["date"] for u in span],
+        "strong": [len(ranked(strong_chips(rows, masters, u))) for u in span],
+        "domestic": [_yi(f[0]) for f in flows],
+        "foreign": [_yi(f[1]) for f in flows],
+        "taiex": [(((sh.get("market") or {}).get(days[u]["date"]) or {}).get("index")) for u in span],
+        "fut_oi": [fut(u, "foreign_equivalent_net_oi") for u in span],
+        "margin": [(days[u]["data"].get("margin_market_aggregate") or {}).get("margin_amt_change_yi") for u in span],
+        "pc": [fut(u, "pc_ratio_oi") for u in span],
+    }
+
     crawled = str(today.get("crawled_at") or "")
     d0 = dt.date(int(date[:4]), int(date[4:6]), int(date[6:]))
     return {
@@ -292,6 +324,7 @@ def build_summary(days, stock_history=None, attstock=None, official_names=None):
         "fubon": {"ok": today.get("success") or 0, "total": (today.get("success") or 0) + (today.get("failed") or 0)},
         "headline": headline,
         "notes": notes,
+        "trends": trends,
         "sentences": s,
         "kpis": kpis,
         "strong_top": top_rows,

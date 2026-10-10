@@ -7,7 +7,7 @@
 <title>分點籌碼觀察站 · Chip Radar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;500;700;900&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   /* Dark theme (預設) */
@@ -3815,144 +3815,141 @@ td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
   .tab { padding: 6px 10px; font-size: 11px; }
   th, td { padding: 6px 8px; font-size: 11px; }
 }
-/* v3.87.0 今日總整理, Japanese ad / IR "At a glance" style (owner 2026-10-09: "更精簡…
-   參考日系的UI/UX廣告界面", variant B dark). Hairlines instead of cards, one headline,
-   four big numbers, three short lists; colours from the site theme (light mode works). */
-.ds{--ds-acc:var(--gold);padding:26px 8px 6px;max-width:1280px;margin:0 auto;font-variant-numeric:tabular-nums;color:var(--text)}
-.ds-eye{display:flex;justify-content:space-between;align-items:baseline;gap:8px 20px;flex-wrap:wrap;font-size:12px;letter-spacing:.2em;color:var(--text-3)}
-.ds-eye b{color:var(--text);font-weight:600}
-.ds-eye .r{display:flex;gap:18px;letter-spacing:.08em}
-.ds-xl{background:none;border:0;padding:0;color:var(--ds-acc);font:inherit;letter-spacing:.08em;cursor:pointer}
-.ds-ok{color:var(--green)}.ds-bad{color:var(--red)}
-.ds-h1{font-size:34px;font-weight:700;line-height:1.4;letter-spacing:.03em;margin:18px 0 0;color:var(--text)}
-.ds-nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:2px solid var(--text);border-bottom:1px solid var(--line);margin:32px 0 0}
-.ds-n{padding:20px 24px 22px;border-left:1px solid var(--line);min-width:0}
-.ds-n:first-child{border-left:0;padding-left:0}
-.ds-k{font-size:11px;letter-spacing:.2em;color:var(--text-3);display:flex;gap:10px}
-.ds-k b{color:var(--ds-acc);font-weight:600}
-.ds-lbl{font-size:14px;font-weight:600;margin-top:8px;letter-spacing:.06em;color:var(--text)}
-.ds-v{font-size:56px;font-weight:300;letter-spacing:-.025em;line-height:1.05;margin:8px 0 10px;white-space:nowrap}
-.ds-v small{font-size:16px;font-weight:400;margin-left:6px;color:var(--text-3);letter-spacing:0}
-.ds-d{font-size:13px;color:var(--text-3);line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ds-n.ds-tap{cursor:pointer}.ds-n.ds-tap:hover .ds-lbl{color:var(--ds-acc)}
-.ds-n .ds-more{font-size:11px;color:var(--ds-acc);margin-left:8px;letter-spacing:.08em;font-weight:400}
-.ds-fx{display:none;flex-wrap:wrap;gap:6px 26px;padding:14px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--text-2)}
-.ds-fx.open{display:flex}
-.ds-fx b{font-weight:600;margin-left:6px}
-.ds-cols{display:grid;grid-template-columns:1.15fr 1.1fr .85fr;gap:56px;margin-top:30px}
-.ds-col h3{display:flex;gap:10px;align-items:baseline;font-size:11px;letter-spacing:.22em;color:var(--text-3);font-weight:500;margin:0;padding-bottom:10px;border-bottom:1px solid var(--text)}
-.ds-col h3 b{color:var(--text);font-size:14px;letter-spacing:.06em;font-weight:600}
-.ds-col h3 .ds-go{margin-left:auto;background:none;border:0;padding:0;color:var(--ds-acc);font:inherit;font-size:11px;letter-spacing:.08em;cursor:pointer}
-.ds ul{list-style:none;margin:0;padding:0}
-.ds li{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px;color:var(--text)}
-.ds-nm{flex:0 0 150px;white-space:nowrap}.ds-nm em{font-style:normal;color:var(--text-3);font-size:12px;margin-left:8px}
-.ds-nm i{font-style:normal;font-size:11px;color:var(--ds-acc);margin-left:8px;letter-spacing:.1em}
-.ds-bar{flex:1;height:2px;background:var(--line)}.ds-bar b{display:block;height:2px;background:var(--ds-acc)}
-.ds-cnt{flex:0 0 52px;text-align:right;font-size:17px}.ds-cnt small{font-size:11px;color:var(--text-3);margin-left:3px}
-.ds-lb{flex:0 0 46px;font-size:12px;letter-spacing:.12em;color:var(--text-3);white-space:nowrap}
-.ds-mkt .ds-lb{flex-basis:78px}
-.ds-chg li>span:last-child{line-height:1.5}
-.ds-mv{flex:1}
-.ds-up{color:var(--red)}.ds-down{color:var(--green)}.ds-flat{color:var(--text-3)}.ds-sub{color:var(--text-3);font-size:13px}
-.ds-foot{display:flex;justify-content:space-between;gap:8px 24px;flex-wrap:wrap;margin-top:24px;font-size:11.5px;color:var(--text-3);letter-spacing:.04em}
-.ds-empty{padding:60px 20px;text-align:center;color:var(--text-2);line-height:2}
-.ds-empty button{background:none;border:0;color:var(--ds-acc);cursor:pointer;font:inherit}
-#main-content.ds-on > .status-bar,#main-content.ds-on > .accuracy-badge-bar,#main-content.ds-on > #excelDownloadBtn,#main-content.ds-on > #chipTemperature,#main-content.ds-on > #smartRetailContrast,#main-content.ds-on > #tempHistoryWrap,#main-content.ds-on > .market-global-bar{display:none!important}
-#main-content.ds-on .tabs{margin-bottom:0}
-.ds-status{position:fixed;left:12px;bottom:12px;z-index:9998;background:var(--bg-3);border:1px solid var(--line-2);color:var(--text-2);font-size:12px;padding:5px 12px;border-radius:999px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow)}
-.ds-status button{background:none;border:1px solid var(--gold);color:var(--gold);border-radius:999px;padding:0 8px;cursor:pointer}
-.ds-spin{width:10px;height:10px;border:2px solid var(--line-2);border-top-color:var(--gold);border-radius:50%;display:inline-block;animation:dsspin .8s linear infinite}
-@keyframes dsspin{to{transform:rotate(360deg)}}
-@media (max-width:1100px){.ds-cols{grid-template-columns:1fr;gap:28px}.ds-nums{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ds-n:nth-child(3){border-left:0;padding-left:0}.ds-n:nth-child(n+3){border-top:1px solid var(--line)}}
-@media (max-width:560px){.ds{padding-top:16px}.ds-h1{font-size:23px}.ds-v{font-size:40px}.ds-n{padding:16px 12px 16px}
-  .ds-n:nth-child(odd){padding-left:0}.ds-nm{flex-basis:118px}.ds li{font-size:14px}.ds-d{white-space:normal}}
-
-/* v3.87.0 slim header + text tabs, the same hairline style on every page */
-header{background:var(--bg);backdrop-filter:none}
-.header-inner{padding:12px 32px}
-.logo-cn{font-family:'Noto Sans TC',sans-serif;font-size:16px;font-weight:700;letter-spacing:.14em;background:none;-webkit-text-fill-color:var(--text);color:var(--text)}
-.logo-en{letter-spacing:.24em}
-.auto-badge,.lock-badge{display:none}
-.header-actions{gap:18px}
-.header-actions .btn{background:none;border:0;color:var(--text-2);padding:6px 2px;font-size:13px;letter-spacing:.06em;box-shadow:none}
-.header-actions .btn:hover{color:var(--text);background:none}
-.header-actions .btn.danger:hover{color:var(--red)}
-.tabs{gap:0;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
-.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:2px}.tabs::-webkit-scrollbar-track{background:transparent}
-.tab{padding:14px 13px;font-size:13px;letter-spacing:.04em}
-.tab.active{color:var(--text);border-bottom-color:var(--text)}
-.tab-num,.tab.tab-tier-core::before,.tab.tab-tier-query::before,.tab.tab-tier-config::before{display:none}
-@media (max-width:768px){.header-inner{padding:10px 16px}.tab{padding:10px 10px;font-size:12px}}
-
-/* v3.88.0 every tab in the same Japanese editorial style, one colour per block category
-   (owner 2026-10-10: "要。但我認為可以用顏色進行各個頁面中的區塊區別"). The colour means the
-   same thing on every page: stocks 山吹 / players 藍 / market 浅葱 / risk 藤 / meta 鼠.
-   Red = up / buy and green = down / sell are not touched. Contrast >= 4.5 on both themes. */
-:root{--c-stocks:#E3A93B;--c-players:#6F9BEA;--c-market:#4FB6C4;--c-risk:#D08BF0;--c-meta:#9A9A9A;
+/* v3.89.0 駅 EKI style for the whole site (owner 2026-10-10: B "粗黑體加窄體大數字 + 整條路線色色帶
+   + S01、P02 站名編號式標記" plus C's 20-day sparklines). Line colours have one fixed meaning on every
+   page: S stocks yellow / P players blue / M market cyan / R risk purple / C common grey.
+   Bands carry black or white text (contrast >= 4.8); --c-* are the text-on-background tones
+   (contrast >= 4.5 on both themes). Red = up / buy and green = down / sell are not touched. */
+:root{--b-stocks:#F2B400;--b-players:#2A6FD0;--b-market:#00A7A0;--b-risk:#8E4FD0;--b-meta:#6B7280;
+  --on-stocks:#000;--on-players:#fff;--on-market:#000;--on-risk:#fff;--on-meta:#fff;
+  --c-stocks:#E3A93B;--c-players:#6F9BEA;--c-market:#4FB6C4;--c-risk:#D08BF0;--c-meta:#9A9A9A;
   --text-1:var(--text);--border:var(--line);--accent:var(--gold);--brand:var(--gold)}   /* used inline, never defined before */
 :root[data-theme="light"]{--c-stocks:#9A6700;--c-players:#2F5AA8;--c-market:#1D7584;--c-risk:#9A2FC2;--c-meta:#666666}
-/* the page's main category, then blocks that belong to another one */
-.panel{--blk:var(--c-meta)}
-#panel-summary,#panel-today3,#panel-institutional,#panel-futures,#panel-margin{--blk:var(--c-market)}
-#panel-overview,#panel-limitup,#panel-stock,#panel-holdings{--blk:var(--c-stocks)}
-#panel-branches,#panel-ranking,#panel-masterview,#panel-master,#panel-masterprofile{--blk:var(--c-players)}
-.fx-sync-panel,.futures-dashboard,.inst-stat-grid,.sentiment-dashboard,.futures-table-wrap,.pc-ratio-card{--blk:var(--c-market)}
-.industry-strength-panel,.stock-hot-section,.sniper-card,.consensus-lu-card,.margin-rank-card{--blk:var(--c-stocks)}
-.branch-card,.master-hero,.seller-card,.swing-row{--blk:var(--c-players)}
-#today3Alerts{--blk:var(--c-risk)}
-.help-card,.view-hint,.info-banner,.report-section,.branch-group{--blk:var(--c-meta)}
-/* blocks: a 2 px rule in the block colour on top, the faintest tint of it, no box */
+.k-stocks{--b:var(--b-stocks);--on:var(--on-stocks);--c:var(--c-stocks);--L:"S"}
+.k-players{--b:var(--b-players);--on:var(--on-players);--c:var(--c-players);--L:"P"}
+.k-market{--b:var(--b-market);--on:var(--on-market);--c:var(--c-market);--L:"M"}
+.k-risk{--b:var(--b-risk);--on:var(--on-risk);--c:var(--c-risk);--L:"R"}
+.k-meta{--b:var(--b-meta);--on:var(--on-meta);--c:var(--c-meta);--L:"C"}
+/* each page's main line, then blocks that belong to another line */
+.panel{--b:var(--b-meta);--on:var(--on-meta);--c:var(--c-meta);--L:"C";counter-reset:sec}
+#panel-today3,#panel-institutional,#panel-futures,#panel-margin,
+.fx-sync-panel,.futures-dashboard,.inst-stat-grid,.sentiment-dashboard,.futures-table-wrap,.pc-ratio-card{--b:var(--b-market);--on:var(--on-market);--c:var(--c-market);--L:"M"}
+#panel-overview,#panel-limitup,#panel-stock,#panel-holdings,
+.industry-strength-panel,.stock-hot-section,.sniper-card,.consensus-lu-card,.margin-rank-card{--b:var(--b-stocks);--on:var(--on-stocks);--c:var(--c-stocks);--L:"S"}
+#panel-branches,#panel-ranking,#panel-masterview,#panel-master,#panel-masterprofile,
+.branch-card,.master-hero,.seller-card,.swing-row{--b:var(--b-players);--on:var(--on-players);--c:var(--c-players);--L:"P"}
+#today3Alerts{--b:var(--b-risk);--on:var(--on-risk);--c:var(--c-risk);--L:"R"}
+.help-card,.view-hint,.info-banner,.report-section,.branch-group{--b:var(--b-meta);--on:var(--on-meta);--c:var(--c-meta);--L:"C"}
+
+/* header: white name plate, black tab bar with separators (station sign) */
+header{background:#000;backdrop-filter:none;border-bottom:3px solid #fff}
+:root[data-theme="light"] header{background:#fff;border-bottom-color:#000}
+.header-inner{padding:0 24px 0 0;align-items:stretch;min-height:54px}
+.logo{align-items:center}
+.logo-cn{font-family:'Noto Sans TC',sans-serif;font-size:17px;font-weight:900;letter-spacing:.06em;background:#fff;color:#000;-webkit-text-fill-color:#000;padding:0 24px;align-self:stretch;display:flex;align-items:center}
+:root[data-theme="light"] .logo-cn{background:#000;color:#fff;-webkit-text-fill-color:#fff}
+.logo-en{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.2em}
+.auto-badge,.lock-badge{display:none}
+.header-actions{gap:2px;align-items:stretch}
+.header-actions .btn{background:none;border:0;border-left:1px solid var(--line);border-radius:0;color:var(--text-2);padding:0 16px;font-size:13px;font-weight:700;box-shadow:none}
+.header-actions .btn:hover{color:var(--text);background:var(--bg-3)}
+.header-actions .btn.danger:hover{color:var(--red)}
+.tabs{gap:0;background:var(--bg-2);border-bottom:1px solid var(--line);scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--line-2)}.tabs::-webkit-scrollbar-track{background:transparent}
+.tab{padding:13px 9px;font-size:12.5px;font-weight:700;letter-spacing:.02em;border-right:1px solid var(--line);border-bottom:3px solid transparent}
+.tab.active{background:var(--bg-3);color:var(--text);border-bottom-color:var(--text)}
+.tab-num,.tab.tab-tier-core::before,.tab.tab-tier-query::before,.tab.tab-tier-config::before{display:none}
+#main-content.ds-on .tabs{margin-bottom:0}
+.market-global-bar,.status-bar{--b:var(--b-meta);--on:var(--on-meta)}
+
+/* section titles become line bands with a station code: S01, P02 ... per page */
+.section-title{background:var(--b)!important;color:var(--on)!important;padding:8px 14px!important;margin-top:18px!important;
+  font-family:'Noto Sans TC',sans-serif!important;font-size:15px!important;font-weight:900!important;letter-spacing:.06em;counter-increment:sec;gap:10px}
+.section-title::before{content:var(--L) counter(sec,decimal-leading-zero)!important;width:auto!important;height:auto!important;min-width:40px;
+  padding:3px 6px;border-radius:999px!important;background:#fff!important;color:#000;border:3px solid var(--b);box-shadow:0 0 0 2px #fff;
+  font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.04em;text-align:center;line-height:1.1}
+.section-title .section-sub,.section-title small{color:inherit!important;opacity:.85}
+/* blocks: dark plate, a 4 px line on top */
 .branch-card,.fx-sync-panel,.industry-strength-card,.sentiment-card,.sentiment-dashboard,.inst-stat-card,.margin-rank-card,
 .stock-hot-card,.sniper-card,.seller-card,.consensus-lu-card,.report-section,.futures-hero-card,.master-hero,.swing-row,
-.pc-ratio-card,.branch-group,.futures-table-wrap{background:color-mix(in srgb,var(--blk) 5%,transparent)!important;
-  border:0!important;border-top:2px solid var(--blk)!important;border-radius:0!important;box-shadow:none!important}
+.pc-ratio-card,.branch-group,.futures-table-wrap{background:var(--bg-2)!important;border:0!important;border-top:4px solid var(--b)!important;
+  border-radius:0!important;box-shadow:none!important}
 .futures-metric,.hero-stat{background:none!important;border:0!important;border-top:1px solid var(--line)!important;border-radius:0!important}
-.sentiment-dashboard .sentiment-card{border-top-width:1px!important;background:none!important}
-/* tables */
-.table-wrap{background:none!important;border:0!important;border-top:2px solid var(--blk)!important;border-radius:0!important;box-shadow:none!important}
-th{background:none!important;letter-spacing:.08em;border-bottom:1px solid var(--line-2)}
-/* KPI rows: numbers between hairlines, like the summary page */
-.stat-row{border-top:2px solid var(--blk);border-bottom:1px solid var(--line);gap:0!important}
-.stat-row .stat-box{background:none!important;border:0!important;border-left:1px solid var(--line)!important;border-radius:0!important;box-shadow:none!important}
-.stat-row .stat-box:first-child{border-left:0!important}
-/* headings, controls, filters */
-.section-title{font-family:'Noto Sans TC',sans-serif!important;font-size:16px!important;font-weight:600;letter-spacing:.06em}
-.section-title::before{width:8px!important;height:8px!important;background:var(--blk)!important;border-radius:0!important}
-.panel .controls{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:8px 0 14px}
-.mode-switch{background:none;border:0;border-radius:0;padding:0}
-.mode-btn{border-radius:0;color:var(--text-3);letter-spacing:.04em}
-.mode-btn:hover{color:var(--text)}
-.mode-btn.active{background:none!important;color:var(--text)!important;box-shadow:inset 0 -2px 0 var(--blk)}
+.sentiment-dashboard .sentiment-card{border-top-width:1px!important}
+.master-hero::before{display:none!important}
+.table-wrap{background:var(--bg-2)!important;border:0!important;border-top:4px solid var(--b)!important;border-radius:0!important;box-shadow:none!important}
+th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:700!important;letter-spacing:.06em}
+.stat-row{gap:10px!important}
+.stat-row .stat-box{background:var(--bg-2)!important;border:0!important;border-top:4px solid var(--b)!important;border-radius:0!important;box-shadow:none!important}
+.stat-box .val,.hero-stat .val{font-family:'Barlow Condensed',sans-serif!important;font-weight:600!important;letter-spacing:.01em}
+.stat-box .val{font-size:32px!important;color:var(--text)!important}
+/* controls: chips like line badges */
+.panel .controls{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:10px 0 12px}
+.mode-switch{background:none;border:0;border-radius:0;padding:0;gap:4px}
+.mode-btn{border-radius:0;border:1px solid var(--line-2)!important;color:var(--text-2);font-weight:700}
+.mode-btn.active{background:var(--b)!important;color:var(--on)!important;border-color:var(--b)!important}
 .market-local-bar{background:none!important;border:0!important;border-radius:0!important;padding:4px 0!important}
 .cards-grid{background:none!important;border:0!important;border-radius:0!important}
-/* notes: a grey rule on the left, no box */
-.help-card,.view-hint,.info-banner{background:none!important;border:0!important;border-left:2px solid var(--c-meta)!important;
-  border-radius:0!important;color:var(--text-2)!important;box-shadow:none!important}
-/* chips: square corners, quieter */
-.master-tag,.style-badge,.region-chip,.market-type-chip,.tag-chip,.industry-chip,.inst-chip{border-radius:2px!important}
+.help-card,.view-hint,.info-banner{background:var(--bg-2)!important;border:0!important;border-left:6px solid var(--b-meta)!important;border-radius:0!important;color:var(--text-2)!important;box-shadow:none!important}
+.help-card h3{font-family:'Noto Sans TC',sans-serif!important;font-size:15px!important;font-weight:900!important;color:var(--text)!important;background:none!important;-webkit-text-fill-color:var(--text)!important}
+.master-tag,.style-badge,.region-chip,.market-type-chip,.tag-chip,.industry-chip,.inst-chip{border-radius:0!important}
 .master-tag{background:none!important}
-
-/* v3.88.0 banners above the tab bar on every page: the retired research gauges
-   (temperature, smart-vs-retail, 30-day trend) and the big boxes are put away; the
-   date row and the market filter stay as hairline rows; Excel moved to the header */
+/* above the tab bar on every page: retired research gauges and the big boxes put away;
+   date row and market filter as plain rows; Excel lives in the header */
 #chipTemperature,#smartRetailContrast,#tempHistoryWrap,.accuracy-badge-bar,#excelDownloadBtn{display:none!important}
-.status-bar{background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;padding:8px 0!important;margin-bottom:6px!important}
-.market-global-bar{background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;padding:6px 0!important;margin-bottom:6px!important}
-
-.master-hero::before{display:none!important}
-.help-card h3{font-family:'Noto Sans TC',sans-serif!important;font-size:15px!important;color:var(--text)!important;letter-spacing:.06em;background:none!important;-webkit-text-fill-color:var(--text)!important}
+.status-bar,.market-global-bar{background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;padding:8px 0!important;margin-bottom:6px!important}
 .futures-time-banner,.data-date-banner{background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;box-shadow:none!important;padding-left:0!important;padding-right:0!important}
+#main-content.ds-on > .status-bar,#main-content.ds-on > .market-global-bar{display:none!important}
 
-/* v3.88.0 the summary's blocks in their category colours (same meaning as on every page) */
-.ds-n:nth-child(1),.ds-col:nth-child(1){--ds-acc:var(--c-stocks)}
-.ds-n:nth-child(2),.ds-n:nth-child(3){--ds-acc:var(--c-players)}
-.ds-n:nth-child(4){--ds-acc:var(--c-risk)}
-.ds-chg{--ds-acc:var(--c-meta)}
-.ds-mkt{--ds-acc:var(--c-market)}
-.ds-nums{border-top:0}
-.ds-n{border-top:2px solid var(--ds-acc)}
-.ds-col h3{border-bottom:2px solid var(--ds-acc)}
+/* 今日總整理 */
+.ek{max-width:1300px;margin:0 auto;padding:16px 4px 6px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-variant-numeric:tabular-nums}
+.ek-eye{display:flex;justify-content:space-between;align-items:center;gap:6px 20px;flex-wrap:wrap;font-size:12px;color:var(--text-3);font-weight:700;letter-spacing:.06em}
+.ek-eye .dt{font-family:'Barlow Condensed',sans-serif;font-size:24px;color:var(--text);letter-spacing:.04em;margin-right:10px;font-weight:600}
+.ek-eye .r{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.ek-xl{background:none;border:0;padding:0;color:var(--text);font:inherit;font-weight:900;cursor:pointer}
+.ek-ok{color:var(--green)}.ek-bad{color:var(--red)}
+.ek-h1{font-size:31px;font-weight:900;line-height:1.4;margin:12px 0 18px;padding-left:16px;border-left:8px solid var(--text);color:var(--text)}
+.ek-nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ek-blk{background:var(--bg-2);min-width:0}
+.ek-band{display:flex;align-items:center;gap:10px;background:var(--b);color:var(--on);padding:8px 14px;font-weight:900;font-size:15px;letter-spacing:.08em;white-space:nowrap}
+.ek-code{flex:0 0 34px;height:34px;border-radius:50%;background:#fff;color:#000;border:4px solid var(--b);box-shadow:0 0 0 2px #fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;line-height:.9;font-size:13px;letter-spacing:0}
+.ek-code small{font-size:11px}
+.ek-band .en{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:.12em;opacity:.85}
+.ek-band .more{font-size:11px;font-weight:900;letter-spacing:.04em;opacity:.9}
+.ek-v{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:72px;line-height:1;padding:14px 16px 0;white-space:nowrap}
+.ek-v small{font-family:'Noto Sans TC',sans-serif;font-size:16px;font-weight:700;color:var(--text-3);margin-left:6px}
+.ek-spark{padding:6px 16px 0;color:var(--c);height:42px}
+.ek-spark svg,.ek-ms svg{display:block;max-width:100%;height:auto}
+.ek-d{padding:4px 16px 14px;font-size:13px;color:var(--text-3);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ek-tap{cursor:pointer}.ek-tap:hover .ek-band{filter:brightness(1.12)}
+.ek-fx{display:none;flex-wrap:wrap;gap:6px 26px;padding:12px 14px;background:var(--bg-2);border-top:4px solid var(--b-players);margin-top:10px;font-size:13px;color:var(--text-2)}
+.ek-fx.open{display:flex}.ek-fx b{font-weight:700;margin-left:6px;font-family:'Barlow Condensed',sans-serif;font-size:16px}
+.ek-cols{display:grid;grid-template-columns:1.15fr 1.1fr .9fr;gap:10px;margin-top:10px}
+.ek ul{list-style:none;margin:0;padding:0}
+.ek li{display:flex;align-items:center;gap:12px;padding:9px 14px;border-top:1px solid var(--line);font-size:15px;font-weight:500;color:var(--text)}
+.ek-rk{flex:0 0 22px;height:22px;background:var(--b);color:var(--on);font-family:'Barlow Condensed',sans-serif;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.ek-nm{flex:0 0 132px;font-weight:700;white-space:nowrap}.ek-nm em{font-style:normal;font-weight:500;color:var(--text-3);margin-left:6px;font-family:'Barlow Condensed',sans-serif;font-size:15px}
+.ek-nm i{font-style:normal;font-size:11px;color:var(--c);margin-left:6px;font-weight:900}
+.ek-bar{flex:1;height:6px;background:var(--line)}.ek-bar b{display:block;height:6px;background:var(--b)}
+.ek-cnt{flex:0 0 44px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:24px}
+.ek-lb{flex:0 0 46px;font-size:12px;font-weight:900;color:var(--c);letter-spacing:.06em;white-space:nowrap}
+.ek-mkt .ek-lb{flex-basis:70px}
+.ek-mv{flex:1;font-weight:700;white-space:nowrap}
+.ek-ms{flex:0 0 64px;color:var(--c)}
+.ds-up{color:var(--red);font-weight:700}.ds-down{color:var(--green);font-weight:700}.ds-flat{color:var(--text-3)}
+.ek-sub{color:var(--text-3);font-size:13px;white-space:nowrap}
+.ek-go{margin-left:auto;background:none;border:0;padding:0;color:inherit;font:inherit;font-size:12px;font-weight:900;cursor:pointer;opacity:.9}
+.ek-foot{margin-top:12px;font-size:11.5px;color:var(--text-3);display:flex;justify-content:space-between;gap:6px 20px;flex-wrap:wrap}
+.ds-empty{padding:60px 20px;text-align:center;color:var(--text-2);line-height:2}
+.ds-empty button{background:none;border:0;color:var(--text);font-weight:900;cursor:pointer;font:inherit}
+.ds-status{position:fixed;left:12px;bottom:12px;z-index:9998;background:var(--bg-3);border:1px solid var(--line-2);color:var(--text-2);font-size:12px;padding:5px 12px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow)}
+.ds-status button{background:none;border:1px solid var(--text);color:var(--text);padding:0 8px;cursor:pointer}
+.ds-spin{width:10px;height:10px;border:2px solid var(--line-2);border-top-color:var(--text);border-radius:50%;display:inline-block;animation:dsspin .8s linear infinite}
+@keyframes dsspin{to{transform:rotate(360deg)}}
+@media (max-width:1100px){.ek-cols{grid-template-columns:1fr}.ek-nums{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:768px){.header-inner{padding:0}.logo-cn{padding:10px 16px}.header-actions .btn{padding:8px 10px}.tab{padding:10px 10px;font-size:12px}}
+@media (max-width:560px){.ek-h1{font-size:22px;border-left-width:6px;padding-left:12px}.ek-v{font-size:52px}.ek-band{font-size:13px;padding:7px 10px}
+  .ek-band .en{display:none}.ek-nm{flex-basis:104px}.ek li{font-size:14px;padding:8px 10px}.ek-d{white-space:normal}}
 </style>
 </head>
 <body>
@@ -10048,6 +10045,21 @@ function _dsToggleForeign() {
   if (el) el.classList.toggle('open');
 }
 const _DS_CHG_LABEL = [['新進強籌', '新進'], ['跌出', '跌出'], ['主力暴增', '暴增'], ['強籌∩風險', '風險']];
+// v3.89.0 sparkline (owner 2026-10-10: C's 20-day trend minis). zero=true draws the 0 line
+// (for net buy / sell series). Gaps (null) are skipped; the last point gets a dot.
+function _dsSpark(vals, w, h, zero = false) {
+  const pts = (vals || []).map((v, i) => [i, v]).filter(p => p[1] !== null && p[1] !== undefined && isFinite(p[1]));
+  if (pts.length < 2) return '';
+  let lo = Math.min(...pts.map(p => p[1])), hi = Math.max(...pts.map(p => p[1]));
+  if (zero) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+  const span = (hi - lo) || 1, xs = Math.max(1, vals.length - 1);
+  const X = i => (2 + i / xs * (w - 4)).toFixed(1), Y = v => (h - 3 - (v - lo) / span * (h - 6)).toFixed(1);
+  const last = pts[pts.length - 1];
+  const base = zero ? `<line x1="2" x2="${w - 2}" y1="${Y(0)}" y2="${Y(0)}" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="2 3"/>` : '';
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${base}`
+    + `<polyline points="${pts.map(p => X(p[0]) + ',' + Y(p[1])).join(' ')}" fill="none" stroke="currentColor" stroke-width="1.8"/>`
+    + `<circle cx="${X(last[0])}" cy="${Y(last[1])}" r="2.6" fill="currentColor"/></svg>`;
+}
 function renderDailySummary() {
   const box = document.getElementById('summary-container');
   if (!box) return;
@@ -10057,57 +10069,62 @@ function renderDailySummary() {
       <button onclick="_dsGo('today3')">先看今日三視角 →</button></div>`;
     return;
   }
-  // v3.87.0: one headline, four big numbers, three short lists (all wording comes
-  // from scripts/build_daily_summary.py; this function only lays it out)
-  const k = s.kpis || {}, n = s.notes || {};
+  // v3.89.0 駅 EKI: line bands with station codes, condensed big numbers, 20-day sparklines.
+  // All wording comes from scripts/build_daily_summary.py; this function only lays it out.
+  const k = s.kpis || {}, n = s.notes || {}, t = s.trends || {};
   const d = String(s.date || '');
   const date = d.length === 8 ? `${d.slice(0, 4)}.${d.slice(4, 6)}.${d.slice(6)}` : '—';
   const fb = s.fubon || {};
   const fbOk = fb.total && fb.ok === fb.total;
   const headline = s.headline || String((s.sentences || [])[0] || '').replace(/\*\*/g, '');
-  const big = (no, en, label, value, unit, note, tap = false) =>
-    `<div class="ds-n${tap ? ' ds-tap' : ''}"${tap ? ' onclick="_dsToggleForeign()"' : ''}><div class="ds-k"><b>${no}</b>${en}</div><div class="ds-lbl">${label}</div>
-      <div class="ds-v">${value}<small>${unit}</small></div><div class="ds-d">${escHtml(note || '')}</div></div>`;
+  const band = (L, no, label, en, extra = '') =>
+    `<div class="ek-band"><span class="ek-code">${L}<small>${no}</small></span>${label}${extra}<span class="en">${en}</span></div>`;
   const frn = s.foreign || [];
+  const big = (cls, L, no, label, en, value, unit, note, trend, zero, tap = false) =>
+    `<div class="ek-blk ${cls}${tap ? ' ek-tap' : ''}"${tap ? ' onclick="_dsToggleForeign()"' : ''}>
+      ${band(L, no, label, en, tap ? '<span class="more">明細 ▾</span>' : '')}
+      <div class="ek-v">${value}<small>${unit}</small></div>
+      <div class="ek-spark">${trend ? _dsSpark(trend, 280, 36, zero) : ''}</div>
+      <div class="ek-d">${escHtml(note || '')}</div></div>`;
   const nums = [
-    big('01', 'STRONG CHIPS', '強籌', k.strong_count ?? '—', '檔', n.strong),
-    big('02', 'DOMESTIC', '本土大戶', _dsSign(k.domestic_net_yi), '億', n.domestic),
-    big('03', 'FOREIGN', `外資大戶${frn.length ? '<span class="ds-more">明細 ▾</span>' : ''}`, _dsSign(k.foreign_net_yi), '億', n.foreign,
-        frn.length > 0),
-    big('04', 'RISK', '明日恐處置', k.disposal_pending ?? '—', '檔', n.risk),
+    big('k-stocks', 'S', '01', '強籌', 'STRONG CHIPS', k.strong_count ?? '—', '檔', n.strong, t.strong, false),
+    big('k-players', 'P', '02', '本土大戶', 'DOMESTIC', _dsSign(k.domestic_net_yi), '億', n.domestic, t.domestic, true),
+    big('k-players', 'P', '03', '外資大戶', 'FOREIGN', _dsSign(k.foreign_net_yi), '億', n.foreign, t.foreign, true, frn.length > 0),
+    big('k-risk', 'R', '04', '明日恐處置', 'RISK', k.disposal_pending ?? '—', '檔', n.risk, null, false),
   ].join('');
   const fx = frn.map(p => `<span>${escHtml(p.master)}<b class="${_dsCls(p.net_yi)}">${_dsSign(p.net_yi)}</b></span>`).join('');
   const top = s.strong_top || [];
   const mx = Math.max(1, ...top.map(r => r.masters || 0));
-  const strong = top.map(r => `<li><span class="ds-nm">${escHtml(r.name)}<em>${escHtml(r.code)}</em>${r.new ? '<i>新進</i>' : ''}</span>
-      <span class="ds-bar"><b style="width:${Math.round((r.masters || 0) / mx * 100)}%"></b></span>
-      <span class="ds-cnt">${r.masters}<small>位</small></span></li>`).join('') || '<li class="ds-sub">今晚沒有 3 位以上大戶同時布局的股票</li>';
+  const strong = top.map((r, i) => `<li><span class="ek-rk">${i + 1}</span>
+      <span class="ek-nm">${escHtml(r.name)}<em>${escHtml(r.code)}</em>${r.new ? '<i>新進</i>' : ''}</span>
+      <span class="ek-bar"><b style="width:${Math.round((r.masters || 0) / mx * 100)}%"></b></span>
+      <span class="ek-cnt">${r.masters}</span></li>`).join('') || '<li class="ek-sub">今晚沒有 3 位以上大戶同時布局的股票</li>';
   const chg = (s.changes || []).filter(c => !String(c.tag).startsWith('期貨')).map(c => {   // futures sit in MARKET
-    const lab = (_DS_CHG_LABEL.find(([t]) => String(c.tag).startsWith(t)) || [null, c.tag])[1];
-    return `<li><span class="ds-lb">${escHtml(lab)}</span><span>${escHtml(c.text)}</span></li>`;
-  }).join('') || '<li class="ds-sub">和昨天相比沒有明顯變化</li>';
-  const oi = k.fut_foreign_oi, oiChg = k.fut_foreign_oi_chg, pct = k.taiex_chg_pct;
+    const lab = (_DS_CHG_LABEL.find(([p]) => String(c.tag).startsWith(p)) || [null, c.tag])[1];
+    return `<li><span class="ek-lb">${escHtml(lab)}</span><span>${escHtml(c.text)}</span></li>`;
+  }).join('') || '<li class="ek-sub">和昨天相比沒有明顯變化</li>';
+  const oi = k.fut_foreign_oi, oiChg = k.fut_foreign_oi_chg;
   const mkt = [
-    ['加權指數', k.taiex == null ? '—' : _dsNum(k.taiex, 0), _dsUpDn(pct)],
-    ['外資台指期', oi == null ? '—' : `淨${oi < 0 ? '空' : '多'} ${_dsNum(oi, 0)} 口`,
-      oiChg == null ? '' : `<span class="ds-sub">${(oiChg < 0) === (oi < 0) ? '增' : '減'} ${_dsNum(oiChg, 0)}</span>`],
-    ['融資', `${_dsSign(k.margin_chg_yi)} 億`, `<span class="ds-sub">昨 ${_dsSign(k.margin_chg_yi_prev)}</span>`],
-    ['P/C', k.pc_ratio == null ? '—' : k.pc_ratio.toFixed(2), `<span class="ds-sub">${_dsSign(k.pc_ratio_chg, 2)}</span>`],
-  ].map(([a, b, c]) => `<li><span class="ds-lb">${a}</span><span class="ds-mv">${b}</span>${c}</li>`).join('');
-  box.innerHTML = `<div class="ds">
-    <div class="ds-eye"><span><b>SUMMARY</b>　${date}（${escHtml(s.weekday || '')}）</span>
-      <span class="r"><span>爬取 ${escHtml(s.crawled_at || '—')}</span><span><span class="${fbOk ? 'ds-ok' : 'ds-bad'}">●</span> 富邦 ${fb.ok ?? '—'}/${fb.total ?? '—'}</span>
-      <button class="ds-xl" onclick="document.getElementById('excelDownloadBtn').click()">Excel 日報 ↓</button></span></div>
-    <h2 class="ds-h1">${escHtml(headline)}</h2>
-    <section class="ds-nums">${nums}</section>
-    <div class="ds-fx" id="dsFx">${fx}</div>
-    <section class="ds-cols">
-      <div class="ds-col"><h3><b>強籌前 5</b>STRONG CHIPS<button class="ds-go" onclick="_dsGo('overview')">共買榜 →</button></h3><ul>${strong}</ul></div>
-      <div class="ds-col ds-chg"><h3><b>今天變了什麼</b>CHANGES</h3><ul>${chg}</ul></div>
-      <div class="ds-col ds-mkt"><h3><b>市場</b>MARKET<button class="ds-go" onclick="_dsGo('futures')">期貨 →</button></h3><ul>${mkt}</ul></div>
+    ['加權指數', k.taiex == null ? '—' : _dsNum(k.taiex, 0), _dsUpDn(k.taiex_chg_pct), t.taiex, false],
+    ['外資台指期', oi == null ? '—' : `淨${oi < 0 ? '空' : '多'} ${_dsNum(oi, 0)}`, oiChg == null ? '' : `<span class="ek-sub">${(oiChg < 0) === (oi < 0) ? '增' : '減'} ${_dsNum(oiChg, 0)}</span>`, t.fut_oi, false],
+    ['融資', `${_dsSign(k.margin_chg_yi)} 億`, `<span class="ek-sub">昨 ${_dsSign(k.margin_chg_yi_prev)}</span>`, t.margin, true],
+    ['P/C', k.pc_ratio == null ? '—' : k.pc_ratio.toFixed(2), `<span class="ek-sub">${_dsSign(k.pc_ratio_chg, 2)}</span>`, t.pc, false],
+  ].map(([a, b, c, tr, z]) => `<li><span class="ek-lb">${a}</span><span class="ek-mv">${b}</span><span class="ek-ms">${tr ? _dsSpark(tr, 64, 20, z) : ''}</span>${c}</li>`).join('');
+  const days = (t.dates || []).length;
+  box.innerHTML = `<div class="ek">
+    <div class="ek-eye"><span><span class="dt">${date}</span>（${escHtml(s.weekday || '')}）今日總整理</span>
+      <span class="r"><span>爬取 ${escHtml(s.crawled_at || '—')}</span><span><span class="${fbOk ? 'ek-ok' : 'ek-bad'}">●</span> 富邦 ${fb.ok ?? '—'}/${fb.total ?? '—'}</span>
+      <button class="ek-xl" onclick="document.getElementById('excelDownloadBtn').click()">Excel 日報 ↓</button></span></div>
+    <h2 class="ek-h1">${escHtml(headline)}</h2>
+    <section class="ek-nums">${nums}</section>
+    <div class="ek-fx" id="dsFx">${fx}</div>
+    <section class="ek-cols">
+      <div class="ek-blk k-stocks">${band('S', '05', '強籌前 5', 'STRONG CHIPS', '<button class="ek-go" onclick="_dsGo(\'overview\')">共買榜 →</button>')}<ul>${strong}</ul></div>
+      <div class="ek-blk k-meta">${band('C', '06', '今天變了什麼', 'CHANGES')}<ul>${chg}</ul></div>
+      <div class="ek-blk k-market ek-mkt">${band('M', '07', '市場', 'MARKET', '<button class="ek-go" onclick="_dsGo(\'futures\')">期貨 →</button>')}<ul>${mkt}</ul></div>
     </section>
-    <div class="ds-foot"><span>強籌：每位大戶近 ${s.window_days || 10} 日淨買 ≥ 3,000 萬、買超 ≥ 5 天、仍在高點 80% 以上，3 位以上同時布局。外資券商另列，不算在本土。</span>
-      <span>資料：富邦分點・TWSE／TPEx・期交所・attstock</span></div>
+    <div class="ek-foot"><span>路線色：S 個股（黃）・P 大戶（藍）・M 市場（青）・R 風險（紫）・C 一般（灰）。小圖＝近 ${days || 20} 個交易日走勢。</span>
+      <span>強籌：每位大戶近 ${s.window_days || 10} 日淨買 ≥ 3,000 萬、買超 ≥ 5 天、仍在高點 80% 以上，3 位以上同時布局。</span></div>
   </div>`;
 }
 

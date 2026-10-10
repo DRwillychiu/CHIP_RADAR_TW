@@ -97,6 +97,14 @@ check("說明句: 強籌 / 本土 / 外資 / 風險", s['notes'] == {'strong': '
       'foreign': '1 家合計・買最多 高盛 +0.1', 'risk': '台積電（處置中 1）'}, s['notes'])
 check("處置雷達: 明日恐處置 2330 台積電 (強籌 4 位)",
       s['risk']['pending'] == [{'code': '2330', 'name': '台積電', 'strong_masters': 4}] and s['risk']['in_disposal'] == 1)
+tr = s['trends']
+check("20 日走勢: 11 天資料就給 11 點, 日期對齊", len(tr['dates']) == 11 and tr['dates'][-1] == '20261011'
+      and all(len(tr[x]) == 11 for x in ('strong', 'domestic', 'foreign', 'taiex', 'fut_oi', 'margin', 'pc')))
+check("走勢最後一點 = 今天的大數字", tr['strong'][-1] == k['strong_count'] and tr['strong'][-2] == k['strong_prev']
+      and tr['domestic'][-1] == k['domestic_net_yi'] and tr['foreign'][-1] == k['foreign_net_yi'] and tr['fut_oi'][-1] == k['fut_foreign_oi'])
+check("強籌走勢每天用自己的 10 日窗 (第 5 天 5 x 500 萬未滿 3,000 萬 → 0, 第 6 天起 1)",
+      tr['strong'] == [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2], tr['strong'])
+check("本土走勢: 2317 進場前 +0.3、之後 +0.5 億", tr['domestic'][:6] == [0.3] * 6 and tr['domestic'][6:] == [0.5] * 5, tr['domestic'])
 check("只有 1 天也能產生 (不當機)", ds.build_summary(days[:1])['kpis']['strong_prev'] == 0)
 
 # C. the script: encrypted envelope, round trip, unchanged night is not rewritten
@@ -145,14 +153,16 @@ check("讀 daily_summary.json 並用同一套解密", 'daily_summary.json' in js
 ra = h[h.index('function renderAll() {'):h.index('function renderAll() {') + 600]
 check("renderAll 會更新總整理 (每 5 分鐘有新資料也跟著更新)", 'refreshDailySummary();' in ra)
 check("數字鍵 1–9 跳過總整理, 原本對應不變", "querySelectorAll('.tab:not([data-tab=\"summary\"])')" in h and "e.key === '`'" in h)
-check("只有總整理頁收起上方 7 塊橫幅", '<main id="main-content" class="ds-on"' in h
+check("總整理頁收起日期列與市場篩選 (其他 5 塊每頁都收, v3.89.0)", '<main id="main-content" class="ds-on"' in h
       and "classList.toggle('ds-on', btn.dataset.tab === 'summary')" in h
-      and all(f'#main-content.ds-on > {x}' in h for x in ['.status-bar', '.accuracy-badge-bar', '#excelDownloadBtn', '#chipTemperature',
-                                                          '#smartRetailContrast', '#tempHistoryWrap', '.market-global-bar']))
+      and '#main-content.ds-on > .status-bar,#main-content.ds-on > .market-global-bar{display:none!important}' in h
+      and '#chipTemperature,#smartRetailContrast,#tempHistoryWrap,.accuracy-badge-bar,#excelDownloadBtn{display:none!important}' in h)
 used_k = set(re.findall(r'\bk\.(\w+)', js))
 check("網頁用到的 KPI 欄位, 產生器都有", used_k <= set(k), sorted(used_k - set(k)))
 used_s = set(re.findall(r'\bs\.(\w+)', js))
 check("網頁用到的頂層欄位, 產生器都有", used_s <= set(s), sorted(used_s - set(s)))
+used_t = set(re.findall(r'\bt\.(\w+)', js))
+check("網頁用到的走勢欄位, 產生器都有", bool(used_t) and used_t <= set(s['trends']), sorted(used_t - set(s['trends'])))
 used_n = set(re.findall(r'\bn\.(\w+)', js))
 check("網頁用到的說明句, 產生器都有", bool(used_n) and used_n <= set(s['notes']), sorted(used_n - set(s['notes'])))
 check("大標題與說明句一律 escape 後才放進頁面", 'escHtml(headline)' in js and "escHtml(note || '')" in js)
