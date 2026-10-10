@@ -3884,6 +3884,75 @@ header{background:var(--bg);backdrop-filter:none}
 .tab.active{color:var(--text);border-bottom-color:var(--text)}
 .tab-num,.tab.tab-tier-core::before,.tab.tab-tier-query::before,.tab.tab-tier-config::before{display:none}
 @media (max-width:768px){.header-inner{padding:10px 16px}.tab{padding:10px 10px;font-size:12px}}
+
+/* v3.88.0 every tab in the same Japanese editorial style, one colour per block category
+   (owner 2026-10-10: "要。但我認為可以用顏色進行各個頁面中的區塊區別"). The colour means the
+   same thing on every page: stocks 山吹 / players 藍 / market 浅葱 / risk 藤 / meta 鼠.
+   Red = up / buy and green = down / sell are not touched. Contrast >= 4.5 on both themes. */
+:root{--c-stocks:#E3A93B;--c-players:#6F9BEA;--c-market:#4FB6C4;--c-risk:#D08BF0;--c-meta:#9A9A9A;
+  --text-1:var(--text);--border:var(--line);--accent:var(--gold);--brand:var(--gold)}   /* used inline, never defined before */
+:root[data-theme="light"]{--c-stocks:#9A6700;--c-players:#2F5AA8;--c-market:#1D7584;--c-risk:#9A2FC2;--c-meta:#666666}
+/* the page's main category, then blocks that belong to another one */
+.panel{--blk:var(--c-meta)}
+#panel-summary,#panel-today3,#panel-institutional,#panel-futures,#panel-margin{--blk:var(--c-market)}
+#panel-overview,#panel-limitup,#panel-stock,#panel-holdings{--blk:var(--c-stocks)}
+#panel-branches,#panel-ranking,#panel-masterview,#panel-master,#panel-masterprofile{--blk:var(--c-players)}
+.fx-sync-panel,.futures-dashboard,.inst-stat-grid,.sentiment-dashboard,.futures-table-wrap,.pc-ratio-card{--blk:var(--c-market)}
+.industry-strength-panel,.stock-hot-section,.sniper-card,.consensus-lu-card,.margin-rank-card{--blk:var(--c-stocks)}
+.branch-card,.master-hero,.seller-card,.swing-row{--blk:var(--c-players)}
+#today3Alerts{--blk:var(--c-risk)}
+.help-card,.view-hint,.info-banner,.report-section,.branch-group{--blk:var(--c-meta)}
+/* blocks: a 2 px rule in the block colour on top, the faintest tint of it, no box */
+.branch-card,.fx-sync-panel,.industry-strength-card,.sentiment-card,.sentiment-dashboard,.inst-stat-card,.margin-rank-card,
+.stock-hot-card,.sniper-card,.seller-card,.consensus-lu-card,.report-section,.futures-hero-card,.master-hero,.swing-row,
+.pc-ratio-card,.branch-group,.futures-table-wrap{background:color-mix(in srgb,var(--blk) 5%,transparent)!important;
+  border:0!important;border-top:2px solid var(--blk)!important;border-radius:0!important;box-shadow:none!important}
+.futures-metric,.hero-stat{background:none!important;border:0!important;border-top:1px solid var(--line)!important;border-radius:0!important}
+.sentiment-dashboard .sentiment-card{border-top-width:1px!important;background:none!important}
+/* tables */
+.table-wrap{background:none!important;border:0!important;border-top:2px solid var(--blk)!important;border-radius:0!important;box-shadow:none!important}
+th{background:none!important;letter-spacing:.08em;border-bottom:1px solid var(--line-2)}
+/* KPI rows: numbers between hairlines, like the summary page */
+.stat-row{border-top:2px solid var(--blk);border-bottom:1px solid var(--line);gap:0!important}
+.stat-row .stat-box{background:none!important;border:0!important;border-left:1px solid var(--line)!important;border-radius:0!important;box-shadow:none!important}
+.stat-row .stat-box:first-child{border-left:0!important}
+/* headings, controls, filters */
+.section-title{font-family:'Noto Sans TC',sans-serif!important;font-size:16px!important;font-weight:600;letter-spacing:.06em}
+.section-title::before{width:8px!important;height:8px!important;background:var(--blk)!important;border-radius:0!important}
+.panel .controls{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:8px 0 14px}
+.mode-switch{background:none;border:0;border-radius:0;padding:0}
+.mode-btn{border-radius:0;color:var(--text-3);letter-spacing:.04em}
+.mode-btn:hover{color:var(--text)}
+.mode-btn.active{background:none!important;color:var(--text)!important;box-shadow:inset 0 -2px 0 var(--blk)}
+.market-local-bar{background:none!important;border:0!important;border-radius:0!important;padding:4px 0!important}
+.cards-grid{background:none!important;border:0!important;border-radius:0!important}
+/* notes: a grey rule on the left, no box */
+.help-card,.view-hint,.info-banner{background:none!important;border:0!important;border-left:2px solid var(--c-meta)!important;
+  border-radius:0!important;color:var(--text-2)!important;box-shadow:none!important}
+/* chips: square corners, quieter */
+.master-tag,.style-badge,.region-chip,.market-type-chip,.tag-chip,.industry-chip,.inst-chip{border-radius:2px!important}
+.master-tag{background:none!important}
+
+/* v3.88.0 banners above the tab bar on every page: the retired research gauges
+   (temperature, smart-vs-retail, 30-day trend) and the big boxes are put away; the
+   date row and the market filter stay as hairline rows; Excel moved to the header */
+#chipTemperature,#smartRetailContrast,#tempHistoryWrap,.accuracy-badge-bar,#excelDownloadBtn{display:none!important}
+.status-bar{background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;padding:8px 0!important;margin-bottom:6px!important}
+.market-global-bar{background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;padding:6px 0!important;margin-bottom:6px!important}
+
+.master-hero::before{display:none!important}
+.help-card h3{font-family:'Noto Sans TC',sans-serif!important;font-size:15px!important;color:var(--text)!important;letter-spacing:.06em;background:none!important;-webkit-text-fill-color:var(--text)!important}
+.futures-time-banner,.data-date-banner{background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;box-shadow:none!important;padding-left:0!important;padding-right:0!important}
+
+/* v3.88.0 the summary's blocks in their category colours (same meaning as on every page) */
+.ds-n:nth-child(1),.ds-col:nth-child(1){--ds-acc:var(--c-stocks)}
+.ds-n:nth-child(2),.ds-n:nth-child(3){--ds-acc:var(--c-players)}
+.ds-n:nth-child(4){--ds-acc:var(--c-risk)}
+.ds-chg{--ds-acc:var(--c-meta)}
+.ds-mkt{--ds-acc:var(--c-market)}
+.ds-nums{border-top:0}
+.ds-n{border-top:2px solid var(--ds-acc)}
+.ds-col h3{border-bottom:2px solid var(--ds-acc)}
 </style>
 </head>
 <body>
@@ -3931,6 +4000,7 @@ header{background:var(--bg);backdrop-filter:none}
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
     <div class="header-actions">
+      <button class="btn" onclick="document.getElementById('excelDownloadBtn').click()">Excel 日報</button>
       <button class="btn" onclick="reloadData()">重新載入</button>
       <button class="btn" onclick="toggleHelp()">說明</button>
       <button class="btn" onclick="toggleChangelog()" title="更新日誌">更新</button>
