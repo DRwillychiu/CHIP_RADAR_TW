@@ -3972,7 +3972,7 @@ body.dr-lock{overflow:hidden}
 .dr th{position:sticky;top:0;z-index:1;background:var(--bg-3)!important;color:var(--text-2)!important;font-size:12px;font-weight:700;text-align:left;padding:8px 10px}
 .dr td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:14px;white-space:nowrap;color:var(--text)}
 .dr .r{text-align:right}.dr .dim{color:var(--text-3)}
-.dr .num{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:600;text-align:right}
+.dr td.num,.dr span.num,.dr .dr-sh .num{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:600;text-align:right}
 .dr td .num{display:inline-block;min-width:28px}
 .dr-bar{display:inline-block;width:90px;height:6px;background:var(--line);vertical-align:middle;margin-right:8px}.dr-bar b{display:block;height:6px;background:var(--b)}
 .dr-new,.dr-risk{font-style:normal;font-size:11px;font-weight:900;padding:1px 6px;margin-left:4px}
@@ -3988,6 +3988,28 @@ body.dr-lock{overflow:hidden}
   .dr{top:auto;width:100vw;height:92vh;border-left:0;border-top:4px solid var(--b);transform:translateY(100%)}
   .dr-wrap.open .dr{transform:none}.dr-body{padding:4px 12px 16px}.dr-kpis{gap:20px}.dr-kpis b{font-size:28px}
   .dr td{font-size:13px;padding:8px 6px;white-space:normal}.dr-bar{width:44px}.dr table{min-width:0!important}.dr-wide{display:none}}
+
+/* v3.91.0 board pages: KPI boxes become station blocks with big numbers; the page's main
+   table shows its top rows and first columns, the full one opens in the drawer */
+.panel,.stat-row{contain:layout!important}   /* style containment (v3.60) kept the per-page station-code counter from reaching inside */
+.stat-row .stat-box{padding:0 0 12px!important;border-top:0!important}
+.stat-box .label{background:var(--b);color:var(--on)!important;padding:8px 14px!important;margin:0 0 6px!important;font-size:13px!important;
+  font-weight:900!important;letter-spacing:.06em!important;text-transform:none!important;counter-increment:sec;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.stat-box .label::before{content:var(--L) counter(sec,decimal-leading-zero);background:#fff;color:#000;border:3px solid var(--b);box-shadow:0 0 0 2px #fff;
+  border-radius:999px;padding:1px 6px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700}
+.stat-box .val{font-size:52px!important;line-height:1.05!important;padding:6px 16px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-table.bd-r5 tbody tr:nth-child(n+6){display:none}
+.bd-table.bd-c4 th:nth-child(n+5),.bd-table.bd-c4 td:nth-child(n+5){display:none}
+.bd-table .stock-name > *{display:none}
+.bd-table td{font-size:16px}
+.bd-more{display:block;width:100%;margin:0 0 12px;padding:12px;background:var(--b);color:var(--on);border:0;font:inherit;font-weight:900;font-size:14px;
+  letter-spacing:.04em;cursor:pointer;text-align:center}
+.bd-more:hover{filter:brightness(1.1)}
+.dr .table-wrap{border-top:0!important;background:none!important}
+.dr.dr-wide{width:min(1360px,96vw)}
+.dr th.num{font-family:inherit;font-size:12px}
+.overlay{z-index:9994!important}.drawer{z-index:9995!important}   /* the stock detail opens above a board drawer */
+@media (max-width:560px){.stat-box .val{font-size:30px!important;padding:4px 10px 0}.stat-box .label{font-size:12px!important;padding:6px 8px!important}}
 </style>
 </head>
 <body>
@@ -10168,6 +10190,7 @@ function renderDailySummary() {
 // fit, and ✕ / Esc / backdrop / the browser's Back button all close it. Phones: a
 // full-width sheet from the bottom.
 function _dsDrawer(cat, L, no, title, en, body, foot = '') {
+  _DR_SRC = null;   // v3.91.0 a board page sets it again after opening
   let el = document.getElementById('dsDrawer');
   if (!el) {
     el = document.createElement('div');
@@ -10190,6 +10213,7 @@ function _dsClose(fromHistory = false) {
   const el = document.getElementById('dsDrawer');
   if (!el || !el.classList.contains('open')) return;
   el.classList.remove('open');
+  _DR_SRC = null;
   document.body.classList.remove('dr-lock');
   if (!fromHistory && location.hash === '#detail') history.back();
 }
@@ -10258,6 +10282,58 @@ function _dsOpen(kind) {
     _dsDrawer('market', 'M', '07', `市場 近 ${ds.length} 日`, 'MARKET', body, _dsPage('futures', '期貨情報（完整頁）'));
   }
 }
+
+// ========== v3.91.0 board pages ==========
+// Owner 2026-10-10: every page shows only the big numbers and the top 5; the full table opens
+// in the drawer. The render functions are untouched: after each render the page's main table
+// is cut to its top rows and first columns, and "全部 N ›" opens a live copy in the drawer
+// (it follows sorting and filters, because the copy is refreshed whenever the page re-renders).
+const _BOARDS = {
+  overview: { src: 'overviewResult', cat: 'stocks', L: 'S', en: 'CO-BUY', cols: 4, rows: 5, title: '共買榜' },
+};
+let _DR_SRC = null;
+function _boardTable(tab) {
+  const box = document.getElementById(_BOARDS[tab].src);
+  return box ? box.querySelector('.table-wrap') : null;
+}
+function _boardify(tab) {
+  const cfg = _BOARDS[tab];
+  const tw = _boardTable(tab);
+  if (!tw || tw.dataset.bd) return;
+  tw.dataset.bd = '1';
+  tw.classList.add('bd-table', `bd-c${cfg.cols}`, `bd-r${cfg.rows}`);
+  const n = tw.querySelectorAll('tbody tr').length;
+  if (n > cfg.rows || tw.querySelector(`th:nth-child(${cfg.cols + 1})`)) {
+    tw.insertAdjacentHTML('afterend', `<button class="bd-more k-${cfg.cat}" onclick="_boardOpen('${tab}')">完整表格 ${n} 列・全部欄位 ›</button>`);
+  }
+  if (_DR_SRC === tab) _boardFill(tab);
+}
+function _boardFill(tab) {
+  const tw = _boardTable(tab);
+  const body = document.querySelector('#dsDrawer .dr-body');
+  if (!tw || !body) return;
+  const copy = tw.cloneNode(true);
+  copy.classList.remove('bd-table', `bd-c${_BOARDS[tab].cols}`, `bd-r${_BOARDS[tab].rows}`);
+  delete copy.dataset.bd;
+  body.innerHTML = '';
+  body.appendChild(copy);
+  const titleEl = document.getElementById('drTitle');
+  if (titleEl) titleEl.textContent = `${_BOARDS[tab].title} 完整表格 ${copy.querySelectorAll('tbody tr').length} 列`;
+}
+function _boardOpen(tab) {
+  const cfg = _BOARDS[tab];
+  _dsDrawer(cfg.cat, cfg.L, '', cfg.title, cfg.en, '', `<button onclick="_dsClose()">回到看板</button>`);
+  document.querySelector('#dsDrawer .dr').classList.add('dr-wide');   // full tables need the width
+  _DR_SRC = tab;
+  _boardFill(tab);
+}
+// re-apply after every render of a board page (whoever triggered it)
+document.addEventListener('DOMContentLoaded', () => {
+  for (const tab of Object.keys(_BOARDS)) {
+    const box = document.getElementById(_BOARDS[tab].src);
+    if (box) new MutationObserver(() => _boardify(tab)).observe(box, { childList: true });
+  }
+});
 
 function renderAll() {
   if (!CURRENT_DATA) return;
