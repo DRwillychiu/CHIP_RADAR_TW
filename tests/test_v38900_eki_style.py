@@ -145,6 +145,30 @@ check("琥珀色標出品牌與目前分頁", '.tab.active{background:var(--bg-3
       and 'color:var(--gold);-webkit-text-fill-color:var(--gold)' in css)
 check("看板按鈕是外框鍵, 不是整塊色", '.bd-more{display:block;width:100%;margin:0 0 12px;padding:12px;background:none;color:var(--c);border:1px solid var(--b)' in h)
 
+print("\n[H] 每一頁都是看板、每一塊都能點開 (v3.94.0)")
+aj = h[h.index('// ========== v3.94.0 every page a board'):h.index('function renderAll() {')]
+TABS = ['branches', 'ranking', 'masterview', 'institutional', 'futures', 'margin', 'limitup', 'stock', 'master',
+        'reports', 'masterprofile', 'holdings', 'help']
+check("13 個顯示頁都登記成看板, 關注設定 (設定頁) 不動", all(f"  {t}:" in aj for t in TABS) and '  watchlist:' not in aj)
+check("每次重畫後先還原再重走一次 (只清自己設的點擊, 列上原本的 onclick 保留)",
+      "root.querySelectorAll('.bd-add').forEach(e => e.remove());" in aj
+      and "root.querySelectorAll('.bd-tap').forEach(e => { e.onclick = null; });" in aj)
+rm = [l.strip() for l in aj.splitlines() if '.remove()' in l]
+check("只藏不刪: 會 remove 的只有看板自己加的東西", rm and all('bd-add' in l for l in rm), rm)
+check("自己有彈窗的 KPI 卡 (期貨歷史、散戶信號) 不被蓋掉", "if (k.closest('[onclick],.clickable')) return;" in aj)
+check("每個區塊標題都能點開整段", "      _bdOpenOn(e, tab, i);" in aj and "_bdBlock(e)" in aj)
+check("前 open 段展開, 之後只留標題列 (點開看)", "closed = fold || ++nt > (cfg.open || 2);" in aj
+      and "if (closed) { e.classList.add('bd-x'); continue; }" in aj)
+check("表格 5 列、牆 5 張、評分卡 6 張", "if (i >= 5) r.classList.add('bd-x')" in aj and "if (n >= 5) k.classList.add('bd-x')" in aj
+      and "if (n >= 6) k.classList.add('bd-x')" in aj)
+af = aj[aj.index('function _autoFill('):aj.index('function _autoOpen(')]
+check("抽屜副本: 拿掉 id、還原隱藏、去掉看板加的東西", "querySelectorAll('[id]').forEach(x => x.removeAttribute('id'))" in af
+      and "classList.remove(..._BD_CLS)" in af and "copy.querySelectorAll('.bd-add').forEach(x => x.remove())" in af)
+check("抽屜標題 escape", "escHtml(name)" in aj[aj.index('function _autoOpen('):])
+check("說明頁這種靜態頁載入時就處理", "document.addEventListener('DOMContentLoaded', () => { for (const tab of Object.keys(_AUTO)) _boardAuto(tab); });" in aj)
+check("看板上藏起來的東西 CSS", '.bd-auto-on .bd-x{display:none!important}' in h)
+check("今日總整理 C06 也能點開 (完整清單)", "onclick=\"_dsOpen('changes')\"" in h and "kind === 'changes'" in h and 's.changes_all' in h)
+
 print()
 print("─" * 72)
 print(f"  整體: {'✅ ALL PASS' if all_pass else '❌ HAS FAIL'}")

@@ -335,6 +335,12 @@ def build_summary(days, stock_history=None, attstock=None, official_names=None):
         "kpis": kpis,
         "strong_top": top_rows,
         "changes": changes[:5],
+        # v3.94.0 the C06 drawer: full lists behind "今天變了什麼" (新進 / 風險 come from strong_all)
+        "changes_all": {
+            "gone": [{"code": c, "name": name(c), "masters_prev": len(prev.get(c, {}))} for c in gone3],
+            "surge": [{"code": c, "name": name(c), "prev": len(prev.get(c, {})), "now": len(m)}
+                      for c, m in top if len(m) - len(prev.get(c, {})) >= SURGE],
+        },
         "domestic_top": dom[:5],
         "strong_all": strong_all,
         "domestic_all": dom,
