@@ -10418,8 +10418,8 @@ function _t3Keys() {
   }
   const al = document.getElementById('today3Alerts');
   if (al && al.textContent.trim()) {
-    const t = al.textContent;
-    const n = k => { const m = t.match(new RegExp(k + '[^(]*\\((\\d+)\\)')); return m ? +m[1] : 0; };
+    const txt = al.textContent;
+    const n = k => { const m = txt.match(new RegExp(k + '[^(]*\\((\\d+)\\)')); return m ? +m[1] : 0; };
     const a = n('內部人籌碼警報'), b = n('高影響度重大訊息'), c = n('中影響度重大訊息');
     keys.push(['alerts', `${a + b + c} 則`, `內部人 ${a}・高影響 ${b}・中影響 ${c}`]);
   }
