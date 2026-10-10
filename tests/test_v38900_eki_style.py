@@ -44,17 +44,19 @@ print("=" * 72)
 print("\n[A] 路線色: 五類、固定意義、看得清楚")
 check("五類路線色都有色帶 / 色帶上的字 / 一般文字三種", all(f'b-{c}' in var and f'on-{c}' in var and f'c-{c}' in var for c in CATS))
 for c in CATS:
-    check(f"{c}: 色帶上的字對比 >= 4.5", contrast(var[f'b-{c}'], var[f'on-{c}']) >= 4.5, round(contrast(var[f'b-{c}'], var[f'on-{c}']), 1))
-    check(f"{c}: 文字色在深色底 >= 4.5、淺色底 >= 4.5",
-          contrast(var[f'c-{c}'], '#0a0e1a') >= 4.5 and contrast(var_l[f'c-{c}'], '#f5f7fb') >= 4.5,
-          (round(contrast(var[f'c-{c}'], '#0a0e1a'), 1), round(contrast(var_l[f'c-{c}'], '#f5f7fb'), 1)))
+    check(f"{c}: 編號鍵上的字對比 >= 4.5 (深 / 淺)", contrast(var[f'b-{c}'], var[f'on-{c}']) >= 4.5 and contrast(var_l[f'b-{c}'], var_l[f'on-{c}']) >= 4.5,
+          (round(contrast(var[f'b-{c}'], var[f'on-{c}']), 1), round(contrast(var_l[f'b-{c}'], var_l[f'on-{c}']), 1)))
+    check(f"{c}: 標題文字色在區塊底 >= 4.5 (深 / 淺)",
+          contrast(var[f'c-{c}'], var['bg-2']) >= 4.5 and contrast(var_l[f'c-{c}'], var_l['bg-2']) >= 4.5,
+          (round(contrast(var[f'c-{c}'], var['bg-2']), 1), round(contrast(var_l[f'c-{c}'], var_l['bg-2']), 1)))
 codes = dict(re.findall(r'\.k-(\w+)\{[^}]*--L:"(\w)"\}', css))
 check("站名字母: S 個股 / P 大戶 / M 市場 / R 風險 / C 一般", codes == {'stocks': 'S', 'players': 'P', 'market': 'M', 'risk': 'R', 'meta': 'C'}, codes)
 check("紅漲綠跌不被路線色蓋掉 (沒有改 --red / --green)", '--red:' not in css and '--green:' not in css)
 
 print("\n[B] 每頁的區塊: 色帶 + 編號")
-check("區塊標題 = 路線色色帶 + 站名編號 (字母 + 頁內序號)",
-      'counter-increment:sec' in css and 'content:var(--L) counter(sec,decimal-leading-zero)' in css and 'background:var(--b)!important' in css)
+check("區塊標題 = 路線色細線 + 路線色標題字 + 站名編號 (字母 + 頁內序號)",
+      'counter-increment:sec' in css and 'content:var(--L) counter(sec,decimal-leading-zero)' in css
+      and '.section-title{background:var(--bg-2)!important;color:var(--c)!important;border-top:2px solid var(--b)!important' in css)
 check("每頁重新編號", re.search(r'\.panel\{[^}]*counter-reset:sec', css) is not None)
 for pid, cat in [('today3', 'market'), ('overview', 'stocks'), ('masterview', 'players'), ('futures', 'market')]:
     check(f"#panel-{pid} 主線是 {cat}", re.search(rf'#panel-{pid}[,\s][^{{]*\{{--b:var\(--b-{cat}\)', css) is not None
@@ -104,6 +106,23 @@ check("完整表格用寬抽屜", ".dr.dr-wide{width:min(1360px,96vw)}" in h and
 check("從抽屜點個股: 個股明細疊在抽屜上面", '.overlay{z-index:9994!important}.drawer{z-index:9995!important}' in h)
 check("大數字格 = 路線色色帶 + 編號 (S02 ...)", '.stat-box .label::before{content:var(--L) counter(sec,decimal-leading-zero)' in h)
 check("分頁不再用 style containment (它會把每格編號都變 01)", '.panel,.stat-row{contain:layout!important}' in h)
+
+print("\n[F] 配色 C 終端 (v3.92.0): 純黑底、細線分區、實心編號鍵、琥珀色是唯一品牌色")
+check("深色: 純黑底, 基本色票在 EKI 區塊覆寫", var.get('bg') == '#000000' and var.get('bg-2') == '#0D0E10' and var.get('gold') == '#F5A524')
+check("淺色: 中性灰白底, 基本色票也覆寫", var_l.get('bg') == '#F3F4F6' and var_l.get('bg-2') == '#FFFFFF' and var_l.get('gold') == '#A65F00')
+for th, vv in (('深', var), ('淺', var_l)):
+    for t in ('text', 'text-2', 'text-3'):
+        check(f"{th}色: {t} 在區塊底對比 >= 4.5", contrast(vv[t], vv['bg-2']) >= 4.5, round(contrast(vv[t], vv['bg-2']), 1))
+check("背景不再有彩色光暈", '--bg-radial-1:transparent;--bg-radial-2:transparent' in css and css.count('--bg-radial-1:transparent') == 2)
+check("大面積不再填路線色: 標題列 / 卡片標頭 / 數字格標頭都是區塊底 + 2 px 色線",
+      '.ek-band{display:flex;align-items:center;gap:10px;background:var(--bg-2);color:var(--c);border-top:2px solid var(--b)' in css
+      and '.stat-box .label{background:var(--bg-2);color:var(--c)!important;border-top:2px solid var(--b)' in h
+      and 'background:var(--b);color:var(--on);padding:8px 14px' not in h)
+check("編號是實心方鍵 (路線色底 + 對比字), 不再有白圈", '.ek-code{flex:0 0 auto;padding:2px 6px;background:var(--b);color:var(--on)' in css
+      and 'background:var(--b)!important;color:var(--on)!important;border:0!important' in css and 'box-shadow:0 0 0 2px #fff' not in h)
+check("琥珀色標出品牌與目前分頁", '.tab.active{background:var(--bg-3);color:var(--gold);border-bottom-color:var(--gold)}' in css
+      and 'color:var(--gold);-webkit-text-fill-color:var(--gold)' in css)
+check("看板按鈕是外框鍵, 不是整塊色", '.bd-more{display:block;width:100%;margin:0 0 12px;padding:12px;background:none;color:var(--c);border:1px solid var(--b)' in h)
 
 print()
 print("─" * 72)
