@@ -199,9 +199,13 @@ def build_summary(days, stock_history=None, attstock=None, official_names=None):
     def risk_of(c):
         return "處置中" if c in in_disp else ("明日恐處置" if c in pend else "")
 
-    top_rows = [{"code": c, "name": name(c), "masters": len(m), "net10_yi": _yi(sum(m.values())),
-                 "chg_pct": px(c).get("change_pct"), "risk": risk_of(c), "new": c in new3}
-                for c, m in top[:5]]
+    def strong_row(c, m):
+        return {"code": c, "name": name(c), "masters": len(m), "net10_yi": _yi(sum(m.values())),
+                "chg_pct": px(c).get("change_pct"), "risk": risk_of(c), "new": c in new3,
+                "who": [w for w, _ in sorted(m.items(), key=lambda x: -x[1])[:3]]}
+
+    top_rows = [strong_row(c, m) for c, m in top[:5]]
+    strong_all = [strong_row(c, m) for c, m in top]          # v3.90.0 the drawer lists every one
 
     changes = []
     if new3:
@@ -300,7 +304,9 @@ def build_summary(days, stock_history=None, attstock=None, official_names=None):
     flows = [day_flows(rows[u], foreign) for u in span]
 
     def fut(u, key):
-        return ((days[u]["data"].get("futures_data") or {}).get("summary") or {}).get(key)
+        # 0 means the futures fetch failed that day (20260917 stored 0 net OI): a gap, not a value
+        v = ((days[u]["data"].get("futures_data") or {}).get("summary") or {}).get(key)
+        return v if v else None
 
     trends = {
         "dates": [days[u]["date"] for u in span],
@@ -330,6 +336,8 @@ def build_summary(days, stock_history=None, attstock=None, official_names=None):
         "strong_top": top_rows,
         "changes": changes[:5],
         "domestic_top": dom[:5],
+        "strong_all": strong_all,
+        "domestic_all": dom,
         "foreign": frn,
         "risk": {"in_disposal": len(in_disp),
                  "pending": [{"code": c, "name": name(c), "strong_masters": len(now.get(c, {}))} for c in sorted(pend)],

@@ -105,6 +105,13 @@ check("走勢最後一點 = 今天的大數字", tr['strong'][-1] == k['strong_c
 check("強籌走勢每天用自己的 10 日窗 (第 5 天 5 x 500 萬未滿 3,000 萬 → 0, 第 6 天起 1)",
       tr['strong'] == [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2], tr['strong'])
 check("本土走勢: 2317 進場前 +0.3、之後 +0.5 億", tr['domestic'][:6] == [0.3] * 6 and tr['domestic'][6:] == [0.5] * 5, tr['domestic'])
+gap = [day(i) for i in range(11)]
+gap[3]['data']['futures_data']['summary'] = {'foreign_equivalent_net_oi': 0, 'pc_ratio_oi': 0}
+tg = ds.build_summary(gap)['trends']
+check("期貨沒抓到那天 (存成 0) 在走勢裡是空格, 不是 0 (20260917 實例)", tg['fut_oi'][3] is None and tg['pc'][3] is None
+      and tg['fut_oi'][4] == -880, (tg['fut_oi'][2:5], tg['pc'][2:5]))
+check("完整清單: 強籌全部 / 本土大戶全部", [r['code'] for r in s['strong_all']] == ['2330', '2317']
+      and len(s['domestic_all']) == 4 and s['strong_all'][0]['who'][:1] and len(s['strong_all'][0]['who']) == 3, s['strong_all'][0].get('who'))
 check("只有 1 天也能產生 (不當機)", ds.build_summary(days[:1])['kpis']['strong_prev'] == 0)
 
 # C. the script: encrypted envelope, round trip, unchanged night is not rewritten

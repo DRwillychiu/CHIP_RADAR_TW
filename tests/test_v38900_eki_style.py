@@ -68,11 +68,29 @@ js = h[h.index('function _dsSpark('):h.index('function renderAll() {')]
 for L, no in [('S', '01'), ('P', '02'), ('P', '03'), ('R', '04'), ('S', '05'), ('C', '06'), ('M', '07')]:
     check(f"有 {L}{no}", f"'{L}', '{no}'" in js)
 check("01 / 02 / 03 有 20 日走勢, 04 沒有 (處置歷史兩個來源對不起來)",
-      't.strong, false)' in js and 't.domestic, true)' in js and 't.foreign, true' in js and "n.risk, null, false)" in js)
+      "t.strong, false, 'strong')" in js and "t.domestic, true, 'domestic')" in js and 't.foreign, true,' in js
+      and "n.risk, null, false, 'risk')" in js)
 check("市場四列都有小走勢", all(f't.{x}' in js for x in ('taiex', 'fut_oi', 'margin', 'pc')))
 sp = js[js.index('function _dsSpark('):js.index('function renderDailySummary()')]
 check("走勢小圖: 不足 2 點不畫、略過空值、淨買賣畫 0 線",
       "if (pts.length < 2) return '';" in sp and "isFinite(p[1])" in sp and 'stroke-dasharray' in sp)
+
+print("\n[D] 細節收進右側抽屜 (v3.90.0)")
+dj = h[h.index('// ========== v3.90.0 detail drawer'):h.index('function renderAll() {')]
+for kind in ['strong', 'domestic', 'foreign', 'risk', 'market']:
+    check(f"抽屜 {kind}: 有內容、頁面上有入口", f"kind === '{kind}'" in dj and (f"_dsOpen('{kind}')" in js or f"'{kind}' : ''" in js
+          or f"'{kind}')" in js or f"_dsOpen(\\'{kind}\\')" in js))
+check("✕ / 背景 / Esc / 瀏覽器上一頁 都能關", "onclick=\"_dsClose()\"" in dj and "e.key === 'Escape'" in dj
+      and "addEventListener('popstate'" in dj and "history.pushState" in dj)
+check("抽屜開著時數字鍵不切分頁", "if (document.body.classList.contains('dr-lock')) return;" in h)
+check("鎖定時關抽屜", "if (typeof _dsClose === 'function') _dsClose();" in h)
+check("舊的外資展開列拿掉了 (改成抽屜)", '_dsToggleForeign' not in h and 'id="dsFx"' not in h)
+check("抽屜用完整清單 (strong_all / domestic_all)", 's.strong_all' in dj and 's.domestic_all' in dj)
+uses = list(re.finditer(r'\b(?:p|r|rk)\.(?:name|master|code|risk|who|best_name|fetched_at)\b', dj))
+raw = [dj[max(0, m.start() - 14):m.end() + 4] for m in uses
+       if not re.search(r'escHtml\(\(?$', dj[max(0, m.start() - 10):m.start()]) and not dj[m.end():m.end() + 2] == ' ?']
+check("抽屜裡從資料來的名稱 / 代號 / 大戶 / 風險 一律 escape (或只當判斷條件)", len(uses) >= 9 and not raw, raw)
+check("手機: 從下方拉出的全寬面板", re.search(r'@media \(max-width:560px\)\{\s*\.dr\{top:auto;width:100vw', h) is not None)
 
 print()
 print("─" * 72)

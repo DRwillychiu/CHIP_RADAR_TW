@@ -3950,6 +3950,44 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 @media (max-width:768px){.header-inner{padding:0}.logo-cn{padding:10px 16px}.header-actions .btn{padding:8px 10px}.tab{padding:10px 10px;font-size:12px}}
 @media (max-width:560px){.ek-h1{font-size:22px;border-left-width:6px;padding-left:12px}.ek-v{font-size:52px}.ek-band{font-size:13px;padding:7px 10px}
   .ek-band .en{display:none}.ek-nm{flex-basis:104px}.ek li{font-size:14px;padding:8px 10px}.ek-d{white-space:normal}}
+
+/* v3.90.0 detail drawer: the page shows the big points, details slide in from the right */
+.ek-tap{cursor:pointer}.ek-tap:hover .ek-band{filter:brightness(1.12)}
+.ek-band .more{font-size:11px;font-weight:900;letter-spacing:.04em;opacity:.9}
+.ek-mkt li{cursor:pointer}.ek-mkt li:hover{background:var(--bg-3)}
+.dr-wrap{position:fixed;inset:0;z-index:9990;pointer-events:none}
+.dr-back{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .18s}
+.dr{position:absolute;top:0;right:0;bottom:0;width:min(900px,92vw);background:var(--bg);border-left:4px solid var(--b);
+  transform:translateX(100%);transition:transform .22s ease-out;display:flex;flex-direction:column;box-shadow:-14px 0 44px rgba(0,0,0,.55)}
+.dr-wrap.open{pointer-events:auto}.dr-wrap.open .dr-back{opacity:1}.dr-wrap.open .dr{transform:none}
+body.dr-lock{overflow:hidden}
+.dr-band{flex:0 0 auto;font-size:17px;padding:12px 16px}
+.dr-x{margin-left:14px;background:none;border:0;color:inherit;font-size:20px;cursor:pointer;font-weight:900;line-height:1;padding:0 4px}
+.dr-body{flex:1;overflow:auto;padding:4px 20px 20px;color:var(--text)}
+.dr-foot{flex:0 0 auto;padding:12px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:12px}
+.dr-foot button{background:var(--b);color:var(--on);border:0;padding:9px 16px;font:inherit;font-weight:900;cursor:pointer}
+.dr-kpis{display:flex;gap:36px;padding:14px 0 12px;border-bottom:1px solid var(--line);margin-bottom:8px;font-size:12px;color:var(--text-3);font-weight:700}
+.dr-kpis b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:36px;line-height:1.05;color:var(--text);font-weight:600;margin-top:2px}
+.dr table{width:100%;min-width:0;border-collapse:collapse}
+.dr th{position:sticky;top:0;z-index:1;background:var(--bg-3)!important;color:var(--text-2)!important;font-size:12px;font-weight:700;text-align:left;padding:8px 10px}
+.dr td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:14px;white-space:nowrap;color:var(--text)}
+.dr .r{text-align:right}.dr .dim{color:var(--text-3)}
+.dr .num{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:600;text-align:right}
+.dr td .num{display:inline-block;min-width:28px}
+.dr-bar{display:inline-block;width:90px;height:6px;background:var(--line);vertical-align:middle;margin-right:8px}.dr-bar b{display:block;height:6px;background:var(--b)}
+.dr-new,.dr-risk{font-style:normal;font-size:11px;font-weight:900;padding:1px 6px;margin-left:4px}
+.dr-new{background:var(--b-stocks);color:var(--on-stocks)}.dr-risk{background:var(--b-risk);color:var(--on-risk)}
+.dr-trend{color:var(--c);padding:8px 0 4px;display:flex;flex-direction:column;gap:2px}
+.dr-trend svg{max-width:100%;height:auto}.dr-trend span{font-size:12px;color:var(--text-3)}
+.dr-series{padding:14px 0;border-bottom:1px solid var(--line)}
+.dr-sh{display:flex;justify-content:space-between;align-items:baseline}.dr-sh b{font-size:15px;font-weight:900}.dr-sh .num{font-size:30px}
+.dr-last{display:flex;gap:22px;flex-wrap:wrap;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:600}
+.dr-last em{font-style:normal;font-family:'Noto Sans TC',sans-serif;font-size:11px;color:var(--text-3);margin-right:6px;font-weight:500}
+.dr-note{margin-top:10px;font-size:12px;color:var(--text-3)}
+@media (max-width:560px){
+  .dr{top:auto;width:100vw;height:92vh;border-left:0;border-top:4px solid var(--b);transform:translateY(100%)}
+  .dr-wrap.open .dr{transform:none}.dr-body{padding:4px 12px 16px}.dr-kpis{gap:20px}.dr-kpis b{font-size:28px}
+  .dr td{font-size:13px;padding:8px 6px;white-space:normal}.dr-bar{width:44px}.dr table{min-width:0!important}.dr-wide{display:none}}
 </style>
 </head>
 <body>
@@ -6434,6 +6472,7 @@ function _loadDayDataInBackground() {
 function lockApp() {
   if (!confirm('確定要鎖定？')) return;
   _DAY_LOADING = null; CURRENT_LATEST_ETAG = null; DAILY_SUMMARY = null; _DS_TOKEN = null;   // v3.86.1
+  if (typeof _dsClose === 'function') _dsClose();   // v3.90.0
   SESSION_PASSWORD = null;
   CURRENT_CRAWLED_AT = null;   // P0-4
   CURRENT_DATA = null; ALL_HISTORY = {}; AVAILABLE_DATES = []; POSITIONS = null; WATCHLIST = new Set();
@@ -9564,6 +9603,7 @@ function showAccuracyModal() {
 }
 document.addEventListener('keydown', (e) => {
   if (!SESSION_PASSWORD) return;
+  if (document.body.classList.contains('dr-lock')) return;   // v3.90.0 drawer open
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
   const tabs = document.querySelectorAll('.tab:not([data-tab="summary"])');   // v3.86.0: 1-9 keep their tabs
   if (e.key === '`') { _dsGo('summary'); return; }
@@ -10040,10 +10080,6 @@ function _dsUpDn(v, nd = 2, unit = '%') {
   return `<span class="${_dsCls(v)}">${a} ${Math.abs(v).toFixed(nd)}${unit}</span>`;
 }
 function _dsGo(tab) { const b = document.querySelector(`.tab[data-tab="${tab}"]`); if (b) b.click(); }
-function _dsToggleForeign() {
-  const el = document.getElementById('dsFx');
-  if (el) el.classList.toggle('open');
-}
 const _DS_CHG_LABEL = [['新進強籌', '新進'], ['跌出', '跌出'], ['主力暴增', '暴增'], ['強籌∩風險', '風險']];
 // v3.89.0 sparkline (owner 2026-10-10: C's 20-day trend minis). zero=true draws the 0 line
 // (for net buy / sell series). Gaps (null) are skipped; the last point gets a dot.
@@ -10080,19 +10116,18 @@ function renderDailySummary() {
   const band = (L, no, label, en, extra = '') =>
     `<div class="ek-band"><span class="ek-code">${L}<small>${no}</small></span>${label}${extra}<span class="en">${en}</span></div>`;
   const frn = s.foreign || [];
-  const big = (cls, L, no, label, en, value, unit, note, trend, zero, tap = false) =>
-    `<div class="ek-blk ${cls}${tap ? ' ek-tap' : ''}"${tap ? ' onclick="_dsToggleForeign()"' : ''}>
-      ${band(L, no, label, en, tap ? '<span class="more">明細 ▾</span>' : '')}
+  const big = (cls, L, no, label, en, value, unit, note, trend, zero, kind = '') =>
+    `<div class="ek-blk ${cls}${kind ? ' ek-tap' : ''}"${kind ? ` onclick="_dsOpen('${kind}')"` : ''}>
+      ${band(L, no, label, en, kind ? '<span class="more">詳細 ›</span>' : '')}
       <div class="ek-v">${value}<small>${unit}</small></div>
       <div class="ek-spark">${trend ? _dsSpark(trend, 280, 36, zero) : ''}</div>
       <div class="ek-d">${escHtml(note || '')}</div></div>`;
   const nums = [
-    big('k-stocks', 'S', '01', '強籌', 'STRONG CHIPS', k.strong_count ?? '—', '檔', n.strong, t.strong, false),
-    big('k-players', 'P', '02', '本土大戶', 'DOMESTIC', _dsSign(k.domestic_net_yi), '億', n.domestic, t.domestic, true),
-    big('k-players', 'P', '03', '外資大戶', 'FOREIGN', _dsSign(k.foreign_net_yi), '億', n.foreign, t.foreign, true, frn.length > 0),
-    big('k-risk', 'R', '04', '明日恐處置', 'RISK', k.disposal_pending ?? '—', '檔', n.risk, null, false),
+    big('k-stocks', 'S', '01', '強籌', 'STRONG CHIPS', k.strong_count ?? '—', '檔', n.strong, t.strong, false, 'strong'),
+    big('k-players', 'P', '02', '本土大戶', 'DOMESTIC', _dsSign(k.domestic_net_yi), '億', n.domestic, t.domestic, true, 'domestic'),
+    big('k-players', 'P', '03', '外資大戶', 'FOREIGN', _dsSign(k.foreign_net_yi), '億', n.foreign, t.foreign, true, frn.length ? 'foreign' : ''),
+    big('k-risk', 'R', '04', '明日恐處置', 'RISK', k.disposal_pending ?? '—', '檔', n.risk, null, false, 'risk'),
   ].join('');
-  const fx = frn.map(p => `<span>${escHtml(p.master)}<b class="${_dsCls(p.net_yi)}">${_dsSign(p.net_yi)}</b></span>`).join('');
   const top = s.strong_top || [];
   const mx = Math.max(1, ...top.map(r => r.masters || 0));
   const strong = top.map((r, i) => `<li><span class="ek-rk">${i + 1}</span>
@@ -10109,7 +10144,7 @@ function renderDailySummary() {
     ['外資台指期', oi == null ? '—' : `淨${oi < 0 ? '空' : '多'} ${_dsNum(oi, 0)}`, oiChg == null ? '' : `<span class="ek-sub">${(oiChg < 0) === (oi < 0) ? '增' : '減'} ${_dsNum(oiChg, 0)}</span>`, t.fut_oi, false],
     ['融資', `${_dsSign(k.margin_chg_yi)} 億`, `<span class="ek-sub">昨 ${_dsSign(k.margin_chg_yi_prev)}</span>`, t.margin, true],
     ['P/C', k.pc_ratio == null ? '—' : k.pc_ratio.toFixed(2), `<span class="ek-sub">${_dsSign(k.pc_ratio_chg, 2)}</span>`, t.pc, false],
-  ].map(([a, b, c, tr, z]) => `<li><span class="ek-lb">${a}</span><span class="ek-mv">${b}</span><span class="ek-ms">${tr ? _dsSpark(tr, 64, 20, z) : ''}</span>${c}</li>`).join('');
+  ].map(([a, b, c, tr, z]) => `<li><span class="ek-lb">${a}</span><span class="ek-mv">${b}</span><span class="ek-ms">${tr ? _dsSpark(tr, 64, 20, z) : ''}</span>${c}</li>`).join('').replace(/<li>/g, `<li onclick="_dsOpen('market')">`);
   const days = (t.dates || []).length;
   box.innerHTML = `<div class="ek">
     <div class="ek-eye"><span><span class="dt">${date}</span>（${escHtml(s.weekday || '')}）今日總整理</span>
@@ -10117,15 +10152,111 @@ function renderDailySummary() {
       <button class="ek-xl" onclick="document.getElementById('excelDownloadBtn').click()">Excel 日報 ↓</button></span></div>
     <h2 class="ek-h1">${escHtml(headline)}</h2>
     <section class="ek-nums">${nums}</section>
-    <div class="ek-fx" id="dsFx">${fx}</div>
     <section class="ek-cols">
-      <div class="ek-blk k-stocks">${band('S', '05', '強籌前 5', 'STRONG CHIPS', '<button class="ek-go" onclick="_dsGo(\'overview\')">共買榜 →</button>')}<ul>${strong}</ul></div>
+      <div class="ek-blk k-stocks">${band('S', '05', '強籌前 5', 'STRONG CHIPS', `<button class="ek-go" onclick="_dsOpen('strong')">全部 ${k.strong_count ?? ''} 檔 ›</button>`)}<ul>${strong}</ul></div>
       <div class="ek-blk k-meta">${band('C', '06', '今天變了什麼', 'CHANGES')}<ul>${chg}</ul></div>
-      <div class="ek-blk k-market ek-mkt">${band('M', '07', '市場', 'MARKET', '<button class="ek-go" onclick="_dsGo(\'futures\')">期貨 →</button>')}<ul>${mkt}</ul></div>
+      <div class="ek-blk k-market ek-mkt">${band('M', '07', '市場', 'MARKET', '<button class="ek-go" onclick="_dsOpen(\'market\')">20 日 ›</button>')}<ul>${mkt}</ul></div>
     </section>
     <div class="ek-foot"><span>路線色：S 個股（黃）・P 大戶（藍）・M 市場（青）・R 風險（紫）・C 一般（灰）。小圖＝近 ${days || 20} 個交易日走勢。</span>
       <span>強籌：每位大戶近 ${s.window_days || 10} 日淨買 ≥ 3,000 萬、買超 ≥ 5 天、仍在高點 80% 以上，3 位以上同時布局。</span></div>
   </div>`;
+}
+
+// ========== v3.90.0 detail drawer ==========
+// Owner 2026-10-10: the page shows only the big points; details open when asked for.
+// A right-side drawer (not a centred popup): the big numbers stay visible, long lists
+// fit, and ✕ / Esc / backdrop / the browser's Back button all close it. Phones: a
+// full-width sheet from the bottom.
+function _dsDrawer(cat, L, no, title, en, body, foot = '') {
+  let el = document.getElementById('dsDrawer');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'dsDrawer';
+    el.className = 'dr-wrap';
+    el.innerHTML = '<div class="dr-back" onclick="_dsClose()"></div><aside class="dr" role="dialog" aria-modal="true" aria-labelledby="drTitle"></aside>';
+    document.body.appendChild(el);
+  }
+  const dr = el.querySelector('.dr');
+  dr.className = `dr k-${cat}`;
+  dr.innerHTML = `<div class="ek-band dr-band"><span class="ek-code">${L}<small>${no}</small></span><span id="drTitle">${title}</span>
+      <span class="en">${en}</span><button class="dr-x" onclick="_dsClose()" aria-label="關閉">✕</button></div>
+    <div class="dr-body">${body}</div>${foot ? `<div class="dr-foot">${foot}</div>` : ''}`;
+  el.classList.add('open');
+  document.body.classList.add('dr-lock');
+  if (location.hash !== '#detail') history.pushState({ dsDrawer: true }, '', '#detail');
+  dr.querySelector('.dr-x').focus();
+}
+function _dsClose(fromHistory = false) {
+  const el = document.getElementById('dsDrawer');
+  if (!el || !el.classList.contains('open')) return;
+  el.classList.remove('open');
+  document.body.classList.remove('dr-lock');
+  if (!fromHistory && location.hash === '#detail') history.back();
+}
+window.addEventListener('popstate', () => _dsClose(true));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') _dsClose(); });
+function _dsPage(tab, label) {
+  return `<button onclick="_dsClose();_dsGo('${tab}')">${label} →</button>`;
+}
+function _dsKpis(items) {
+  return `<div class="dr-kpis">${items.map(([a, b]) => `<div>${a}<b>${b}</b></div>`).join('')}</div>`;
+}
+function _dsPlayersTable(rows) {
+  return `<table><thead><tr><th>#</th><th>大戶</th><th class="r">今晚淨買(億)</th><th class="r">分點</th><th>主要個股</th></tr></thead><tbody>${
+    rows.map((p, i) => `<tr><td class="dim">${i + 1}</td><td><b>${escHtml(p.master)}</b></td>
+      <td class="num ${_dsCls(p.net_yi)}">${_dsSign(p.net_yi)}</td><td class="num">${p.branches ?? '—'}</td>
+      <td>${escHtml(p.best_name || '')} <span class="dim">${p.best_code ? _dsSign(p.best_yi) : ''}</span></td></tr>`).join('')
+  }</tbody></table>`;
+}
+function _dsOpen(kind) {
+  const s = DAILY_SUMMARY;
+  if (!s) return;
+  const k = s.kpis || {}, t = s.trends || {};
+  if (kind === 'strong') {
+    const rows = s.strong_all || s.strong_top || [];
+    const mx = Math.max(1, ...rows.map(r => r.masters || 0));
+    const body = _dsKpis([['強籌', `${k.strong_count ?? '—'} 檔`], ['昨天', `${k.strong_prev ?? '—'} 檔`], ['新進', `${k.strong_new ?? '—'} 檔`]])
+      + `<table><thead><tr><th>#</th><th>股票</th><th>大戶</th><th class="r">10日淨買(億)</th><th class="r">今日</th><th class="dr-wide">主要大戶</th></tr></thead><tbody>${
+        rows.map((r, i) => `<tr><td class="dim">${i + 1}</td>
+          <td><b>${escHtml(r.name)}</b> <span class="dim">${escHtml(r.code)}</span>${r.new ? ' <i class="dr-new">新進</i>' : ''}${r.risk ? ` <i class="dr-risk">${escHtml(r.risk)}</i>` : ''}</td>
+          <td><span class="dr-bar"><b style="width:${Math.round((r.masters || 0) / mx * 100)}%"></b></span><span class="num">${r.masters}</span></td>
+          <td class="num">${r.net10_yi == null ? '—' : _dsNum(r.net10_yi, 1)}</td><td class="r">${_dsUpDn(r.chg_pct)}</td>
+          <td class="dim dr-wide">${escHtml((r.who || []).join('、'))}</td></tr>`).join('')
+      }</tbody></table>`;
+    _dsDrawer('stocks', 'S', '01', `強籌 ${rows.length} 檔`, 'STRONG CHIPS', body, _dsPage('overview', '共買榜（完整頁）'));
+  } else if (kind === 'domestic') {
+    const rows = s.domestic_all || s.domestic_top || [];
+    const body = _dsKpis([['本土合計', `${_dsSign(k.domestic_net_yi)} 億`], ['大戶', `${k.domestic_masters ?? rows.length} 位`], ['分點', `${k.domestic_branches ?? '—'}`]])
+      + `<div class="dr-trend k-players">${_dsSpark(t.domestic, 760, 70, true)}<span>近 ${(t.dates || []).length} 日本土淨買</span></div>` + _dsPlayersTable(rows);
+    _dsDrawer('players', 'P', '02', `本土大戶 ${rows.length} 位`, 'DOMESTIC', body, _dsPage('masterview', '高手合併視圖（完整頁）'));
+  } else if (kind === 'foreign') {
+    const rows = s.foreign || [];
+    const body = _dsKpis([['外資合計', `${_dsSign(k.foreign_net_yi)} 億`], ['券商', `${rows.length} 家`]])
+      + `<div class="dr-trend k-players">${_dsSpark(t.foreign, 760, 70, true)}<span>近 ${(t.dates || []).length} 日外資券商淨買</span></div>` + _dsPlayersTable(rows);
+    _dsDrawer('players', 'P', '03', `外資大戶 ${rows.length} 家`, 'FOREIGN', body, _dsPage('masterview', '高手合併視圖（完整頁）'));
+  } else if (kind === 'risk') {
+    const rk = s.risk || {};
+    const rows = rk.pending || [];
+    const body = _dsKpis([['明日恐處置', `${rows.length} 檔`], ['處置中', `${rk.in_disposal ?? '—'} 檔`]])
+      + `<table><thead><tr><th>股票</th><th class="r">強籌大戶</th></tr></thead><tbody>${
+        rows.map(p => `<tr><td><b>${escHtml(p.name)}</b> <span class="dim">${escHtml(p.code)}</span></td><td class="num">${p.strong_masters}</td></tr>`).join('')
+        || '<tr><td colspan="2" class="dim">明日沒有恐處置的股票</td></tr>'
+      }</tbody></table><div class="dr-note">名單來源：attstock（${escHtml(rk.fetched_at || '').slice(0, 16).replace('T', ' ')} 抓取）</div>`;
+    _dsDrawer('risk', 'R', '04', '明日恐處置', 'RISK', body);
+  } else if (kind === 'market') {
+    const ds = t.dates || [];
+    const last5 = ds.slice(-5);
+    const series = [['加權指數', t.taiex, v => _dsNum(v, 0), false], ['外資台指期淨單（口）', t.fut_oi, v => (v < 0 ? '−' : '') + _dsNum(v, 0), false],
+                    ['融資增減（億）', t.margin, v => _dsSign(v, 1), true], ['P/C（未平倉）', t.pc, v => v.toFixed(2), false]];
+    const body = series.map(([label, vals, fmt, zero]) => {
+      const v = vals || [];
+      const tail = v.slice(-5);
+      return `<div class="dr-series"><div class="dr-sh"><b>${label}</b><span class="num">${v.length && v[v.length - 1] != null ? fmt(v[v.length - 1]) : '—'}</span></div>
+        <div class="dr-trend k-market">${_dsSpark(v, 760, 64, zero)}</div>
+        <div class="dr-last">${last5.map((d, i) => `<span><em>${d.slice(4, 6)}/${d.slice(6)}</em>${tail[i] == null ? '—' : fmt(tail[i])}</span>`).join('')}</div></div>`;
+    }).join('');
+    _dsDrawer('market', 'M', '07', `市場 近 ${ds.length} 日`, 'MARKET', body, _dsPage('futures', '期貨情報（完整頁）'));
+  }
 }
 
 function renderAll() {
