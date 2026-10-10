@@ -99,13 +99,34 @@ bj = h[h.index('// ========== v3.91.0 board pages'):h.index('function renderAll(
 check("共買榜是看板頁 (前 5 列、前 4 欄)", "overview: { src: 'overviewResult'" in bj and 'cols: 4, rows: 5' in bj)
 check("看板只藏不刪: 前 5 列以外、前 4 欄以外用 CSS 收起", '.bd-table.bd-r5 tbody tr:nth-child(n+6){display:none}' in h
       and '.bd-table.bd-c4 th:nth-child(n+5),.bd-table.bd-c4 td:nth-child(n+5){display:none}' in h)
-check("每次重畫都自動套用 (MutationObserver), 不改原本的畫法", 'new MutationObserver(() => _boardify(tab))' in bj)
+check("每次重畫都自動套用 (MutationObserver), 不改原本的畫法; 自己的改動不會再觸發自己",
+      'new MutationObserver((recs, obs) => { _boardify(tab); obs.takeRecords(); })' in bj and 'subtree: !!_BOARDS[tab].deep' in bj)
 check("抽屜裡是完整表格的即時副本 (排序 / 篩選後跟著更新)", 'cloneNode(true)' in bj and 'if (_DR_SRC === tab) _boardFill(tab);' in bj)
 check("抽屜開 / 關都重設來源", h.count('_DR_SRC = null') >= 2)
 check("完整表格用寬抽屜", ".dr.dr-wide{width:min(1360px,96vw)}" in h and "classList.add('dr-wide')" in bj)
 check("從抽屜點個股: 個股明細疊在抽屜上面", '.overlay{z-index:9994!important}.drawer{z-index:9995!important}' in h)
 check("大數字格 = 路線色色帶 + 編號 (S02 ...)", '.stat-box .label::before{content:var(--L) counter(sec,decimal-leading-zero)' in h)
 check("分頁不再用 style containment (它會把每格編號都變 01)", '.panel,.stat-row{contain:layout!important}' in h)
+
+print("\n[G] 今日三視角看板 (v3.93.0): 情境三鍵 + 大數字 + 前 5 名, 其餘在抽屜")
+check("今日三視角是看板頁, 四個部分 (清單 / 外資期現貨 / 強弱族群 / 即時警報)",
+      "_BOARDS.today3 = { src: 'today3Result', deep: true, apply: _boardToday3" in bj
+      and all(f"{p}:" in bj for p in ('list', 'fx', 'strength', 'alerts')))
+check("三個情境區塊在看板上只藏不刪, 收成一排鍵", '.bd-t3 #today3FxSync,.bd-t3 #today3Strength,.bd-t3 #today3Alerts' in h
+      and "inner.insertAdjacentHTML('beforebegin', '<div id=\"t3Keys\" class=\"bd-keys\"></div>')" in bj)
+check("鍵上的字 escape, 內容沒變就不重寫", 'escHtml(v)' in bj and 'escHtml(d)' in bj and 'row.dataset.k !== keys' in bj)
+check("鍵也有站名編號", '.bd-key{background:var(--bg-2);cursor:pointer;min-width:0;counter-increment:sec}' in h
+      and '.bd-cnt::before{content:var(--L) counter(sec,decimal-leading-zero)}' in h)
+check("當沖 / 隔日沖: 前 5 名一列一個分點, 卡片收進抽屜", 'cards.slice(0, 5).forEach((c, i) => list.appendChild(_t3Row(c, i)))' in bj
+      and "grid.classList.add('bd-x')" in bj)
+t3row = bj[bj.index('function _t3Row('):bj.index('function _boardToday3()')]
+check("前 5 名的列只用文字組 (不把資料當 HTML)", 'innerHTML' not in t3row and 'insertAdjacentHTML' not in t3row and 'textContent' in t3row)
+check("波段: 第一段留 5 列, 後面的段落收進抽屜", 'if (sec === 1 && ++k <= 5) last = ch; else ch.classList.add(\'bd-x\');' in bj
+      and 'if (++sec > 1) ch.classList.add(\'bd-x\')' in bj)
+fp = bj[bj.index('function _boardFillPart('):]
+check("抽屜副本: 拿掉 id (不重複)、藏的列放出來、看板加的東西和大數字不重複",
+      "querySelectorAll('[id]').forEach(e => e.removeAttribute('id'))" in fp and "classList.remove('bd-x')" in fp
+      and "querySelectorAll('.bd-add,.stat-row').forEach(e => e.remove())" in fp)
 
 print("\n[F] 配色 C 終端 (v3.92.0): 純黑底、細線分區、實心編號鍵、琥珀色是唯一品牌色")
 check("深色: 純黑底, 基本色票在 EKI 區塊覆寫", var.get('bg') == '#000000' and var.get('bg-2') == '#0D0E10' and var.get('gold') == '#F5A524')

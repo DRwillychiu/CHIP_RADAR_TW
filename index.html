@@ -4017,6 +4017,29 @@ body.dr-lock{overflow:hidden}
 .dr th.num{font-family:inherit;font-size:12px}
 .overlay{z-index:9994!important}.drawer{z-index:9995!important}   /* the stock detail opens above a board drawer */
 @media (max-width:560px){.stat-box .val{font-size:30px!important;padding:4px 10px 0}.stat-box .label{font-size:12px!important;padding:6px 8px!important}}
+/* v3.93.0 今日三視角 board: context blocks fold into keys, the view keeps its big numbers and top 5 */
+.bd-t3 #today3FxSync,.bd-t3 #today3Strength,.bd-t3 #today3Alerts,.bd-t3 #today3Inner .view-hint,.bd-t3 .bd-x{display:none!important}
+.bd-t3 #today3Inner{--b:var(--b-players);--on:var(--on-players);--c:var(--c-players);--L:"P"}
+.bd-keys{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:10px;margin:12px 0 4px}
+.bd-key{background:var(--bg-2);cursor:pointer;min-width:0;counter-increment:sec}
+.bd-key:hover .ek-band{background:var(--bg-3)}
+.bd-cnt::before{content:var(--L) counter(sec,decimal-leading-zero)}
+.bd-kv{font-family:'Barlow Condensed','Noto Sans TC',sans-serif;font-weight:700;font-size:28px;line-height:1.15;padding:10px 16px 0;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-t3 .stat-box .val br{display:none}   /* "榜首 master<br>× stock" on one line */
+.bd-t3 .swing-row > div:nth-child(2) > div:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* one line of masters per row */
+.bd-t3 .swing-row .swing-tag{white-space:nowrap}
+.bd-t3 .swing-row > div:nth-child(2){min-width:0}
+.bd-list{background:var(--bg-2);margin:0 0 10px}
+.bd-row{display:grid;grid-template-columns:30px minmax(0,1.25fr) 120px minmax(0,.9fr) minmax(0,2fr);align-items:center;gap:16px;padding:10px 16px;border-top:1px solid var(--line);cursor:pointer}
+.bd-row:first-child{border-top:0}.bd-row:hover{background:var(--bg-3)}
+.bd-rk{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--c)}
+.bd-nm{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd-nm em{font-style:normal;font-weight:500;font-size:12px;color:var(--c);margin-left:10px}
+.bd-val{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;text-align:right;white-space:nowrap}
+.bd-sub{font-size:12px;color:var(--text-3);white-space:nowrap}
+.bd-stk{font-size:13px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:900px){.bd-row{grid-template-columns:24px minmax(0,1fr) auto}.bd-sub,.bd-stk{display:none}}
+@media (max-width:560px){.bd-keys{grid-auto-flow:row}.bd-kv{font-size:22px}}
 </style>
 </head>
 <body>
@@ -10305,6 +10328,7 @@ function _boardTable(tab) {
 }
 function _boardify(tab) {
   const cfg = _BOARDS[tab];
+  if (cfg.apply) return cfg.apply();
   const tw = _boardTable(tab);
   if (!tw || tw.dataset.bd) return;
   tw.dataset.bd = '1';
@@ -10315,7 +10339,8 @@ function _boardify(tab) {
   }
   if (_DR_SRC === tab) _boardFill(tab);
 }
-function _boardFill(tab) {
+function _boardFill(tab, part) {
+  if (part) return _boardFillPart(tab, part);
   const tw = _boardTable(tab);
   const body = document.querySelector('#dsDrawer .dr-body');
   if (!tw || !body) return;
@@ -10327,20 +10352,154 @@ function _boardFill(tab) {
   const titleEl = document.getElementById('drTitle');
   if (titleEl) titleEl.textContent = `${_BOARDS[tab].title} 完整表格 ${copy.querySelectorAll('tbody tr').length} 列`;
 }
-function _boardOpen(tab) {
-  const cfg = _BOARDS[tab];
+function _boardOpen(tab, part) {
+  const cfg = part ? _BOARDS[tab].parts[part] : _BOARDS[tab];
   _dsDrawer(cfg.cat, cfg.L, '', cfg.title, cfg.en, '', `<button onclick="_dsClose()">回到看板</button>`);
-  document.querySelector('#dsDrawer .dr').classList.add('dr-wide');   // full tables need the width
-  _DR_SRC = tab;
-  _boardFill(tab);
+  if (!part || cfg.wide) document.querySelector('#dsDrawer .dr').classList.add('dr-wide');   // full tables need the width
+  _DR_SRC = part ? `${tab}:${part}` : tab;
+  _boardFill(tab, part);
+}
+// one part of a board page, copied live into the drawer: ids dropped (no duplicates), hidden rows shown,
+// the board's own additions and the big numbers left out (they are on the page)
+function _boardFillPart(tab, part) {
+  const p = _BOARDS[tab].parts[part];
+  const src = document.querySelector(p.sel);
+  const body = document.querySelector('#dsDrawer .dr-body');
+  if (!src || !body) return;
+  const copy = src.cloneNode(true);
+  copy.removeAttribute('id');
+  copy.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+  copy.querySelectorAll('.bd-x').forEach(e => e.classList.remove('bd-x'));
+  copy.querySelectorAll('.bd-add,.stat-row').forEach(e => e.remove());
+  body.innerHTML = '';
+  body.appendChild(copy);
+  const titleEl = document.getElementById('drTitle');
+  if (titleEl && tab === 'today3' && part === 'list') titleEl.textContent = `${_T3_VIEW[todayView] || ''}觀察 完整內容`;
 }
 // re-apply after every render of a board page (whoever triggered it)
 document.addEventListener('DOMContentLoaded', () => {
   for (const tab of Object.keys(_BOARDS)) {
     const box = document.getElementById(_BOARDS[tab].src);
-    if (box) new MutationObserver(() => _boardify(tab)).observe(box, { childList: true });
+    if (box) new MutationObserver((recs, obs) => { _boardify(tab); obs.takeRecords(); })
+      .observe(box, { childList: true, subtree: !!_BOARDS[tab].deep });   // deep: parts render after the wrapper
   }
 });
+
+// ========== v3.93.0 今日三視角 board ==========
+// Same idea as the co-buy board, the renders stay as they are. After each render the page keeps the
+// view's big numbers and its top 5 (branch cards with their first 3 stocks, or the first 5 swing rows);
+// the three context blocks (外資期現貨 / 強弱族群 / 即時警報) fold into one row of keys; every part
+// opens as a live copy in the drawer.
+const _T3_VIEW = { daytrade: '當沖', overnight: '隔日沖', swing: '波段' };
+_BOARDS.today3 = { src: 'today3Result', deep: true, apply: _boardToday3, parts: {
+  list:     { sel: '#today3Inner',    cat: 'players', L: 'P', en: 'BRANCHES', title: '完整內容', wide: true },
+  fx:       { sel: '#today3FxSync',   cat: 'market',  L: 'M', en: 'FX SYNC',  title: '外資期現貨' },
+  strength: { sel: '#today3Strength', cat: 'stocks',  L: 'S', en: 'SECTORS',  title: '強弱族群' },
+  alerts:   { sel: '#today3Alerts',   cat: 'risk',    L: 'R', en: 'ALERTS',   title: '即時警報' },
+} };
+function _t3txt(root, sel) {
+  const e = root && root.querySelector(sel);
+  return e ? e.textContent.replace(/\s+/g, ' ').trim() : '';
+}
+function _t3Keys() {
+  const keys = [];
+  const fx = document.getElementById('today3FxSync');
+  if (fx && fx.querySelector('.fx-sync-divider')) {
+    const v = [...fx.querySelectorAll('.fx-sync-side-value')].map(e => e.textContent.trim());
+    keys.push(['fx', _t3txt(fx, '.fx-sync-divider > div'), `現貨 ${v[0] || '—'} 張・期貨 ${v[1] || '—'} 口`]);
+  }
+  const st = document.getElementById('today3Strength');
+  if (st && st.querySelector('.industry-strength-row')) {
+    const top = side => {
+      const r = st.querySelector(`.industry-strength-card.${side} .industry-strength-row`);
+      return r ? `${_t3txt(r, '.industry-strength-name')} ${_t3txt(r, '.industry-strength-change')}` : '—';
+    };
+    keys.push(['strength', top('strong'), `最弱 ${top('weak')}`]);
+  }
+  const al = document.getElementById('today3Alerts');
+  if (al && al.textContent.trim()) {
+    const t = al.textContent;
+    const n = k => { const m = t.match(new RegExp(k + '[^(]*\\((\\d+)\\)')); return m ? +m[1] : 0; };
+    const a = n('內部人籌碼警報'), b = n('高影響度重大訊息'), c = n('中影響度重大訊息');
+    keys.push(['alerts', `${a + b + c} 則`, `內部人 ${a}・高影響 ${b}・中影響 ${c}`]);
+  }
+  const parts = _BOARDS.today3.parts;
+  return keys.map(([p, v, d]) => `<div class="bd-key k-${parts[p].cat}" onclick="_boardOpen('today3','${p}')">` +
+    `<div class="ek-band"><span class="ek-code bd-cnt"></span>${parts[p].title}<span class="more">詳細 ›</span></div>` +
+    `<div class="bd-kv">${escHtml(v)}</div><div class="ek-d">${escHtml(d)}</div></div>`).join('');
+}
+// one leaderboard row from a rendered branch card (text only, nothing from the data is parsed as HTML)
+function _t3Row(card, i) {
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  };
+  const row = el('div', 'bd-row');
+  row.onclick = () => _boardOpen('today3', 'list');
+  row.appendChild(el('span', 'bd-rk', String(i + 1)));
+  const nm = card.querySelector('.branch-name').cloneNode(true);
+  nm.querySelector('span')?.remove();   // the medal / #n badge
+  const who = el('span', 'bd-nm', nm.textContent.trim());
+  who.appendChild(el('em', null, _t3txt(card, '.branch-master-name')));
+  row.appendChild(who);
+  const side = card.querySelector('.branch-header > div:last-child');
+  const v = side && side.children[0];
+  const val = el('span', 'bd-val ' + (v ? v.className : ''), v ? v.textContent.trim() : '');
+  if (v && v.style.color) val.style.color = v.style.color;
+  row.appendChild(val);
+  row.appendChild(el('span', 'bd-sub', side && side.children[1] ? side.children[1].textContent.trim() : ''));
+  const stocks = [...(card.querySelector('.branch-header + div')?.children || [])].slice(0, 3).map(r => {
+    const last = r.lastElementChild;
+    const amt = last ? (last.matches('span') ? last : (last.querySelector('span') || last)).textContent.trim() : '';
+    return `${r.querySelector('span')?.textContent.trim() || ''} ${amt}`;
+  });
+  row.appendChild(el('span', 'bd-stk', stocks.join('・')));
+  return row;
+}
+function _boardToday3() {
+  const inner = document.getElementById('today3Inner');
+  if (!inner) return;
+  document.getElementById('panel-today3').classList.add('bd-t3');
+  // context keys, rewritten only when their text changes
+  const keys = _t3Keys();
+  let row = document.getElementById('t3Keys');
+  if (!row) {
+    inner.insertAdjacentHTML('beforebegin', '<div id="t3Keys" class="bd-keys"></div>');
+    row = document.getElementById('t3Keys');
+  }
+  if (row.dataset.k !== keys) { row.innerHTML = keys; row.dataset.k = keys; }
+  // the view: top 5 on the board, the rest hidden (not removed), marked once per render
+  if (!inner.querySelector('.bd-mark') && inner.querySelector('.stat-row')) {
+    inner.insertAdjacentHTML('beforeend', '<i class="bd-mark bd-add" hidden></i>');
+    const view = _T3_VIEW[todayView] || '';
+    const grid = inner.querySelector('.cards-grid');
+    if (grid) {
+      // five cards side by side are too narrow: the top 5 become one row per branch, the cards go to the drawer
+      const cards = [...grid.children];
+      grid.classList.add('bd-x');
+      grid.insertAdjacentHTML('beforebegin', `<div class="section-title bd-add">${view}前 5 名<span class="section-sub">共 ${cards.length} 個分點</span></div>`);
+      const list = document.createElement('div');
+      list.className = 'bd-list bd-add';
+      cards.slice(0, 5).forEach((c, i) => list.appendChild(_t3Row(c, i)));
+      grid.before(list);
+      grid.insertAdjacentHTML('afterend', `<button class="bd-more k-players bd-add" onclick="_boardOpen('today3','list')">全部 ${cards.length} 個分點・每檔明細 ›</button>`);
+    } else {
+      let sec = 0, k = 0, last = null;
+      const per = [0, 0, 0];   // rows listed under each section title
+      for (const ch of [...inner.children]) {
+        if (ch.classList.contains('section-title')) { if (++sec > 1) ch.classList.add('bd-x'); continue; }
+        if (!ch.classList.contains('swing-row')) continue;
+        per[Math.min(sec, 2)]++;
+        if (sec === 1 && ++k <= 5) last = ch; else ch.classList.add('bd-x');
+      }
+      const txt = sec > 1 ? `共識 ${per[1]} 檔・波段組合 ${per[2]} 組` : `全部 ${per[1]} 列`;
+      if (last) last.insertAdjacentHTML('afterend', `<button class="bd-more k-players bd-add" onclick="_boardOpen('today3','list')">${txt} ›</button>`);
+    }
+  }
+  if (_DR_SRC && _DR_SRC.startsWith('today3:')) _boardFill('today3', _DR_SRC.slice(7));
+}
 
 function renderAll() {
   if (!CURRENT_DATA) return;
