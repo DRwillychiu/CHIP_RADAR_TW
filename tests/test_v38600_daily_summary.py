@@ -155,7 +155,7 @@ check("分頁列第一顆是今日總整理, 預設選中", btns[0][1] == 'summa
 check("其他分頁都不是預設 (今日三視角退為第二)", all('active' not in c and sel == 'false' for c, _, sel in btns[1:]) and btns[1][1] == 'today3')
 check("總整理面板是開啟的那一個", re.search(r'<div class="panel active" id="panel-summary"', h) is not None
       and len(re.findall(r'<div class="panel active"', h)) == 1)
-js = h[h.index('// ========== 00 今日總整理'):h.index('function renderAll() {')]
+js = h[h.index('// ========== 00 今日總整理'):h.index('// ========== v3.91.0 board pages')]   # summary code only (board engines follow)
 check("讀 daily_summary.json 並用同一套解密", 'daily_summary.json' in js and 'decryptToken(enc.data, SESSION_PASSWORD, enc.iterations)' in js)
 ra = h[h.index('function renderAll() {'):h.index('function renderAll() {') + 600]
 check("renderAll 會更新總整理 (每 5 分鐘有新資料也跟著更新)", 'refreshDailySummary();' in ra)
@@ -168,6 +168,10 @@ used_k = set(re.findall(r'\bk\.(\w+)', js))
 check("網頁用到的 KPI 欄位, 產生器都有", used_k <= set(k), sorted(used_k - set(k)))
 used_s = set(re.findall(r'\bs\.(\w+)', js))
 check("網頁用到的頂層欄位, 產生器都有", used_s <= set(s), sorted(used_s - set(s)))
+ca = s.get("changes_all") or {}
+check("C06 抽屜的完整清單: 跌出 / 主力暴增 (v3.94.0)", set(ca) == {"gone", "surge"}
+      and all({"code", "name", "masters_prev"} <= set(r) for r in ca["gone"])
+      and all({"code", "name", "prev", "now"} <= set(r) and r["now"] - r["prev"] >= 3 for r in ca["surge"]), ca)
 used_t = set(re.findall(r'\bt\.(\w+)', js))
 check("網頁用到的走勢欄位, 產生器都有", bool(used_t) and used_t <= set(s['trends']), sorted(used_t - set(s['trends'])))
 used_n = set(re.findall(r'\bn\.(\w+)', js))

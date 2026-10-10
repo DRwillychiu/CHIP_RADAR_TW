@@ -4040,6 +4040,20 @@ body.dr-lock{overflow:hidden}
 .bd-stk{font-size:13px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:900px){.bd-row{grid-template-columns:24px minmax(0,1fr) auto}.bd-sub,.bd-stk{display:none}}
 @media (max-width:560px){.bd-keys{grid-auto-flow:row}.bd-kv{font-size:22px}}
+/* v3.94.0 every page a board: blocks cut short (hidden only), every block opens in the drawer */
+.bd-auto-on .bd-x{display:none!important}
+.bd-tap{cursor:pointer}
+.section-title.bd-tap:hover,.report-section-title.bd-tap:hover{background:var(--bg-3)!important}
+.section-title .more,.report-section-title .more{margin-left:auto;padding-left:12px;font-size:11px;font-weight:900;letter-spacing:.04em;opacity:.9;white-space:nowrap}
+.bd-fold > :not(:first-child){display:none!important}
+.bd-fold{padding-top:10px!important;padding-bottom:10px!important}
+.bd-fold > :first-child{margin:0!important}
+.bd-fold > :first-child::after{content:"  說明 ›";font-size:12px;font-weight:900;color:var(--c-meta)}
+.bd-hero .hero-stat:nth-child(n+5){display:none!important}
+.bd-clip{max-height:320px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.bd-auto-on .sniper-details,.bd-auto-on .sniper-stats .sniper-stat:nth-child(n+4){display:none}
+.bd-auto-on .consensus-lu-buyers{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:2.4em}
+.stat-box.bd-tap:hover,.inst-stat-card.bd-tap:hover,.sentiment-card.bd-tap:hover,.futures-hero-card.bd-tap:hover,.margin-rank-card.bd-tap:hover,.help-card.bd-tap:hover{background:var(--bg-3)!important}
 </style>
 </head>
 <body>
@@ -10182,7 +10196,7 @@ function renderDailySummary() {
   ].join('');
   const top = s.strong_top || [];
   const mx = Math.max(1, ...top.map(r => r.masters || 0));
-  const strong = top.map((r, i) => `<li><span class="ek-rk">${i + 1}</span>
+  const strong = top.map((r, i) => `<li class="ek-tap" onclick="_dsOpen('strong')"><span class="ek-rk">${i + 1}</span>
       <span class="ek-nm">${escHtml(r.name)}<em>${escHtml(r.code)}</em>${r.new ? '<i>新進</i>' : ''}</span>
       <span class="ek-bar"><b style="width:${Math.round((r.masters || 0) / mx * 100)}%"></b></span>
       <span class="ek-cnt">${r.masters}</span></li>`).join('') || '<li class="ek-sub">今晚沒有 3 位以上大戶同時布局的股票</li>';
@@ -10206,7 +10220,7 @@ function renderDailySummary() {
     <section class="ek-nums">${nums}</section>
     <section class="ek-cols">
       <div class="ek-blk k-stocks">${band('S', '05', '強籌前 5', 'STRONG CHIPS', `<button class="ek-go" onclick="_dsOpen('strong')">全部 ${k.strong_count ?? ''} 檔 ›</button>`)}<ul>${strong}</ul></div>
-      <div class="ek-blk k-meta">${band('C', '06', '今天變了什麼', 'CHANGES')}<ul>${chg}</ul></div>
+      <div class="ek-blk k-meta ek-tap" onclick="_dsOpen('changes')">${band('C', '06', '今天變了什麼', 'CHANGES', '<span class="more">詳細 ›</span>')}<ul>${chg}</ul></div>
       <div class="ek-blk k-market ek-mkt">${band('M', '07', '市場', 'MARKET', '<button class="ek-go" onclick="_dsOpen(\'market\')">20 日 ›</button>')}<ul>${mkt}</ul></div>
     </section>
     <div class="ek-foot"><span>路線色：S 個股（黃）・P 大戶（藍）・M 市場（青）・R 風險（紫）・C 一般（灰）。小圖＝近 ${days || 20} 個交易日走勢。</span>
@@ -10310,6 +10324,20 @@ function _dsOpen(kind) {
         <div class="dr-last">${last5.map((d, i) => `<span><em>${d.slice(4, 6)}/${d.slice(6)}</em>${tail[i] == null ? '—' : fmt(tail[i])}</span>`).join('')}</div></div>`;
     }).join('');
     _dsDrawer('market', 'M', '07', `市場 近 ${ds.length} 日`, 'MARKET', body, _dsPage('futures', '期貨情報（完整頁）'));
+  } else if (kind === 'changes') {
+    // v3.94.0 every block opens: the full lists behind 今天變了什麼 (changes_all from the builder;
+    // until a file has it, the one-line text from the page is shown)
+    const ca = s.changes_all || {};
+    const all = s.strong_all || [];
+    const line = p => escHtml(((s.changes || []).find(c => String(c.tag).startsWith(p)) || {}).text || '');
+    const stk = (r, extra) => `<tr><td><b>${escHtml(r.name)}</b> <span class="dim">${escHtml(r.code)}</span></td><td class="r">${extra}</td></tr>`;
+    const sec = (title, rows, empty) => `<div class="dr-series"><div class="dr-sh"><b>${title}</b><span class="num">${rows ? rows.length : ''}</span></div>${
+      rows && rows.length ? `<table><tbody>${rows.join('')}</tbody></table>` : `<div class="dr-note">${empty}</div>`}</div>`;
+    const body = sec('新進強籌', all.filter(r => r.new ? 1 : 0).map(r => stk(r, `<span class="num">${r.masters}</span> 位大戶`)), '今天沒有新進的強籌')
+      + sec('跌出強籌', ca.gone && ca.gone.map(r => stk(r, `昨天 <span class="num">${r.masters_prev}</span> 位`)), line('跌出') || '今天沒有跌出的強籌')
+      + sec('主力暴增', ca.surge && ca.surge.map(r => stk(r, `<span class="num">${r.prev}→${r.now}</span> 位`)), line('主力暴增') || '沒有大戶人數暴增的股票')
+      + sec('強籌∩風險', all.filter(r => r.risk ? 1 : 0).map(r => stk(r, `<i class="dr-risk">${escHtml(r.risk)}</i>`)), '強籌裡沒有處置中或明日恐處置的股票');
+    _dsDrawer('meta', 'C', '06', '今天變了什麼', 'CHANGES', body, _dsPage('overview', '共買榜（完整頁）'));
   }
 }
 
@@ -10428,8 +10456,9 @@ function _t3Keys() {
     `<div class="ek-band"><span class="ek-code bd-cnt"></span>${parts[p].title}<span class="more">詳細 ›</span></div>` +
     `<div class="bd-kv">${escHtml(v)}</div><div class="ek-d">${escHtml(d)}</div></div>`).join('');
 }
-// one leaderboard row from a rendered branch card (text only, nothing from the data is parsed as HTML)
-function _t3Row(card, i) {
+// one leaderboard row from a rendered branch card (text only, nothing from the data is parsed as HTML);
+// v3.94.0 also reads the 分點動態 card (P&L pills, .stock-row list)
+function _t3Row(card, i, open) {
   const el = (tag, cls, text) => {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -10437,20 +10466,25 @@ function _t3Row(card, i) {
     return e;
   };
   const row = el('div', 'bd-row');
-  row.onclick = () => _boardOpen('today3', 'list');
+  row.onclick = open || (() => _boardOpen('today3', 'list'));
   row.appendChild(el('span', 'bd-rk', String(i + 1)));
   const nm = card.querySelector('.branch-name').cloneNode(true);
-  nm.querySelector('span')?.remove();   // the medal / #n badge
+  const badge = nm.querySelector('span');
+  if (badge && /^(#\d+|🥇|🥈|🥉|🔴|🟠|🟡)$/u.test(badge.textContent.trim())) badge.remove();   // the medal / #n badge
   const who = el('span', 'bd-nm', nm.textContent.trim());
   who.appendChild(el('em', null, _t3txt(card, '.branch-master-name')));
   row.appendChild(who);
   const side = card.querySelector('.branch-header > div:last-child');
-  const v = side && side.children[0];
+  const pill = card.querySelector('.pnl-pill .pnl-val');   // 分點動態: the day's P&L
+  const v = pill || (side && side.children[0]);
   const val = el('span', 'bd-val ' + (v ? v.className : ''), v ? v.textContent.trim() : '');
   if (v && v.style.color) val.style.color = v.style.color;
   row.appendChild(val);
-  row.appendChild(el('span', 'bd-sub', side && side.children[1] ? side.children[1].textContent.trim() : ''));
-  const stocks = [...(card.querySelector('.branch-header + div')?.children || [])].slice(0, 3).map(r => {
+  row.appendChild(el('span', 'bd-sub', side ? [...side.children].slice(pill ? 0 : 1).map(e => e.textContent.trim()).filter(Boolean).join('・') : ''));
+  const srows = card.querySelectorAll('.branch-stocks .stock-row');
+  const own = e => e ? [...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : '';   // the name, not its market chip
+  const stocks = srows.length ? [...srows].slice(0, 3).map(r => `${own(r.querySelector('.sname'))} ${_t3txt(r, '.net')}`)
+    : [...(card.querySelector('.branch-header + div')?.children || [])].slice(0, 3).map(r => {
     const last = r.lastElementChild;
     const amt = last ? (last.matches('span') ? last : (last.querySelector('span') || last)).textContent.trim() : '';
     return `${r.querySelector('span')?.textContent.trim() || ''} ${amt}`;
@@ -10500,6 +10534,202 @@ function _boardToday3() {
   }
   if (_DR_SRC && _DR_SRC.startsWith('today3:')) _boardFill('today3', _DR_SRC.slice(7));
 }
+
+// ========== v3.94.0 every page a board ==========
+// Owner 2026-10-10 "完整套用全部…彈出畫面的部分，所有區塊都要設置": the board on every display page,
+// and every block opens in the drawer. The renders stay as they are. After each render the page is
+// reset and walked again (idempotent); each block is cut short on the page, only hidden, never removed:
+//   table              -> first 5 rows, the chosen columns           + "完整表格 N 列 ›"
+//   branch card wall   -> the first 5 cards as one row each           + "全部 N 張 ›"
+//   repeated cards     -> the first 5                                 + "全部 N 張 ›"
+//   rank cards         -> each card its first 5 rows, the card opens
+//   hero               -> the first 4 figures                         + "全部數字 ›"
+//   help card          -> its title line, opens on click
+//   later sections     -> only the first `open` titled sections (default 2) show; the rest are their title band
+//   anything long      -> its tables to 5 rows, or clipped            + "展開全部 ›"
+// Section titles open their block; KPI cards without a popup of their own open the whole page.
+// Watchlist (settings: every checkbox must stay at hand) is the one page left as it is.
+const _AUTO = {
+  branches:      { root: 'panel', cat: 'players', L: 'P', en: 'BRANCHES', title: '分點動態' },
+  ranking:       { root: 'rankingResult', cat: 'players', L: 'P', en: 'RANKING', title: '累積排行' },
+  masterview:    { root: 'masterViewResult', cat: 'players', L: 'P', en: 'MASTERS', title: '高手合併視圖', open: 3, keepBy: [['分點拆解', [0, 3, 4, 5]]] },
+  institutional: { root: 'institutionalResult', cat: 'market', L: 'M', en: 'INSTITUTIONS', title: '三大法人' },
+  futures:       { root: 'panel', cat: 'market', L: 'M', en: 'FUTURES', title: '期貨情報', open: 1, cols: 99, keepBy: [['期貨行情面', [0, 4, 5, 6, 8]]] },
+  margin:        { root: 'panel', cat: 'market', L: 'M', en: 'MARGIN', title: '融資融券' },
+  limitup:       { root: 'panel', cat: 'stocks', L: 'S', en: 'LIMIT UP', title: '漲停狙擊',
+                   keepBy: [['所有被狙擊', [0, 1, 2, 4]], ['被狙擊賣出', [0, 1, 2, 4]], ['已確認出貨', [0, 1, 4, 5]], ['尚未出貨', [0, 1, 2, 5]]] },
+  stock:         { root: 'stockTraceResult', cat: 'stocks', L: 'S', en: 'STOCK', title: '個股追蹤', keep: [0, 1, 2, 3, 6] },
+  master:        { root: 'masterResult', cat: 'players', L: 'P', en: 'MASTER', title: '單分點偏好', keep: [0, 1, 2, 4] },
+  reports:       { root: 'panel', cat: 'meta', L: 'C', en: 'REPORTS', title: '報告中心', cols: 5 },
+  masterprofile: { root: 'mp-container', cat: 'players', L: 'P', en: 'PROFILES', title: '大戶畫像', keep: [0, 1, 2, 3, 6], skip: '#mp-detail' },
+  holdings:      { root: 'holdings-container', cat: 'stocks', L: 'S', en: 'HOLDINGS', title: '持股結構' },
+  help:          { root: 'panel', cat: 'meta', L: 'C', en: 'HELP', title: '說明' },
+};
+const _AUTO_PARTS = {};
+const _BD_KPI = '.stat-box,.inst-stat-card,.sentiment-card,.futures-hero-card,.futures-metric,.hero-stat';
+const _BD_KPI_ROW = '.stat-row,.inst-stat-grid,.sentiment-dashboard,.futures-dashboard,.futures-hero-grid,.futures-metric-grid';
+const _BD_TITLE = '.section-title,.report-section-title';
+const _BD_CLS = ['bd-x', 'bd-clip', 'bd-hero', 'bd-tap', 'bd-fold'];
+for (const tab of Object.keys(_AUTO)) {
+  const c = _AUTO[tab];
+  _BOARDS[tab] = { src: c.root === 'panel' ? 'panel-' + tab : c.root, deep: true, apply: () => _boardAuto(tab) };
+}
+function _bdText(e) { return e ? e.textContent.replace(/\s+/g, ' ').replace(/詳細 ›$/, '').trim() : ''; }
+function _bdRoot(tab) { const c = _AUTO[tab]; return document.getElementById(c.root === 'panel' ? 'panel-' + tab : c.root); }
+function _bdPart(tab, els, title) {
+  const parts = _AUTO_PARTS[tab];
+  parts.push({ els, title });
+  return parts.length - 1;
+}
+function _bdBtn(after, tab, i, label) {
+  after.insertAdjacentHTML('afterend', `<button class="bd-more bd-add" onclick="_autoOpen('${tab}',${i})">${label} ›</button>`);
+}
+function _bdOpenOn(el, tab, i) {
+  el.classList.add('bd-tap');
+  el.onclick = () => _autoOpen(tab, i);
+}
+// the block a section title heads: the title and its siblings up to the next title
+function _bdBlock(t) {
+  const els = [t];
+  for (let e = t.nextElementSibling; e && !e.matches(_BD_TITLE); e = e.nextElementSibling) if (!e.matches('.bd-add')) els.push(e);
+  return els;
+}
+function _bdTitleOf(e) {   // the nearest title before it, also outside its container (margin / limitup)
+  for (let n = e; n && !n.matches('.panel'); n = n.parentElement)
+    for (let p = n.previousElementSibling; p; p = p.previousElementSibling) if (p.matches(_BD_TITLE)) return p;
+  return null;
+}
+// a box that is itself a wall of the same card (三大法人 search view): the first 5
+function _bdRepeated(tab, box, title) {
+  const kids = [...box.children].filter(k => !k.matches('.bd-add,.info-banner,.view-hint,.market-local-bar,' + _BD_TITLE));
+  const cls = kids[0] && kids[0].classList[0];
+  if (kids.length < 3 || !cls || kids.filter(k => k.classList.contains(cls)).length < kids.length * 0.8) return false;
+  if (kids.length > 5) {
+    kids.forEach((k, n) => { if (n >= 5) k.classList.add('bd-x'); });
+    _bdBtn(kids[4], tab, _bdPart(tab, title ? [title, box] : [box], title), `全部 ${kids.length} 張`);
+  }
+  return true;
+}
+function _bdTable(tw, keep, cols, tab, title) {
+  const tb = tw.matches('table') ? tw : tw.querySelector('table');
+  if (!tb) return false;
+  const rows = [...tb.querySelectorAll(':scope > tbody > tr')];
+  rows.forEach((r, i) => { if (i >= 5) r.classList.add('bd-x'); });
+  let hid = 0;
+  tb.querySelectorAll(':scope > thead > tr, :scope > tbody > tr').forEach(r => [...r.children].forEach((c, j) => {
+    if (keep ? !keep.includes(j) : j >= cols) { c.classList.add('bd-x'); hid = 1; }
+  }));
+  if (rows.length > 5 || hid) {
+    const i = _bdPart(tab, title ? [title, tw] : [tw], title);
+    _bdBtn(tw, tab, i, `完整表格 ${rows.length} 列${hid ? '・全部欄位' : ''}`);
+  }
+  return true;
+}
+function _bdWalk(tab, box, fold = false) {   // fold: a section past `open` (only its title shows)
+  const cfg = _AUTO[tab];
+  if (box.matches('.panel') ? false : _bdRepeated(tab, box, _bdTitleOf(box))) return;
+  let nt = 0, closed = false;   // titled sections seen at this level; past `open` only the title shows
+  for (const e of [...box.children]) {
+    if (e.matches('.bd-add,script,style,details,.controls,.market-local-bar,.mode-switch') || (cfg.skip && e.matches(cfg.skip))) continue;
+    if (e.querySelector(':scope > .mode-btn, :scope > select, :scope > input')) continue;   // control rows
+    if (e.matches(_BD_TITLE)) {
+      closed = fold || ++nt > (cfg.open || 2);
+      const i = _bdPart(tab, _bdBlock(e), e);
+      _bdOpenOn(e, tab, i);
+      e.insertAdjacentHTML('beforeend', '<span class="more bd-add">詳細 ›</span>');
+      continue;
+    }
+    if (closed) { e.classList.add('bd-x'); continue; }   // in the title's drawer, as rendered
+    const title = _bdTitleOf(e);
+    const name = _bdText(title);
+    const keep = ((cfg.keepBy || []).find(([k]) => name.includes(k)) || [])[1] || cfg.keep;
+    if (e.matches('.help-card')) { e.classList.add('bd-fold'); _bdOpenOn(e, tab, _bdPart(tab, [e], e.querySelector('h3'))); continue; }
+    if (e.matches('.info-banner,.view-hint')) { e.classList.add('bd-x'); continue; }   // notes: in the block / page drawer
+    if (e.matches('.master-hero')) { e.classList.add('bd-hero'); _bdBtn(e, tab, _bdPart(tab, [e], null), '全部數字'); continue; }
+    if (e.matches(_BD_KPI_ROW)) {
+      e.querySelectorAll(_BD_KPI).forEach(k => {
+        if (k.closest('[onclick],.clickable')) return;   // has a popup of its own
+        _bdOpenOn(k, tab, 'all');
+      });
+      continue;
+    }
+    if (e.matches('.table-wrap,.futures-table-wrap') || (e.children.length <= 2 && e.querySelector(':scope > table'))) {
+      _bdTable(e, keep, cfg.cols || 4, tab, title);
+      continue;
+    }
+    if (e.matches('.cards-grid')) {
+      const cards = [...e.children];
+      e.classList.add('bd-x');
+      const i = _bdPart(tab, title ? [title, e] : [e], title);
+      const list = document.createElement('div');
+      list.className = 'bd-list bd-add';
+      cards.slice(0, 5).forEach((c, n) => list.appendChild(_t3Row(c, n, () => _autoOpen(tab, i))));
+      e.before(list);
+      _bdBtn(e, tab, i, `全部 ${cards.length} 張・每張明細`);
+      continue;
+    }
+    const kids = [...e.children];
+    if (kids.length && kids.every(k => k.matches('.margin-rank-card'))) {
+      if (kids.length > 6) _bdBtn(e, tab, _bdPart(tab, title ? [title, e] : [e], title), `全部 ${kids.length} 張`);
+      kids.forEach((k, n) => {
+        if (n >= 6) k.classList.add('bd-x');
+        k.querySelectorAll('.margin-rank-row').forEach((r, m) => { if (m >= 5) r.classList.add('bd-x'); });
+        _bdOpenOn(k, tab, _bdPart(tab, [k], k.querySelector('.margin-rank-title')));
+      });
+      continue;
+    }
+    if (!e.matches('.report-section') && _bdRepeated(tab, e, title)) continue;
+    if (e.matches('.report-section')) { _bdWalk(tab, e, ++nt > (cfg.open || 2)); continue; }   // one titled section each
+    if (!e.className && (e.id || e.querySelector(':scope > ' + _BD_TITLE.split(',').join(', :scope > ')))) {
+      _bdWalk(tab, e);   // result containers and wrappers: walk inside
+      continue;
+    }
+    // anything else: its tables to 5 rows; long text clipped
+    let hid = 0;
+    e.querySelectorAll('table').forEach(tb => tb.querySelectorAll(':scope > tbody > tr').forEach((r, n) => { if (n >= 5) { r.classList.add('bd-x'); hid = 1; } }));
+    if (!hid && e.textContent.length > 700) { e.classList.add('bd-clip'); hid = 1; }
+    if (hid) _bdBtn(e, tab, _bdPart(tab, title ? [title, e] : [e], title), '展開全部');
+  }
+}
+function _boardAuto(tab) {
+  const root = _bdRoot(tab);
+  if (!root) return;
+  // reset what the last pass did, then walk again (a render may have replaced only part of the page)
+  root.querySelectorAll('.bd-add').forEach(e => e.remove());
+  root.querySelectorAll('.bd-tap').forEach(e => { e.onclick = null; });   // only the handlers this pass set (rows keep their own)
+  root.querySelectorAll(_BD_CLS.map(c => '.' + c).join(',')).forEach(e => e.classList.remove(..._BD_CLS));
+  (root.id.startsWith('panel-') ? root : document.getElementById('panel-' + tab)).classList.add('bd-auto-on');
+  _AUTO_PARTS[tab] = [];
+  _bdWalk(tab, root);
+  if (_DR_SRC && _DR_SRC.startsWith(tab + ':')) _autoFill(tab, _DR_SRC.slice(tab.length + 1));
+}
+function _autoFill(tab, part) {
+  const root = _bdRoot(tab);
+  const body = document.querySelector('#dsDrawer .dr-body');
+  if (!root || !body) return;
+  const p = part === 'all' ? null : (_AUTO_PARTS[tab] || [])[part];
+  const els = p ? p.els : [...root.children].filter(e => !e.matches('.controls,.market-local-bar,.help-card,.bd-add,script,style'));
+  body.innerHTML = '';
+  for (const e of els) {
+    const copy = e.cloneNode(true);
+    copy.removeAttribute('id');
+    copy.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
+    [copy, ...copy.querySelectorAll(_BD_CLS.map(c => '.' + c).join(','))].forEach(x => x.classList.remove(..._BD_CLS));
+    copy.querySelectorAll('.bd-add').forEach(x => x.remove());
+    body.appendChild(copy);
+  }
+}
+function _autoOpen(tab, part) {
+  const cfg = _AUTO[tab];
+  const p = part === 'all' ? null : (_AUTO_PARTS[tab] || [])[part];
+  const name = p && p.title ? _bdText(p.title) : `${cfg.title} 完整內容`;
+  _dsDrawer(cfg.cat, cfg.L, '', escHtml(name), cfg.en, '', `<button onclick="_dsClose()">回到看板</button>`);
+  document.querySelector('#dsDrawer .dr').classList.add('dr-wide');
+  _DR_SRC = `${tab}:${part}`;
+  _autoFill(tab, part);
+}
+// static pages (help) and pages already rendered before this ran
+document.addEventListener('DOMContentLoaded', () => { for (const tab of Object.keys(_AUTO)) _boardAuto(tab); });
 
 function renderAll() {
   if (!CURRENT_DATA) return;
