@@ -514,16 +514,21 @@ def get_branches_by_region(region, include_disabled=False):
     return [b for b in pool if b.get("region", "domestic") == region]
  
  
+# v3.95.0 one rule for "foreign" (owner 2026-10-09): the us / eu / asia regions only. area_hotspot
+# (local hot-spot branches) and company_total (9200 / 9600) are domestic; public (官股) is its own group.
+FOREIGN_REGIONS = ("us", "eu", "asia")
+
+
 def get_foreign_branches(include_disabled=False):
-    """取所有外資分點"""
+    """取所有外資分點 (us / eu / asia)"""
     pool = WATCHED_BRANCHES if include_disabled else get_enabled_branches()
-    return [b for b in pool if b.get("region", "domestic") not in ("domestic", "public")]
+    return [b for b in pool if b.get("region", "domestic") in FOREIGN_REGIONS]
  
  
 def get_domestic_branches(include_disabled=False):
-    """取所有國內分點（不含官股）"""
+    """取所有國內分點（不含官股；含熱點分點與公司總計）"""
     pool = WATCHED_BRANCHES if include_disabled else get_enabled_branches()
-    return [b for b in pool if b.get("region", "domestic") == "domestic"]
+    return [b for b in pool if b.get("region", "domestic") not in FOREIGN_REGIONS + ("public",)]
  
  
 def get_branches_by_tag(tag, tag_type="all"):

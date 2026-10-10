@@ -24,7 +24,7 @@ MIN_BUY_DAYS = 5
 BUY_SELL_RATIO = 2.5
 KEEP_HIGH = 0.8
 MIN_MASTERS = 3
-FOREIGN_REGIONS = ("us", "eu", "asia")
+from src.core.branches import FOREIGN_REGIONS   # v3.95.0 one rule for "foreign"
 SURGE = 3                 # masters added since yesterday to call it a surge
 TREND_DAYS = 20           # v3.89.0 sparklines on the page (owner 2026-10-10)
 BROKEN = "�"

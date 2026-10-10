@@ -118,6 +118,8 @@ ALLOW = {
     'scripts/trading_gate.py': 'reads only margin_verification from latest.json; never touches branch records',
     'scripts/branch_performance_report.py': 'v3.84.0 decrypts only the peer map (not a day file); its DB rows are '
                                             'filtered with quarantine.load()',
+    'scripts/backfill_futures_day.py': 'v3.95.0 rewrites one stored day file and replaces only futures_data; '
+                                       'filtering would drop the quarantined records from the file itself',
 }
 readers = []
 for p in [ROOT / 'crawler.py'] + sorted((ROOT / 'src').rglob('*.py')) + sorted((ROOT / 'scripts').rglob('*.py')):

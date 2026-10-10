@@ -26,6 +26,7 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta, date
 from collections import defaultdict, Counter
 from quarantine import filter_day
+from src.core.branches import FOREIGN_REGIONS   # v3.95.0 one rule for "foreign"
 
 TW_TZ = timezone(timedelta(hours=8))
 
@@ -330,8 +331,8 @@ def analyze_foreign_branches(period_data):
     
     for trade_date, data in period_data["daily_data"].items():
         for br in data.get("branches", []):
-            if br.get("region", "domestic") == "domestic":
-                continue  # 只處理外資
+            if br.get("region", "domestic") not in FOREIGN_REGIONS:
+                continue  # 只處理外資 (v3.95.0: 官股 / 熱點 / 公司總計 不算)
             if not br.get("buys"):
                 continue
             
