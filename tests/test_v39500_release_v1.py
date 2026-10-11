@@ -18,10 +18,11 @@ print("=" * 72)
 print("  v3.95.0 正式版 V1.0 (離線)")
 print("=" * 72)
 h = (ROOT / 'index.html').read_text(encoding='utf-8')
-check("頁首顯示 V1.0, 滑過看 build 號", 'title="build v3.95.0 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>' in h and 'Chip Radar v3.80.14' not in h)
+# v3.96.0: later builds keep the V1.0 label; only the build number on hover moves
+check("頁首顯示 V1.0, 滑過看 build 號", re.search(r'title="build v3\.9\d\.\d+ ・ 點 📋 更新看版本歷史">Chip Radar V1\.0</div>', h) is not None and 'Chip Radar v3.80.14' not in h)
 cl = h[h.index('const CHANGELOG_ENTRIES = ['):h.index('];', h.index('const CHANGELOG_ENTRIES = ['))]
 vs = re.findall(r"\{ v: '([^']+)'", cl)
-check("版本歷史第一筆是 V1.0, 維持近 10 筆", vs[:1] == ['V1.0'] and len(vs) == 10, vs)
+check("版本歷史保留 V1.0, 新版在最上面, 維持近 10 筆", 'V1.0' in vs and vs.index('V1.0') <= 1 and len(vs) == 10, vs)
 bf = (ROOT / 'scripts/backfill_futures_day.py').read_text(encoding='utf-8')
 gap = float(re.search(r'^GAP_S = ([0-9.]+)', bf, re.M).group(1))
 mx = int(re.search(r'^MAX_REQUESTS = (\d+)', bf, re.M).group(1))
