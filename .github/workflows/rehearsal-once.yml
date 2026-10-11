@@ -5,12 +5,20 @@
 # mail labelled 🧪【測試】 and is refused 20:30-07:00 by its own window guard.
 # 09:00 is the run; 13:00 is a back-up for a dropped schedule and does nothing when a dev TEST run
 # already started that day. Any other date: nothing. Delete this file on Monday 2026-10-12.
+# v3.95.3: the 09:00 schedule never fired (GitHub delays or drops schedules at the top of the hour,
+# its busiest minute). A push of this file to main now starts it at once, and the back-ups sit off
+# the hour (13:23, 16:41). The same guards apply, so at most one TEST run starts.
 name: "Rehearsal (one TEST run, 2026-10-11)"
 
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/rehearsal-once.yml']
   schedule:
     - cron: '0 1 11 10 *'     # 09:00 Taipei on 10/11 (UTC 01:00)
     - cron: '0 5 11 10 *'     # 13:00 Taipei on 10/11 (UTC 05:00), back-up only
+    - cron: '23 5 11 10 *'    # 13:23 Taipei, back-up off the hour
+    - cron: '41 8 11 10 *'    # 16:41 Taipei, back-up off the hour
   workflow_dispatch:
 
 permissions:
