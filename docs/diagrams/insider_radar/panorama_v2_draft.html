@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>大股東動向示意 v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--bg-2:#0D0E10;--bg-3:#17191C;--line:#24272B;--line-2:#34383E;--text:#F2F2F2;--text-2:#B4B8BE;--text-3:#8A8F97;
+  --gold:#F5A524;--red:#ef4444;--green:#10b981;--blue:#4C9DFF;--teal:#1FC7B6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif}
+.panel{max-width:1600px;padding:20px 28px;display:flex;flex-direction:column;gap:12px}
+.head{display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--gold);padding-bottom:10px;flex-wrap:wrap}
+.key{background:var(--gold);color:#000;font:700 15px 'JetBrains Mono';padding:4px 9px}
+.title{color:var(--gold);font-weight:900;font-size:22px}
+.code{font:700 24px 'Barlow Condensed'}
+.mock{border:1px dashed var(--text-3);color:var(--text-3);font-size:12px;padding:2px 8px}
+.upd{margin-left:auto;color:var(--text-2);font-size:13px}
+.strip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.cell{background:var(--bg-2);border:1px solid var(--line);padding:10px 14px;cursor:pointer}
+.cell:hover{border-color:var(--line-2)}
+.q{color:var(--text-3);font-size:13px}
+.a{font-size:26px;font-weight:900;margin-top:2px;line-height:1.2}
+.s{color:var(--text-2);font-size:13px;margin-top:4px}
+.up{color:var(--red)}.dn{color:var(--green)}.bl{color:var(--blue)}
+.flag{display:inline-block;background:var(--red);color:#000;font-size:12px;font-weight:900;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.badge{display:inline-flex;gap:0;margin-top:6px;font-size:12px;border:1px solid var(--line-2)}
+.badge b{padding:1px 6px;border-right:1px solid var(--line-2);font-weight:500;color:var(--text-2)}.badge b:last-child{border:0}
+.bar{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.chips{display:flex;gap:4px}.chip{border:1px solid var(--line-2);color:var(--text-2);font-size:13px;padding:3px 10px;cursor:pointer}
+.chip.on{background:var(--text);color:#000;border-color:var(--text);font-weight:700}
+.legend{display:flex;gap:16px;color:var(--text-2);font-size:12px;margin-left:auto;flex-wrap:wrap}
+.legend i{display:inline-block;vertical-align:middle;margin-right:5px}
+svg text{font-family:'Noto Sans TC',sans-serif}
+.foot{color:var(--text-3);font-size:12px}
+.drawer{position:fixed;top:0;right:0;width:520px;height:100%;background:var(--bg-2);border-left:2px solid var(--gold);padding:20px 22px;transform:translateX(100%);transition:none;overflow:auto}
+.drawer.open{transform:none}
+.drawer h3{margin:0 0 4px;color:var(--gold);font-size:18px}
+.drawer table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.drawer th{color:var(--text-3);font-weight:500;text-align:right;padding:6px 4px;border-bottom:1px solid var(--line-2)}
+.drawer td{text-align:right;padding:7px 4px;border-bottom:1px solid var(--line)}
+.drawer th:first-child,.drawer td:first-child{text-align:left}
+.note{color:var(--text-3);font-size:12px;margin-top:10px;line-height:1.6}
+#chk{font:12px 'JetBrains Mono';color:var(--text-3)}
+@media (max-width:760px){.panel{padding:14px 16px}.strip{grid-template-columns:1fr 1fr}.cell:last-child{grid-column:span 2}.a{font-size:21px}
+  .legend{margin-left:0}.drawer{width:100%;height:78%;top:auto;bottom:0;border-left:0;border-top:2px solid var(--gold);transform:translateY(100%)}.upd{margin-left:0}}
+</style></head><body>
+<div class="panel">
+  <div class="head"><span class="key">S07</span><span class="title">大股東動向</span><span class="code">8114 振樺電</span>
+    <span class="mock">示意資料，非真實數字</span><span class="upd">最新申報 2026-08（9/22 公開）· 下一次約 10/20</span></div>
+  <div class="strip">
+    <div class="cell" data-d="21"><div class="q">誰在買</div><div class="a">董事長 等 2 人<span class="flag">6 人同買</span></div><div class="s">近 3 個月不重複 6 人 · 集中市場</div></div>
+    <div class="cell" data-d="21"><div class="q">買多少</div><div class="a up">淨買 13.7 億</div><div class="s">占股本 0.82% · 1 年來最大</div></div>
+    <div class="cell" data-d="cost"><div class="q">內部人成本</div><div class="a">均 207 <span style="font-size:13px;color:var(--text-3)">推算</span></div><div class="s">現價 305.5 · <span class="up">高於成本 47%</span></div></div>
+    <div class="cell" data-d="br"><div class="q">分點大戶</div><div class="a bl">同向 ▲</div><div class="s">公開前 10 日淨買 4,820 萬 · 3 位大戶</div></div>
+    <div class="cell" data-d="bt"><div class="q">這類訊號過去 20 日</div><div class="a up">超額 +3.2%</div>
+      <div class="s">41 件 · 勝率 58% · 樣本外 12 件 +2.1% · 最大一筆占 9%</div></div>
+  </div>
+  <div class="bar">
+    <div class="chips" id="role"><span class="chip on">全部</span><span class="chip">董事長</span><span class="chip">董事</span><span class="chip">經理人</span><span class="chip">大股東</span></div>
+    <div class="chips" id="span"><span class="chip">1 年</span><span class="chip on">2 年</span></div>
+    <div class="legend">
+      <span><i style="width:11px;height:11px;border-radius:50%;background:var(--red)"></i><i style="width:11px;height:11px;border-radius:50%;background:var(--green)"></i>買／賣（越大金額越大）</span>
+      <span><i style="width:11px;height:11px;border-radius:50%;border:2px solid var(--text-3)"></i>贈與・信託（不算買賣）</span>
+      <span><i style="width:20px;height:9px;background:rgba(245,165,36,.25);border-top:1px solid var(--gold);border-bottom:1px solid var(--gold)"></i>內部人買進成本</span>
+    </div>
+  </div>
+  <svg id="c"></svg>
+  <div class="foot">點任何圓圈、月柱或上方數字看逐人明細。推算金額＝集中市場淨股數 × 當月平均收盤價；同一人多重身分只算一次；配偶與他人名義併入本人。來源：公開資訊觀測站、集保、證交所／櫃買、本站分點大戶。 <span id="chk"></span></div>
+</div>
+<div class="drawer" id="dw"></div>
+<script>
+const M=[];for(let y=2024,m=11;M.length<24;){M.push([y,m]);m++;if(m>12){m=1;y++}}
+const px=[96,94,99,92,90,93,95,97,98,104,108,111,116,121,126,131,138,150,166,190,262,301,296,305.5];
+// [side, 億, label, avg, people]  side 0 = gift / trust (not a trade)
+const ev={19:[1,9.0,'董事長(他人名義) 等 5 人',143,5],20:[1,7.3,'董事長(他人名義) 等 2 人',182,2],21:[1,13.7,'董事長 等 2 人',263,2],
+  9:[1,0.085,'經理人',104,1],11:[-1,0.2248,'協理',111,1],15:[-1,1.1,'董事 等 3 人',131,3],6:[-1,0.03,'協理',95,1],13:[1,0.05,'獨立董事',121,1],
+  14:[0,0.6,'董事長 贈與',126,1],17:[0,0.3,'董事 信託',138,1]};
+const brm={17:0.05,18:0.12,19:0.31,20:0.48,21:-0.08,22:0.22,23:0.1};   // branch masters monthly net (億), data from 2026-04
+const big=[[19.6,31.2],[20,32.1],[20.5,33.0],[21,34.6],[21.5,35.0],[22,35.9],[22.5,36.1],[23,36.8]];  // weekly from 2026-06
+const LAST=21, PEND=[22,23], COST=207;
+if(location.hash.includes('m'))document.body.style.width='390px';
+const svg=document.getElementById('c'), Wd=svg.parentElement.clientWidth, mob=Wd<760;
+const W=Wd, L=mob?34:56, R=W-(mob?54:70);
+const bw=mob?150:240, bh=mob?38:46;
+const T=40, PB=mob?250:320, SB=PB+8, B0T=SB+bh+26, B0B=B0T+(mob?60:80), S1T=B0B+26, S1B=S1T+50, S2T=S1B+26, S2B=S2T+46, AX=S2B+18, H=AX+(mob?22:30);
+svg.setAttribute('width',W); svg.setAttribute('height',H);
+const VMIN=Math.min(...px)*0.85, VMAX=Math.max(...px)*1.12, TOP=T+bh+24;   // the top band holds the buy callouts
+const dx=(R-L)/23, x=i=>L+dx*i, y=v=>PB-(PB-TOP)*(v-VMIN)/(VMAX-VMIN);
+const ns=(t,a,c='')=>`<${t} ${Object.entries(a).map(([k,v])=>`${k}="${v}"`).join(' ')}>${c}</${t}>`;
+let s=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b3a6b" stop-opacity=".9"/><stop offset="1" stop-color="#1b3a6b" stop-opacity="0"/></linearGradient></defs>`;
+s+=ns('rect',{x:x(PEND[0])-dx/2,y:T-30,width:dx*2,height:S2B-T+30,fill:'#17191C'});
+s+=ns('text',{x:x(22.5),y:T-14,'text-anchor':'middle',fill:'#8A8F97','font-size':12},'尚未申報');
+for(const v of [100,150,200,250,300].filter(v=>v>VMIN&&v<VMAX)){s+=ns('line',{x1:L,x2:R,y1:y(v),y2:y(v),stroke:'#24272B'});s+=ns('text',{x:L-6,y:y(v)+4,'text-anchor':'end',fill:'#8A8F97','font-size':11},v)}
+M.forEach(([yy,mm],i)=>{if(!mob||i%2===0)s+=ns('text',{x:x(i),y:AX,'text-anchor':'middle',fill:'#B4B8BE','font-size':11},mm);
+  if(mm===1||(i===0&&(!mob||mm<11)))s+=ns('text',{x:x(i),y:AX+16,'text-anchor':'middle',fill:'#F2F2F2','font-size':12,'font-weight':700},yy);
+  if(mm===1)s+=ns('line',{x1:x(i)-dx/2,x2:x(i)-dx/2,y1:T-30,y2:S2B,stroke:'#34383E','stroke-dasharray':'3 4'})});
+// cost band (weighted average of the last 12 months' market buys)
+s+=ns('rect',{x:L,y:y(COST*1.03),width:R-L,height:y(COST*0.97)-y(COST*1.03),fill:'rgba(245,165,36,.16)',stroke:'#F5A524','stroke-width':.8});
+s+=ns('text',{x:L+6,y:y(COST*1.03)-5,fill:'#F5A524','font-size':12},`內部人買進成本 ${COST}（近 12 個月加權）`);
+const pts=px.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+s+=ns('polygon',{points:`${x(0)},${PB} ${pts} ${x(23)},${PB}`,fill:'url(#g)'});
+s+=ns('polyline',{points:pts,fill:'none',stroke:'#F2F2F2','stroke-width':2.5});
+s+=ns('text',{x:x(23)+8,y:y(px[23])+5,fill:'#F2F2F2','font-size':mob?14:18,'font-weight':700},'305.5');
+// callouts: biggest buys in the top band, biggest sells in the bottom band, never overlapping
+const amt=v=>v>=1?v.toFixed(1)+'億':Math.round(v*1e4).toLocaleString()+'萬';
+const boxes=[];
+function place(list,by){let items=list.slice().sort((a,b)=>x(a)-x(b));
+  while(items.length){const pos=items.map(i=>Math.min(Math.max(x(i)-bw/2,L),R-bw));
+    for(let k=1;k<pos.length;k++)pos[k]=Math.max(pos[k],pos[k-1]+bw+8);
+    if(pos[pos.length-1]>R-bw){pos[pos.length-1]=R-bw;for(let k=pos.length-2;k>=0;k--)pos[k]=Math.min(pos[k],pos[k+1]-bw-8)}
+    if(pos[0]>=L-1)return items.map((i,k)=>({i,bx:pos[k],by}));
+    const m=items.reduce((a,b)=>ev[a][1]<ev[b][1]?a:b);items=items.filter(i=>i!==m)}   // too many: the smallest goes
+  return []}
+const nB=mob?1:3,nS=mob?1:2;
+const buys=Object.keys(ev).map(Number).filter(i=>ev[i][0]>0).sort((a,b)=>ev[b][1]-ev[a][1]).slice(0,nB);
+const sells=Object.keys(ev).map(Number).filter(i=>ev[i][0]<0).sort((a,b)=>ev[b][1]-ev[a][1]).slice(0,nS);
+const placed=[...place(buys,T),...place(sells,SB)];
+// buys above the line: stack the top band at y = T-28? keep it inside the chart top
+for(const p of placed){const [side,v,who,av]=ev[p.i],col=side>0?'#ef4444':'#10b981',cx=x(p.i),cy=y(px[p.i]);
+  const by=p.by;
+  s+=ns('line',{x1:p.bx+bw/2,y1:side>0?by+bh:by,x2:cx,y2:cy,stroke:col,'stroke-width':1.1});
+  s+=ns('rect',{x:p.bx,y:by,width:bw,height:bh,fill:'#0D0E10',stroke:col,'stroke-width':1.5,rx:3,'data-box':1});
+  s+=ns('text',{x:p.bx+bw/2,y:by+(mob?16:19),'text-anchor':'middle',fill:'#F2F2F2','font-size':mob?12:14,'font-weight':700},who);
+  s+=ns('text',{x:p.bx+bw/2,y:by+(mob?32:38),'text-anchor':'middle',fill:col,'font-size':mob?12:14,'font-weight':700},`均 ${av} · ${side>0?'淨買':'淨賣'} ${amt(v)}`);
+  boxes.push([p.bx,by,bw,bh])}
+for(const [k,[side,v]] of Object.entries(ev)){const i=+k,cx=x(i),cy=y(px[i]),r=Math.min(16,5+Math.sqrt(v)*3.4);
+  s+=side===0?ns('circle',{cx,cy,r,fill:'#000',stroke:'#8A8F97','stroke-width':2,'data-d':i,style:'cursor:pointer'})
+             :ns('circle',{cx,cy,r,fill:side>0?'#ef4444':'#10b981',stroke:'#000','stroke-width':1.5,'data-d':i,style:'cursor:pointer'})}
+// cluster flag over the 3-month cluster
+s+=ns('rect',{x:x(19)-dx/2,y:PB-4,width:dx*3,height:4,fill:'#ef4444'});
+s+=ns('text',{x:x(20),y:PB+20,'text-anchor':'middle',fill:'#ef4444','font-size':12,'font-weight':700},'6 人同買');
+// monthly insider bars inside the price panel bottom
+s+=ns('text',{x:L,y:B0T-6,fill:'#F2F2F2','font-size':12,'font-weight':700},'內部人每月買賣金額（億）');
+const b0m=(B0T+B0B)/2, bsc=(B0B-B0T)/2/Math.max(...Object.values(ev).map(e=>e[1]));
+s+=ns('line',{x1:L,x2:R,y1:b0m,y2:b0m,stroke:'#34383E'});
+s+=ns('text',{x:R+6,y:B0T+10,fill:'#B4B8BE','font-size':11},'買 ↑');s+=ns('text',{x:R+6,y:B0B,fill:'#B4B8BE','font-size':11},'賣 ↓');
+for(const [k,[side,v]] of Object.entries(ev)){if(!side)continue;const h=Math.max(2,v*bsc);
+  s+=ns('rect',{x:x(+k)-dx*0.3,y:side>0?b0m-h:b0m,width:dx*0.6,height:h,fill:side>0?'#ef4444':'#10b981','data-d':k})}
+// sub panel 1: branch masters (blue), sub panel 2: 1000-lot holders (teal)
+s+=ns('text',{x:L,y:S1T-6,fill:'#4C9DFF','font-size':12,'font-weight':700},'分點大戶每月淨買');
+s+=ns('rect',{x:L,y:S1T,width:x(16.5)-L,height:S1B-S1T,fill:'#0D0E10'});
+s+=ns('text',{x:(L+x(16.5))/2,y:(S1T+S1B)/2+4,'text-anchor':'middle',fill:'#8A8F97','font-size':11},'本站分點資料從 2026-04 起');
+const s1m=(S1T+S1B)/2; s+=ns('line',{x1:L,x2:R,y1:s1m,y2:s1m,stroke:'#34383E'});
+for(const [k,v] of Object.entries(brm)){const h=Math.abs(v)*48;s+=ns('rect',{x:x(+k)-dx*0.3,y:v>0?s1m-h:s1m,width:dx*0.6,height:Math.max(h,2),fill:v>0?'#4C9DFF':'none',stroke:'#4C9DFF','data-d':'br'})}
+s+=ns('text',{x:L,y:S2T-6,fill:'#1FC7B6','font-size':12,'font-weight':700},'千張大戶持股 %');
+s+=ns('rect',{x:L,y:S2T,width:x(19.4)-L,height:S2B-S2T,fill:'#0D0E10'});
+s+=ns('text',{x:(L+x(19.4))/2,y:(S2T+S2B)/2+4,'text-anchor':'middle',fill:'#8A8F97','font-size':11},'集保週資料從 2026-06 起');
+const yb=v=>S2B-(S2B-S2T)*(v-30)/(38-30);
+s+=ns('polyline',{points:big.map(([i,v])=>`${x(i)},${yb(v)}`).join(' '),fill:'none',stroke:'#1FC7B6','stroke-width':2});
+s+=ns('text',{x:x(23)+8,y:yb(36.8)+4,fill:'#1FC7B6','font-size':12,'font-weight':700},'36.8%');
+svg.innerHTML=s;
+// verification: no callout overlaps another callout or any marker
+let bad=0;const circ=[...svg.querySelectorAll('circle')].map(c=>[+c.getAttribute('cx'),+c.getAttribute('cy'),+c.getAttribute('r')]);
+for(let a=0;a<boxes.length;a++){const [ax,ay,aw,ah]=boxes[a];
+  for(let b=a+1;b<boxes.length;b++){const [bx,by,bw2,bh2]=boxes[b];if(ax<bx+bw2&&bx<ax+aw&&ay<by+bh2&&by<ay+ah)bad++}
+  for(const [cx,cy,r] of circ)if(cx+r>ax&&cx-r<ax+aw&&cy+r>ay&&cy-r<ay+ah)bad++}
+document.getElementById('chk').textContent=`[check] callouts ${boxes.length}, overlaps ${bad}, width ${W}`;
+document.body.dataset.overlaps=bad;
+// drawer: details only on click
+const dw=document.getElementById('dw');
+function open(d){dw.innerHTML=`<h3>8114 振樺電 · 2026-08 逐人明細</h3><div style="color:var(--text-2);font-size:13px">9/22 公開 · 訊號日 9/23 · <span class="mock">示意</span></div>
+<table><tr><th>身分</th><th>姓名</th><th>集中買</th><th>集中賣</th><th>贈與・信託</th><th>月底持股</th><th>設質</th></tr>
+<tr><td>董事長</td><td>王○○</td><td class="up">3,100 張</td><td>0</td><td>0</td><td>18,420 張</td><td>0</td></tr>
+<tr><td>董事長(他人名義)</td><td>王○○</td><td class="up">2,110 張</td><td>0</td><td>0</td><td>6,050 張</td><td>0</td></tr>
+<tr><td>董事</td><td>汫枋有限公司</td><td class="up">9 張</td><td>0</td><td>0</td><td>1,209 張</td><td>0</td></tr></table>
+<div class="note">合計集中市場淨買 5,219 張 × 當月均價 263（推算）＝ 13.7 億<br>對照組 A：淨買 ≥ 1 億 ✔　對照組 B：公開前 10 日分點大戶淨買 4,820 萬 ✔<br>過去同類訊號：41 件，20 日超額平均 +3.2%、勝率 58%；樣本外 12 件 +2.1%</div>`;dw.classList.add('open')}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-d]');if(t)open(t.dataset.d);else if(!e.target.closest('.drawer'))dw.classList.remove('open')});
+if(location.hash==='#open')open('21');
+</script></body></html>

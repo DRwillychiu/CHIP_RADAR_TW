@@ -3957,6 +3957,59 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 @media (max-width:768px){.header-inner{padding:0}.logo-cn{padding:10px 16px}.header-actions .btn{padding:8px 10px}.tab{padding:10px 10px;font-size:12px}}
 @media (max-width:560px){.ek-h1{font-size:22px;border-left-width:6px;padding-left:12px}.ek-v{font-size:52px}.ek-band{font-size:13px;padding:7px 10px}
   .ek-band .en{display:none}.ek-nm{flex-basis:104px}.ek li{font-size:14px;padding:8px 10px}.ek-d{white-space:normal}}
+/* v3.96.1 S08 大股東動向 (insider radar, spec 3.1): the top 5 with the key facts, every detail in the drawer.
+   The label box is the role + 買 / 賣 in red (buy) or green (sell); Taiwan colours, not the line colour. */
+.ek-ins{margin-top:10px}
+.ek-ins-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;font-size:12px;font-weight:700;color:var(--text-3);letter-spacing:.04em}
+.ek-ins-h select{background:var(--bg-3);color:var(--text);border:1px solid var(--line-2);border-radius:0;font:inherit;font-weight:900;padding:2px 4px;cursor:pointer;min-width:0;width:auto}
+.ek-ins .ek-band .ek-go + .en{margin-left:14px}   /* the full-width band: "全部 N 筆 ›" sits right, not in the middle */
+.ek-ins li{display:grid;grid-template-columns:22px minmax(150px,240px) 120px minmax(130px,200px) minmax(0,1fr);gap:12px;cursor:pointer}
+.ek-ins li:hover{background:var(--bg-3)}
+.ek-ins li.ek-sub{display:block;cursor:default;font-size:13px;color:var(--text-3)}.ek-ins li.ek-sub:hover{background:none}
+.ek-ins .ek-nm{overflow:hidden;text-overflow:ellipsis}
+.ek-ins-lb{justify-self:start;border:1px solid currentColor;padding:2px 8px;font-size:13px;font-weight:900;letter-spacing:.04em;line-height:1.3;white-space:nowrap}
+.ek-ins-lb.buy{color:var(--red)}.ek-ins-lb.sell{color:var(--green)}
+.ek-ins-amt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:26px;line-height:1;white-space:nowrap;text-align:right}
+.ek-ins-ret{font-family:'Barlow Condensed',sans-serif;font-size:22px;line-height:1;white-space:nowrap}
+.ek-ins-amt small,.ek-ins-ret small{font-family:'Noto Sans TC',sans-serif;font-size:12px;font-weight:700;color:var(--text-3);margin-left:5px}
+.dr-ins-hl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 0 4px;font-size:16px;font-weight:700}
+.dr-ins-tb{overflow-x:auto}
+/* v3.96.3 3.3 個股全景圖 at the top of the S08 drawer (owner-approved draft panorama_v3_draft.html) */
+.dr-pano{position:relative;margin:10px 0 6px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.dr-pano svg{display:block;max-width:100%}.dr-pano svg text{font-family:'Noto Sans TC',sans-serif}
+.dr-pano [data-pop]{cursor:pointer}
+.ins-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--text-2);margin:2px 0 2px}
+.ins-leg i{display:inline-block;vertical-align:middle;margin-right:4px}
+.ins-pfoot{font-size:11.5px;color:var(--text-3);margin-top:2px}
+.ins-pop{position:absolute;z-index:3;background:var(--bg-2);border:1.5px solid var(--line-2);padding:9px 11px;min-width:210px;max-width:min(340px,94%);
+  max-height:280px;overflow:auto;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.ins-pop-h{font-weight:900;font-size:14px;margin-bottom:2px}
+.ins-pop .p{display:flex;justify-content:space-between;gap:14px;margin-top:5px}.ins-pop .p b{font-weight:700;white-space:nowrap}
+/* v3.96.4 the draft's five key cells, the role / span chips, the 「檢查更新」 line */
+.ins-cells{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:12px 0 4px}
+.ins-cell{background:var(--bg-2);border:1px solid var(--line);padding:8px 10px;min-width:0}
+.ins-cell .q{color:var(--text-3);font-size:12px}
+.ins-cell .a{font-size:20px;font-weight:900;line-height:1.3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ins-cell .a small{font-size:11px;color:var(--text-3);font-weight:700;margin-left:4px}
+.ins-cell .s{color:var(--text-2);font-size:12px;margin-top:3px;line-height:1.5}.ins-cell .s small{font-size:12px}
+.ins-cell .a.ins-bl{color:var(--c-players)}
+.ins-flag{display:inline-block;background:var(--red);color:#000;font-size:11px;font-weight:900;padding:1px 5px;margin-left:6px;vertical-align:middle;line-height:1.4}
+.ins-bar{display:flex;flex-wrap:wrap;gap:6px 14px;margin:2px 0 6px}.ins-chips{display:flex;gap:4px;flex-wrap:wrap}
+.ins-chip{border:1px solid var(--line-2);color:var(--text-2);font-size:12.5px;padding:2px 9px;cursor:pointer;user-select:none}
+.ins-chip.on{background:var(--text);color:var(--bg);border-color:var(--text);font-weight:700}
+.ek-ins .ek-band .ins-rf{margin-left:auto}.ek-ins .ek-band .ins-rf + .ek-go{margin-left:14px}
+.ek-ins-st{padding:6px 14px 0;font-size:12px;color:var(--text-3);font-weight:700}
+.ins-late{color:var(--red);margin-left:8px}
+@media (max-width:560px){.ins-cells{grid-template-columns:1fr 1fr}.ins-cell:last-child{grid-column:span 2}.ins-cell .a{font-size:17px}.ek-ins-st{padding:6px 10px 0}}
+.dr .dr-ins-tb td{white-space:nowrap}.dr .dr-ins-tb td.nm{white-space:normal;min-width:6em}
+.dr-ins-tb td small{display:block;font-size:11px;color:var(--text-3)}
+.dr-ins-tb .ins-mrole{display:none}   /* phones: the role moves under the name, the 身分 column folds */
+@media (max-width:560px){.dr-ins-tb .ins-role{display:none}.dr-ins-tb .ins-mrole{display:block}
+  .dr .dr-ins-tb td{white-space:normal}.dr .dr-ins-tb td.num{white-space:nowrap}.dr .dr-ins-tb td.nm{min-width:5em}
+  .dr .dr-ins-tb td.r{font-size:12px;padding:8px 3px}.dr-ins-tb th{white-space:normal}}
+.dr-kpis.dr-ins-k{flex-wrap:wrap;row-gap:10px}.dr-ins-k b{white-space:nowrap}
+@media (max-width:560px){.ek-ins li{grid-template-columns:22px minmax(0,1fr) auto;row-gap:6px}
+  .ek-ins-amt{grid-row:2;grid-column:2;text-align:left}.ek-ins-ret{grid-row:3;grid-column:2 / -1;text-align:left;white-space:normal}.ek-ins-ret small{display:inline-block}.ek-ins-h{padding:7px 10px}}
 
 /* v3.90.0 detail drawer: the page shows the big points, details slide in from the right */
 .ek-tap{cursor:pointer}.ek-tap:hover .ek-band{background:var(--bg-3)}
@@ -6538,6 +6591,7 @@ function _loadDayDataInBackground() {
 function lockApp() {
   if (!confirm('確定要鎖定？')) return;
   _DAY_LOADING = null; CURRENT_LATEST_ETAG = null; DAILY_SUMMARY = null; _DS_TOKEN = null;   // v3.86.1
+  INSIDER_RADAR = null; INSIDER_PRIV = null; _INS_LOADING = null;   // v3.96.1 the decrypted group B goes with the lock
   if (typeof _dsClose === 'function') _dsClose();   // v3.90.0
   SESSION_PASSWORD = null;
   CURRENT_CRAWLED_AT = null;   // P0-4
@@ -10225,6 +10279,7 @@ function renderDailySummary() {
       <div class="ek-blk k-meta ek-tap" onclick="_dsOpen('changes')">${band('C', '06', '今天變了什麼', 'CHANGES', '<span class="more">詳細 ›</span>')}<ul>${chg}</ul></div>
       <div class="ek-blk k-market ek-mkt">${band('M', '07', '市場', 'MARKET', '<button class="ek-go" onclick="_dsOpen(\'market\')">20 日 ›</button>')}<ul>${mkt}</ul></div>
     </section>
+    <div class="ek-blk k-stocks ek-ins" id="ekIns">${_insInner()}</div>
     <div class="ek-foot"><span>路線色：S 個股（黃）・P 大戶（藍）・M 市場（青）・R 風險（紫）・C 一般（灰）。小圖＝近 ${days || 20} 個交易日走勢。</span>
       <span>強籌：每位大戶近 ${s.window_days || 10} 日淨買 ≥ 3,000 萬、買超 ≥ 5 天、仍在高點 80% 以上，3 位以上同時布局。</span></div>
   </div>`;
@@ -10535,6 +10590,464 @@ function _boardToday3() {
     }
   }
   if (_DR_SRC && _DR_SRC.startsWith('today3:')) _boardFill('today3', _DR_SRC.slice(7));
+}
+
+// ========== v3.96.1 S08 大股東動向 (insider radar on 今日總整理, spec 3.1) ==========
+// Owner 2026-10-11: only the key facts in big type, every detail after a click; the top 5 on the page.
+// data/insider_radar.json = public MOPS data (plain, scripts/run_insider_radar.py). Everything from our
+// branch-master crawl (group B, branch_net_10d, 同向 / 反向) lives in the encrypted private part (same
+// AES-GCM envelope as daily_summary.json) and is read with the session password only.
+let INSIDER_RADAR = null;    // null = not loaded yet, {} = no file
+let INSIDER_PRIV = null;
+let _INS_LOADING = null;
+let _INS_H = 20;             // owner: the 20-day excess return is the main number, 5 / 10 / 60 from the menu
+let _INS_ROWS = [];
+const _INS_HS = [5, 10, 20, 60];
+// v3.96.2 owner 2026-10-11 「設置一個可以下拉選年份的選單」: the year windows of the file (years[], newest first);
+// rows, 全部 list, drawer and every backtest read the selected window. Files without years[] = one window.
+let _INS_Y = null;           // null = the newest window
+function _insYears() { const ys = (INSIDER_RADAR || {}).years; return Array.isArray(ys) ? ys.filter(y => y && y.key) : []; }
+function _insWin() { const ys = _insYears(); return ys.find(y => y.key === _INS_Y) || ys[0] || INSIDER_RADAR || {}; }
+function _insPrivWin() {     // group B of the same window (encrypted part); an old private file only knows the newest window
+  const pv = INSIDER_PRIV || {}, ys = Array.isArray(pv.years) ? pv.years : null, k = _insWin().key;
+  return ys ? (ys.find(y => y && y.key === k) || {}) : (!k || k === (_insYears()[0] || {}).key ? pv : {});
+}
+function _insSetY(v) { _INS_Y = _insYears().some(y => y.key === v) ? v : null; _insRender(); }
+function _insLoad() {
+  if (_INS_LOADING) return _INS_LOADING;
+  const pw = SESSION_PASSWORD;
+  _INS_LOADING = (async () => {
+    let ok = false;
+    try {
+      const res = await fetchWithTimeout(`${DATA_BASE}/insider_radar.json?t=${Date.now()}`, {cache: 'no-store'}, 10000);
+      const fresh = res.ok ? await res.json() : null;
+      if (fresh) INSIDER_RADAR = fresh; else if (!INSIDER_RADAR) INSIDER_RADAR = {};
+      ok = !!fresh;
+    } catch (e) { console.warn('[大股東動向] load failed', e); if (!INSIDER_RADAR) INSIDER_RADAR = {}; }
+    const priv = (INSIDER_RADAR || {}).private;
+    if (pw && typeof priv === 'string' && /^[\w.-]+\.json$/.test(priv)) {
+      try {
+        const res = await fetchWithTimeout(`${DATA_BASE}/${priv}?t=${Date.now()}`, {cache: 'no-store'}, 10000);
+        const env = res.ok ? await res.json() : null;
+        const plain = env && env.encrypted && env.data ? await decryptToken(env.data, pw, env.iterations) : null;
+        if (plain && SESSION_PASSWORD === pw) INSIDER_PRIV = JSON.parse(plain);
+      } catch (e) { console.warn('[大股東動向] private part not loaded', e); INSIDER_PRIV = null; }
+    }
+    _insRender();
+    return ok;
+  })();
+  return _INS_LOADING;
+}
+// v3.96.4 owner 2026-10-11 「面板上也要有一個自動fresh的按鈕，確保如果發現沒有更新，可以手動補上」: 「檢查更新」 re-reads the
+// file past every cache (no-store + ?t=); the line says how far the data goes and when MOPS publishes next. The
+// monthly declarations of month M are public around the 20th of M+1; 2 days after that with no new month = red.
+let _INS_CHECK = null;
+function _insDataUntil() { const d = INSIDER_RADAR || {}; return String(d.data_until || (d.pano || {}).published_until || ''); }
+function _insNextPub(until, now = new Date()) {
+  if (!/^\d{6}$/.test(until || '')) return null;
+  let y = +until.slice(0, 4), m = +until.slice(4) + 1;   // the next data month ...
+  if (m > 12) { m = 1; y++; }
+  let py = y, pm = m + 1;                                // ... is published around the 20th of the month after it
+  if (pm > 12) { pm = 1; py++; }
+  return { label: `${pm}/20`, due: new Date(py, pm - 1, 20), overdue: now > new Date(py, pm - 1, 22, 23, 59, 59) };
+}
+function _insStatus() {
+  const u = _insDataUntil(), nx = _insNextPub(u), c = _INS_CHECK;
+  if (!nx) return '';
+  const hm = d => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const tail = !c ? '' : c.busy ? '・檢查中…' : c.fail ? '・讀不到資料檔，稍後再試' : `・${hm(c.at)} 已重新讀取，${c.moved ? '有新資料' : '沒有新資料'}`;
+  return `<div class="ek-ins-st">資料到 ${u.slice(0, 4)}-${u.slice(4)}；下一次約 ${nx.label} 公告${nx.overdue ? '<b class="ins-late">官方應已公告，資料未更新</b>' : ''}${tail}</div>`;
+}
+async function _insRefresh(ev) {
+  if (ev) ev.stopPropagation();
+  if (_INS_CHECK && _INS_CHECK.busy) return;
+  const before = _insDataUntil(), gen = (INSIDER_RADAR || {}).generated_at;
+  _INS_CHECK = { busy: true };
+  _insRender();
+  _INS_LOADING = null;
+  const ok = await _insLoad();
+  _INS_CHECK = ok ? { at: new Date(), moved: _insDataUntil() !== before || (INSIDER_RADAR || {}).generated_at !== gen } : { fail: true };
+  _insRender();
+}
+function _insSide(x) { return x.side || (x.net_shares > 0 ? 'buy' : 'sell'); }
+function _insType(x) { return _insSide(x) === 'buy' ? 'A' : 'sells'; }
+function _insLabel(x) { return escHtml(x.role || '') + (_insSide(x) === 'buy' ? '買' : '賣'); }   // owner: 職位 + 買 / 賣
+function _insAmtTxt(yi) {
+  if (yi === null || yi === undefined) return '—';
+  const v = Math.abs(yi);
+  return v >= 1 ? `${v.toFixed(1)} 億` : `${Math.round(v * 1e4).toLocaleString('en-US')} 萬`;
+}
+function _insAmt(yi) {
+  const t = _insAmtTxt(yi).split(' ');
+  return `${t[0]}<small>${t[1] ? t[1] + '・' : ''}推算</small>`;
+}
+function _insBt(key, h, kind = 'ex') { return (((_insWin().backtest || {})[key] || {}).all || {})[kind + h] || {}; }
+// owner 2026-10-11 asked whether ▼ 9.6% meant a 9.6 % loss: it is the excess over the TAIEX, so it is
+// written with its sign and 比大盤 (stock return - index return, buy at the signal day close, hold N days)
+// the real result of following (owner 2026-10-11: 「如果當時跟單的實際損益」): plain signed %, no 比大盤
+function _insRaw(v) { return v === null || v === undefined ? '<span class="ds-flat">—</span>'
+  : `<span class="${_dsCls(v)}">${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}%</span>`; }
+function _insPct(v) { return v === null || v === undefined ? '<span class="ds-flat">—</span>'
+  : `<span class="${_dsCls(v)}">比大盤 ${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}%</span>`; }
+function _insYm(ym) { const v = String(ym || ''); return v.length === 6 ? `${v.slice(0, 4)}-${v.slice(4)}` : '—'; }
+function _insDay(d) { const v = String(d || ''); return v.length === 8 ? `${v.slice(0, 4)}-${v.slice(4, 6)}-${v.slice(6)}` : '—'; }
+function _insRows() {   // buys (group A) and sells together, the newest signal day first (selected year window)
+  const d = _insWin();
+  return [...((d.signals || {}).A || []), ...(d.sells || [])].sort((a, b) =>
+    String(b.signal_day || '').localeCompare(String(a.signal_day || '')) || Math.abs(b.net_yi_est || 0) - Math.abs(a.net_yi_est || 0));
+}
+function _insInner() {
+  const band = extra => `<div class="ek-band"><span class="ek-code">S<small>08</small></span>大股東動向${extra}<span class="en">INSIDERS</span></div>`;
+  if (INSIDER_RADAR === null) { _insLoad(); return band('') + '<ul><li class="ek-sub">大股東資料載入中…</li></ul>'; }
+  const rows = _INS_ROWS = _insRows();
+  const win = _insWin(), sc = win.scope || {}, ys = _insYears(), H = _INS_H;
+  const rf = `<button class="ek-go ins-rf" onclick="_insRefresh(event)">${_INS_CHECK && _INS_CHECK.busy ? '檢查中…' : '檢查更新'}</button>`, st = _insStatus();
+  const yopt = ys.length > 1 ? `<select aria-label="年份" onchange="_insSetY(this.value)">${ys.map(y =>
+    `<option value="${escHtml(y.key)}"${y.key === win.key ? ' selected' : ''}>${escHtml(y.label || y.key)}</option>`).join('')}</select>` : '';
+  // a window whose person-level data is still being fetched says so (owner: no zeros shown as results)
+  const fetching = sc.fetching ? `<li class="ek-sub">資料抓取中（已抓 ${Number(sc.pages) || 0} 頁${Number.isFinite(sc.pending_pages) ? `，還有 ${Number(sc.pending_pages)} 頁` : ''}）${rows.length ? '，數字還會變' : ''}</li>` : '';
+  if (!rows.length) {   // empty state: one quiet line, not an error
+    const what = INSIDER_RADAR.signals ? `${escHtml(win.label || '近一年')}沒有達門檻的大股東、董監、經理人買賣申報` : '大股東資料尚未產生';
+    return band(rf) + st + (yopt ? `<div class="ek-ins-h">${yopt}</div>` : '') + `<ul>${fetching || `<li class="ek-sub">${what}</li>`}</ul>`;
+  }
+  const li = rows.slice(0, 5).map((x, i) => {
+    // owner 2026-10-11 「這樣就對了」: the main number is what following made after costs (sells: the price
+    // move after it), with the hit rate; 比大盤 moves to a second line
+    // owner 2026-10-11 「要」: each row shows the backtest of ITS role group (董事長 / 董事監察人 / 經理人 / 大股東),
+    // not the whole group A average that was the same on every row; no 未通過 banner (owner: 不需要)
+    const side = _insSide(x), key = _insType(x), grp = x.role_group || '';
+    const lay = ((((win.backtest || {})[side === 'buy' ? 'layers_A' : 'layers_sells'] || {})['身分'] || {})[grp] || {}).all;
+    const pick = kind => lay ? (lay[kind + H] || {}) : _insBt(key, H, kind);
+    const bt = pick('ex'), main = pick(side === 'buy' ? 'n' : 'r');
+    return `<li onclick="_insOpen(${i})"><span class="ek-rk">${i + 1}</span>
+      <span class="ek-nm">${escHtml(x.name || '')}<em>${escHtml(x.code)}</em></span>
+      <span class="ek-ins-lb ${side}">${_insLabel(x)}</span>
+      <span class="ek-ins-amt">${_insAmt(x.net_yi_est)}</span>
+      <span class="ek-ins-ret" title="同類訊號（${side === 'buy' ? '大買' : '賣出'}）過去 ${H} 個交易日">${side === 'buy' ? '跟單 ' : '股價 '}${_insRaw(main.mean)}<small>${side === 'buy' && main.hit !== null && main.hit !== undefined ? '勝率 ' + Number(main.hit) + '% · ' : ''}${lay ? escHtml(grp) + ' ' : ''}${Number(main.n || bt.n) || 0} 件</small><small class="dim">${_insPct(bt.mean)}</small></span></li>`;
+  }).join('');
+  const opts = _INS_HS.map(h => `<option value="${h}"${h === H ? ' selected' : ''}>${h}</option>`).join('');
+  return band(`${rf}<button class="ek-go" onclick="_insAll()">全部 ${rows.length} 筆 ›</button>`) + st
+    + `<div class="ek-ins-h">${yopt}同身分訊號過去<select aria-label="持有天數" onchange="_insSetH(this.value)">${opts}</select>個交易日：買方＝跟單結果（扣成本 0.585%）· 勝率 · 件數；賣方＝之後股價；小字＝比大盤</div>`
+    + `<ul>${fetching}${li}</ul>`;
+}
+function _insRender() { const box = document.getElementById('ekIns'); if (box) box.innerHTML = _insInner(); }
+function _insSetH(v) { _INS_H = _INS_HS.includes(+v) ? +v : 20; _insRender(); }
+// ========== v3.96.3 3.3 個股全景圖 (spec 4 item 3.3; the owner-approved draft docs/diagrams/insider_radar/panorama_v3_draft.html) ==========
+// Real data from insider_radar.json pano: monthly close (line + area), insider months as circles (red buy /
+// green sell, size = amount; hollow grey = 贈與・信託, not a trade), boxed 「職位＋買/賣」 labels only (names
+// and amounts in the pop-up of a circle), monthly buy / sell bars, grey 「尚未申報」 months, the cost band
+// (last 12 months' market buys) with 現價 vs 成本, 「N 人同買」, and two sub-panels on the same time axis:
+// our branch masters' monthly net (encrypted part, only when it was decrypted) and the TDCC 1000-lot %.
+let _INS_PANO = null, _INS_PANO_CODE = null;
+const _INS_ROLES = ['全部', '董事長', '董事', '經理人', '大股東'];
+let _INS_PF = { role: '全部', span: 2 };
+function _insGrp(r) { r = String(r || ''); return r.includes('大股東') ? '大股東' : r.includes('董事長') ? '董事長' : (r.includes('董事') || r.includes('監察人')) ? '董事' : '經理人'; }
+function _insPanoView(ins, role) {   // one role group: its people only, the month's totals and label from them
+  if (role === '全部') return ins;
+  const out = {};
+  for (const [m, e] of Object.entries(ins)) {
+    const ppl = (e.ppl || []).filter(p => _insGrp(p[0]) === role);
+    if (!ppl.length) continue;
+    const net = ppl.reduce((a, p) => a + p[2], 0), top = ppl.filter(p => p[2] && (p[2] > 0) === (net > 0)).sort((a, b) => Math.abs(b[2]) - Math.abs(a[2]))[0];
+    out[m] = { ...e, ppl, net_sh: net, oth_sh: ppl.reduce((a, p) => a + p[3], 0), role: top ? String(top[0]).replace('(他人名義)', '') : '' };
+  }
+  return out;
+}
+function _insPanoSet(k, v) { _INS_PF = { ..._INS_PF, [k]: v }; if (_INS_PANO_CODE) _insPanoDraw(_INS_PANO_CODE); }
+function _insPanoAmt(v) {
+  if (v === null || v === undefined || !isFinite(v)) return '—';
+  const a = Math.abs(v);
+  return a >= 1 ? `${a.toFixed(1)} 億` : a * 1e4 >= 1 ? `${Math.round(a * 1e4).toLocaleString('en-US')} 萬` : '不到 1 萬';
+}
+function _insPanoDraw(code) {
+  const box = document.getElementById('insPano');
+  if (!box) return;
+  _INS_PANO_CODE = code;
+  const P = (INSIDER_RADAR || {}).pano || {}, st0 = (P.stocks || {})[code], M0 = P.months || [];
+  // v3.96.4 the role chips and the 1 年 / 2 年 span: circles, labels, bars and pop-ups all draw this view
+  const f = _INS_PF, keep = f.span === 1 ? Math.max(0, M0.length - 12) : 0, M = M0.slice(keep);
+  const st = st0 && { ...st0, close: (st0.close || []).slice(keep), ins: _insPanoView(st0.ins || {}, f.role) };
+  if (!st || !M.length || !(st.close || []).some(v => v !== null)) { box.innerHTML = '<div class="dr-note">這檔還沒有全景圖資料</div>'; return; }
+  const cs = getComputedStyle(document.documentElement), cv = (k, d) => (cs.getPropertyValue(k) || '').trim() || d;
+  const RED = cv('--red', '#ef4444'), GREEN = cv('--green', '#10b981'), TX = cv('--text', '#F2F2F2'), TX2 = cv('--text-2', '#B4B8BE'),
+    TX3 = cv('--text-3', '#8A8F97'), LN = cv('--line', '#24272B'), LN2 = cv('--line-2', '#34383E'), BG = cv('--bg', '#000'),
+    BG2 = cv('--bg-2', '#0D0E10'), BG3 = cv('--bg-3', '#17191C'), GOLD = cv('--gold', '#F5A524'), BLUE = cv('--c-players', '#4C9DFF'), TEAL = cv('--c-market', '#1FC7B6');
+  const n = M.length, pubU = P.published_until || M[n - 1];
+  const W = Math.max(300, Math.floor(box.clientWidth || 600)), mob = W < 560;
+  const L = mob ? 30 : 52, R = W - (mob ? 44 : 62), lh = mob ? 22 : 26, fs = mob ? 12 : 14;
+  const brP = (INSIDER_PRIV || {}).pano, brs = brP && brP.stocks ? (brP.stocks[code] || {}) : null;   // only when the private part was decrypted
+  const clusters = st.clusters || [], tdcc = st.tdcc || [];
+  const T = 28, LB = T + 4, TOP = LB + lh + 20, PB = TOP + (mob ? 150 : 200), SB = PB + (clusters.length ? 30 : 10);
+  const B0T = SB + lh + 30, B0B = B0T + (mob ? 48 : 62);
+  const S1T = B0B + 28, S1B = brs ? S1T + 44 : B0B, S2T = S1B + 28, S2B = S2T + 40, AX = S2B + 16, H = AX + (mob ? 20 : 24);
+  const dx = (R - L) / Math.max(1, n - 1), X = i => L + dx * i;
+  const vals = st.close.filter(v => v !== null), VMIN = Math.min(...vals) * 0.85, VMAX = Math.max(...vals) * 1.12;
+  const Y = v => PB - (PB - TOP) * (v - VMIN) / (VMAX - VMIN);
+  const ns = (t, a, c = '') => `<${t} ${Object.entries(a).map(([k, v]) => `${k}="${v}"`).join(' ')}>${c}</${t}>`;
+  const yi = e => (e && e.avg ? e.net_sh * e.avg / 1e8 : null), oyi = e => (e && e.avg ? e.oth_sh * e.avg / 1e8 : null);
+  let s = `<defs><linearGradient id="insPanoG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${BLUE}" stop-opacity=".38"/><stop offset="1" stop-color="${BLUE}" stop-opacity="0"/></linearGradient></defs>`;
+  // months not published yet
+  const pi = M.findIndex(m => m > pubU);
+  if (pi >= 0) {
+    const x0 = X(pi) - dx / 2;
+    s += ns('rect', { x: x0, y: 4, width: Math.min(W, X(n - 1) + dx / 2 + 4) - x0, height: S2B - 4, fill: BG3 });
+    s += ns('text', { x: (x0 + Math.min(W, X(n - 1) + dx / 2)) / 2, y: 18, 'text-anchor': 'middle', fill: TX3, 'font-size': 11 }, '尚未申報');
+  }
+  // price grid
+  const raw = (VMAX - VMIN) / 4, p10 = Math.pow(10, Math.floor(Math.log10(raw))), stp = [1, 2, 5, 10].map(k => k * p10).find(k => k >= raw) || raw;
+  for (let v = Math.ceil(VMIN / stp) * stp; v < VMAX; v += stp) {
+    s += ns('line', { x1: L, x2: R, y1: Y(v), y2: Y(v), stroke: LN });
+    s += ns('text', { x: L - 5, y: Y(v) + 4, 'text-anchor': 'end', fill: TX3, 'font-size': 10.5 }, +v.toFixed(2));
+  }
+  M.forEach((m, i) => { if (m.slice(4) === '01') s += ns('line', { x1: X(i) - dx / 2, x2: X(i) - dx / 2, y1: T, y2: S2B, stroke: LN2, 'stroke-dasharray': '3 4' }); });
+  // canvas text widths for every label box (overlap check)
+  const ctx = document.createElement('canvas').getContext('2d');
+  const tw = (t, f) => { ctx.font = f; return ctx.measureText(t).width; };
+  const circles = [], obst = [];
+  const lastI = st.close.reduce((a, v, i) => (v !== null ? i : a), -1), last = st.close[lastI];
+  // cost band
+  let costTxt = null;
+  if (st.cost && st.cost > VMIN && st.cost < VMAX) {
+    const c = st.cost, pct = (last / c - 1) * 100;
+    s += ns('rect', { x: L, y: Y(c * 1.03), width: R - L, height: Math.max(2, Y(c * 0.97) - Y(c * 1.03)), fill: GOLD, 'fill-opacity': .14, stroke: GOLD, 'stroke-width': .8 });
+    const cf = c >= 100 ? c.toFixed(0) : c.toFixed(2), pf = `現價${pct >= 0 ? '高' : '低'}於成本 ${Math.abs(pct).toFixed(0)}%`;
+    costTxt = { c, t: mob ? `成本 ${cf}・${pf}` : `內部人買進成本 ${cf}（近 12 個月加權）・${pf}`, legend: `內部人買進成本 ${cf}・${pf}` };
+  }
+  // price line + area (segments of months with a close)
+  let seg = [];
+  const flush = () => { if (seg.length > 1) { const pts = seg.map(([i, v]) => `${X(i)},${Y(v)}`).join(' ');
+    s += ns('polygon', { points: `${X(seg[0][0])},${PB} ${pts} ${X(seg[seg.length - 1][0])},${PB}`, fill: 'url(#insPanoG)' });
+    s += ns('polyline', { points: pts, fill: 'none', stroke: TX, 'stroke-width': 2.2 }); } seg = []; };
+  st.close.forEach((v, i) => { if (v === null) flush(); else seg.push([i, v]); }); flush();
+  s += ns('text', { x: X(lastI) + 7, y: Y(last) + 5, fill: TX, 'font-size': mob ? 13 : 16, 'font-weight': 700 }, +last.toFixed(2));
+  // circles: size by amount; hollow grey = 贈與・信託 (not a trade)
+  const rr = v => Math.min(16, 5 + Math.sqrt(Math.abs(v || 0)) * 3.4);
+  let marks = '';
+  M.forEach((m, i) => {
+    const e = st.ins[m];
+    if (!e || st.close[i] === null || (!e.net_sh && !e.oth_sh)) return;
+    const cx = X(i), cy = Y(st.close[i]), rn = e.net_sh ? rr(yi(e)) : 0, ro = e.oth_sh ? Math.max(rr(oyi(e)), rn ? rn + 4 : 0) : 0;
+    if (ro) marks += ns('circle', { cx, cy, r: ro, fill: rn ? 'none' : BG, stroke: TX3, 'stroke-width': 2, 'data-pop': i });
+    if (rn) marks += ns('circle', { cx, cy, r: rn, fill: e.net_sh > 0 ? RED : GREEN, stroke: BG, 'stroke-width': 1.5, 'data-pop': i });
+    circles.push([cx, cy, Math.max(rn, ro)]);
+  });
+  // 「N 人同買」 (>= 3 distinct people buying in 3 months)
+  let flags = '';
+  for (const [a, b, k] of clusters) {
+    const ia = M.indexOf(a), ib = M.indexOf(b);
+    if (ia < 0 || ib < 0) continue;
+    const x0 = X(ia) - dx / 2, w = dx * (ib - ia + 1), t = `${Number(k)} 人同買`, w2 = tw(t, '700 12px Noto Sans TC');
+    flags += ns('rect', { x: x0, y: PB - 4, width: w, height: 4, fill: RED });
+    flags += ns('text', { x: x0 + w / 2, y: PB + 18, 'text-anchor': 'middle', fill: RED, 'font-size': 12, 'font-weight': 700 }, t);
+    obst.push([x0 + w / 2 - w2 / 2, PB + 6, w2, 16]);
+  }
+  // boxed labels 「職位＋買/賣」: biggest buys in the top band, biggest sells under the chart; never over each other or a circle
+  const font = `700 ${fs}px Noto Sans TC`, label = i => `${st.ins[M[i]].role || ''}${st.ins[M[i]].net_sh > 0 ? '買' : '賣'}`;
+  const place = (list, by) => {
+    let items = list.slice().sort((a, b) => a - b);
+    while (items.length) {
+      const w = items.map(i => tw(label(i), font) + 20), pos = items.map((i, k) => Math.min(Math.max(X(i) - w[k] / 2, L), R - w[k]));
+      for (let k = 1; k < pos.length; k++) pos[k] = Math.max(pos[k], pos[k - 1] + w[k - 1] + 10);
+      const z = pos.length - 1;
+      if (pos[z] > R - w[z]) { pos[z] = R - w[z]; for (let k = z - 1; k >= 0; k--) pos[k] = Math.min(pos[k], pos[k + 1] - w[k] - 10); }
+      if (pos[0] >= L - 1) return items.map((i, k) => ({ i, bx: pos[k], by, w: w[k] }));
+      const small = items.reduce((a, b) => (Math.abs(yi(st.ins[M[a]]) || 0) < Math.abs(yi(st.ins[M[b]]) || 0) ? a : b));
+      items = items.filter(i => i !== small);
+    }
+    return [];
+  };
+  const cand = side => M.map((m, i) => i).filter(i => { const e = st.ins[M[i]]; return e && e.net_sh && (e.net_sh > 0) === side && st.close[i] !== null && e.role; })
+    .sort((a, b) => Math.abs(yi(st.ins[M[b]]) || 0) - Math.abs(yi(st.ins[M[a]]) || 0)).slice(0, side ? (mob ? 2 : 3) : (mob ? 1 : 2));
+  const hit = (a, b) => a[0] < b[0] + b[2] && b[0] < a[0] + a[2] && a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
+  const hitC = (bx, [cx, cy, r]) => cx + r > bx[0] && cx - r < bx[0] + bx[2] && cy + r > bx[1] && cy - r < bx[1] + bx[3];
+  const boxes = [];
+  for (const p of [...place(cand(true), LB), ...place(cand(false), SB)]) {
+    const b = [p.bx, p.by, p.w, lh];
+    if (circles.some(c => hitC(b, c)) || obst.some(o => hit(b, o)) || boxes.some(o => hit(b, o.b))) continue;   // dropped: the circle still opens it
+    boxes.push({ ...p, b });
+  }
+  let lines = '', tags = '';
+  for (const p of boxes) {
+    const buy = st.ins[M[p.i]].net_sh > 0, col = buy ? RED : GREEN;
+    lines += ns('line', { x1: p.bx + p.w / 2, y1: buy ? p.by + lh : p.by, x2: X(p.i), y2: Y(st.close[p.i]), stroke: col, 'stroke-width': 1, 'stroke-opacity': .7 });
+    tags += ns('rect', { x: p.bx, y: p.by, width: p.w, height: lh, fill: BG2, stroke: col, 'stroke-width': 1.5, rx: 3, 'data-pop': p.i });
+    tags += ns('text', { x: p.bx + p.w / 2, y: p.by + lh - 6, 'text-anchor': 'middle', fill: col, 'font-size': fs, 'font-weight': 700, 'data-pop': p.i }, escHtml(label(p.i)));
+  }
+  // the cost text: above the band, else under it, else at the right end (not over a circle or a label)
+  if (costTxt) {
+    const w = tw(costTxt.t, '12px Noto Sans TC');
+    const up = Y(costTxt.c * 1.03) - 17, dn = Y(costTxt.c * 0.97) + 3;
+    const tries = [[L + 6, up], [L + 6, dn], [R - 6 - w, up], [R - 6 - w, dn]];
+    const ok = w <= R - L - 12 && tries.find(([tx, ty]) => { const b = [tx, ty, w, 15]; return !circles.some(c => hitC(b, c)) && !boxes.some(o => hit(b, o.b)) && !obst.some(o => hit(b, o)); });
+    if (ok) { s += ns('text', { x: ok[0], y: ok[1] + 12, fill: GOLD, 'font-size': 12 }, escHtml(costTxt.t)); obst.push([ok[0], ok[1], w, 15]); costTxt.onChart = true; }
+    // no free place on the chart: the figures go into the legend instead (never over a circle)
+  }
+  s += lines + marks + flags + tags;
+  // monthly insider buy / sell bars
+  s += ns('text', { x: L, y: B0T - 8, fill: TX, 'font-size': 12, 'font-weight': 700 }, '內部人每月買賣金額（億，推算）');
+  const mid = (B0T + B0B) / 2, mx = Math.max(1e-9, ...M.map(m => Math.abs(yi(st.ins[m]) || 0)));
+  s += ns('line', { x1: L, x2: R, y1: mid, y2: mid, stroke: LN2 });
+  s += ns('text', { x: R + 6, y: B0T + 10, fill: TX2, 'font-size': 11 }, '買 ↑') + ns('text', { x: R + 6, y: B0B, fill: TX2, 'font-size': 11 }, '賣 ↓');
+  M.forEach((m, i) => { const v = yi(st.ins[m]); if (!v) return; const h = Math.max(2, Math.abs(v) / mx * (B0B - B0T) / 2);
+    s += ns('rect', { x: X(i) - dx * .3, y: v > 0 ? mid - h : mid, width: dx * .6, height: h, fill: v > 0 ? RED : GREEN, 'data-pop': i }); });
+  // sub-panel 1: our branch masters (encrypted part; data from its first day, grey before)
+  if (brs) {
+    const fm = String(brP.from || '').slice(0, 6), fi = Math.max(0, M.findIndex(m => m >= fm));
+    s += ns('text', { x: L, y: S1T - 8, fill: BLUE, 'font-size': 12, 'font-weight': 700 }, '分點大戶每月淨買（億）');
+    if (fi > 0) { s += ns('rect', { x: L - dx / 2, y: S1T, width: X(fi) - L, height: S1B - S1T, fill: BG2 });
+      s += ns('text', { x: (L + X(fi) - dx / 2) / 2, y: (S1T + S1B) / 2 + 4, 'text-anchor': 'middle', fill: TX3, 'font-size': 11 }, `本站分點資料從 ${fm.slice(0, 4)}-${fm.slice(4)} 起`); }
+    const m1 = (S1T + S1B) / 2, bx = Math.max(1e-9, ...Object.values(brs).map(v => Math.abs(v)));
+    s += ns('line', { x1: L, x2: R, y1: m1, y2: m1, stroke: LN2 });
+    M.forEach((m, i) => { const v = brs[m]; if (!v) return; const h = Math.max(2, Math.abs(v) / bx * (S1B - S1T) / 2);
+      s += ns('rect', { x: X(i) - dx * .3, y: v > 0 ? m1 - h : m1, width: dx * .6, height: h, fill: v > 0 ? BLUE : 'none', stroke: BLUE }); });
+  }
+  // sub-panel 2: TDCC 1000-lot holders % (weekly)
+  s += ns('text', { x: L, y: S2T - 8, fill: TEAL, 'font-size': 12, 'font-weight': 700 }, '千張大戶持股 %');
+  const xd = d => { const i = M.indexOf(String(d).slice(0, 6)); return i < 0 ? null : X(i) + dx * ((+String(d).slice(6, 8) || 15) - 15) / 30; };
+  const tp = tdcc.map(([d, v]) => [xd(d), v]).filter(([px]) => px !== null);
+  if (tp.length) {
+    const lo = Math.min(...tp.map(p => p[1])) - .5, hi = Math.max(...tp.map(p => p[1])) + .5, yb = v => S2B - (S2B - S2T) * (v - lo) / (hi - lo);
+    if (tp[0][0] > L + 4) { s += ns('rect', { x: L - dx / 2, y: S2T, width: tp[0][0] - L, height: S2B - S2T, fill: BG2 });
+      const d0 = String(tdcc[0][0]); s += ns('text', { x: (L + tp[0][0] - dx / 2) / 2, y: (S2T + S2B) / 2 + 4, 'text-anchor': 'middle', fill: TX3, 'font-size': 11 }, `集保週資料從 ${d0.slice(0, 4)}-${d0.slice(4, 6)} 起`); }
+    s += ns('polyline', { points: tp.map(([px, v]) => `${px},${yb(v)}`).join(' '), fill: 'none', stroke: TEAL, 'stroke-width': 2 });
+    const lp = tp[tp.length - 1]; s += ns('text', { x: lp[0] + 6, y: yb(lp[1]) + 4, fill: TEAL, 'font-size': 12, 'font-weight': 700 }, `${(+lp[1]).toFixed(1)}%`);
+  } else {
+    s += ns('rect', { x: L, y: S2T, width: R - L, height: S2B - S2T, fill: BG2 }) + ns('text', { x: (L + R) / 2, y: (S2T + S2B) / 2 + 4, 'text-anchor': 'middle', fill: TX3, 'font-size': 11 }, '沒有集保資料');
+  }
+  // time axis
+  const every = dx >= 26 ? 1 : dx >= 13 ? 2 : 3;
+  M.forEach((m, i) => {
+    if (i % every === 0) s += ns('text', { x: X(i), y: AX, 'text-anchor': 'middle', fill: TX2, 'font-size': 10.5 }, +m.slice(4));
+    if (m.slice(4) === '01' || i === 0) s += ns('text', { x: X(i), y: AX + 15, 'text-anchor': 'middle', fill: TX, 'font-size': 11.5, 'font-weight': 700 }, m.slice(0, 4));
+  });
+  let bad = 0;   // verification: no label over another label or a circle
+  boxes.forEach((p, a) => { boxes.slice(a + 1).forEach(o => { if (hit(p.b, o.b)) bad++; }); circles.forEach(c => { if (hitC(p.b, c)) bad++; }); });
+  _INS_PANO = { code, st, M, X, Y };
+  const chips = `<div class="ins-bar"><span class="ins-chips">${_INS_ROLES.map(r => `<span class="ins-chip${r === f.role ? ' on' : ''}" onclick="_insPanoSet('role','${r}')">${r}</span>`).join('')}</span>`
+    + `<span class="ins-chips">${[1, 2].map(y => `<span class="ins-chip${y === f.span ? ' on' : ''}" onclick="_insPanoSet('span',${y})">${y} 年</span>`).join('')}</span></div>`;
+  box.innerHTML = chips + `<div class="ins-leg"><span><i style="width:10px;height:10px;border-radius:50%;background:${RED}"></i><i style="width:10px;height:10px;border-radius:50%;background:${GREEN}"></i>買／賣（越大金額越大）</span>`
+    + `<span><i style="width:10px;height:10px;border-radius:50%;border:2px solid ${TX3}"></i>贈與・信託（不算買賣）</span>`
+    + (costTxt ? `<span><i style="width:18px;height:8px;background:${GOLD}40;border-top:1px solid ${GOLD};border-bottom:1px solid ${GOLD}"></i>${escHtml(costTxt.onChart ? '內部人買進成本' : costTxt.legend)}</span>` : '') + '</div>'
+    + `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="個股全景圖">${s}</svg>`
+    + `<div class="ins-pfoot">點圓圈、標籤或月柱看當月每個人。只畫有逐人申報的月份；金額＝集中市場淨股數 × 當月均價（推算）。</div>`;
+  box.dataset.overlaps = bad; box.dataset.labels = boxes.length;
+}
+function _insPanoClick(ev) {
+  const box = document.getElementById('insPano'), pz = _INS_PANO;
+  if (!box || !pz || ev.target.closest('.ins-pop')) return;
+  const old = box.querySelector('.ins-pop');
+  if (old) old.remove();
+  const t = ev.target.closest('[data-pop]');
+  if (!t) return;
+  const i = +t.getAttribute('data-pop'), m = pz.M[i], e = pz.st.ins[m];
+  if (!e) return;
+  const net = e.avg ? e.net_sh * e.avg / 1e8 : null, oth = e.avg ? e.oth_sh * e.avg / 1e8 : null;
+  const col = e.net_sh > 0 ? 'var(--red)' : e.net_sh < 0 ? 'var(--green)' : 'var(--text-3)';
+  const ppl = (e.ppl || []).slice().sort((a, b) => Math.abs(b[2]) - Math.abs(a[2]) || Math.abs(b[3]) - Math.abs(a[3]));
+  const row = p => { const v = e.avg ? (p[2] || p[3]) * e.avg / 1e8 : null, trade = !!p[2];
+    const c = !trade ? 'var(--text-3)' : p[2] > 0 ? 'var(--red)' : 'var(--green)';
+    return `<div class="p"><span>${escHtml(p[0])}(${escHtml(p[1])})</span><b style="color:${c}">${trade ? (p[2] > 0 ? '買 ' : '賣 ') : '贈與・信託 '}${_insPanoAmt(v)}</b></div>`; };
+  const pop = document.createElement('div');
+  pop.className = 'ins-pop';
+  pop.style.borderColor = col;
+  pop.innerHTML = `<div class="ins-pop-h" style="color:${col}">${m.slice(0, 4)}-${m.slice(4)}・${e.net_sh ? (e.net_sh > 0 ? '淨買 ' : '淨賣 ') + _insPanoAmt(net) + '（推算）' : '沒有集中市場買賣'}${e.avg ? `・均 ${e.avg >= 100 ? e.avg.toFixed(0) : e.avg.toFixed(2)}` : ''}</div>`
+    + (e.oth_sh ? `<div class="dim" style="font-size:12px">贈與・信託等（不算買賣）${_insPanoAmt(oth)}</div>` : '') + ppl.map(row).join('');
+  box.appendChild(pop);
+  const sv = box.querySelector('svg').getBoundingClientRect().top - box.getBoundingClientRect().top;   // SVG elements have no offsetTop
+  const W = box.clientWidth, cx = pz.X(i), cy = (pz.st.close[i] === null ? 60 : pz.Y(pz.st.close[i])) + sv;
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  pop.style.left = `${Math.min(Math.max(cx - pw / 2, 2), W - pw - 2)}px`;
+  pop.style.top = `${cy + 20 + ph > box.clientHeight ? Math.max(0, cy - ph - 20) : cy + 20}px`;
+}
+// v3.96.4 the draft's five key cells above the chart (owner 「全部採納」): big figures only, the details stay in the tables below
+function _insCells(x) {
+  const { code, ym } = x, buy = _insSide(x) === 'buy', H = _INS_H;
+  const P = (INSIDER_RADAR || {}).pano || {}, st = (P.stocks || {})[code] || {}, M = P.months || [], ins = st.ins || {}, e = ins[ym] || {};
+  const cell = (q, a, s, cls = '') => `<div class="ins-cell"><div class="q">${q}</div><div class="a ${cls}">${a}</div><div class="s">${s}</div></div>`;
+  const mi = M.indexOf(ym), w3 = mi >= 0 ? M.slice(Math.max(0, mi - 2), mi + 1) : [ym];
+  const nSide = (e.ppl || []).filter(p => (buy ? p[2] > 0 : p[2] < 0)).length;
+  const nb = new Set(w3.flatMap(m => ((ins[m] || {}).ppl || []).filter(p => p[2] > 0).map(p => p[1]))).size;
+  const c1 = cell(buy ? '誰在買' : '誰在賣', `${_insLabel(x)}${nb >= 3 ? `<span class="ins-flag">${nb} 人同買</span>` : ''}`,
+    `共 ${nSide || '—'} 人${buy ? ` · 近 3 個月不重複 ${nb} 人買` : ''}`);
+  const y12 = mi >= 0 ? M.slice(Math.max(0, mi - 11), mi + 1).filter(m => ins[m] && ins[m].avg) : [];
+  const amt = m => Math.abs(ins[m].net_sh * ins[m].avg);
+  const biggest = y12.length > 1 && y12.includes(ym) && y12.every(m => amt(m) <= amt(ym));
+  const pct = x.pct_of_shares === null || x.pct_of_shares === undefined ? '—' : `${Math.abs(x.pct_of_shares).toFixed(2)}%`;
+  const c2 = cell(buy ? '買多少' : '賣多少', `${buy ? '淨買' : '淨賣'} ${escHtml(_insAmtTxt(x.net_yi_est))}<small>推算</small>`,
+    `占股本 ${pct}${biggest ? ' · 1 年來最大' : ''}`, buy ? 'ds-up' : 'ds-down');
+  const last = (st.close || []).filter(v => v !== null).slice(-1)[0];
+  const c3 = st.cost && last ? cell('內部人成本', `均 ${st.cost >= 100 ? st.cost.toFixed(0) : st.cost.toFixed(2)}<small>推算</small>`,
+      `現價 ${last} · <span class="${last >= st.cost ? 'ds-up' : 'ds-down'}">${last >= st.cost ? '高' : '低'}於成本 ${Math.abs((last / st.cost - 1) * 100).toFixed(0)}%</span>`)
+    : cell('內部人成本', '—', '近 12 個月沒有集中市場買進');
+  const pv = INSIDER_PRIV, br = pv && pv.br10 ? pv.br10[`${code}:${ym}`] : undefined, from = String(((pv || {}).pano || {}).from || '');
+  const c4 = !pv ? cell('分點大戶', '—', '需解鎖')   // our branch masters: encrypted part only
+    : br === undefined || br === null ? cell('分點大戶', '—', from ? `本站分點資料從 ${_insDay(from)} 起，這筆在那之前` : '沒有分點資料')
+    : cell('分點大戶', br === 0 ? '持平' : `${(br > 0) === buy ? '同向' : '反向'} ${br > 0 ? '▲' : '▼'}`, `公開前 10 日${br >= 0 ? '淨買' : '淨賣'} ${escHtml(_insPanoAmt(br))}`, 'ins-bl');
+  const win = _insWin(), grp = x.role_group || '';
+  const lay = ((((win.backtest || {})[buy ? 'layers_A' : 'layers_sells'] || {})['身分'] || {})[grp] || {}).all;
+  const pick = kind => lay ? (lay[kind + H] || {}) : _insBt(_insType(x), H, kind);
+  const ex = pick('ex'), mn = pick(buy ? 'n' : 'r');
+  const c5 = cell(`這類訊號過去 ${H} 日`, `${buy ? '跟單 ' : '股價 '}${_insRaw(mn.mean)}`,
+    `${buy && mn.hit !== null && mn.hit !== undefined ? `勝率 ${Number(mn.hit)}% · ` : ''}${lay ? escHtml(grp) + ' ' : ''}${Number(mn.n || ex.n) || 0} 件 · <small>${_insPct(ex.mean)}</small>`);
+  return `<div class="ins-cells">${c1}${c2}${c3}${c4}${c5}</div>`;
+}
+function _insOpen(i) {
+  const x = _INS_ROWS[i];
+  if (!x) return;
+  const d = INSIDER_RADAR || {}, win = _insWin(), bt = win.backtest || {}, pw = _insPrivWin();   // v3.96.2 the selected year
+  const side = _insSide(x), buy = side === 'buy';
+  const lots = v => { const sh = Number(v) || 0;   // 張; under 1 張 the shares
+    return !sh ? '<span class="dim">—</span>' : Math.abs(sh) >= 1000 ? Math.round(sh / 1000).toLocaleString('en-US') : `${sh.toLocaleString('en-US')} 股`; };
+  const signed = v => v ? (v > 0 ? '+' : '−') + lots(Math.abs(v)) : lots(0);
+  const ppl = (x.detail || []).map(pp => {
+    const role = escHtml(pp.role || ''), kinds = (pp.kinds || []).map(escHtml).join('、');
+    return `<tr><td class="ins-role">${role}${kinds ? `<small>${kinds}</small>` : ''}</td>
+      <td class="nm"><b>${escHtml(pp.name || '—')}</b><small class="ins-mrole">${role}${kinds ? '・' + kinds : ''}</small></td><td class="num">${lots(pp.market_buy)}</td><td class="num">${lots(pp.market_sell)}</td>
+      <td class="num">${signed((Number(pp.other_buy) || 0) - (Number(pp.other_sell) || 0))}</td><td class="num">${lots(pp.end_shares)}</td></tr>`;
+  }).join('')
+    || '<tr><td colspan="6" class="dim">沒有逐人明細</td></tr>';
+  const privB = (pw.signals || {}).B || [];
+  const inB = privB.some(y => y.code === x.code && y.ym === x.ym);
+  const tr = (lab, all) => `<tr><td>${lab}<span class="dim">（${Number(all.n) || 0} 件）</span></td>${_INS_HS.map(h => {
+    const e = all['ex' + h] || {};
+    return `<td class="r">${_insPct(e.mean)}<br><span class="dim">勝率 ${e.hit === null || e.hit === undefined ? '—' : Number(e.hit) + '%'}</span></td>`;
+  }).join('')}</tr>`;
+  const grp = x.role_group || '';
+  const layer = (((bt[buy ? 'layers_A' : 'layers_sells'] || {})['身分'] || {})[grp]) || null;
+  const layerTb = `<table><thead><tr><th>平均超額・勝率</th>${_INS_HS.map(h => `<th class="r">${h} 日</th>`).join('')}</tr></thead><tbody>`
+    + (layer ? tr(`${escHtml(grp)}${buy ? '買' : '賣'}`, layer.all || {}) : '<tr><td colspan="5" class="dim">這個身分沒有回測樣本</td></tr>')
+    + tr(buy ? '全部大買（A）' : '全部賣出', (bt[_insType(x)] || {}).all || {})
+    + (inB ? tr('對照組 B（分點大戶同向）', (((pw.backtest || {}).B || {}).all) || {}) : '') + '</tbody></table>';
+  const split = (win.scope || d.scope || {}).split_day;
+  const sample = layer ? `${escHtml(win.label || '')}${win.label ? '・' : ''}${escHtml(grp)}：樣本內 ${Number((layer.in || {}).n) || 0} 件、樣本外 ${Number((layer.out || {}).n) || 0} 件（樣本外從 ${_insDay(split)} 起）。超額＝個股報酬 − 大盤。` : '';
+  const notes = [...(d.notes || []), ...(inB ? (INSIDER_PRIV || {}).notes || [] : [])].map(escHtml).join('<br>');   // B's notes only where B shows
+  const body = _insCells(x) + `<div class="dr-pano" id="insPano" onclick="_insPanoClick(event)"></div>`   // v3.96.3/4 the cells and the chart open the drawer
+    + `<div class="dr-ins-hl">${escHtml(x.headline || '')}</div>`
+    + `<div class="dr-note">公開日 ${_insDay(x.published)}・訊號日 ${_insDay(x.signal_day)}（公開後第一個交易日，報酬從這天收盤算起）${inB ? '・分點大戶訊號日前 10 日同向淨買（對照組 B）' : ''}</div>`
+    + _dsKpis([['推算淨額', `${buy ? '買' : '賣'} ${escHtml(_insAmtTxt(x.net_yi_est))}`], ['占股本', x.pct_of_shares === null || x.pct_of_shares === undefined ? '—' : `${Math.abs(x.pct_of_shares).toFixed(2)}%`],
+               ['當月均價', x.avg_price ? Number(x.avg_price).toFixed(2) : '—'], ['申報月份', _insYm(x.ym)]]).replace('class="dr-kpis"', 'class="dr-kpis dr-ins-k"')
+    + `<div class="dr-series"><div class="dr-sh"><b>逐人明細</b><span class="num">${(x.detail || []).length} 人</span></div>
+      <div class="dr-ins-tb"><table><thead><tr><th class="ins-role">身分</th><th>姓名</th><th class="r">集中買</th><th class="r">集中賣</th><th class="r">其它原因</th><th class="r">月底持股</th></tr></thead><tbody>${ppl}</tbody></table></div>
+      <div class="dr-note">單位：張（不足 1 張寫股數）。其它原因＝贈與、信託、繼承、員工認股等，不算買賣。${x.quiet ? `其餘 ${Number(x.quiet)} 人這個月沒有變動。` : ''}</div></div>`
+    + `<div class="dr-series"><div class="dr-sh"><b>${x.net_shares > 0 ? '如果當時跟單（扣成本 0.585%）' : '之後的股價（未扣成本）'}</b></div><div class="dr-last">${_INS_HS.map(h => `<span><em>${h} 日</em>${_insRaw(x[(x.net_shares > 0 ? 'n' : 'r') + h])}</span>`).join('')}</div></div>`
+    + `<div class="dr-series"><div class="dr-sh"><b>這一筆之後的實際超額</b></div><div class="dr-last">${_INS_HS.map(h => `<span><em>${h} 日</em>${_insPct(x['ex' + h])}</span>`).join('')}</div></div>`
+    + `<div class="dr-series"><div class="dr-sh"><b>同身分訊號的回測</b></div><div class="dr-ins-tb">${layerTb}</div><div class="dr-note">${sample}</div></div>`
+    + `<div class="dr-note">${notes}</div>`;
+  _dsDrawer('stocks', 'S', '08', `${escHtml(x.name || '')} ${escHtml(x.code)}　${_insLabel(x)}`, 'INSIDERS', body, `<button onclick="_insAll()">全部 ${_INS_ROWS.length} 筆 ›</button>`);
+  _INS_PF = { role: '全部', span: 2 };
+  _insPanoDraw(x.code);
+}
+function _insAll() {
+  const rows = _INS_ROWS, H = _INS_H;
+  const nBuy = rows.filter(x => _insSide(x) === 'buy').length;
+  const avg = key => { const e = _insBt(key, H); return e.mean === null || e.mean === undefined ? '—' : `${_dsSign(e.mean, 1)}%`; };
+  const body = _dsKpis([['大買', `${nBuy} 筆`], ['賣出', `${rows.length - nBuy} 筆`], [`大買過去 ${H} 日超額`, avg('A')], [`賣出過去 ${H} 日超額`, avg('sells')]])
+    + `<table><thead><tr><th>#</th><th>股票</th><th>動向</th><th class="r">推算金額</th><th class="dr-wide">申報月</th><th>訊號日</th><th class="r">這筆 ${H} 日超額</th></tr></thead><tbody>${
+      rows.map((x, i) => `<tr class="ek-tap" onclick="_insOpen(${i})"><td class="dim">${i + 1}</td><td><b>${escHtml(x.name || '')}</b> <span class="dim">${escHtml(x.code)}</span></td>
+        <td><span class="ek-ins-lb ${_insSide(x)}">${_insLabel(x)}</span></td><td class="num">${escHtml(_insAmtTxt(x.net_yi_est))}</td>
+        <td class="dr-wide">${_insYm(x.ym)}</td><td>${_insDay(x.signal_day)}</td><td class="r">${_insPct(x['ex' + H])}</td></tr>`).join('')
+    }</tbody></table><div class="dr-note">點任一列看逐人明細。金額為推算（集中市場淨股數 × 當月平均收盤價）。</div>`;
+  _dsDrawer('stocks', 'S', '08', `大股東動向 ${escHtml(_insWin().label || '')} 全部 ${rows.length} 筆`, 'INSIDERS', body);
 }
 
 // ========== v3.94.0 every page a board ==========
