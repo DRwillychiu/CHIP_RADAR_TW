@@ -124,6 +124,16 @@ check("21:30 以後 → 120 秒，早上 07:00 回到 90 秒", FP.pick_cycle(90,
       and FP.pick_cycle(90, 120, [], 0.0, "06:59")[0] == 120 and FP.pick_cycle(90, 120, [], 0.0, "07:00")[0] == 90)
 ch = (pathlib.Path(__file__).resolve().parent.parent / "scripts" / "fetch_insider_chain.sh").read_text(encoding="utf-8")
 check("三年的抓取都帶 --slow-cycle", ch.count('--slow-cycle "$S"') == 3)
+
+print("\n[K] 持股等式檢查 (scripts/check_insider_identity.py, 驗證關卡 1)")
+from scripts import check_insider_identity as CI
+def _row6(prev, inc, dec, end):
+    return (f"<tr><td>董事本人</td><td>甲</td><td>普通股</td><td>0 {prev:,} 0 0 0</td><td>{inc[0]:,} {inc[1]:,} {inc[2]:,} 0 0</td>"
+            f"<td>{dec[0]:,} {dec[1]:,} {dec[2]:,} 0 0</td><td>{end:,} 0 0 0 0</td></tr>")
+ok_pg = "<table>" + _row6(13479015, (170000, 0, 0), (0, 0, 0), 13649015) + _row6(6000, (0, 0, 0), (6000, 0, 0), 0) + "</table>"
+check("加得起來的列 (7689 張再發、翟傳福 2026-08) → 0 錯", CI.check_page(ok_pg) == (2, []), CI.check_page(ok_pg))
+bad_pg = "<table>" + _row6(13479015, (170000, 0, 0), (0, 0, 0), 13649000) + "</table>"
+check("差 15 股也抓得到", CI.check_page(bad_pg)[0] == 1 and len(CI.check_page(bad_pg)[1]) == 1, CI.check_page(bad_pg))
 print()
 print("─" * 72)
 print(f"  整體: {'✅ ALL PASS' if all_pass else '❌ HAS FAIL'}")
