@@ -24,6 +24,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+import requests  # noqa: E402
+
 from src.core.fubon_codec import decode_fubon  # noqa: E402
 from src.core.fubon_pacing import FUBON_MIN_GAP_S, note_request  # noqa: E402  (every Fubon request is measured)
 from src.fetchers import stock_branch_ranking as S  # noqa: E402
@@ -86,7 +88,17 @@ def main():
             time.sleep(wait)
         n += 1
         note_request()
-        r = s.get(URL.format(code=e["code"], y=y, m=m, last=calendar.monthrange(y, m)[1]), timeout=20)
+        try:
+            r = s.get(URL.format(code=e["code"], y=y, m=m, last=calendar.monthrange(y, m)[1]), timeout=20)
+        except requests.RequestException as x:   # 2026-10-12 15:12 a read timeout ended the run: cool down, try once more
+            print(f"[branches] {time.strftime('%H:%M:%S')} {type(x).__name__} at {e['code']} {e['ym']} - cooling down 5 min", flush=True)
+            time.sleep(300)
+            note_request()
+            try:
+                r = s.get(URL.format(code=e["code"], y=y, m=m, last=calendar.monthrange(y, m)[1]), timeout=20)
+            except requests.RequestException as x2:
+                print(f"[branches] stopped: {type(x2).__name__} twice at {e['code']} {e['ym']}", flush=True)
+                break
         last = time.monotonic()
         if r.status_code in (403, 429) or r.status_code >= 500:
             print(f"[branches] stopped: HTTP {r.status_code} at {e['code']} {e['ym']}", flush=True)

@@ -49,6 +49,35 @@ def main():
                     "concentration": round(conc, 2), "same_direction": agree, "pass": ok})
     (ROOT / "data" / "insider_branch_timing.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"candidates {len(out)}, pass {sum(x['pass'] for x in out)}")
+    # 2026-10-12 owner: 「確保第一年做的事情是正確且有意義」. Placebo: on the same stocks, the other branches that were
+    # on the insiders' side of the top 15 in >= 2 insider months but did NOT carry 50-150 % of the insiders' net.
+    # Same rule. If they pass as often, "matching the insiders' size" adds nothing and a pass means nothing.
+    cand = {(c["code"], c["bno"]) for c in stats["repeat_branches"]}
+    pl = []
+    for code in sorted({c["code"] for c in stats["repeat_branches"]}):
+        pages = {}
+        for ym in months(*WINDOW):
+            f = RAW / f"{code}_{ym}.html"
+            pages[ym] = (S.parse_fubon_stock_page(f.read_text(encoding="utf-8"), code) or {"buys": [], "sells": []}) if f.exists() else None
+        for side_name, side in (("買", 1), ("賣", -1)):
+            imonths = {ym for ym in pages if pages[ym] is not None and ins.get((code, ym), 0) * side > 0}
+            seen = {}
+            for ym in imonths:
+                for b in pages[ym]["buys" if side > 0 else "sells"]:
+                    if (code, b["bno"]) not in cand:
+                        seen.setdefault(b["bno"], set()).add(ym)
+            for bno, yms in seen.items():
+                if len(yms) < 2:
+                    continue
+                series = {ym: sum(b["net"] for b in p["buys"] + p["sells"] if b["bno"] == bno) for ym, p in pages.items() if p is not None}
+                total = sum(abs(v) for v in series.values())
+                conc = sum(abs(series[ym]) for ym in imonths) / total if total else 0
+                agree = all(series[ym] * side >= 0 for ym in imonths)
+                pl.append(not any(p is None for p in pages.values()) and conc >= CONC and agree)
+    rate_c = sum(x["pass"] for x in out) / len(out) * 100 if out else 0
+    rate_p = sum(pl) / len(pl) * 100 if pl else 0
+    print(f"placebo (same stocks, big same-side branches that did not match the insiders' size): {len(pl)}, "
+          f"pass {sum(pl)} ({rate_p:.1f} %) vs candidates {rate_c:.1f} %")
     for x in out:
         lots = " ".join(f"{ym[2:]}:{x['series'].get(ym, '-')}" for ym in months(*WINDOW))
         print(f"  {'PASS' if x['pass'] else 'fail'} {x['code']} {x['name']} {x['side']} conc {x['concentration']:.0%} "
