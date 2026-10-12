@@ -17,6 +17,7 @@ import argparse
 import calendar
 import html
 import json
+import math
 import re
 import statistics
 import sys
@@ -39,6 +40,16 @@ URL = "https://fubon-ebrokerdj.fbs.com.tw/z/zc/zco/zco.djhtm?a={code}&e={y}-{m}-
 RAW = ROOT / "data" / "insider_branch_raw"
 OUT = ROOT / "data" / "research"
 GAP_S, SPAN, HS = max(5.0, FUBON_MIN_GAP_S), ("202309", "202608"), (5, 20, 60)
+# owner 2026-10-12: 「地緣分點其實就是總公司所在地周圍的券商分點」 -> distance between district centres
+# (data/district_centers.json, Chunghwa Post); 8 km is the starting radius, to be tuned with the owner
+NEAR_KM, FAR_KM = 8.0, 30.0   # owner 2026-10-12: 「總公司周圍沒有的券商分點，那可以跨縣市(縣、市)做研究」 -> second ring 8-30 km
+
+
+def km(p, q):
+    (a, b), (c, d) = p, q
+    x = math.radians(c - a), math.radians(d - b)
+    h = math.sin(x[0] / 2) ** 2 + math.cos(math.radians(a)) * math.cos(math.radians(c)) * math.sin(x[1] / 2) ** 2
+    return 6371 * 2 * math.asin(math.sqrt(h))
 
 
 def _load(f):
@@ -197,6 +208,13 @@ def main():
     geo = json.loads((ROOT / "data" / "branch_geo.json").read_text(encoding="utf-8"))
     hc, hd, hsrc = home_of(a.code, base, geo)
     home = {"city": hc, "dist": hd}
+    centers = json.loads((ROOT / "data" / "district_centers.json").read_text(encoding="utf-8"))
+    hpt = (centers.get(hc) or {}).get(hd)
+
+    def dkm(bno):
+        g = geo["branches"].get(bno) or {}
+        bp = (centers.get(g.get("city")) or {}).get(g.get("dist"))
+        return round(km(hpt, bp), 1) if hpt and bp else None
     closes, index, _ = prices()
     ins = {}
     for f in sorted((ROOT / "data" / "insider_monthly").glob("*.json")):
@@ -225,7 +243,8 @@ def main():
         ranked = ranked + [kv for kv in br.items() if kv[1]["name"] == own_name]
     for bno, b in ranked:
         g = geo["branches"].get(bno) or {}
-        local = "同區" if home.get("dist") and g.get("dist") == home.get("dist") and g.get("city") == home.get("city") else ("同市" if home.get("city") and g.get("city") == home.get("city") else "")
+        dd = dkm(bno)
+        local = "同區" if dd == 0 else (f"周圍 {dd:.0f} 公里" if dd is not None and dd <= NEAR_KM else "")
         buy_m = [ym for ym, v in b["series"].items() if v > 0]
         fw = follow(a.code, buy_m, closes, index)
         L.append(f"| {b['name']}{'（負責人標註）' if b['name'] == own_name else ''} | {local} | {len(buy_m)} | {sum(1 for v in b['series'].values() if v < 0)} | "
@@ -258,12 +277,14 @@ def main():
                 matches.append((b["name"], hit))
         if matches:
             break
-    def same(kv, lvl):
-        g = geo["branches"].get(kv[0]) or {}
-        return bool(home.get("city")) and g.get("city") == home.get("city") and (lvl == "city" or (home.get("dist") and g.get("dist") == home.get("dist")))
-    near = sorted((kv for kv in br.items() if same(kv, "dist")), key=lambda kv: -abs(cum(kv)))
-    L += ["", "### 地緣分點（和公司同一區；36 個月有進前 15 名的全部列出）", ""]
-    L += [f"- {kv[1]['name']}：累計 {cum(kv):+,} 張，出現 {len(kv[1]['series'])} 個月" for kv in near] or ["- 同一區沒有分點進過前 15 名"]
+    near = sorted(((kv, dkm(kv[0])) for kv in br.items() if dkm(kv[0]) is not None and dkm(kv[0]) <= NEAR_KM),
+                  key=lambda t: -abs(cum(t[0])))
+    L += ["", f"### 地緣分點（總公司周圍 {NEAR_KM:.0f} 公里內，用行政區中心點距離；36 個月有進前 15 名的全部列出）", ""]
+    L += [f"- {kv[1]['name']}（{d:.1f} 公里）：累計 {cum(kv):+,} 張，出現 {len(kv[1]['series'])} 個月" for kv, d in near]         or [f"- 周圍 {NEAR_KM:.0f} 公里內沒有分點進過前 15 名" if hpt else "- 公司位置不明，無法算地緣"]
+    far = sorted(((kv, dkm(kv[0])) for kv in br.items() if dkm(kv[0]) is not None and NEAR_KM < dkm(kv[0]) <= FAR_KM
+                  and kind(kv[1]["name"]) == "local"), key=lambda t: -abs(cum(t[0])))
+    L += ["", f"### 鄰近分點（{NEAR_KM:.0f}～{FAR_KM:.0f} 公里，可跨縣市；本土分點、依累計量排序前 6）", ""]
+    L += [f"- {kv[1]['name']}（{d:.1f} 公里）：累計 {cum(kv):+,} 張，出現 {len(kv[1]['series'])} 個月" for kv, d in far[:6]] or ["- 無"]
     L += ["", "### 總公司（綜合統稱：可能匯撥、藏分點的市場高手）", ""]
     L += [f"- {kv[1]['name']}：36 個月累計 {cum(kv):+,} 張，淨買 {sum(1 for v in kv[1]['series'].values() if v > 0)} 月、淨賣 {sum(1 for v in kv[1]['series'].values() if v < 0)} 月" for kv in head] or ["- 無"]
     fr = sorted((kv for kv in br.items() if kind(kv[1]["name"]) == "foreign"), key=lambda kv: -abs(cum(kv)))[:3]
@@ -294,8 +315,8 @@ def main():
 
     def brief(kv):
         g = geo["branches"].get(kv[0]) or {}
-        return {"branch": kv[1]["name"], "cum_lots": sum(kv[1]["series"].values()),
-                "local": bool(home.get("dist")) and g.get("dist") == home.get("dist")}
+        d = dkm(kv[0])
+        return {"branch": kv[1]["name"], "cum_lots": sum(kv[1]["series"].values()), "local": d is not None and d <= NEAR_KM}
     (OUT / f"profile_{a.code}.json").write_text(json.dumps({
         "code": a.code, "name": base.get("公司簡稱", ""), "chairman": base.get("董事長", ""),
         "big_holders": [x["姓名"] for x in people if str(x.get("職稱", "")).startswith("大股東")],
@@ -306,7 +327,8 @@ def main():
         "accumulators": [brief(kv) for kv in sorted(loc, key=cum, reverse=True)[:3]],
         "sellers": [brief(kv) for kv in sorted(loc, key=cum)[:3]],
         "head_offices": [brief(kv) for kv in head[:3]],
-        "near": [{"branch": kv[1]["name"], "cum_lots": cum(kv), "months": len(kv[1]["series"])} for kv in near[:3]],
+        "near": [{"branch": kv[1]["name"], "cum_lots": cum(kv), "months": len(kv[1]["series"]), "km": d} for kv, d in near[:4]],
+        "far": [{"branch": kv[1]["name"], "cum_lots": cum(kv), "months": len(kv[1]["series"]), "km": d} for kv, d in far[:3]],
         "baseline_20d": base_fw[20], "insider_change_months": len(ins)}, ensure_ascii=False), encoding="utf-8")
     out = OUT / f"profile_{a.code}.md"
     OUT.mkdir(parents=True, exist_ok=True)

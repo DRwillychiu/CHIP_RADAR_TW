@@ -33,6 +33,9 @@ ROAD_RE = re.compile(r"^(.{1,8}?(?:路|街|大道))([一二三四五六七八九
 PARKS = (("新竹科學", ("新竹市", "東區")), ("竹南科學", ("苗栗縣", "竹南鎮")), ("銅鑼科學", ("苗栗縣", "銅鑼鄉")),
          ("中部科學", ("臺中市", "西屯區")), ("南部科學", ("臺南市", "新市區")), ("臺南科學", ("臺南市", "新市區")),
          ("高雄科學", ("高雄市", "路竹區")), ("龍潭科學", ("桃園市", "龍潭區")), ("虎尾科學", ("雲林縣", "虎尾鎮")))
+COUNTY_SEAT = {"南投市": "南投縣", "彰化市": "彰化縣", "屏東市": "屏東縣", "宜蘭市": "宜蘭縣", "花蓮市": "花蓮縣", "臺東市": "臺東縣",
+               "苗栗市": "苗栗縣", "竹北市": "新竹縣", "斗六市": "雲林縣", "太保市": "嘉義縣"}
+UPGRADED = {"員林鎮": "員林市", "頭份鎮": "頭份市"}
 OLD_COUNTY = {"臺北縣": "新北市", "桃園縣": "桃園市", "臺中縣": "臺中市", "臺南縣": "臺南市", "高雄縣": "高雄市"}
 
 
@@ -61,6 +64,16 @@ def parse(addr):
         if t and not re.match(r"^.{0,3}[路街]", rest):
             dist = t.group(1)[:-1] + "區" if city in SIX else t.group(1)
             rest = rest[len(t.group(1)):]
+    # v3.96.6 clean-ups found against the district centre table: a county seat written without its county, towns that
+    # became cities (2015), industrial / science parks read as a district
+    if city in COUNTY_SEAT:
+        city, dist = COUNTY_SEAT[city], city
+    dist = UPGRADED.get(dist, dist)
+    if dist and dist.endswith("園區"):
+        park = next((v for k, v in PARKS if k[:2] in dist or k in a), None)
+        city, dist = park if park else (city, {"新竹市": "東區", "新竹縣": "寶山鄉"}.get(city))
+    elif dist and dist.endswith("工業區"):
+        dist = dist[:-3] + "區" if len(dist) > 3 else {"臺中市": "西屯區"}.get(city)
     r = ROAD_RE.match(rest)
     road = (r.group(1), r.group(2) or "") if r else None
     return city, dist, road
@@ -112,7 +125,16 @@ def main():
         if dist:
             return {"city": city, "dist": dist, "src": "address"}
         d = infer(city, road) if road else None
-        return {"city": city, "dist": d, "src": "gazetteer" if d else "unknown"}
+        if d:
+            return {"city": city, "dist": d, "src": "gazetteer"}
+        # v3.96.6 weaker: one or more samples, all the same district (leave-one-out 2026-10-12: 1,521 / 1,597 = 95.2 % right)
+        for table, key in ((votes_rs, (city,) + road), (votes_r, (city, road[0]))) if road else ():
+            c = table.get(key)
+            if c and len(c) == 1:
+                return {"city": city, "dist": next(iter(c)), "src": "gazetteer-1"}
+            if c:
+                break
+        return {"city": city, "dist": None, "src": "unknown"}
 
     companies = {}
     for k in ("L", "O"):
@@ -137,7 +159,7 @@ def main():
                 v["dist"], v["src"] = hit[0], "branch name"
     doc = {"_doc": ("Geography (every county and city; county towns keep 市/鎮/鄉) of broker branches (TWSE OpenData_BRK02) and listed / OTC "
                     "companies (MOPS open data t187ap03_L / _O). dist from the address, else learned road "
-                    "gazetteer (majority >= 80%, >= 2 samples), else the branch name when it is a district of the same city, else null. "
+                    "gazetteer (majority >= 80%, >= 2 samples; gazetteer-1 = unanimous single samples, 95 % right in a leave-one-out test), else the branch name when it is a district of the same city, else null. "
                     "Built by scripts/build_branch_geo.py."),
            "companies": {k: {kk: v[kk] for kk in ("city", "dist", "src")} for k, v in companies.items()},
            "branches": {k: {kk: v[kk] for kk in ("name", "city", "dist", "src")} for k, v in branches.items()}}
