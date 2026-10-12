@@ -174,6 +174,19 @@ def home_of(code, base, geo):
     return city, dist, "english address"
 
 
+def branch_share():
+    """{branch name: % of the stocks we have pages for where it is in a month's top 15} - owner 2026-10-12: a branch
+    seen almost everywhere (凱基-台北 87 %) says nothing about one stock; 常客 = >= --regular-pct (default 30)."""
+    seen, stocks = {}, set()
+    for f in RAW.glob("*_*.html"):
+        code = f.stem.rsplit("_", 1)[0]
+        stocks.add(code)
+        p = S.parse_fubon_stock_page(f.read_text(encoding="utf-8"), code) or {}
+        for r in (p.get("buys") or []) + (p.get("sells") or []):
+            seen.setdefault(r["name"], set()).add(code)
+    return {k: round(len(v) / len(stocks) * 100) for k, v in seen.items()} if stocks else {}
+
+
 def style(series):
     b = sum(1 for v in series.values() if v > 0)
     s = sum(1 for v in series.values() if v < 0)
@@ -192,6 +205,7 @@ def main():
     ap.add_argument("--code", required=True)
     ap.add_argument("--owner-branch", default="", help="the owner's label for the chairman's branch (evidence B)")
     ap.add_argument("--max-requests", type=int, default=40)
+    ap.add_argument("--regular-pct", type=int, default=30, help="常客: in >= this %% of the stocks (a menu on the page later)")
     a = ap.parse_args()
     base, people = roster(a.code)
     n = fetch_pages(a.code, a.max_requests)
@@ -277,14 +291,17 @@ def main():
                 matches.append((b["name"], hit))
         if matches:
             break
+    share = branch_share()
+    reg = lambda name: share.get(name, 0) >= a.regular_pct
+    tag = lambda name: f"，常客 {share.get(name, 0)}%" if reg(name) else f"，出現率 {share.get(name, 0)}%"
     near = sorted(((kv, dkm(kv[0])) for kv in br.items() if dkm(kv[0]) is not None and dkm(kv[0]) <= NEAR_KM),
-                  key=lambda t: -abs(cum(t[0])))
+                  key=lambda t: (reg(t[0][1]["name"]), -abs(cum(t[0]))))       # 常客 last
     L += ["", f"### 地緣分點（總公司周圍 {NEAR_KM:.0f} 公里內，用行政區中心點距離；36 個月有進前 15 名的全部列出）", ""]
-    L += [f"- {kv[1]['name']}（{d:.1f} 公里）：累計 {cum(kv):+,} 張，出現 {len(kv[1]['series'])} 個月" for kv, d in near]         or [f"- 周圍 {NEAR_KM:.0f} 公里內沒有分點進過前 15 名" if hpt else "- 公司位置不明，無法算地緣"]
+    L += [f"- {kv[1]['name']}（{d:.1f} 公里{tag(kv[1]['name'])}）：累計 {cum(kv):+,} 張，出現 {len(kv[1]['series'])} 個月" for kv, d in near]         or [f"- 周圍 {NEAR_KM:.0f} 公里內沒有分點進過前 15 名" if hpt else "- 公司位置不明，無法算地緣"]
     far = sorted(((kv, dkm(kv[0])) for kv in br.items() if dkm(kv[0]) is not None and NEAR_KM < dkm(kv[0]) <= FAR_KM
-                  and kind(kv[1]["name"]) == "local"), key=lambda t: -abs(cum(t[0])))
+                  and kind(kv[1]["name"]) == "local"), key=lambda t: (reg(t[0][1]["name"]), -abs(cum(t[0]))))
     L += ["", f"### 鄰近分點（{NEAR_KM:.0f}～{FAR_KM:.0f} 公里，可跨縣市；本土分點、依累計量排序前 6）", ""]
-    L += [f"- {kv[1]['name']}（{d:.1f} 公里）：累計 {cum(kv):+,} 張，出現 {len(kv[1]['series'])} 個月" for kv, d in far[:6]] or ["- 無"]
+    L += [f"- {kv[1]['name']}（{d:.1f} 公里{tag(kv[1]['name'])}）：累計 {cum(kv):+,} 張，出現 {len(kv[1]['series'])} 個月" for kv, d in far[:6]] or ["- 無"]
     L += ["", "### 總公司（綜合統稱：可能匯撥、藏分點的市場高手）", ""]
     L += [f"- {kv[1]['name']}：36 個月累計 {cum(kv):+,} 張，淨買 {sum(1 for v in kv[1]['series'].values() if v > 0)} 月、淨賣 {sum(1 for v in kv[1]['series'].values() if v < 0)} 月" for kv in head] or ["- 無"]
     fr = sorted((kv for kv in br.items() if kind(kv[1]["name"]) == "foreign"), key=lambda kv: -abs(cum(kv)))[:3]
@@ -327,8 +344,8 @@ def main():
         "accumulators": [brief(kv) for kv in sorted(loc, key=cum, reverse=True)[:3]],
         "sellers": [brief(kv) for kv in sorted(loc, key=cum)[:3]],
         "head_offices": [brief(kv) for kv in head[:3]],
-        "near": [{"branch": kv[1]["name"], "cum_lots": cum(kv), "months": len(kv[1]["series"]), "km": d} for kv, d in near[:4]],
-        "far": [{"branch": kv[1]["name"], "cum_lots": cum(kv), "months": len(kv[1]["series"]), "km": d} for kv, d in far[:3]],
+        "near": [{"branch": kv[1]["name"], "cum_lots": cum(kv), "months": len(kv[1]["series"]), "km": d, "share": share.get(kv[1]["name"], 0)} for kv, d in near[:4]],
+        "far": [{"branch": kv[1]["name"], "cum_lots": cum(kv), "months": len(kv[1]["series"]), "km": d, "share": share.get(kv[1]["name"], 0)} for kv, d in far[:3]],
         "baseline_20d": base_fw[20], "insider_change_months": len(ins)}, ensure_ascii=False), encoding="utf-8")
     out = OUT / f"profile_{a.code}.md"
     OUT.mkdir(parents=True, exist_ok=True)
