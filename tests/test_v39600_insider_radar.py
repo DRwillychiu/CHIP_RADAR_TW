@@ -113,6 +113,17 @@ pick = ("<h2>請點選欲查詢之公司：</h2><form name='fm1'><input type='hi
 check("金控選單 → 接著查控股公司本身", FP.picker_form(pick, "2884") == {"co_id": "2884", "KIND": "1"}, FP.picker_form(pick, "2884"))
 check("一般明細頁不是選單", FP.picker_form("<th>身份別</th>".encode(), "8114") is None)
 check("空的公司選單 (674191 2026-03) 是「沒資料」的答案，不是錯誤", FP.page_ok("<h2>請點選欲查詢之公司：</h2><BR><BR></div>".encode()))
+
+print("\n[J] 抓取節奏 (負責人 2026-10-12：白天每 90 秒 7 頁，30 分鐘內錯 2 次或 21:30 以後 120 秒)")
+check("白天沒出錯 → 90 秒", FP.pick_cycle(90, 120, [], 5000.0, "10:05") == (90, False))
+check("30 分鐘內只錯 1 次 → 還是 90 秒", FP.pick_cycle(90, 120, [4000.0], 5000.0, "10:05") == (90, False))
+check("30 分鐘內錯 2 次 → 120 秒", FP.pick_cycle(90, 120, [3300.0, 4900.0], 5000.0, "10:05") == (120, True))
+check("兩次錯隔超過 30 分鐘 → 90 秒", FP.pick_cycle(90, 120, [1000.0, 4900.0], 5000.0, "10:05") == (90, False))
+check("因為出錯退回後，整個執行都維持 120 秒", FP.pick_cycle(90, 120, [], 99999.0, "13:00", slowed=True) == (120, True))
+check("21:30 以後 → 120 秒，早上 07:00 回到 90 秒", FP.pick_cycle(90, 120, [], 0.0, "21:30")[0] == 120
+      and FP.pick_cycle(90, 120, [], 0.0, "06:59")[0] == 120 and FP.pick_cycle(90, 120, [], 0.0, "07:00")[0] == 90)
+ch = (pathlib.Path(__file__).resolve().parent.parent / "scripts" / "fetch_insider_chain.sh").read_text(encoding="utf-8")
+check("三年的抓取都帶 --slow-cycle", ch.count('--slow-cycle "$S"') == 3)
 print()
 print("─" * 72)
 print(f"  整體: {'✅ ALL PASS' if all_pass else '❌ HAS FAIL'}")

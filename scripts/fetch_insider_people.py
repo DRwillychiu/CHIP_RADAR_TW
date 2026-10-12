@@ -16,6 +16,8 @@ the screen misses), 1 buy side, 2 sell side, 3 IRB140 only, 5 the monthly pre-tr
 Polite: one thread, >= 5 s between requests. A 403 / 429 / 5xx or a page without its table stops:
 the body is kept in <raw>/_fail/, 10 min cool-down, then the same page once more; a page failing
 twice goes to the end of the run; three failures in a row end the run (a rerun resumes).
+Pace (owner 2026-10-12): --cycle by day, --slow-cycle after two failures within 30 min (for the rest of
+the run) and from 21:30 to 07:00.
     python scripts/fetch_insider_people.py --max-requests 1800 [--dry-run]
 """
 import argparse
@@ -38,6 +40,15 @@ GAP_S, BLOCK, CYCLE_S, COOL_S = 5.0, 7, 120.0, 600.0
 CONTROL_N, SEED = 22, 20261011       # per control group: manager / >10 % holder change, everything else
 T56_MONTHS = ("202309", "202609")   # complete months; --since moves the start (year 3 from 2023-09, owner 2026-10-11)
 GONE = "不繼續公開發行"
+SLOW_FROM, SLOW_UNTIL, FAIL_WINDOW_S = "21:30", "07:00", 1800.0
+
+
+def pick_cycle(base, slow, fail_times, now_s, hhmm, slowed=False):
+    """Owner 2026-10-12 「可以」: by day one block per `base` s (90); two failures within 30 min, or the
+    evening (21:30 on, when MOPS was unstable 10-11) -> `slow` s (120). Once slowed by failures the run stays slow.
+    -> (cycle, slowed_by_failures)."""
+    slowed = slowed or sum(1 for t in fail_times if now_s - t <= FAIL_WINDOW_S) >= 2
+    return (slow if slowed or hhmm >= SLOW_FROM or hhmm < SLOW_UNTIL else base), slowed
 HEAD = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
         "Referer": "https://mopsov.twse.com.tw/mops/web/query6_1"}
 
@@ -168,6 +179,7 @@ def main():
     ap.add_argument("--no-control", action="store_true", help="no control sample (the monthly update)")
     ap.add_argument("--block", type=int, default=BLOCK, help="requests per block")
     ap.add_argument("--cycle", type=float, default=CYCLE_S, help="seconds from one block start to the next")
+    ap.add_argument("--slow-cycle", type=float, default=None, help="cycle after 2 failures in 30 min or from 21:30 (default: --cycle)")
     a = ap.parse_args()
     raw = Path(a.raw)
     (raw / "_fail").mkdir(parents=True, exist_ok=True)
@@ -191,6 +203,7 @@ def main():
     trace = (ROOT / "logs" / "insider_people_requests.csv").open("a", encoding="utf-8")
     n, last, block_start, in_block, streak = 0, 0.0, time.monotonic(), 0, 0
     tries, later, i, follow = {}, [], 0, {}
+    fail_times, slowed, cyc = [], False, a.cycle
     # owner 2026-10-11: 「不繼續公開發行」這種，絕對就是跳過 - one such answer skips the company's other months
     gone = {f.stem.split("_")[0] for f in raw.glob("*.html")
             if f.stat().st_size < 5000 and GONE in f.read_bytes().decode("utf-8", errors="replace")}
@@ -207,7 +220,12 @@ def main():
             print(f"[q61] {now()} max requests {a.max_requests} reached at {i}/{len(todo)}; rerun resumes", flush=True)
             return 1
         if in_block >= a.block:
-            rest = a.cycle - (time.monotonic() - block_start)
+            c2, slowed = pick_cycle(a.cycle, a.slow_cycle or a.cycle, fail_times, time.monotonic(), time.strftime("%H:%M"), slowed)
+            if c2 != cyc:
+                print(f"[q61] {now()} pace {a.block} per {cyc:.0f} s -> {a.block} per {c2:.0f} s "
+                      f"({'2 failures within 30 min' if slowed else 'time of day'})", flush=True)
+                cyc = c2
+            rest = cyc - (time.monotonic() - block_start)
             if rest > 0:
                 time.sleep(rest)
             block_start, in_block = time.monotonic(), 0
@@ -241,6 +259,7 @@ def main():
                 print(f"[q61] {now()} {n} requests, {i}/{len(todo)} pages", flush=True)
             continue
         streak += 1
+        fail_times.append(time.monotonic())
         tries[(ym, code)] = tries.get((ym, code), 0) + 1
         tag = code.replace(":", "_")
         (raw / "_fail" / f"{tag}_{ym}_{time.strftime('%H%M%S')}.txt").write_bytes(body)
