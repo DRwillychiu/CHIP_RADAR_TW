@@ -4,7 +4,7 @@ Written down 2026-10-11 BEFORE the year-2 pages exist (owner: 「要」), so yea
   H2 大型股    - group A buys in companies worth >= 500 億 (issued shares x month average close)
 Only signals of the months 2024-10..2025-08 count (year 1 found the hypotheses; it must not test them).
 Pass, each hypothesis on its own: n >= 15 with a 20-day result; 20-day result after costs (0.585 %)
-mean > 0; hit rate >= 55 %; 比大盤 mean > 0. Same rules as year 1 apart from n (a subgroup is smaller).
+mean > 0; hit rate >= 51 % (owner 2026-10-12, set before the year-2 pages are complete; was 55 %); 比大盤 mean > 0. Same rules as year 1 apart from n (a subgroup is smaller).
     python scripts/test_hypothesis_y2.py
 Output: data/research/hypothesis_y2.json (data/research/ is not in git).
 """
@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "research"
 Y2 = ("202410", "202508")
-N_MIN, HIT_MIN, CAP_YI = 15, 55.0, 500
+N_MIN, HIT_MIN, CAP_YI = 15, 51.0, 500   # owner 2026-10-12: hit > 51 % is enough (the exit is the trader's own); was 55
 
 
 def summ(rows):
