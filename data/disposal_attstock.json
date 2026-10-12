@@ -1,10 +1,10 @@
 {
-  "fetched_at": "2026-10-09T22:48:50+08:00",
+  "fetched_at": "2026-10-12T22:42:58+08:00",
   "source": "attstock.tw/api/stocks/risk + /api/stocks/disposal",
-  "total_risk_count": 141,
-  "total_disposal_rows": 28,
-  "count_in_disposal": 24,
-  "count_pending_1d": 3,
+  "total_risk_count": 136,
+  "total_disposal_rows": 30,
+  "count_in_disposal": 27,
+  "count_pending_1d": 4,
   "codes_in_disposal": [
     "1709",
     "2033",
@@ -23,20 +23,31 @@
     "4760",
     "5013",
     "5205",
+    "5475",
     "6213",
     "6533",
+    "6672",
+    "6708",
     "6957",
-    "8084",
+    "8021",
     "8201",
     "8358",
     "8996"
   ],
   "codes_pending_1d": [
-    "2492",
-    "5228",
-    "8111"
+    "3265",
+    "3597",
+    "7772",
+    "9103"
   ],
   "sample": [
+    {
+      "code": "3167",
+      "name": "大量",
+      "status": "in_disposal",
+      "start": "2026-10-05",
+      "end": "2026-10-12"
+    },
     {
       "code": "8996",
       "name": "高力",
@@ -52,10 +63,10 @@
       "end": "2026-10-12"
     },
     {
-      "code": "3167",
-      "name": "大量",
+      "code": "3055",
+      "name": "蔚華科",
       "status": "in_disposal",
-      "start": "2026-10-05",
+      "start": "2026-10-01",
       "end": "2026-10-12"
     },
     {
@@ -66,22 +77,15 @@
       "end": "2026-10-12"
     },
     {
-      "code": "3055",
-      "name": "蔚華科",
-      "status": "in_disposal",
-      "start": "2026-10-01",
-      "end": "2026-10-12"
-    },
-    {
-      "code": "6533",
-      "name": "晶心科",
+      "code": "3455",
+      "name": "由田",
       "status": "in_disposal",
       "start": "2026-10-06",
       "end": "2026-10-13"
     },
     {
-      "code": "3455",
-      "name": "由田",
+      "code": "6533",
+      "name": "晶心科",
       "status": "in_disposal",
       "start": "2026-10-06",
       "end": "2026-10-13"
@@ -108,13 +112,6 @@
       "end": "2026-10-14"
     },
     {
-      "code": "4556",
-      "name": "旭然",
-      "status": "in_disposal",
-      "start": "2026-10-07",
-      "end": "2026-10-14"
-    },
-    {
       "code": "3518",
       "name": "柏騰",
       "status": "in_disposal",
@@ -122,15 +119,15 @@
       "end": "2026-10-14"
     },
     {
-      "code": "5013",
-      "name": "強新",
+      "code": "4556",
+      "name": "旭然",
       "status": "in_disposal",
       "start": "2026-10-07",
       "end": "2026-10-14"
     },
     {
-      "code": "8084",
-      "name": "巨虹",
+      "code": "5013",
+      "name": "強新",
       "status": "in_disposal",
       "start": "2026-10-07",
       "end": "2026-10-14"
@@ -164,15 +161,15 @@
       "end": "2026-10-15"
     },
     {
-      "code": "3701",
-      "name": "大眾控",
+      "code": "6957",
+      "name": "裕慶-KY",
       "status": "in_disposal",
       "start": "2026-10-08",
       "end": "2026-10-15"
     },
     {
-      "code": "6957",
-      "name": "裕慶-KY",
+      "code": "3701",
+      "name": "大眾控",
       "status": "in_disposal",
       "start": "2026-10-08",
       "end": "2026-10-15"
@@ -192,6 +189,34 @@
       "end": "2026-10-15"
     },
     {
+      "code": "6672",
+      "name": "騰輝電子-KY",
+      "status": "in_disposal",
+      "start": "2026-10-12",
+      "end": "2026-10-16"
+    },
+    {
+      "code": "8021",
+      "name": "尖點",
+      "status": "in_disposal",
+      "start": "2026-10-12",
+      "end": "2026-10-16"
+    },
+    {
+      "code": "5475",
+      "name": "德宏",
+      "status": "in_disposal",
+      "start": "2026-10-12",
+      "end": "2026-10-16"
+    },
+    {
+      "code": "6708",
+      "name": "天擎",
+      "status": "in_disposal",
+      "start": "2026-10-12",
+      "end": "2026-10-16"
+    },
+    {
       "code": "6213",
       "name": "聯茂",
       "status": "in_disposal",
@@ -206,22 +231,29 @@
       "end": "2026-10-19"
     },
     {
-      "code": "2492",
-      "name": "華新科",
+      "code": "3265",
+      "name": "台星科",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1
     },
     {
-      "code": "8111",
-      "name": "立碁",
+      "code": "3597",
+      "name": "映興",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1
     },
     {
-      "code": "5228",
-      "name": "鈺鎧",
+      "code": "7772",
+      "name": "耀穎",
+      "type": "2分盤",
+      "status": "pending_1d",
+      "days_to_disposal": 1
+    },
+    {
+      "code": "9103",
+      "name": "美德醫療-DR",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1
