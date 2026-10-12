@@ -1,19 +1,19 @@
 {
   "summary": {
     "baseline": {
-      "n": 709,
-      "hits": 320,
-      "hit_rate": 0.4513399153737659,
-      "mean_change": 0.009816643159379823,
+      "n": 707,
+      "hits": 319,
+      "hit_rate": 0.4512022630834512,
+      "mean_change": -0.0035926449787831733,
       "median_change": -0.22,
       "days": 59,
       "desc": "全部共識股 (對照)"
     },
     "e_anomaly_only": {
-      "n": 704,
-      "hits": 319,
-      "hit_rate": 0.453125,
-      "mean_change": 0.03505681818181874,
+      "n": 702,
+      "hits": 318,
+      "hit_rate": 0.452991452991453,
+      "mean_change": 0.021623931623932176,
       "median_change": -0.21,
       "days": 59,
       "desc": "共識 ∩ ≥1 master 異常 (vol_spike OR new_stocks)"
@@ -28,10 +28,10 @@
       "desc": "共識 ∩ ≥1 master volume_spike"
     },
     "e_new_stocks_only": {
-      "n": 676,
-      "hits": 313,
-      "hit_rate": 0.4630177514792899,
-      "mean_change": 0.13232248520710105,
+      "n": 674,
+      "hits": 312,
+      "hit_rate": 0.4629080118694362,
+      "mean_change": 0.11862017804154347,
       "median_change": -0.13,
       "days": 57,
       "desc": "共識 ∩ ≥1 master new_stocks"
@@ -650,14 +650,14 @@
       "date": "20261008",
       "next": "20261012",
       "cons": 21,
-      "next_avail": 21,
+      "next_avail": 19,
       "q5": "中性",
       "vol_spike_masters": 0,
       "new_stocks_masters": 5,
-      "e_hits": 6
+      "e_hits": 5
     }
   ],
-  "updated_at": "2026-10-12T14:43:37.127620",
+  "updated_at": "2026-10-12T15:08:35.693632",
   "window_days": 59,
   "thresholds": {
     "anomaly_sigma": 2.0,
