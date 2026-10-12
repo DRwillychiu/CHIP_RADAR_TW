@@ -15,6 +15,7 @@ long-term dominant / D none. Output: data/research/profile_<code>.md (branch dat
 """
 import argparse
 import calendar
+import html
 import json
 import statistics
 import sys
@@ -40,7 +41,7 @@ GAP_S, SPAN, HS = max(5.0, FUBON_MIN_GAP_S), ("202309", "202608"), (5, 20, 60)
 
 
 def _load(f):
-    raw = f.read_bytes().decode("utf-8", "ignore")
+    raw = html.unescape(f.read_bytes().decode("utf-8", "ignore"))   # 6669: the API writes 洪麗寗 as &#23511;
     try:
         return json.loads(raw)
     except ValueError:                       # the API cut a download off (2026-10-12): keep the complete rows
