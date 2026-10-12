@@ -93,7 +93,7 @@ check("頁面只放前 5 列, 其餘在抽屜", "rows.slice(0, 5)" in js and "fu
 check("標籤 = 職位 + 買 / 賣, 紅框買、綠框賣", "(_insSide(x) === 'buy' ? '買' : '賣')" in js
       and ".ek-ins-lb{justify-self:start;border:1px solid currentColor" in h and ".ek-ins-lb.buy{color:var(--red)}.ek-ins-lb.sell{color:var(--green)}" in h)
 check("金額 ≥ 1 億寫億、以下寫萬, 標推算", "v >= 1 ? `${v.toFixed(1)} 億`" in js and "萬`" in js and "推算</small>" in js)
-check("主數字 20 日, 5 / 10 / 60 用下拉選單", "let _INS_H = 20;" in js and "const _INS_HS = [5, 10, 20, 60];" in js and "onchange=\"_insSetH(this.value)\"" in js)
+check("主數字 20 日, 5 / 10 / 60 / 120 / 250 用下拉選單 (2026-10-12 長抱進選單)", "let _INS_H = 20;" in js and "const _INS_HS = [5, 10, 20, 60, 120, 250];" in js and "onchange=\"_insSetH(this.value)\"" in js)
 check("抽屜: 逐人明細六欄、標題句、公開日與訊號日、同身分回測", all(c in js for c in ("<th>姓名</th>", ">身分</th>", "集中買", "集中賣", "其它原因", "月底持股"))
       and "escHtml(x.headline || '')" in js and "_insDay(x.published)" in js and "_insDay(x.signal_day)" in js and "layers_sells" in js)
 check("沒有訊號: 一行安靜的字, 不是錯誤", "沒有達門檻的大股東、董監、經理人買賣申報" in js and '<li class="ek-sub">' in js)

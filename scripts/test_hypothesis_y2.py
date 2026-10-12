@@ -2,6 +2,9 @@
 Written down 2026-10-11 BEFORE the year-2 pages exist (owner: 「要」), so year 2 is a true holdout:
   H1 董事長買  - group A buys whose biggest buyer is the chairman
   H2 大型股    - group A buys in companies worth >= 500 億 (issued shares x month average close)
+  H3 長抱      - all group A buys held 120 / 250 trading days (owner 2026-10-12: 「有可能這些人都是持有更常週期?」 -
+                 year 1 lost to the index at 20 / 60 days; written down 2026-10-12 17:48 with the year-2 pages 2,475 / 3,457 fetched,
+                 before any year-2 result) - each horizon on its own, same pass rule
 Only signals of the months 2024-10..2025-08 count (year 1 found the hypotheses; it must not test them).
 Pass, each hypothesis on its own: n >= 15 with a 20-day result; 20-day result after costs (0.585 %)
 mean > 0; hit rate >= 51 % (owner 2026-10-12, set before the year-2 pages are complete; was 55 %); 比大盤 mean > 0. Same rules as year 1 apart from n (a subgroup is smaller).
@@ -20,9 +23,9 @@ Y2 = ("202410", "202508")
 N_MIN, HIT_MIN, CAP_YI = 15, 51.0, 500   # owner 2026-10-12: hit > 51 % is enough (the exit is the trader's own); was 55
 
 
-def summ(rows):
-    v = [r["n20"] for r in rows if r.get("n20") is not None]
-    e = [r["ex20"] for r in rows if r.get("ex20") is not None]
+def summ(rows, h=20):
+    v = [r[f"n{h}"] for r in rows if r.get(f"n{h}") is not None]
+    e = [r[f"ex{h}"] for r in rows if r.get(f"ex{h}") is not None]
     return {"signals": len(rows), "n": len(v), "mean_after_cost": round(statistics.mean(v), 2) if v else None,
             "hit": round(sum(x > 0 for x in v) / len(v) * 100, 1) if v else None,
             "vs_index": round(statistics.mean(e), 2) if e else None}
@@ -45,8 +48,9 @@ def main():
     a = [s for s in doc["signals"]["A"] if Y2[0] <= s["ym"] <= Y2[1]]
     h1 = [s for s in a if s.get("role_group") == "董事長"]
     h2 = [s for s in a if (issued.get((s["code"], s["ym"])) or 0) * (s.get("avg_price") or 0) / 1e8 >= CAP_YI]
-    res = {"window": Y2, "all_A": summ(a), "H1_董事長買": summ(h1), "H2_大型股": summ(h2)}
-    for k in ("H1_董事長買", "H2_大型股"):
+    res = {"window": Y2, "all_A": summ(a), "H1_董事長買": summ(h1), "H2_大型股": summ(h2),
+           "H3_長抱_120日": summ(a, 120), "H3_長抱_250日": summ(a, 250)}
+    for k in ("H1_董事長買", "H2_大型股", "H3_長抱_120日", "H3_長抱_250日"):
         res[k]["pass"] = verdict(res[k])
     (OUT / "hypothesis_y2.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
     for k, v in res.items():

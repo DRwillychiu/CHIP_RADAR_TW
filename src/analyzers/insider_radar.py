@@ -19,7 +19,7 @@ BIG_BUY_YI = 1.0              # group A: net buy >= 1 億 ...
 FIRST_IN_Y = 2                # ... or the first big buy in 2 years ...
 FIRST_MIN_CAP_PCT = 0.2       # ... and >= 0.2 % of market value (the reference site's rule)
 DEADLINE_DAY = 15             # monthly declarations are due by the 15th of the next month
-HORIZONS = (5, 10, 20, 60)    # trading days held
+HORIZONS = (5, 10, 20, 60, 120, 250)    # trading days held; 120 / 250 owner 2026-10-12 (long holders, a menu choice)
 COST_PCT = 0.1425 * 2 + 0.3   # round trip: broker fee both ways + securities transaction tax = 0.585 %
 _NOMINEE = re.compile(r"[（(]?(他人名義|配偶|未成年子女|利用他人名義持有)[)）]?")
 

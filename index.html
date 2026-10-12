@@ -10602,7 +10602,8 @@ let INSIDER_PRIV = null;
 let _INS_LOADING = null;
 let _INS_H = 20;             // owner: the 20-day excess return is the main number, 5 / 10 / 60 from the menu
 let _INS_ROWS = [];
-const _INS_HS = [5, 10, 20, 60];
+const _INS_HS = [5, 10, 20, 60, 120, 250];   // v3.96.6 owner 2026-10-12: 長抱 120 / 250 日 in the same menu
+const _INS_HS_TB = [5, 20, 60, 120, 250];    // the drawer's backtest table: short / mid / long columns
 // v3.96.2 owner 2026-10-11 「設置一個可以下拉選年份的選單」: the year windows of the file (years[], newest first);
 // rows, 全部 list, drawer and every backtest read the selected window. Files without years[] = one window.
 let _INS_Y = null;           // null = the newest window
@@ -11014,13 +11015,13 @@ function _insOpen(i) {
     || '<tr><td colspan="6" class="dim">沒有逐人明細</td></tr>';
   const privB = (pw.signals || {}).B || [];
   const inB = privB.some(y => y.code === x.code && y.ym === x.ym);
-  const tr = (lab, all) => `<tr><td>${lab}<span class="dim">（${Number(all.n) || 0} 件）</span></td>${_INS_HS.map(h => {
+  const tr = (lab, all) => `<tr><td>${lab}<span class="dim">（${Number(all.n) || 0} 件）</span></td>${_INS_HS_TB.map(h => {
     const e = all['ex' + h] || {};
     return `<td class="r">${_insPct(e.mean)}<br><span class="dim">勝率 ${e.hit === null || e.hit === undefined ? '—' : Number(e.hit) + '%'}</span></td>`;
   }).join('')}</tr>`;
   const grp = x.role_group || '';
   const layer = (((bt[buy ? 'layers_A' : 'layers_sells'] || {})['身分'] || {})[grp]) || null;
-  const layerTb = `<table><thead><tr><th>平均超額・勝率</th>${_INS_HS.map(h => `<th class="r">${h} 日</th>`).join('')}</tr></thead><tbody>`
+  const layerTb = `<table><thead><tr><th>平均超額・勝率</th>${_INS_HS_TB.map(h => `<th class="r">${h} 日</th>`).join('')}</tr></thead><tbody>`
     + (layer ? tr(`${escHtml(grp)}${buy ? '買' : '賣'}`, layer.all || {}) : '<tr><td colspan="5" class="dim">這個身分沒有回測樣本</td></tr>')
     + tr(buy ? '全部大買（A）' : '全部賣出', (bt[_insType(x)] || {}).all || {})
     + (inB ? tr('對照組 B（分點大戶同向）', (((pw.backtest || {}).B || {}).all) || {}) : '') + '</tbody></table>';
