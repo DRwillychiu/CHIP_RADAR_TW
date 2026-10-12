@@ -28,7 +28,10 @@ codes = sorted(b["code"] for b in f)
 check("外資分點正好 8 家, 都是 us / eu / asia", codes == ['1360', '1440', '1470', '1480', '1590', '1650', '8440', '8960']
       and all(b["region"] in ("us", "eu", "asia") for b in f), codes)
 d = {b["code"]: b["region"] for b in B.get_domestic_branches()}
-check("熱點分點和公司總計 (9200 / 9600) 算國內", '9200' in d and '9600' in d and sum(r == 'area_hotspot' for r in d.values()) == 10)
+# v3.96.6: the 8 research branches (2026-10-12) joined area_hotspot - every hotspot counts as domestic, whatever the number
+n_hot = len({b["code"] for b in B.WATCHED_BRANCHES if b["region"] == "area_hotspot"})
+check("熱點分點和公司總計 (9200 / 9600) 算國內", '9200' in d and '9600' in d and n_hot >= 18
+      and sum(r == 'area_hotspot' for r in d.values()) == n_hot, (n_hot, sum(r == 'area_hotspot' for r in d.values())))
 check("官股不算外資也不算國內", not any(b["region"] == "public" for b in f) and 'public' not in d.values())
 check("只有一份規則: 總整理用的就是 branches 的", DS.FOREIGN_REGIONS is B.FOREIGN_REGIONS)
 day = {"branches": [

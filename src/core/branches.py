@@ -397,6 +397,34 @@ WATCHED_BRANCHES = [
      "tags_personal": ["天母老錢分點"], "tags_market": [],
      "enabled": True, "region": "area_hotspot"},
 
+    # ─── v3.96.6 內部人／地緣研究分點 (owner 2026-10-12: 「只加差距 ≥ 3 個百分點的 9 個」= 9 組, 8 個分點;
+    #     data/research/suggest_tracking.md: month-level follow beats the stock's baseline by >= 3 points) ───
+    #     9B2G has a case twin 9B2g (台新-中原): the crawler sends lettered codes hex-encoded and checks the echo
+    {"code": "981C", "name": "元大-路竹", "master": "元大路竹(建通內部人賣壓)",
+     "tags_personal": ["內部人研究 2026-10-12", "2460 建通 內部人賣出分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9207", "name": "凱基-永和", "master": "凱基永和(大立光主力賣壓)",
+     "tags_personal": ["內部人研究 2026-10-12", "3008 大立光 本土主力賣"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9B23", "name": "台新-三重", "master": "台新三重(金山電地緣賣壓)",
+     "tags_personal": ["內部人研究 2026-10-12", "8042 金山電 地緣分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9A81", "name": "永豐金-匯立", "master": "永豐匯立(台燿賣壓)",
+     "tags_personal": ["內部人研究 2026-10-12", "6274 台燿 本土主力賣"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9A9U", "name": "永豐金-中正", "master": "永豐中正(濾能內部人賣壓)",
+     "tags_personal": ["內部人研究 2026-10-12", "6823 濾能 內部人賣出分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9B2G", "name": "台新-新竹", "master": "台新新竹(碩禾內部人賣壓)",
+     "tags_personal": ["內部人研究 2026-10-12", "3691 碩禾 內部人賣出分點"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9B20", "name": "台新-台北", "master": "台新台北(緯穎台燿主力)",
+     "tags_personal": ["內部人研究 2026-10-12", "6669 緯穎 主力買", "6274 台燿 主力賣"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9B29", "name": "台新-府城", "master": "台新府城(可成主力買)",
+     "tags_personal": ["內部人研究 2026-10-12", "2474 可成 本土主力買"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+
     # ═════════════════════════════════════════════════════════
     # 🌏 外資分點（v3.8 新增，來源：富邦 zco 頁面）
     # ═════════════════════════════════════════════════════════
@@ -675,6 +703,14 @@ MASTER_STYLES = {
     "群益北高雄(強勢地緣)": ["area_hotspot"],
     "群益大安(強勢波段)": ["area_hotspot"],
     "永豐天母(老錢)": ["area_hotspot"],
+    "元大路竹(建通內部人賣壓)": ["area_hotspot"],                # v3.96.6 研究分點
+    "凱基永和(大立光主力賣壓)": ["area_hotspot"],                # v3.96.6 研究分點
+    "台新三重(金山電地緣賣壓)": ["area_hotspot"],                # v3.96.6 研究分點
+    "永豐匯立(台燿賣壓)": ["area_hotspot"],                # v3.96.6 研究分點
+    "永豐中正(濾能內部人賣壓)": ["area_hotspot"],                # v3.96.6 研究分點
+    "台新新竹(碩禾內部人賣壓)": ["area_hotspot"],                # v3.96.6 研究分點
+    "台新台北(緯穎台燿主力)": ["area_hotspot"],                # v3.96.6 研究分點
+    "台新府城(可成主力買)": ["area_hotspot"],                # v3.96.6 研究分點
     # 🏢 整家證券公司 (v3.31.7 拆出: 9200/9600 是公司加總, 非個人大戶分行)
     "凱基證券": ["company_total"],
     "富邦證券": ["company_total"],
