@@ -53,7 +53,7 @@ def main():
     # on the insiders' side of the top 15 in >= 2 insider months but did NOT carry 50-150 % of the insiders' net.
     # Same rule. If they pass as often, "matching the insiders' size" adds nothing and a pass means nothing.
     cand = {(c["code"], c["bno"]) for c in stats["repeat_branches"]}
-    pl = []
+    pl, pl_rows = [], []
     for code in sorted({c["code"] for c in stats["repeat_branches"]}):
         pages = {}
         for ym in months(*WINDOW):
@@ -74,6 +74,9 @@ def main():
                 conc = sum(abs(series[ym]) for ym in imonths) / total if total else 0
                 agree = all(series[ym] * side >= 0 for ym in imonths)
                 pl.append(not any(p is None for p in pages.values()) and conc >= CONC and agree)
+                pl_rows.append({"code": code, "bno": bno, "side": side_name, "concentration": round(conc, 3), "same_direction": agree,
+                                "complete": not any(p is None for p in pages.values()), "insider_months": len(imonths)})
+    (ROOT / "data" / "insider_branch_placebo.json").write_text(json.dumps(pl_rows, ensure_ascii=False), encoding="utf-8")
     rate_c = sum(x["pass"] for x in out) / len(out) * 100 if out else 0
     rate_p = sum(pl) / len(pl) * 100 if pl else 0
     print(f"placebo (same stocks, big same-side branches that did not match the insiders' size): {len(pl)}, "
