@@ -39,15 +39,26 @@ OUT = ROOT / "data" / "research"
 GAP_S, SPAN, HS = max(5.0, FUBON_MIN_GAP_S), ("202309", "202608"), (5, 20, 60)
 
 
-def roster(code):
-    d = ROOT / "data" / "research" / "roster"
-    base = next((x for x in json.loads((d / "t187ap03_L.json").read_text(encoding="utf-8")) if x.get("公司代號") == code), {})
-    raw = (d / "t187ap11_L.json").read_bytes().decode("utf-8", "ignore")
+def _load(f):
+    raw = f.read_bytes().decode("utf-8", "ignore")
     try:
-        rows = json.loads(raw)
-    except ValueError:                       # the API cut the download off (2026-10-12): keep the complete rows
-        rows = json.loads(raw[:raw.rfind("},") + 1] + "]")
-    return base, [x for x in rows if x.get("公司代號") == code]
+        return json.loads(raw)
+    except ValueError:                       # the API cut a download off (2026-10-12): keep the complete rows
+        return json.loads(raw[:raw.rfind("},") + 1] + "]")
+
+
+def roster(code):
+    """TWSE (listed) or TPEx (OTC) OpenAPI: company basics + every insider with holdings."""
+    d = ROOT / "data" / "research" / "roster"
+    base = next((x for x in _load(d / "t187ap03_L.json") if x.get("公司代號") == code), None)
+    if base is None and (d / "t187ap03_O.json").exists():
+        o = next((x for x in _load(d / "t187ap03_O.json") if x.get("SecuritiesCompanyCode") == code), {})
+        base = {"公司簡稱": o.get("CompanyAbbreviation", ""), "董事長": o.get("Chairman", ""),
+                "總經理": o.get("GeneralManager", ""), "住址": o.get("Address", "")}
+    people = [x for x in _load(d / "t187ap11_L.json") if x.get("公司代號") == code]
+    if not people and (d / "t187ap11_O.json").exists():
+        people = [x for x in _load(d / "t187ap11_O.json") if x.get("公司代號") == code]
+    return base or {}, people
 
 
 def fetch_pages(code, max_requests):
@@ -64,9 +75,15 @@ def fetch_pages(code, max_requests):
         note_request()
         try:
             r = s.get(URL.format(code=code, y=y, m=m, last=calendar.monthrange(y, m)[1]), timeout=20)
-        except requests.RequestException as x:
-            print(f"[profile] stopped: {type(x).__name__} at {ym}", flush=True)
-            break
+        except requests.RequestException as x:   # 3008 2026-10-12 18:58: cool down 5 min, try once more
+            print(f"[profile] {type(x).__name__} at {ym} - cooling down 5 min", flush=True)
+            time.sleep(300)
+            note_request()
+            try:
+                r = s.get(URL.format(code=code, y=y, m=m, last=calendar.monthrange(y, m)[1]), timeout=20)
+            except requests.RequestException as x2:
+                print(f"[profile] stopped: {type(x2).__name__} twice at {ym}", flush=True)
+                break
         last = time.monotonic()
         if r.status_code in (403, 429) or r.status_code >= 500:
             print(f"[profile] stopped: HTTP {r.status_code} at {ym}", flush=True)
@@ -97,6 +114,18 @@ def follow(code, buy_months, closes, index):
         out[h] = (len(rs), round(sum(r > 0 for r in rs) / len(rs) * 100) if rs else None,
                   round(statistics.mean(rs), 2) if rs else None)
     return out
+
+
+# owner 2026-10-12: 「主力，多半會看台灣本土分點為主。然後那種綜合的統稱:國泰證券、永豐金證券這種，其實就當作是潛在可能
+# 匯撥以及藏分點買賣的真正市場高手」 -> three kinds: foreign brokers / a broker's head office (no branch suffix) / local branch
+FOREIGN = ("美商", "港商", "新加坡商", "英商", "瑞士商", "法商", "德商", "日商", "台灣摩根士丹利", "摩根大通", "美林", "花旗",
+           "瑞銀", "高盛", "麥格理", "野村", "大和", "匯豐", "法銀", "德意志", "瑞士信貸", "摩根士丹利")
+
+
+def kind(name):
+    if any(k in name for k in FOREIGN):
+        return "foreign"
+    return "local" if "-" in name else "head"
 
 
 def style(series):
@@ -138,15 +167,18 @@ def main():
         r = json.loads(f.read_text(encoding="utf-8"))["companies"].get(a.code)
         if r and (r["dir_inc"] or r["dir_dec"]):
             ins[f.stem] = (r["dir_inc"], r["dir_dec"])
-    ranked = sorted(br.items(), key=lambda kv: -sum(abs(v) for v in kv[1]["series"].values()))[:8]
+    cum = lambda kv: sum(kv[1]["series"].values())
+    loc = [kv for kv in br.items() if kind(kv[1]["name"]) == "local"]
+    head = sorted((kv for kv in br.items() if kind(kv[1]["name"]) == "head"), key=lambda kv: -abs(cum(kv)))[:4]
+    ranked = sorted(loc, key=cum, reverse=True)[:4] + sorted(loc, key=cum)[:4]   # local branches: 4 biggest accumulators + 4 sellers
     L = [f"# {a.code} {base.get('公司簡稱', '')} 主力檔案（{time.strftime('%Y-%m-%d %H:%M')}，dev 試做）", "",
          f"- 董事長：{base.get('董事長', '—')}；總經理：{base.get('總經理', '—')}；公司地址：{base.get('住址', '—')}",
          f"- 分點資料：{len(pages)} 個月（{SPAN[0]}～{SPAN[1]}），本次請求 {n} 次；股價只有 2024-10 起，之前的月份不算報酬", "",
          "## 1. 內部人與持股（證交所公開資料）", "", "| 身分 | 姓名 | 目前持股（股） | 關係人持股 |", "|---|---|---:|---:|"]
-    L += [f"| {x['職稱']} | {x['姓名']} | {int(x['目前持股']):,} | {int(x['內部人關係人目前持股合計'] or 0):,} |" for x in people]
+    L += [f"| {x['職稱']} | {x['姓名']} | {int(x.get('目前持股') or 0):,} | {int(x.get('內部人關係人目前持股合計') or 0):,} |" for x in people]
     L += ["", "## 2. 董監每月持股增減（彙總表，含所有原因，股）", ""]
     L += [f"- {ym[:4]}-{ym[4:]}：增 {i:,}、減 {d:,}" for ym, (i, d) in sorted(ins.items())] or ["- 這段期間沒有變動"]
-    L += ["", "## 3. 這檔股票的主要分點（依 36 個月買賣量排序，張）", "",
+    L += ["", "## 3. 主力分點：本土分點（36 個月累計淨買最多 4 家＋淨賣最多 4 家，張；外資與總公司另列）", "",
           "| 分點 | 地緣 | 淨買月 | 淨賣月 | 累計淨買 | 手法（月資料） | 跟單 5 日 | 20 日 | 60 日 |", "|---|---|---:|---:|---:|---|---|---|---|"]
     base_fw = follow(a.code, [ym for ym in months(*SPAN)], closes, index)   # any month: the stock's own drift
     cell = lambda t: "—" if not t[0] else (f"{t[0]} 件 樣本不足" if t[0] < 10 else f"{t[0]} 件 勝率 {t[1]}% 平均 {t[2]:+.2f}%")
@@ -161,8 +193,20 @@ def main():
         fw = follow(a.code, buy_m, closes, index)
         L.append(f"| {b['name']}{'（負責人標註）' if b['name'] == own_name else ''} | {local} | {len(buy_m)} | {sum(1 for v in b['series'].values() if v < 0)} | "
                  f"{sum(b['series'].values()):,} | {style(b['series'])} | {cell(fw[5])} | {cell(fw[20])} | {cell(fw[60])} |")
+    strict = [x for x in json.loads((ROOT / "data" / "insider_watch_branches.json").read_text(encoding="utf-8"))["branches"] if x["code"] == a.code]
+    matches = []
+    for bno, b in br.items():
+        hit = [ym for ym, (i, d) in ins.items() if (i - d) and b["series"].get(ym) and 0.8 <= b["series"][ym] * 1000 / (i - d) <= 1.2]
+        if len(hit) >= 2:
+            matches.append((b["name"], hit))
+    L += ["", "### 總公司（綜合統稱：可能匯撥、藏分點的市場高手）", ""]
+    L += [f"- {kv[1]['name']}：36 個月累計 {cum(kv):+,} 張，淨買 {sum(1 for v in kv[1]['series'].values() if v > 0)} 月、淨賣 {sum(1 for v in kv[1]['series'].values() if v < 0)} 月" for kv in head] or ["- 無"]
+    fr = sorted((kv for kv in br.items() if kind(kv[1]["name"]) == "foreign"), key=lambda kv: -abs(cum(kv)))[:3]
+    L += ["", "### 外資券商（參考）", ""] + [f"- {kv[1]['name']}：36 個月累計 {cum(kv):+,} 張" for kv in fr]
     own = next(((bno, b) for bno, b in br.items() if a.owner_branch and b["name"] == a.owner_branch), None)
-    L += ["", "## 4. 董事長的分點", ""]
+    L += ["", "## 4. 董事長／內部人的分點", ""]
+    L += [f"- 嚴格名單（證據 A，近一年逐人申報 ±20% 吻合、時間對照通過）：" + ("；".join(f"{x['branch']}（{x['side']}，{x['same_month_matches']} 個月）" for x in strict) or "無")]
+    L += [f"- 36 個月彙總表比對（董監每月增減含所有原因，量差 ±20% 吻合 ≥ 2 個月）：" + ("；".join(f"{n}（{'、'.join(m[2:] for m in h)}）" for n, h in matches) or "無")]
     if own:
         bno, b = own
         lots = " ".join(f"{ym[2:]}:{b['series'].get(ym, 0)}" for ym in months(*SPAN) if ym in pages)
@@ -179,6 +223,19 @@ def main():
               f"（董監變動 {len(ins)} 個月，彙總表含所有原因，不只集中市場）"]
     L += ["", "> 讀法：跟單欄是「那個月淨買 → 下個月第一個交易日收盤進場」扣成本 0.585% 後的結果；要和最上面的基準比，"
           "高出基準的部分才是分點的本事。件數少於 10 件寫「樣本不足」。手法只看月資料，看不出當沖／隔日沖。"]
+    def brief(kv):
+        g = geo["branches"].get(kv[0]) or {}
+        return {"branch": kv[1]["name"], "cum_lots": sum(kv[1]["series"].values()),
+                "local": bool(home.get("dist")) and g.get("dist") == home.get("dist")}
+    (OUT / f"profile_{a.code}.json").write_text(json.dumps({
+        "code": a.code, "name": base.get("公司簡稱", ""), "chairman": base.get("董事長", ""),
+        "big_holders": [x["姓名"] for x in people if str(x.get("職稱", "")).startswith("大股東")],
+        "strict": [{"branch": x["branch"], "side": x["side"], "months": x["same_month_matches"]} for x in strict],
+        "matches": [{"branch": n, "months": h} for n, h in matches],
+        "accumulators": [brief(kv) for kv in sorted(loc, key=cum, reverse=True)[:3]],
+        "sellers": [brief(kv) for kv in sorted(loc, key=cum)[:3]],
+        "head_offices": [brief(kv) for kv in head[:3]],
+        "baseline_20d": base_fw[20], "insider_change_months": len(ins)}, ensure_ascii=False), encoding="utf-8")
     out = OUT / f"profile_{a.code}.md"
     OUT.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(L) + "\n", encoding="utf-8")
