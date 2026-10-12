@@ -104,6 +104,25 @@ pg = ("<table>" + _row("董事本人", "仰山林廣告有限公司", (2024000, 
 rs = IM.parse_query6_1(pg, "2540", "202410")
 check("同名同數字的三列只算一次 (官方註：勿重複累計)", sum(r["market_buy"] for r in rs) == 2024000, [(r["role"], r["kind"], r["market_buy"]) for r in rs])
 
+# 2026-10-12 whole-corpus check vs the independent program (2,028 pages): unnamed spouse rows of other roles
+sp = lambda role, inc, dec, end, extra="": (f"<tr><td>{role}</td><td></td><td>普通股</td><td>0 {end - inc + dec:,} 0 0 0</td>"
+                                           f"<td>{inc:,} 0 0 0 0</td><td>{dec:,} 0 0 0 0</td><td>{end:,} 0 0 0 0{extra}</td></tr>")
+nm = lambda role, name, inc, dec, end, extra="": sp(role, inc, dec, end, extra).replace("<td></td>", f"<td>{name}</td>", 1)
+pg = ("<table>" + sp("董事長之法人代表人之配偶及未成年子女", 5000000, 0, 9256000) + nm("董事之法人代表人", "謝小雀", 5000000, 0, 9256000)
+      + sp("大股東本人之配偶及未成年子女", 5000000, 0, 9256000) + "</table>")
+rs = IM.parse_query6_1(pg, "2024", "202510")
+check("2024 2025-10: 謝小雀 5,000,000 在三種身分各列一次 → 只算一次", sum(r["market_buy"] for r in rs) == 5000000, [(r["role"], r["name"], r["market_buy"]) for r in rs])
+pg = ("<table>" + nm("副董事長本人", "劉瓊雯", 369000, 0, 1657030) + sp("副董事長本人之配偶及未成年子女", 7000, 0, 3491998)
+      + sp("其他之配偶及未成年子女", 7000, 0, 3491998) + "</table>")
+rs = IM.parse_query6_1(pg, "6965", "202601")
+check("6965 2026-01: 同一配偶列在副董事長與其他 → 7,000 只算一次", sum(r["market_buy"] for r in rs) == 376000, [(r["role"], r["name"], r["market_buy"]) for r in rs])
+pg = "<table>" + sp("副董事長之法人代表人之配偶及未成年子女", 0, 113000, 51000) + nm("大股東本人", "范秀蘭", 0, 113000, 51000, " 21,730,867") + "</table>"
+rs = IM.parse_query6_1(pg, "7769", "202608")
+check("7769 2026-08: 格子多一個備註數字也認得是同一筆 → 113,000 只算一次", sum(r["market_sell"] for r in rs) == 113000, [(r["role"], r["name"], r["market_sell"]) for r in rs])
+pg = "<table>" + sp("董事本人之配偶及未成年子女", 0, 0, 0) + sp("董事之法人代表人之配偶及未成年子女", 4000, 0, 4000) + "</table>"
+rs = IM.parse_query6_1(pg, "1466", "202607")
+check("1466 2026-07: 不同家庭的沒有姓名列不能當成同一人 → 4,000 要算", sum(r["market_buy"] for r in rs) == 4000, [(r["role"], r["name"], r["market_buy"]) for r in rs])
+
 print("\n[H] 抓取時遇到的正常答案 (16:08 4130、16:15 2884 踩到的坑)")
 from scripts import fetch_insider_people as FP
 check("「不繼續公開發行」是答案不是錯誤", FP.page_ok("<h2>該 4130 公開發行公司不繼續公開發行！</h2>".encode()))

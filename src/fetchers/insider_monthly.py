@@ -105,6 +105,12 @@ def parse_query6_1(t: str, code: str, ym: str):
     # a spouse who is an insider too appears twice: as "…本人" and as the other one's "…之配偶" row
     own = {(tuple(_nums(c[4])), tuple(_nums(c[5])), tuple(_nums(c[6])[:1])) for c in cells if c[0].endswith("本人")}
     out, seen, principal, fam, named = [], set(), {}, set(), set()
+    # 2024 2025-10 / 6965 2026-01 (independent check 2026-10-12): one holding is listed again as an unnamed
+    # spouse row of another role (董事長之法人代表人之配偶, 大股東本人之配偶, 其他之配偶 ...), all numbers equal.
+    # An unnamed spouse row equal to a named row, or to an earlier unnamed one, is the same holding: count once.
+    def full(c):
+        return tuple(tuple(_nums(c[k])[:5]) for k in (3, 4, 5, 6))   # 5 official values per cell (7769: a remark adds a 6th)
+    named_full, unnamed_full = {full(c) for c in cells if c[1].strip()}, set()
     for c in cells:
         if len(c) != 7 or not c[0] or c[0] == "身份別" or "普通股" not in c[2]:
             continue
@@ -112,6 +118,10 @@ def parse_query6_1(t: str, code: str, ym: str):
         prev, inc, dec, end = _nums(c[3]), _nums(c[4]), _nums(c[5]), _nums(c[6])
         if len(inc) < 2 or len(dec) < 2 or not end:
             continue
+        if not name.strip() and role_full.endswith("之配偶及未成年子女"):
+            if full(c) in named_full or full(c) in unnamed_full:
+                continue
+            unnamed_full.add(full(c))
         m = re.match(r"^(.*?)(本人之配偶及未成年子女|利用他人名義持有者|本人|之法人代表人)$", role_full)
         role, kind = (m.group(1), m.group(2)) if m else (role_full, "本人")
         if kind == "本人":
@@ -135,7 +145,7 @@ def parse_query6_1(t: str, code: str, ym: str):
                 if (key, sig) in fam or sig in own:
                     continue             # the same family counted once; a spouse listed as an insider counts as herself
                 fam.add((key, sig))
-        if kind in ("本人", "之法人代表人"):
+        if kind in ("本人", "之法人代表人") and name.strip():   # unnamed rows are different families (1466 2026-07)
             if name in seen:
                 continue                 # same person, second role: same shares, do not add twice
             seen.add(name)

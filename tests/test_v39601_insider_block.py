@@ -121,6 +121,10 @@ check("抓取狀態: 佇列裡還沒建好的頁 → 抓取中, 有幾頁", RR.f
 check("佇列從較晚月份開始 → 這一年還沒排進來, 算抓取中 (不知道還有幾頁)", RR.fetch_state("202410", "202508", built, q) == (None, True))
 check("缺月份的檔 → 抓取中", RR.fetch_state("202309", "202409", built, None) == (None, True))
 check("全部建好 → 不是抓取中", RR.fetch_state("202509", "202608", built, [[1, "202509", "1111"]]) == (0, False))
+with tempfile.TemporaryDirectory() as td:
+    (pathlib.Path(td) / "4130_202602.html").write_text("<h2>該 4130 公開發行公司不繼續公開發行！</h2>", encoding="utf-8")
+    oq = RR.open_queue([[5, "202509", "T56:sii"], [4, "202603", "4130"], [2, "202603", "2330"]], td)
+    check("事前申報工作與「不繼續公開發行」的公司不算待抓頁 (2026-10-12 近一年抓完仍顯示抓取中)", oq == [[2, "202603", "2330"]], oq)
 if f.exists():
     ys = d.get("years") or []
     check("公開檔有 years[], 最新一年也留在最上層 (舊讀法不壞)", [y["key"] for y in ys] == [w[0] for w in W]

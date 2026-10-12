@@ -62,6 +62,17 @@ def month_list(since, until):
     return out
 
 
+def open_queue(queue, raw_dir):
+    """The queue entries that still mean a per-person page to come (2026-10-12: year 1 showed 「抓取中」 after it
+    finished): the t56 jobs are saved elsewhere and are not person pages, and a company that answered
+    「不繼續公開發行」 is skipped for all its months by the fetcher."""
+    if not queue:
+        return queue
+    gone = {f.stem.split("_")[0] for f in Path(raw_dir).glob("*.html")
+            if f.stat().st_size < 5000 and "不繼續公開發行" in f.read_bytes().decode("utf-8", errors="replace")}
+    return [x for x in queue if not str(x[2]).startswith("T56:") and x[2] not in gone]
+
+
 def fetch_state(since, until, built_pages, queue):
     """Is the person-level data of a window complete? built_pages = {ym: {code, ...}} from data/insider_people,
     queue = [[priority, ym, code]] of the running fetch (data/insider_people_queue.json, None if absent).
@@ -217,7 +228,7 @@ def main():
             other[(r["code"], r["ym"])] += r["other_buy"] - r["other_sell"]
             raw[(r["code"], r["ym"])].append(r)
     qf = ROOT / "data" / "insider_people_queue.json"
-    queue = load_json(qf) if qf.exists() else None
+    queue = open_queue(load_json(qf) if qf.exists() else None, ROOT / "data" / "insider_q61_raw")
     # v3.96.2 the 1-year 「第一次大買」 look-back starts at the first month of person-level data, not at a window
     # start: the latest window, plus each older window once its fetch has finished. A partly fetched year does
     # not count (2024-10..2025-08 holds 101 sample pages tonight; counting them made A 57 -> 168, most of them
