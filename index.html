@@ -3960,6 +3960,11 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 /* v3.96.1 S08 大股東動向 (insider radar, spec 3.1): the top 5 with the key facts, every detail in the drawer.
    The label box is the role + 買 / 賣 in red (buy) or green (sell); Taiwan colours, not the line colour. */
 .ek-ins{margin-top:10px}
+.ins-al-ul li.ins-al{display:grid;grid-template-columns:52px minmax(120px,1.2fr) 2fr 1.6fr;gap:10px;align-items:center;padding:8px 14px;border-top:1px solid var(--border);font-size:13px}
+.ins-al small{display:block;font-size:11px;color:var(--text-3);font-weight:400}
+.ins-al-k{display:inline-block;text-align:center;padding:2px 0;border:1px solid;border-radius:4px;font-weight:700;font-size:12px}
+.ins-al-k.s{color:var(--green)}.ins-al-k.b{color:var(--red)}
+@media (max-width:560px){.ins-al-ul li.ins-al{grid-template-columns:48px 1fr;padding:8px 10px}.ins-al-m,.ins-al-r{grid-column:2}}
 .ek-ins-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;font-size:12px;font-weight:700;color:var(--text-3);letter-spacing:.04em}
 .ek-ins-h select{background:var(--bg-3);color:var(--text);border:1px solid var(--line-2);border-radius:0;font:inherit;font-weight:900;padding:2px 4px;cursor:pointer;min-width:0;width:auto}
 .ek-ins .ek-band .ek-go + .en{margin-left:14px}   /* the full-width band: "全部 N 筆 ›" sits right, not in the middle */
@@ -10729,7 +10734,28 @@ function _insInner() {
   const opts = _INS_HS.map(h => `<option value="${h}"${h === H ? ' selected' : ''}>${h}</option>`).join('');
   return band(`${rf}<button class="ek-go" onclick="_insAll()">全部 ${rows.length} 筆 ›</button>`) + st
     + `<div class="ek-ins-h">${yopt}同身分訊號過去<select aria-label="持有天數" onchange="_insSetH(this.value)">${opts}</select>個交易日：買方＝跟單結果（扣成本 0.585%）· 勝率 · 件數；賣方＝之後股價；小字＝比大盤</div>`
-    + `<ul>${fetching}${li}</ul>`;
+    + `<ul>${fetching}${li}</ul>` + _insAlerts();
+}
+// v3.96.6 owner 2026-10-12: the 5 stable research pairs as a nightly 賣壓 / 買進 alert (encrypted part only)
+function _insAlerts() {
+  const al = (INSIDER_PRIV || {}).alerts;
+  if (!Array.isArray(al) || !al.length) return '';
+  const pct = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(1);
+  const rows = al.map(x => {
+    const nm = escHtml(x.name || ''), buy = x.side === '買';
+    const t = (x.today || []).filter(d => d.net);
+    const now = t.length ? t.map(d => `${escHtml(String(d.day).slice(4, 6))}/${escHtml(String(d.day).slice(6))} ${d.net > 0 ? '買' : '賣'} ${Math.abs(d.net).toLocaleString('en-US')} 張`).join('、')
+      : '等每晚資料（加入追蹤後第一晚起）';
+    const lm = String(x.last_month || ''), on = (x.last_net || 0) * (buy ? 1 : -1) > 0, la = x.last_act || null;
+    const ym = v => `${escHtml(String(v).slice(0, 4))}-${escHtml(String(v).slice(4))}`;
+    const last = la ? `最近一次${buy ? '買' : '賣'}：${ym(la[0])}（${Math.abs(la[1]).toLocaleString('en-US')} 張）` : '';
+    const cur = on ? `${ym(lm)} ${buy ? '淨買' : '淨賣'} ${Math.abs(x.last_net).toLocaleString('en-US')} 張` : `${ym(lm)} 沒進前 15 名`;
+    return `<li class="ins-al"><span class="ins-al-k ${buy ? 'b' : 's'}">${buy ? '買進' : '賣壓'}</span>
+      <span class="ins-al-n"><b>${nm} ${escHtml(x.code)}</b><small>${escHtml(x.branch)}</small></span>
+      <span class="ins-al-m">${on ? cur : (last || cur)}<small>${on ? '' : cur + '；'}今天：${now}</small></span>
+      <span class="ins-al-r">回測 20 日 比平常 ${pct(x.gap20)}<small>${Number(x.n) || 0} 件 · 前半 ${pct(x.half1)}／後半 ${pct(x.half2)}</small></span></li>`;
+  }).join('');
+  return `<div class="ek-ins-h">分點警示（研究名單 ${al.length} 組：前後半都穩定；月資料回測，件數少，只當盯盤用）</div><ul class="ins-al-ul">${rows}</ul>`;
 }
 function _insRender() { const box = document.getElementById('ekIns'); if (box) box.innerHTML = _insInner(); }
 function _insSetH(v) { _INS_H = _INS_HS.includes(+v) ? +v : 20; _insRender(); }

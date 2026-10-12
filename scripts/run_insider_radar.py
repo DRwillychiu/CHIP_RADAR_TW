@@ -73,6 +73,50 @@ def open_queue(queue, raw_dir):
     return [x for x in queue if not str(x[2]).startswith("T56:") and x[2] not in gone]
 
 
+# v3.96.6 owner 2026-10-12: 「這 5 組穩定的，做成每晚的賣壓／買進警示」 - the pairs whose month-level follow kept the
+# same sign in both halves at 20 days (scripts/research_branches.py). Everything computed from them goes to the
+# ENCRYPTED part only (branch data); the public file never sees it.
+ALERT_PAIRS = (("2460", "981C", "元大-路竹", -1), ("3008", "9207", "凱基-永和", -1), ("8042", "9B23", "台新-三重", -1),
+               ("6274", "9A81", "永豐金-匯立", -1), ("2474", "9B29", "台新-府城", 1))
+
+
+def branch_alerts(password, days):
+    """-> [{code, branch, side, last_month, last_net, today, n, gap20, half1, half2}] or [] when the raw pages are absent."""
+    from scripts import research_branches as RB
+    from src.exports.transfer_watch import read_day
+    from src.fetchers import stock_branch_ranking as S
+    raw = ROOT / "data" / "insider_branch_raw"
+    closes, index, _ = prices()
+    out = []
+    names = {c: (v or {}).get("name", "") for c, v in load_json(ROOT / "data" / "stock_history.json")["stocks"].items()}
+    recent = days[-5:]
+    nightly = {}
+    for day in recent:
+        d = read_day(ROOT / "data", day, password) or {}
+        for b in d.get("branches") or []:
+            for side in ("buys", "sells"):
+                for x in b.get(side) or []:
+                    if isinstance(x, dict):
+                        nightly[(b.get("code"), x.get("code"), day)] = int(x.get("net_lot") or 0)
+    for code, bno, name, side in ALERT_PAIRS:
+        ser = {}
+        for f in sorted(raw.glob(f"{code}_*.html")):
+            p = S.parse_fubon_stock_page(f.read_text(encoding="utf-8"), code) or {}
+            ser[f.stem.rsplit("_", 1)[1]] = sum(int(r["net"] or 0) for r in (p.get("buys") or []) + (p.get("sells") or []) if r["bno"] == bno)
+        if not ser:
+            continue
+        months = sorted(ser)
+        act = [ym for ym in months if ser[ym] * side > 0]
+        half = len(act) // 2
+        base = RB.rets(code, months, 20, closes, index)
+        g = lambda yms: round((statistics.mean(RB.rets(code, yms, 20, closes, index)) - statistics.mean(base)) * side, 1)             if base and RB.rets(code, yms, 20, closes, index) else None
+        today = [{"day": d, "net": nightly[(bno, code, d)]} for d in recent if (bno, code, d) in nightly]
+        out.append({"code": code, "name": names.get(code, ""), "branch": name, "side": "買" if side > 0 else "賣", "last_month": months[-1],
+                    "last_net": ser[months[-1]], "last_act": [act[-1], ser[act[-1]]] if act else None, "today": today, "n": len(RB.rets(code, act, 20, closes, index)),
+                    "gap20": g(act), "half1": g(act[:half]), "half2": g(act[half:])})
+    return out
+
+
 def fetch_state(since, until, built_pages, queue):
     """Is the person-level data of a window complete? built_pages = {ym: {code, ...}} from data/insider_people,
     queue = [[priority, ym, code]] of the running fetch (data/insider_people_queue.json, None if absent).
@@ -404,6 +448,8 @@ def main():
                 bm[code][day[:6]] += v
         priv["pano"] = {"from": bdays[0], "until": bdays[-1],   # net_amt is in 仟元 -> 億
                         "stocks": {c: {m: round(v / 1e5, 3) for m, v in sorted(ms.items())} for c, ms in bm.items()}}
+    if pw:
+        priv["alerts"] = branch_alerts(pw, bdays or [])
     priv_path = Path(a.out).with_name(PRIVATE_NAME)
     if pw:
         pub["private"] = PRIVATE_NAME       # the page fetches the encrypted part only when it exists

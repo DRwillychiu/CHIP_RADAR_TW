@@ -83,6 +83,10 @@ else:
 print("\n[D] 今日總整理 S08 區塊 (index.html)")
 h = (ROOT / "index.html").read_text(encoding="utf-8")
 check("抽屜把同一人的各列分開寫 (本人 + 他人名義)", "ins-parts" in h and "pp.parts" in h)
+check("分點警示只讀加密檔 (INSIDER_PRIV.alerts), 公開檔沒有", "function _insAlerts()" in h and "(INSIDER_PRIV || {}).alerts" in h
+      and (not (ROOT / "data" / "insider_radar.json").exists() or '"alerts"' not in (ROOT / "data" / "insider_radar.json").read_text(encoding="utf-8")))
+src_a = (ROOT / "scripts" / "run_insider_radar.py").read_text(encoding="utf-8")
+check("分點警示寫進加密檔 priv, 不寫進 pub", 'priv["alerts"] = branch_alerts(' in src_a and 'pub["alerts"]' not in src_a)
 ds = h[h.index("function renderDailySummary()"):h.index("// ========== v3.90.0 detail drawer")]
 js = h[h.index("// ========== v3.96.1 S08"):h.index("// ========== v3.94.0 every page a board")]
 check("區塊放在今日總整理 (S08), 用同一套色帶", 'id="ekIns">${_insInner()}' in ds and 'class="ek-blk k-stocks ek-ins"' in ds
