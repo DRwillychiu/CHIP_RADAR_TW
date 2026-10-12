@@ -1,4 +1,5 @@
-"""v3.82.0 six-municipality branch / company geography from open data (2026-10-08).
+"""v3.82.0 branch / company geography from open data (2026-10-08); v3.96.6 (2026-10-12, owner: 「先把地緣券商全部補齊才對」)
+every county and city, not only the six municipalities (county towns keep 市/鎮/鄉), plus the science parks.
 
 Addresses often omit the district ("台北市和平西路一段30號"). A road gazetteer is
 learned from every open-data address that does name its district (listed, OTC,
@@ -29,6 +30,9 @@ UA = {"User-Agent": "Mozilla/5.0"}
 CITY_RE = re.compile(r"^(.{2}[縣市])")
 DIST_RE = re.compile(r"^.{2}[縣市](.{1,4}?[區])")
 ROAD_RE = re.compile(r"^(.{1,8}?(?:路|街|大道))([一二三四五六七八九十0-9]+段)?")
+PARKS = (("新竹科學", ("新竹市", "東區")), ("竹南科學", ("苗栗縣", "竹南鎮")), ("銅鑼科學", ("苗栗縣", "銅鑼鄉")),
+         ("中部科學", ("臺中市", "西屯區")), ("南部科學", ("臺南市", "新市區")), ("臺南科學", ("臺南市", "新市區")),
+         ("高雄科學", ("高雄市", "路竹區")), ("龍潭科學", ("桃園市", "龍潭區")), ("虎尾科學", ("雲林縣", "虎尾鎮")))
 OLD_COUNTY = {"臺北縣": "新北市", "桃園縣": "桃園市", "臺中縣": "臺中市", "臺南縣": "臺南市", "高雄縣": "高雄市"}
 
 
@@ -51,11 +55,12 @@ def parse(addr):
     d = DIST_RE.match(a)
     dist = d.group(1) if d else None
     rest = a[len(city) + (len(dist) if dist else 0):] if city else ""
-    # old county towns became districts in 2010 (e.g. 臺北縣板橋市 -> 新北市板橋區)
-    if city in SIX and not dist:
+    # old county towns became districts in 2010 (e.g. 臺北縣板橋市 -> 新北市板橋區); in a county the town is the unit
+    if city and not dist:
         t = re.match(r"^(.{1,3}?[市鎮鄉])", rest)
         if t and not re.match(r"^.{0,3}[路街]", rest):
-            dist, rest = t.group(1)[:-1] + "區", rest[len(t.group(1)):]
+            dist = t.group(1)[:-1] + "區" if city in SIX else t.group(1)
+            rest = rest[len(t.group(1)):]
     r = ROAD_RE.match(rest)
     road = (r.group(1), r.group(2) or "") if r else None
     return city, dist, road
@@ -83,7 +88,7 @@ def main():
     votes_rs, votes_r = defaultdict(Counter), defaultdict(Counter)
     for a in corpus:
         city, dist, road = parse(a)
-        if city in SIX and dist and road:
+        if city and dist and road:
             votes_rs[(city,) + road][dist] += 1
             votes_r[(city, road[0])][dist] += 1
 
@@ -98,8 +103,12 @@ def main():
 
     def locate(addr):
         city, dist, road = parse(addr)
-        if city not in SIX:
-            return {"city": city, "dist": None, "src": "outside six"}
+        if not city:                                  # 2454 「新竹科學園區篤行一路1號」: a park address without a city
+            a = norm(addr)
+            park = next((v for k, v in PARKS if k in a), None)
+            if park:
+                return {"city": park[0], "dist": park[1], "src": "science park"}
+            return {"city": None, "dist": None, "src": "unknown"}
         if dist:
             return {"city": city, "dist": dist, "src": "address"}
         d = infer(city, road) if road else None
@@ -114,14 +123,29 @@ def main():
     for b in brk:
         code = str(b.get("證券商代號") or "").strip()
         branches[code] = {"name": str(b.get("證券商名稱") or "").strip(), **locate(b.get("地址"))}
-    doc = {"_doc": ("Six-municipality geography of broker branches (TWSE OpenData_BRK02) and listed / OTC "
+    # the district is often the branch's own name (凱基-岡山, 元大-中壢): fill it only when name + 區/市/鎮/鄉 is a real
+    # district of the same city (the district list comes from the addresses, nothing typed by hand)
+    dists = defaultdict(set)
+    for v in list(companies.values()) + list(branches.values()):
+        if v["city"] and v["dist"]:
+            dists[v["city"]].add(v["dist"])
+    for v in branches.values():
+        if v["city"] and not v["dist"] and "-" in v["name"]:
+            suf = v["name"].split("-")[-1].strip()
+            hit = [d for d in dists[v["city"]] if d[:-1] == suf or d[:-1] == suf[:2]] if suf else []
+            if len(hit) == 1:
+                v["dist"], v["src"] = hit[0], "branch name"
+    doc = {"_doc": ("Geography (every county and city; county towns keep 市/鎮/鄉) of broker branches (TWSE OpenData_BRK02) and listed / OTC "
                     "companies (MOPS open data t187ap03_L / _O). dist from the address, else learned road "
-                    "gazetteer (majority >= 80%, >= 2 samples), else null. Built by scripts/build_branch_geo.py."),
+                    "gazetteer (majority >= 80%, >= 2 samples), else the branch name when it is a district of the same city, else null. "
+                    "Built by scripts/build_branch_geo.py."),
            "companies": {k: {kk: v[kk] for kk in ("city", "dist", "src")} for k, v in companies.items()},
            "branches": {k: {kk: v[kk] for kk in ("name", "city", "dist", "src")} for k, v in branches.items()}}
     (ROOT / "data" / "branch_geo.json").write_text(json.dumps(doc, ensure_ascii=False, separators=(",", ":")),
                                                    encoding="utf-8")
     for label, d in (("companies (listed+OTC)", companies), ("branches", branches)):
+        print(f"{label}: all {len(d)}, city known {sum(1 for v in d.values() if v['city'])}, district known "
+              f"{sum(1 for v in d.values() if v['dist'])}, by source {dict(Counter(v['src'] for v in d.values()))}")
         six = [v for v in d.values() if v["city"] in SIX]
         print(f"{label}: {len(d)} total, in six cities {len(six)}, district known {sum(1 for v in six if v['dist'])} "
               f"(address {sum(1 for v in six if v['src'] == 'address')}, gazetteer "
