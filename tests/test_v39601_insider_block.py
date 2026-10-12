@@ -50,8 +50,22 @@ recs = [{"role": "董事長", "name": "王大明", "kind": "本人", "market_buy
         {"role": "經理", "name": "李四", "kind": "本人", "market_buy": 0, "market_sell": 0, "other_buy": 0, "other_sell": 0, "end_shares": 10}]
 moved, quiet = RR.person_detail(recs)
 check("他人名義併回本人、股數相加、記下身分種類", len(moved) == 1 and moved[0]["market_buy"] == 3000 and moved[0]["end_shares"] == 7000
-      and moved[0]["kinds"] == ["利用他人名義持有者"], moved)
+      and moved[0]["kinds"] == ["本人", "利用他人名義持有者"], moved)
 check("沒有變動的人只算人數", quiet == 1)
+# 7689 2026-08 (owner check 2026-10-12): 本人 170,000 + 他人名義 增鐽電子 441,000 = 611,000; each official row stays visible
+recs = [{"role": "董事長", "name": "張再發", "kind": "本人", "holder": "張再發", "market_buy": 170000, "market_sell": 0,
+         "other_buy": 0, "other_sell": 0, "end_shares": 13649015},
+        {"role": "董事長", "name": "張再發(他人名義)", "kind": "利用他人名義持有者", "holder": "增鐽電子股份有限公司",
+         "market_buy": 441000, "market_sell": 0, "other_buy": 0, "other_sell": 0, "end_shares": 18153500},
+        {"role": "協理", "name": "翟傳福", "kind": "本人", "holder": "翟傳福", "market_buy": 0, "market_sell": 6000,
+         "other_buy": 0, "other_sell": 0, "end_shares": 0}]
+moved, _ = RR.person_detail(recs)
+p0 = moved[0].get("parts") or []
+check("7689: 合計 611,000 / 31,802,515, 拆成本人 170,000 與 增鐽電子 441,000 兩列",
+      moved[0]["market_buy"] == 611000 and moved[0]["end_shares"] == 31802515 and len(p0) == 2
+      and p0[0] == {"kind": "本人", "holder": "", "market_buy": 170000, "market_sell": 0, "end_shares": 13649015}
+      and p0[1]["holder"] == "增鐽電子股份有限公司" and p0[1]["market_buy"] == 441000, moved[0])
+check("只有本人一列: 不加身分標籤也不拆列", moved[1]["kinds"] == [] and "parts" not in moved[1], moved[1])
 
 print("\n[C] 現在的公開檔 (repo 是公開的)")
 f = ROOT / "data" / "insider_radar.json"
@@ -68,6 +82,7 @@ else:
 
 print("\n[D] 今日總整理 S08 區塊 (index.html)")
 h = (ROOT / "index.html").read_text(encoding="utf-8")
+check("抽屜把同一人的各列分開寫 (本人 + 他人名義)", "ins-parts" in h and "pp.parts" in h)
 ds = h[h.index("function renderDailySummary()"):h.index("// ========== v3.90.0 detail drawer")]
 js = h[h.index("// ========== v3.96.1 S08"):h.index("// ========== v3.94.0 every page a board")]
 check("區塊放在今日總整理 (S08), 用同一套色帶", 'id="ekIns">${_insInner()}' in ds and 'class="ek-blk k-stocks ek-ins"' in ds

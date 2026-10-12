@@ -86,16 +86,25 @@ def person_detail(records):
         a = acc.setdefault(k, {"role": k[0], "name": k[1], "kinds": [], **{f: 0 for f in DETAIL_FIELDS}})
         for f in DETAIL_FIELDS:
             a[f] += int(r.get(f) or 0)
-        kind = r.get("kind")
+        kind = r.get("kind") or "本人"
         moved_row = any(r.get(f) for f in DETAIL_FIELDS[:4])
-        if kind and kind != "本人" and kind not in a["kinds"] and moved_row:   # 2061 2026-07: an unchanged spouse row must not label 陳福得's own sale
-            a["kinds"].append(kind)
-        if kind in (None, "本人", "之法人代表人", "利用他人名義持有者") and any(r.get(f) for f in DETAIL_FIELDS[:4]):
+        if moved_row:               # 2061 2026-07: an unchanged spouse row must not label 陳福得's own sale
+            if kind not in a["kinds"]:
+                a["kinds"].append(kind)
+            # 7689 2026-08 (owner check): 本人 170,000 + 他人名義 增鐽電子 441,000 were shown as one 611,000 line
+            # labelled only 他人名義; keep each official row so the drawer can show the split
+            a.setdefault("parts", []).append({"kind": kind, "holder": r.get("holder") if kind != "本人" else "",
+                                              **{f: int(r.get(f) or 0) for f in ("market_buy", "market_sell", "end_shares")}})
+        if kind in ("本人", "之法人代表人", "利用他人名義持有者") and moved_row:
             a["self_moved"] = True
     for a in acc.values():          # only the spouse / children traded: say so, do not show it as the insider's own trade
         if "本人之配偶及未成年子女" in a["kinds"] and not a.pop("self_moved", False):
             a["name"] += "之配偶"
         a.pop("self_moved", None)
+        if a["kinds"] == ["本人"]:  # the plain case needs no label
+            a["kinds"] = []
+        if len(a.get("parts", ())) < 2:
+            a.pop("parts", None)
     moved = [a for a in acc.values() if any(a[f] for f in DETAIL_FIELDS[:4])]
     moved.sort(key=lambda a: -abs(a["market_buy"] - a["market_sell"]))
     return moved, len(acc) - len(moved)

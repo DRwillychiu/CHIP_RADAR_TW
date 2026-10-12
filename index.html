@@ -11001,8 +11001,14 @@ function _insOpen(i) {
   const signed = v => v ? (v > 0 ? '+' : '−') + lots(Math.abs(v)) : lots(0);
   const ppl = (x.detail || []).map(pp => {
     const role = escHtml(pp.role || ''), kinds = (pp.kinds || []).map(escHtml).join('、');
+    // v3.96.5 7689 2026-08: one person = several official rows (本人 + 他人名義 ...); show each so it can be checked
+    const parts = (pp.parts || []).map(q => {
+      const k = { '利用他人名義持有者': '他人名義', '本人之配偶及未成年子女': '配偶子女', '之法人代表人': '法人代表人' }[q.kind] || q.kind || '本人';
+      const mv = [q.market_buy ? `買 ${lots(q.market_buy)}` : '', q.market_sell ? `賣 ${lots(q.market_sell)}` : ''].filter(Boolean).join(' ');
+      return `${escHtml(k)}${q.holder ? ' ' + escHtml(q.holder) : ''}${mv ? ' ' + mv : ''}`;
+    }).join('＋');
     return `<tr><td class="ins-role">${role}${kinds ? `<small>${kinds}</small>` : ''}</td>
-      <td class="nm"><b>${escHtml(pp.name || '—')}</b><small class="ins-mrole">${role}${kinds ? '・' + kinds : ''}</small></td><td class="num">${lots(pp.market_buy)}</td><td class="num">${lots(pp.market_sell)}</td>
+      <td class="nm"><b>${escHtml(pp.name || '—')}</b>${parts ? `<small class="ins-parts">${parts}</small>` : ''}<small class="ins-mrole">${role}${kinds ? '・' + kinds : ''}</small></td><td class="num">${lots(pp.market_buy)}</td><td class="num">${lots(pp.market_sell)}</td>
       <td class="num">${signed((Number(pp.other_buy) || 0) - (Number(pp.other_sell) || 0))}</td><td class="num">${lots(pp.end_shares)}</td></tr>`;
   }).join('')
     || '<tr><td colspan="6" class="dim">沒有逐人明細</td></tr>';
