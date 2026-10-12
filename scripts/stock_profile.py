@@ -17,6 +17,7 @@ import argparse
 import calendar
 import html
 import json
+import re
 import statistics
 import sys
 import time
@@ -129,6 +130,39 @@ def kind(name):
     return "local" if "-" in name else "head"
 
 
+PARKS = (("新竹科學", ("新竹市", "東區")), ("Hsinchu Science", ("新竹市", "東區")), ("南部科學", ("臺南市", "新市區")),
+         ("TAINAN SCIENCE", ("臺南市", "新市區")), ("Tainan Science", ("臺南市", "新市區")), ("中部科學", ("臺中市", "西屯區")))
+EN_CITY = (("New Taipei", "新北市"), ("Taipei", "臺北市"), ("Taoyuan", "桃園市"), ("Taichung", "臺中市"), ("Tainan", "臺南市"),
+           ("Kaohsiung", "高雄市"), ("Hsinchu Hsien", "新竹縣"), ("Hsinchu County", "新竹縣"), ("Hsinchu", "新竹市"),
+           ("Miaoli", "苗栗縣"), ("Changhua", "彰化縣"), ("Nantou", "南投縣"), ("Yunlin", "雲林縣"), ("Chiayi", "嘉義縣"),
+           ("Pingtung", "屏東縣"), ("Yilan", "宜蘭縣"), ("Hualien", "花蓮縣"), ("Taitung", "臺東縣"), ("Keelung", "基隆市"))
+EN_DIST = (("Chupei", "竹北市"), ("Zhubei", "竹北市"), ("Sanchong", "三重區"), ("Hsinchuang", "新莊區"), ("Xinzhuang", "新莊區"),
+           ("Tucheng", "土城區"), ("Zhonghe", "中和區"), ("Chung Ho", "中和區"), ("Banqiao", "板橋區"), ("Neihu", "內湖區"),
+           ("Xizhi", "汐止區"), ("Hsichih", "汐止區"), ("Taishan", "泰山區"), ("Wugu", "五股區"), ("Luzhu", "蘆竹區"),
+           ("Guishan", "龜山區"), ("Zhongli", "中壢區"), ("Chungli", "中壢區"), ("Pingzhen", "平鎮區"), ("Yangmei", "楊梅區"),
+           ("Hukou", "湖口鄉"), ("Xinfeng", "新豐鄉"), ("Zhunan", "竹南鎮"), ("Toufen", "頭份市"), ("Daya", "大雅區"),
+           ("Xitun", "西屯區"), ("Nantun", "南屯區"), ("Rende", "仁德區"), ("Yongkang", "永康區"), ("Anping", "安平區"),
+           ("Gangshan", "岡山區"), ("Luzhu Dist., Kaohsiung", "路竹區"), ("Qianzhen", "前鎮區"), ("Nanzi", "楠梓區"))
+
+
+def home_of(code, base, geo):
+    """(city, district) of the company: data/branch_geo.json when it has one, else the roster address
+    (Chinese for listed; TPEx gives English - city always, district from a short table). 台 -> 臺 like the branch table."""
+    h = geo["companies"].get(code) or {}
+    if h.get("city") and h.get("dist"):
+        return h["city"], h["dist"], "address"
+    addr = base.get("住址") or ""
+    for k, v in PARKS:
+        if k in addr:
+            return v[0], v[1], "science park"
+    m = re.match(r"^(.{2}[市縣])(.{1,3}?[區鄉鎮市])", addr.replace("台", "臺"))
+    if m:
+        return m.group(1), m.group(2), "address"
+    city = next((zh for en, zh in EN_CITY if en.lower() in addr.lower()), None)
+    dist = next((zh for en, zh in EN_DIST if en.lower() in addr.lower()), None)
+    return city, dist, "english address"
+
+
 def style(series):
     b = sum(1 for v in series.values() if v > 0)
     s = sum(1 for v in series.values() if v < 0)
@@ -161,7 +195,8 @@ def main():
             b = br.setdefault(r["bno"], {"name": r["name"], "series": {}})
             b["series"][ym] = b["series"].get(ym, 0) + int(r["net"] or 0)
     geo = json.loads((ROOT / "data" / "branch_geo.json").read_text(encoding="utf-8"))
-    home = geo["companies"].get(a.code) or {}
+    hc, hd, hsrc = home_of(a.code, base, geo)
+    home = {"city": hc, "dist": hd}
     closes, index, _ = prices()
     ins = {}
     for f in sorted((ROOT / "data" / "insider_monthly").glob("*.json")):
@@ -174,6 +209,7 @@ def main():
     ranked = sorted(loc, key=cum, reverse=True)[:4] + sorted(loc, key=cum)[:4]   # local branches: 4 biggest accumulators + 4 sellers
     L = [f"# {a.code} {base.get('公司簡稱', '')} 主力檔案（{time.strftime('%Y-%m-%d %H:%M')}，dev 試做）", "",
          f"- 董事長：{base.get('董事長', '—')}；總經理：{base.get('總經理', '—')}；公司地址：{base.get('住址', '—')}",
+         f"- 公司位置：{hc or '—'}{hd or ''}（{hsrc}）",
          f"- 分點資料：{len(pages)} 個月（{SPAN[0]}～{SPAN[1]}），本次請求 {n} 次；股價只有 2024-10 起，之前的月份不算報酬", "",
          "## 1. 內部人與持股（證交所公開資料）", "", "| 身分 | 姓名 | 目前持股（股） | 關係人持股 |", "|---|---|---:|---:|"]
     L += [f"| {x['職稱']} | {x['姓名']} | {int(x.get('目前持股') or 0):,} | {int(x.get('內部人關係人目前持股合計') or 0):,} |" for x in people]
@@ -189,24 +225,54 @@ def main():
         ranked = ranked + [kv for kv in br.items() if kv[1]["name"] == own_name]
     for bno, b in ranked:
         g = geo["branches"].get(bno) or {}
-        local = "同區" if home.get("dist") and g.get("dist") == home.get("dist") else ("同市" if home.get("city") and g.get("city") == home.get("city") else "")
+        local = "同區" if home.get("dist") and g.get("dist") == home.get("dist") and g.get("city") == home.get("city") else ("同市" if home.get("city") and g.get("city") == home.get("city") else "")
         buy_m = [ym for ym, v in b["series"].items() if v > 0]
         fw = follow(a.code, buy_m, closes, index)
         L.append(f"| {b['name']}{'（負責人標註）' if b['name'] == own_name else ''} | {local} | {len(buy_m)} | {sum(1 for v in b['series'].values() if v < 0)} | "
                  f"{sum(b['series'].values()):,} | {style(b['series'])} | {cell(fw[5])} | {cell(fw[20])} | {cell(fw[60])} |")
     strict = [x for x in json.loads((ROOT / "data" / "insider_watch_branches.json").read_text(encoding="utf-8"))["branches"] if x["code"] == a.code]
+    persons = {}                                  # ym -> [(name, role, market net shares)] from the per-person pages
+    for f in sorted((ROOT / "data" / "insider_people").glob("*.json")):
+        d = json.loads(f.read_text(encoding="utf-8"))
+        rows = [(r["name"], r["role"], r["market_buy"] - r["market_sell"]) for r in d["people"] if r["code"] == a.code and (r["market_buy"] or r["market_sell"])]
+        if rows:
+            persons[d["ym"]] = rows
+
+    def who(series):
+        """'韓顯福（副董事長）賣 2606、2608' - the people whose own market net is within 20 % of the branch's month."""
+        got = {}
+        for ym, rows in persons.items():
+            v = series.get(ym)
+            for n, role, sh in rows:
+                if v and sh and 0.8 <= v * 1000 / sh <= 1.2:
+                    got.setdefault((n, role, "買" if sh > 0 else "賣"), []).append(ym[2:])
+        return "；".join(f"{n}（{role}）{side} {'、'.join(m)}" for (n, role, side), m in got.items())
+
     matches = []
-    for bno, b in br.items():
-        hit = [ym for ym, (i, d) in ins.items() if (i - d) and b["series"].get(ym) and 0.8 <= b["series"][ym] * 1000 / (i - d) <= 1.2]
-        if len(hit) >= 2:
-            matches.append((b["name"], hit))
+    for tier in ("local", "head", "foreign"):     # owner: local branches first; foreign only when no local branch matches
+        for bno, b in br.items():
+            if kind(b["name"]) != tier:
+                continue
+            hit = [ym for ym, (i, d) in ins.items() if (i - d) and b["series"].get(ym) and 0.8 <= b["series"][ym] * 1000 / (i - d) <= 1.2]
+            if len(hit) >= 2:
+                matches.append((b["name"], hit))
+        if matches:
+            break
+    def same(kv, lvl):
+        g = geo["branches"].get(kv[0]) or {}
+        return bool(home.get("city")) and g.get("city") == home.get("city") and (lvl == "city" or (home.get("dist") and g.get("dist") == home.get("dist")))
+    near = sorted((kv for kv in br.items() if same(kv, "dist")), key=lambda kv: -abs(cum(kv)))
+    L += ["", "### 地緣分點（和公司同一區；36 個月有進前 15 名的全部列出）", ""]
+    L += [f"- {kv[1]['name']}：累計 {cum(kv):+,} 張，出現 {len(kv[1]['series'])} 個月" for kv in near] or ["- 同一區沒有分點進過前 15 名"]
     L += ["", "### 總公司（綜合統稱：可能匯撥、藏分點的市場高手）", ""]
     L += [f"- {kv[1]['name']}：36 個月累計 {cum(kv):+,} 張，淨買 {sum(1 for v in kv[1]['series'].values() if v > 0)} 月、淨賣 {sum(1 for v in kv[1]['series'].values() if v < 0)} 月" for kv in head] or ["- 無"]
     fr = sorted((kv for kv in br.items() if kind(kv[1]["name"]) == "foreign"), key=lambda kv: -abs(cum(kv)))[:3]
     L += ["", "### 外資券商（參考）", ""] + [f"- {kv[1]['name']}：36 個月累計 {cum(kv):+,} 張" for kv in fr]
     own = next(((bno, b) for bno, b in br.items() if a.owner_branch and b["name"] == a.owner_branch), None)
     L += ["", "## 4. 董事長／內部人的分點", ""]
-    L += [f"- 嚴格名單（證據 A，近一年逐人申報 ±20% 吻合、時間對照通過）：" + ("；".join(f"{x['branch']}（{x['side']}，{x['same_month_matches']} 個月）" for x in strict) or "無")]
+    sb = {b["name"]: b for b in br.values()}
+    L += [f"- 嚴格名單（證據 A，近一年逐人申報 ±20% 吻合、時間對照通過）：" + ("；".join(
+        f"{x['branch']}＝{who(sb[x['branch']]['series']) or '對上董監合計'}" for x in strict if x["branch"] in sb) or "無")]
     L += [f"- 36 個月彙總表比對（董監每月增減含所有原因，量差 ±20% 吻合 ≥ 2 個月）：" + ("；".join(f"{n}（{'、'.join(m[2:] for m in h)}）" for n, h in matches) or "無")]
     if own:
         bno, b = own
@@ -224,6 +290,8 @@ def main():
               f"（董監變動 {len(ins)} 個月，彙總表含所有原因，不只集中市場）"]
     L += ["", "> 讀法：跟單欄是「那個月淨買 → 下個月第一個交易日收盤進場」扣成本 0.585% 後的結果；要和最上面的基準比，"
           "高出基準的部分才是分點的本事。件數少於 10 件寫「樣本不足」。手法只看月資料，看不出當沖／隔日沖。"]
+    br_by_name = {b["name"]: b for b in br.values()}
+
     def brief(kv):
         g = geo["branches"].get(kv[0]) or {}
         return {"branch": kv[1]["name"], "cum_lots": sum(kv[1]["series"].values()),
@@ -231,11 +299,14 @@ def main():
     (OUT / f"profile_{a.code}.json").write_text(json.dumps({
         "code": a.code, "name": base.get("公司簡稱", ""), "chairman": base.get("董事長", ""),
         "big_holders": [x["姓名"] for x in people if str(x.get("職稱", "")).startswith("大股東")],
-        "strict": [{"branch": x["branch"], "side": x["side"], "months": x["same_month_matches"]} for x in strict],
+        "strict": [{"branch": x["branch"], "side": x["side"], "months": x["same_month_matches"],
+                    "who": who(br_by_name[x["branch"]]["series"]) if x["branch"] in br_by_name else ""} for x in strict],
+        "home": f"{hc or ''}{hd or ''}",
         "matches": [{"branch": n, "months": h} for n, h in matches],
         "accumulators": [brief(kv) for kv in sorted(loc, key=cum, reverse=True)[:3]],
         "sellers": [brief(kv) for kv in sorted(loc, key=cum)[:3]],
         "head_offices": [brief(kv) for kv in head[:3]],
+        "near": [{"branch": kv[1]["name"], "cum_lots": cum(kv), "months": len(kv[1]["series"])} for kv in near[:3]],
         "baseline_20d": base_fw[20], "insider_change_months": len(ins)}, ensure_ascii=False), encoding="utf-8")
     out = OUT / f"profile_{a.code}.md"
     OUT.mkdir(parents=True, exist_ok=True)
