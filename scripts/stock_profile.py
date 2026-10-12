@@ -86,8 +86,10 @@ def follow(code, buy_months, closes, index):
     for h in HS:
         rs = []
         for ym in buy_months:
+            y, m = int(ym[:4]), int(ym[4:])
+            want = f"{y + (m == 12):04d}{m % 12 + 1:02d}"
             nxt = [d for d in days if d[:6] > ym]
-            if not nxt or nxt[0] not in c:
+            if not nxt or nxt[0][:6] != want or nxt[0] not in c:   # no price for that month: not counted (was: jumped to 2024-10)
                 continue
             i = days.index(nxt[0])
             if i + h < len(days) and days[i + h] in c:
@@ -146,13 +148,18 @@ def main():
     L += [f"- {ym[:4]}-{ym[4:]}：增 {i:,}、減 {d:,}" for ym, (i, d) in sorted(ins.items())] or ["- 這段期間沒有變動"]
     L += ["", "## 3. 這檔股票的主要分點（依 36 個月買賣量排序，張）", "",
           "| 分點 | 地緣 | 淨買月 | 淨賣月 | 累計淨買 | 手法（月資料） | 跟單 5 日 | 20 日 | 60 日 |", "|---|---|---:|---:|---:|---|---|---|---|"]
+    base_fw = follow(a.code, [ym for ym in months(*SPAN)], closes, index)   # any month: the stock's own drift
+    cell = lambda t: "—" if not t[0] else (f"{t[0]} 件 樣本不足" if t[0] < 10 else f"{t[0]} 件 勝率 {t[1]}% 平均 {t[2]:+.2f}%")
+    L.append(f"| **基準：任一個月都進場** | | | | | | {cell(base_fw[5])} | {cell(base_fw[20])} | {cell(base_fw[60])} |")
+    own_name = a.owner_branch
+    if own_name and all(b["name"] != own_name for _, b in ranked):
+        ranked = ranked + [kv for kv in br.items() if kv[1]["name"] == own_name]
     for bno, b in ranked:
         g = geo["branches"].get(bno) or {}
         local = "同區" if home.get("dist") and g.get("dist") == home.get("dist") else ("同市" if home.get("city") and g.get("city") == home.get("city") else "")
         buy_m = [ym for ym, v in b["series"].items() if v > 0]
         fw = follow(a.code, buy_m, closes, index)
-        cell = lambda t: "—" if not t[0] else f"{t[0]} 件 勝率 {t[1]}% 平均 {t[2]:+.2f}%"
-        L.append(f"| {b['name']} | {local} | {len(buy_m)} | {sum(1 for v in b['series'].values() if v < 0)} | "
+        L.append(f"| {b['name']}{'（負責人標註）' if b['name'] == own_name else ''} | {local} | {len(buy_m)} | {sum(1 for v in b['series'].values() if v < 0)} | "
                  f"{sum(b['series'].values()):,} | {style(b['series'])} | {cell(fw[5])} | {cell(fw[20])} | {cell(fw[60])} |")
     own = next(((bno, b) for bno, b in br.items() if a.owner_branch and b["name"] == a.owner_branch), None)
     L += ["", "## 4. 董事長的分點", ""]
@@ -162,7 +169,16 @@ def main():
         L += [f"- 負責人標註（證據 B）：{a.owner_branch}；在前 15 名出現 {len(b['series'])} 個月", f"- 每月淨買賣（張）：{lots}"]
     else:
         L += [f"- 負責人標註：{a.owner_branch or '—'}；36 個月的前 15 名裡沒有出現"]
-    L += ["- 時間比對（證據 A）：董監這段期間幾乎沒有市場買賣，無法用申報量比對" if sum(i + d for i, d in ins.values()) < 100000 else "- 時間比對：見 scripts/analyze_branch_timing.py"]
+    if own:
+        hits = []
+        for ym, (i, d) in sorted(ins.items()):
+            net, v = (i - d) / 1000, own[1]["series"].get(ym, 0)
+            if net and v and 0.5 <= v / net <= 1.5:
+                hits.append(f"{ym[:4]}-{ym[4:]}：董監 {net:+,.0f} 張、{a.owner_branch} {v:+,} 張（{v / net:.0%}）")
+        L += [f"- 時間比對（證據 A，量差在 50～150%）：{'；'.join(hits) if hits else '沒有吻合的月份'}"
+              f"（董監變動 {len(ins)} 個月，彙總表含所有原因，不只集中市場）"]
+    L += ["", "> 讀法：跟單欄是「那個月淨買 → 下個月第一個交易日收盤進場」扣成本 0.585% 後的結果；要和最上面的基準比，"
+          "高出基準的部分才是分點的本事。件數少於 10 件寫「樣本不足」。手法只看月資料，看不出當沖／隔日沖。"]
     out = OUT / f"profile_{a.code}.md"
     OUT.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(L) + "\n", encoding="utf-8")
