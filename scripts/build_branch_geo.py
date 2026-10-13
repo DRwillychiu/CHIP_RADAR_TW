@@ -37,6 +37,12 @@ COUNTY_SEAT = {"南投市": "南投縣", "彰化市": "彰化縣", "屏東市": 
                "苗栗市": "苗栗縣", "竹北市": "新竹縣", "斗六市": "雲林縣", "太保市": "嘉義縣"}
 UPGRADED = {"員林鎮": "員林市", "頭份鎮": "頭份市"}
 OLD_COUNTY = {"臺北縣": "新北市", "桃園縣": "桃園市", "臺中縣": "臺中市", "臺南縣": "臺南市", "高雄縣": "高雄市"}
+# 2026-10-13 bug (owner's 台光電 地緣 question): 桃園區 / 大園區 / 林園區 end in 「園區」 and were read as a science /
+# industrial park, so their district was dropped and a road guess put 統一-桃園 etc. in 觀音區. Real districts (the
+# Chunghwa Post district table, data/district_centers.json) are never treated as parks.
+_CENTERS = Path(__file__).resolve().parent.parent / "data" / "district_centers.json"
+REAL_DISTRICTS = ({(c, d) for c, ds in json.loads(_CENTERS.read_text(encoding="utf-8")).items() for d in ds}
+                  if _CENTERS.exists() else set())
 
 
 def norm(a):
@@ -69,10 +75,10 @@ def parse(addr):
     if city in COUNTY_SEAT:
         city, dist = COUNTY_SEAT[city], city
     dist = UPGRADED.get(dist, dist)
-    if dist and dist.endswith("園區"):
+    if dist and dist.endswith("園區") and (city, dist) not in REAL_DISTRICTS:
         park = next((v for k, v in PARKS if k[:2] in dist or k in a), None)
         city, dist = park if park else (city, {"新竹市": "東區", "新竹縣": "寶山鄉"}.get(city))
-    elif dist and dist.endswith("工業區"):
+    elif dist and dist.endswith("工業區") and (city, dist) not in REAL_DISTRICTS:
         dist = dist[:-3] + "區" if len(dist) > 3 else {"臺中市": "西屯區"}.get(city)
     r = ROAD_RE.match(rest)
     road = (r.group(1), r.group(2) or "") if r else None

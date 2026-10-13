@@ -1,6 +1,10 @@
 """v3.96.0 insider radar 2.1: parse the cached per-person pages (data/insider_q61_raw, see
 scripts/fetch_insider_people.py) into data/insider_people/YYYYMM.json, and cross-check them with
 the official >= 1M-share transfer table (IRB140): every IRB140 person must show the same decrease.
+v3.96.6 (owner 2026-10-13 「可以」 to step 6): an IRB140 row whose person is not on that month's page at all goes to
+the month file's "exits" list (source IRB140, method unknown) - 20 of the 37 year-1 cases were on earlier pages and
+gone from the transfer month on (likely no longer an insider after it; unverified). They are NOT added to "people",
+so the holdings identity and the radar signals are unchanged.
     python scripts/build_insider_people.py
 """
 import json
@@ -29,13 +33,11 @@ def main():
         months[ym]["people"] += [{**r, "control": p == 0} for r in recs]
     checked = matched = 0
     misses = []
+    n_exits = 0
     for ym, m in sorted(months.items()):
-        (out / f"{ym}.json").write_text(json.dumps({"ym": ym, **m}, ensure_ascii=False, separators=(",", ":")),
-                                        encoding="utf-8")
+        m["exits"] = []
         mf = ROOT / "data" / "insider_monthly" / f"{ym}.json"
-        if not mf.exists():
-            continue
-        for t in json.loads(mf.read_text(encoding="utf-8"))["transfers"]:
+        for t in json.loads(mf.read_text(encoding="utf-8"))["transfers"] if mf.exists() else []:
             if t["code"] not in m["pages"]:
                 continue
             checked += 1
@@ -44,9 +46,17 @@ def main():
                 matched += 1
             else:
                 misses.append(f"{t['code']} {ym} {t['role']} {t['name']} {t['shares']}")
+                nm = "".join(t["name"].split())
+                if not any(nm in ("".join(r["name"].split()), "".join((r.get("holder") or "").split())) for r in mine):
+                    m["exits"].append({"code": t["code"], "role": t["role"], "name": t["name"], "shares": t["shares"],
+                                       "source": "IRB140", "method": "unknown"})
+                    n_exits += 1
+        (out / f"{ym}.json").write_text(json.dumps({"ym": ym, **m}, ensure_ascii=False, separators=(",", ":")),
+                                        encoding="utf-8")
     print(f"[people] months {len(months)}, pages {sum(len(m['pages']) for m in months.values())}, "
           f"people {sum(len(m['people']) for m in months.values())}")
-    print(f"[people] IRB140 cross-check: {matched}/{checked} transfers found with the same decrease")
+    print(f"[people] IRB140 cross-check: {matched}/{checked} transfers found with the same decrease; "
+          f"{n_exits} not on the page at all -> exits")
     for x in misses[:15]:
         print("   miss", x)
     return 0

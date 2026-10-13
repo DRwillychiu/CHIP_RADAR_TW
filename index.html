@@ -4154,7 +4154,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.96.6 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.96.7 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -9605,6 +9605,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.96.7', date: '10/13', title: '兩年都找到的內部人分點', desc: '分點警示新增 12 組「兩年都找到」：第一年與第二年各自獨立用同一套方法比對內部人申報，都找到同一個分點，並標出對到的人（解鎖後才看得到）；每晚追蹤新增 7 個分點（台新-營業部沒有分點頁，只用月資料）' },
   { v: 'v3.96.6', date: '10/12', title: '分點警示＋長抱選單', desc: '大股東動向下方新增分點警示 5 組（研究名單，前後半都穩定，解鎖後才看得到）；持有天數選單加入 120／250 日；每晚追蹤新增 8 個研究分點（內部人／地緣／本土主力）' },
   { v: 'v3.96.5', date: '10/12', title: '大股東動向（近一年完整）', desc: '近一年逐人申報全部抓完並驗證：持股等式 78,463 列全對、全部頁面與獨立程式 0 差異；修正同一筆持股列在多種身分時重複計算；抽屜分列顯示本人與他人名義；勝率門檻依負責人改為 51%；第二年資料抓取中' },
   { v: 'v3.96.0', date: '10/11', title: '大股東動向（第一版）', desc: '今日總整理新增 S08 大股東動向：內部人逐人申報（近一年，賣方仍在補抓）、職位＋買／賣標籤、跟單結果扣成本與勝率、同身分回測、年份選單、個股全景圖、檢查更新按鈕；資料經持股等式、獨立程式與人工抽查驗證' },
@@ -9614,7 +9615,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v3.89–3.91', date: '10/10', title: '駅風格＋20 日走勢＋右側抽屜', desc: '粗黑體大數字、S01 / P02 站名編號、共買榜看板' },
   { v: 'v3.86.x', date: '10/09', title: '今日總整理成為登入第一頁', desc: '一分鐘讀完；登入從約 57 秒縮短到 0.4 秒' },
   { v: 'v3.85.x', date: '10/09', title: '富邦抓取修正', desc: '所有路徑請求間隔至少 1.6 秒；頁面以 cp950 解碼，立碁等罕用字股名不再亂碼' },
-  { v: 'v3.71.9', date: '6/27', title: '後端優化 4 件', desc: 'rename typo / scripts 分類 README / pytest collect 修復 + run_all.py (43/44 pass) / requirements audit' },
 ];
 
 function toggleChangelog() {
@@ -10737,6 +10737,7 @@ function _insInner() {
     + `<ul>${fetching}${li}</ul>` + _insAlerts();
 }
 // v3.96.6 owner 2026-10-12: the 5 stable research pairs as a nightly 賣壓 / 買進 alert (encrypted part only)
+// v3.96.7 owner 2026-10-13: + the 12 insider pairs found in both years (tier 兩年都找到, with the matched person)
 function _insAlerts() {
   const al = (INSIDER_PRIV || {}).alerts;
   if (!Array.isArray(al) || !al.length) return '';
@@ -10751,11 +10752,12 @@ function _insAlerts() {
     const last = la ? `最近一次${buy ? '買' : '賣'}：${ym(la[0])}（${Math.abs(la[1]).toLocaleString('en-US')} 張）` : '';
     const cur = on ? `${ym(lm)} ${buy ? '淨買' : '淨賣'} ${Math.abs(x.last_net).toLocaleString('en-US')} 張` : `${ym(lm)} 沒進前 15 名`;
     return `<li class="ins-al"><span class="ins-al-k ${buy ? 'b' : 's'}">${buy ? '買進' : '賣壓'}</span>
-      <span class="ins-al-n"><b>${nm} ${escHtml(x.code)}</b><small>${escHtml(x.branch)}</small></span>
+      <span class="ins-al-n"><b>${nm} ${escHtml(x.code)}</b><small>${escHtml(x.branch)}${x.tier === '兩年都找到' ? ' · 兩年都找到' : ''}</small>${x.person ? `<small>${escHtml(x.person)}</small>` : ''}</span>
       <span class="ins-al-m">${on ? cur : (last || cur)}<small>${on ? '' : cur + '；'}今天：${now}</small></span>
       <span class="ins-al-r">回測 20 日 比平常 ${pct(x.gap20)}<small>${Number(x.n) || 0} 件 · 前半 ${pct(x.half1)}／後半 ${pct(x.half2)}</small></span></li>`;
   }).join('');
-  return `<div class="ek-ins-h">分點警示（研究名單 ${al.length} 組：前後半都穩定；月資料回測，件數少，只當盯盤用）</div><ul class="ins-al-ul">${rows}</ul>`;
+  const n2 = al.filter(x => x.tier === '兩年都找到').length, n1 = al.length - n2;
+  return `<div class="ek-ins-h">分點警示（${n2 ? `兩年都找到 ${n2} 組：內部人分點，標出對到的人；` : ''}研究名單 ${n1} 組：前後半都穩定；月資料回測，件數少，只當盯盤用）</div><ul class="ins-al-ul">${rows}</ul>`;
 }
 function _insRender() { const box = document.getElementById('ekIns'); if (box) box.innerHTML = _insInner(); }
 function _insSetH(v) { _INS_H = _INS_HS.includes(+v) ? +v : 20; _insRender(); }

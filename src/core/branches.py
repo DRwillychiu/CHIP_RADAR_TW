@@ -425,6 +425,33 @@ WATCHED_BRANCHES = [
      "tags_personal": ["內部人研究 2026-10-12", "2474 可成 本土主力買"], "tags_market": [],
      "enabled": True, "region": "area_hotspot"},
 
+    # ─── v3.96.7 兩年都找到的內部人分點 (owner 2026-10-13: 「要，同時記錄到網頁正式版中」): crawled nightly for the S08
+    #     alerts. Which stock / person each one belongs to is a research result from branch data and stays out of this
+    #     public repo (data/research/alert_pairs.json, encrypted on the page). Checked with one date-pinned page each
+    #     before the release; 台新-營業部 has no Fubon branch page and is not crawled. Head offices (第一金, 玉山證券,
+    #     元大證券) = possible transfers / hidden accounts (owner rule 2026-10-12). ───
+    {"code": "5380", "name": "第一金", "master": "兩年確認分點(第一金)",
+     "tags_personal": ["兩年都找到 2026-10-13"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9813", "name": "元大-中崙", "master": "兩年確認分點(元大-中崙)",
+     "tags_personal": ["兩年都找到 2026-10-13"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "8840", "name": "玉山證券", "master": "兩年確認分點(玉山證券)",
+     "tags_personal": ["兩年都找到 2026-10-13"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "989m", "name": "元大-信義", "master": "兩年確認分點(元大-信義)",
+     "tags_personal": ["兩年都找到 2026-10-13"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "918P", "name": "群益金鼎-天母", "master": "兩年確認分點(群益金鼎-天母)",
+     "tags_personal": ["兩年都找到 2026-10-13"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9800", "name": "元大證券", "master": "兩年確認分點(元大證券)",
+     "tags_personal": ["兩年都找到 2026-10-13"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9229", "name": "凱基-中山", "master": "兩年確認分點(凱基-中山)",
+     "tags_personal": ["兩年都找到 2026-10-13"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+
     # ═════════════════════════════════════════════════════════
     # 🌏 外資分點（v3.8 新增，來源：富邦 zco 頁面）
     # ═════════════════════════════════════════════════════════
