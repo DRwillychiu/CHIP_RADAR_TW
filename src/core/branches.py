@@ -452,6 +452,49 @@ WATCHED_BRANCHES = [
      "tags_personal": ["兩年都找到 2026-10-13"], "tags_market": [],
      "enabled": True, "region": "area_hotspot"},
 
+    # ─── v3.96.9 A級內部人分點 (owner 2026-10-14: 「記得完整更新我們的資料庫以及網頁」): the market-cap >= 100 億 watch
+    #     list's branches not crawled yet, for the S08 alerts. Which stock / person each belongs to stays out of this public
+    #     repo (data/research/alert_pairs.json, encrypted on the page). Each checked 2026-10-14 with one date-pinned page
+    #     (2026-10-13, HTTP 200, the echoed id = the hex-encoded id sent, rows present); names = the TWSE register
+    #     (OpenData_BRK02) except 8710 陽信 (a broker head office, not in the branch register). Case twins already in this
+    #     list: 700S 兆豐-大同 (this is 700s 兆豐-岡山), and 918c 群益金鼎-鳳山 is not tracked (this is 918C). ───
+    {"code": "700s", "name": "兆豐-岡山", "master": "A級內部人分點(兆豐-岡山)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "8710", "name": "陽信", "master": "A級內部人分點(陽信)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "884E", "name": "玉山-城中", "master": "A級內部人分點(玉山-城中)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "918C", "name": "群益金鼎-古亭", "master": "A級內部人分點(群益金鼎-古亭)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9223", "name": "凱基-豐中", "master": "A級內部人分點(凱基-豐中)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9254", "name": "凱基-科園", "master": "A級內部人分點(凱基-科園)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "961H", "name": "富邦-新板", "master": "A級內部人分點(富邦-新板)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9663", "name": "富邦-敦南", "master": "A級內部人分點(富邦-敦南)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "981p", "name": "元大-松山", "master": "A級內部人分點(元大-松山)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "983V", "name": "元大-竹南", "master": "A級內部人分點(元大-竹南)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9A89", "name": "永豐金-敦北", "master": "A級內部人分點(永豐金-敦北)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "9B2P", "name": "台新-同大", "master": "A級內部人分點(台新-同大)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+
     # ═════════════════════════════════════════════════════════
     # 🌏 外資分點（v3.8 新增，來源：富邦 zco 頁面）
     # ═════════════════════════════════════════════════════════

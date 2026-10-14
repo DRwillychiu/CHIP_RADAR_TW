@@ -4154,7 +4154,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.96.7 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.96.9 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -9605,6 +9605,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.96.9', date: '10/14', title: 'A級內部人分點＋今日一檔', desc: '分點警示新增「A級」：市值 100 億以上、申報逐月對上而且次佳分點差一倍以上的內部人分點（17 組，9 月樣本外：本人有交易的 27 組中 16 組吻合；照它進出的第三年期末考沒通過，只當資訊）；新增「今日一檔」：一家公司所有董事與內部人的分點、9 月申報驗證與工商登記關係（解鎖後才看得到）；每晚追蹤新增 A級的分點' },
   { v: 'v3.96.7', date: '10/13', title: '兩年都找到的內部人分點', desc: '分點警示新增 12 組「兩年都找到」：第一年與第二年各自獨立用同一套方法比對內部人申報，都找到同一個分點，並標出對到的人（解鎖後才看得到）；每晚追蹤新增 7 個分點（台新-營業部沒有分點頁，只用月資料）' },
   { v: 'v3.96.6', date: '10/12', title: '分點警示＋長抱選單', desc: '大股東動向下方新增分點警示 5 組（研究名單，前後半都穩定，解鎖後才看得到）；持有天數選單加入 120／250 日；每晚追蹤新增 8 個研究分點（內部人／地緣／本土主力）' },
   { v: 'v3.96.5', date: '10/12', title: '大股東動向（近一年完整）', desc: '近一年逐人申報全部抓完並驗證：持股等式 78,463 列全對、全部頁面與獨立程式 0 差異；修正同一筆持股列在多種身分時重複計算；抽屜分列顯示本人與他人名義；勝率門檻依負責人改為 51%；第二年資料抓取中' },
@@ -9614,7 +9615,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v3.92.0', date: '10/10', title: '配色 C 終端', desc: '純黑底、2px 路線色細線、實心編號鍵、琥珀色是唯一品牌色' },
   { v: 'v3.89–3.91', date: '10/10', title: '駅風格＋20 日走勢＋右側抽屜', desc: '粗黑體大數字、S01 / P02 站名編號、共買榜看板' },
   { v: 'v3.86.x', date: '10/09', title: '今日總整理成為登入第一頁', desc: '一分鐘讀完；登入從約 57 秒縮短到 0.4 秒' },
-  { v: 'v3.85.x', date: '10/09', title: '富邦抓取修正', desc: '所有路徑請求間隔至少 1.6 秒；頁面以 cp950 解碼，立碁等罕用字股名不再亂碼' },
 ];
 
 function toggleChangelog() {
@@ -10740,7 +10740,7 @@ function _insInner() {
 // v3.96.7 owner 2026-10-13: + the 12 insider pairs found in both years (tier 兩年都找到, with the matched person)
 function _insAlerts() {
   const al = (INSIDER_PRIV || {}).alerts;
-  if (!Array.isArray(al) || !al.length) return '';
+  if (!Array.isArray(al) || !al.length) return _insDossier();
   const pct = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(1);
   const rows = al.map(x => {
     const nm = escHtml(x.name || ''), buy = x.side === '買';
@@ -10752,12 +10752,27 @@ function _insAlerts() {
     const last = la ? `最近一次${buy ? '買' : '賣'}：${ym(la[0])}（${Math.abs(la[1]).toLocaleString('en-US')} 張）` : '';
     const cur = on ? `${ym(lm)} ${buy ? '淨買' : '淨賣'} ${Math.abs(x.last_net).toLocaleString('en-US')} 張` : `${ym(lm)} 沒進前 15 名`;
     return `<li class="ins-al"><span class="ins-al-k ${buy ? 'b' : 's'}">${buy ? '買進' : '賣壓'}</span>
-      <span class="ins-al-n"><b>${nm} ${escHtml(x.code)}</b><small>${escHtml(x.branch)}${x.tier === '兩年都找到' ? ' · 兩年都找到' : ''}</small>${x.person ? `<small>${escHtml(x.person)}</small>` : ''}</span>
+      <span class="ins-al-n"><b>${nm} ${escHtml(x.code)}</b><small>${escHtml(x.branch)}${x.tier && x.tier !== '研究' ? ' · ' + escHtml(x.tier) : ''}</small>${x.person ? `<small>${escHtml(x.person)}</small>` : ''}</span>
       <span class="ins-al-m">${on ? cur : (last || cur)}<small>${on ? '' : cur + '；'}今天：${now}</small></span>
       <span class="ins-al-r">回測 20 日 比平常 ${pct(x.gap20)}<small>${Number(x.n) || 0} 件 · 前半 ${pct(x.half1)}／後半 ${pct(x.half2)}</small></span></li>`;
   }).join('');
-  const n2 = al.filter(x => x.tier === '兩年都找到').length, n1 = al.length - n2;
-  return `<div class="ek-ins-h">分點警示（${n2 ? `兩年都找到 ${n2} 組：內部人分點，標出對到的人；` : ''}研究名單 ${n1} 組：前後半都穩定；月資料回測，件數少，只當盯盤用）</div><ul class="ins-al-ul">${rows}</ul>`;
+  const nA = al.filter(x => x.tier === 'A級').length, n2 = al.filter(x => x.tier === '兩年都找到').length, n1 = al.length - nA - n2;
+  return `<div class="ek-ins-h">分點警示（${nA ? `A級 ${nA} 組：市值 100 億以上、申報逐月對上的內部人分點；` : ''}${n2 ? `兩年都找到 ${n2} 組：內部人分點，標出對到的人；` : ''}${n1 ? `研究名單 ${n1} 組：前後半都穩定；` : ''}月資料回測，件數少，只當盯盤用；<b>資訊，不是買賣訊號</b>：照這些分點進出的第三年期末考沒通過）</div><ul class="ins-al-ul">${rows}</ul>` + _insDossier();
+}
+// v3.96.9 owner 2026-10-14: 「每天的目標就是絕對要給我一檔股票的公司之董事以及內部人，他們的分點」 - the stock of the day
+// (scripts/insider_dossier.py, encrypted part only): every insider with a found branch, September check, relations
+function _insDossier() {
+  const d = (INSIDER_PRIV || {}).dossier;
+  if (!d || !Array.isArray(d.people)) return '';
+  const rows = d.people.map(x => `<li class="ins-al"><span class="ins-al-k b">分點</span>
+      <span class="ins-al-n"><b>${escHtml(x.who || '')}</b><small>${escHtml(x.role || '')} · ${Number(x.lots || 0).toLocaleString('en-US')} 張</small></span>
+      <span class="ins-al-m">${escHtml(x.branch || '')}<small>${escHtml(x.tier || '未複核')} · ${escHtml(x.hits || '')} 個月吻合</small></span>
+      <span class="ins-al-r">9/1 起 ${escHtml(x.since || '')}<small>9 月申報：${escHtml(x.sep || '—')}</small></span></li>`).join('');
+  const rel = (d.relations || []).map(r => `<li>${escHtml(r)}</li>`).join('');
+  const cnt = Object.entries(d.counts || {}).filter(([, v]) => v).map(([k, v]) => `${escHtml(k)} ${Number(v)} 位`).join('、');
+  return `<div class="ek-ins-h">今日一檔：${escHtml(d.name || '')} ${escHtml(d.code || '')}（市值第 ${Number(d.rank) || '—'} 名・董事長 ${escHtml(d.chairman || '—')}；${escHtml(String(d.built || '').slice(0, 10))}）</div>`
+    + `<ul class="ins-al-ul">${rows}</ul>` + (rel ? `<div class="ek-ins-h">關係（工商登記・共用分點）</div><ul>${rel}</ul>` : '')
+    + `<div class="ek-ins-h">${cnt ? `其他內部人：${cnt}；` : ''}統計吻合，不是開戶資料；<b>資訊，不是買賣訊號</b></div>`;
 }
 function _insRender() { const box = document.getElementById('ekIns'); if (box) box.innerHTML = _insInner(); }
 function _insSetH(v) { _INS_H = _INS_HS.includes(+v) ? +v : 20; _insRender(); }

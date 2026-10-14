@@ -122,6 +122,11 @@ check("7769 2026-08: 格子多一個備註數字也認得是同一筆 → 113,00
 pg = "<table>" + sp("董事本人之配偶及未成年子女", 0, 0, 0) + sp("董事之法人代表人之配偶及未成年子女", 4000, 0, 4000) + "</table>"
 rs = IM.parse_query6_1(pg, "1466", "202607")
 check("1466 2026-07: 不同家庭的沒有姓名列不能當成同一人 → 4,000 要算", sum(r["market_buy"] for r in rs) == 4000, [(r["role"], r["name"], r["market_buy"]) for r in rs])
+pg = "<table>" + nm("董事之法人代表人", "王小明", 0, 0, 100000) + sp("董事之法人代表人之配偶及未成年子女", 0, 5000000, 40150000) + "</table>"
+rs = IM.parse_query6_1(pg, "1303", "202606")
+sr = [r for r in rs if r["market_sell"] == 5000000]
+check("1303 2026-06: 緊接在法人代表人後面的配偶列 → 算那位代表人的配偶 (2026-10-13 修)",
+      len(sr) == 1 and sr[0]["name"] == "王小明" and sr[0]["kind"] == "本人之配偶及未成年子女", [(r["role"], r["name"], r["kind"]) for r in rs])
 
 print("\n[H] 抓取時遇到的正常答案 (16:08 4130、16:15 2884 踩到的坑)")
 from scripts import fetch_insider_people as FP

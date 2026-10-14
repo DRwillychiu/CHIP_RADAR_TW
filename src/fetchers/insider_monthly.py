@@ -105,6 +105,7 @@ def parse_query6_1(t: str, code: str, ym: str):
     # a spouse who is an insider too appears twice: as "…本人" and as the other one's "…之配偶" row
     own = {(tuple(_nums(c[4])), tuple(_nums(c[5])), tuple(_nums(c[6])[:1])) for c in cells if c[0].endswith("本人")}
     out, seen, principal, fam, named = [], set(), {}, set(), set()
+    last_rep = None                 # (role prefix, name) of the row just before, if it was a "…之法人代表人" row
     # 2024 2025-10 / 6965 2026-01 (independent check 2026-10-12): one holding is listed again as an unnamed
     # spouse row of another role (董事長之法人代表人之配偶, 大股東本人之配偶, 其他之配偶 ...), all numbers equal.
     # An unnamed spouse row equal to a named row, or to an earlier unnamed one, is the same holding: count once.
@@ -124,6 +125,13 @@ def parse_query6_1(t: str, code: str, ym: str):
             unnamed_full.add(full(c))
         m = re.match(r"^(.*?)(本人之配偶及未成年子女|利用他人名義持有者|本人|之法人代表人)$", role_full)
         role, kind = (m.group(1), m.group(2)) if m else (role_full, "本人")
+        # 2026-10-13 21:4x (1303): "董事之法人代表人之配偶及未成年子女" matched nothing and became an unnamed 本人 row.
+        # When the row just before is that role's 法人代表人, it is the representative's spouse row.
+        rm = re.match(r"^(.*?)之法人代表人之配偶及未成年子女$", role_full)
+        rep_of = last_rep[1] if rm and not name.strip() and last_rep and last_rep[0] == rm.group(1) else None
+        if rep_of:
+            role, kind = rm.group(1), "本人之配偶及未成年子女"
+        last_rep = (role, name) if kind == "之法人代表人" and name.strip() else None
         if kind == "本人":
             principal[role] = name
         # the same holding listed under another role (2540 2024-10: 仰山林廣告 as 董事本人 and again as
@@ -139,7 +147,7 @@ def parse_query6_1(t: str, code: str, ym: str):
             key = name
         else:
             # 董事長法人代表人利用他人名義持有者 belongs to the 董事長 row's holder (2646 2024-10)
-            key = principal.get(role) or principal.get(role.replace("法人代表人", "")) or role
+            key = rep_of or principal.get(role) or principal.get(role.replace("法人代表人", "")) or role
             if kind == "本人之配偶及未成年子女":
                 sig = (tuple(inc), tuple(dec), tuple(end[:1]))
                 if (key, sig) in fam or sig in own:

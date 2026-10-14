@@ -81,11 +81,13 @@ _PAIRS_FILE = ROOT / "data" / "research" / "alert_pairs.json"
 _PAIRS = json.loads(_PAIRS_FILE.read_text(encoding="utf-8")) if _PAIRS_FILE.exists() else {}
 ALERT_PAIRS = tuple(tuple(p) for p in _PAIRS.get("research", []))
 TWO_YEAR_PAIRS = tuple(tuple(p) for p in _PAIRS.get("two_year", []))
+A_LEVEL_PAIRS = tuple(tuple(p) for p in _PAIRS.get("a_level", []))   # v3.96.9: the market-cap >= 100 億 A-level watch list
 
 
 def branch_alerts(password, days):
     """-> [{code, branch, side, tier, person, last_month, last_net, today, n, gap20, half1, half2}] or [] when the raw pages
-    are absent. tier 兩年都找到 (TWO_YEAR_PAIRS, with the person) first, then 研究 (ALERT_PAIRS)."""
+    are absent. tier A級 (A_LEVEL_PAIRS, v3.96.9) first, then 兩年都找到 (TWO_YEAR_PAIRS, with the person), then 研究
+    (ALERT_PAIRS); a stock x branch appears once."""
     from scripts import research_branches as RB
     from src.exports.transfer_watch import read_day
     from src.fetchers import stock_branch_ranking as S
@@ -102,7 +104,14 @@ def branch_alerts(password, days):
                 for x in b.get(side) or []:
                     if isinstance(x, dict):
                         nightly[(b.get("code"), x.get("code"), day)] = int(x.get("net_lot") or 0)
-    pairs = [(c, b, n, s, "兩年都找到", who) for c, b, n, s, who in TWO_YEAR_PAIRS] + [(c, b, n, s, "研究", "") for c, b, n, s in ALERT_PAIRS]
+    pairs = [(c, b, n, s, "A級", who) for c, b, n, s, who in A_LEVEL_PAIRS]
+    pairs += [(c, b, n, s, "兩年都找到", who) for c, b, n, s, who in TWO_YEAR_PAIRS] + [(c, b, n, s, "研究", "") for c, b, n, s in ALERT_PAIRS]
+    seen, uniq = set(), []                       # v3.96.9: a stock x branch once, the strongest tier first
+    for x in pairs:
+        if (x[0], x[1].upper()) not in seen:
+            seen.add((x[0], x[1].upper()))
+            uniq.append(x)
+    pairs = uniq
     for code, bno, name, side, tier, who in pairs:
         ser = {}
         for f in sorted(raw.glob(f"{code}_*.html")):
@@ -456,6 +465,10 @@ def main():
                         "stocks": {c: {m: round(v / 1e5, 3) for m, v in sorted(ms.items())} for c, ms in bm.items()}}
     if pw:
         priv["alerts"] = branch_alerts(pw, bdays or [])
+        # v3.96.9 owner 2026-10-14: the stock of the day (scripts/insider_dossier.py), newest file; private like the pairs
+        dz = sorted((ROOT / "data" / "research" / "dossier").glob("*_2*.json"), key=lambda f: f.stem.split("_")[1])
+        if dz:
+            priv["dossier"] = json.loads(dz[-1].read_text(encoding="utf-8"))
     priv_path = Path(a.out).with_name(PRIVATE_NAME)
     if pw:
         pub["private"] = PRIVATE_NAME       # the page fetches the encrypted part only when it exists
