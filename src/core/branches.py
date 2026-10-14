@@ -495,6 +495,16 @@ WATCHED_BRANCHES = [
      "tags_personal": ["A級 2026-10-14"], "tags_market": [],
      "enabled": True, "region": "area_hotspot"},
 
+    # ─── v3.96.10 two more A級 branches (2026-10-14 11:1x): a principal together with its 利用他人名義 holdings, and an
+    #     owner-given pair. Checked with one date-pinned page each (2026-10-13: HTTP 200, echoed id = sent id, rows);
+    #     names = the TWSE register. Case twins NOT tracked: 700p 兆豐-復興, 700w 兆豐-新莊. ───
+    {"code": "700P", "name": "兆豐-南京", "master": "A級內部人分點(兆豐-南京)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+    {"code": "700W", "name": "兆豐-城中", "master": "A級內部人分點(兆豐-城中)",
+     "tags_personal": ["A級 2026-10-14"], "tags_market": [],
+     "enabled": True, "region": "area_hotspot"},
+
     # ═════════════════════════════════════════════════════════
     # 🌏 外資分點（v3.8 新增，來源：富邦 zco 頁面）
     # ═════════════════════════════════════════════════════════
