@@ -112,6 +112,14 @@ def branch_alerts(password, days):
             seen.add((x[0], x[1].upper()))
             uniq.append(x)
     pairs = uniq
+    # v3.96.13 owner 2026-10-14 「這區塊是可不可以點入查看」: each alert carries the branch's own record in the stock
+    # (scripts/branch_pnl.py) and the one-day-late fair copy result (scripts/copy_trade.py, next open, recent year)
+    from scripts import branch_pnl as BP
+    rp = ROOT / "data" / "research"
+    pnl_rec = {(q["code"], q["branch"]): q for q in (json.loads((rp / "branch_pnl.json").read_text(encoding="utf-8"))
+                                                     if (rp / "branch_pnl.json").exists() else [])}
+    ctj = json.loads((rp / "copy_trade_open.json").read_text(encoding="utf-8")) if (rp / "copy_trade_open.json").exists() else {}
+    fair_rec = {(r["code"], r["branch"]): r for g_ in ("chosen", "not_chosen") for r in ((ctj.get("A") or {}).get(g_) or {}).get("per_pair", [])}
     for code, bno, name, side, tier, who in pairs:
         ser = {}
         for f in sorted(raw.glob(f"{code}_*.html")):
@@ -125,10 +133,18 @@ def branch_alerts(password, days):
         base = RB.rets(code, months, 20, closes, index)
         g = lambda yms: round((statistics.mean(RB.rets(code, yms, 20, closes, index)) - statistics.mean(base)) * side, 1)             if base and RB.rets(code, yms, 20, closes, index) else None
         today = [{"day": d, "net": nightly[(bno, code, d)]} for d in recent if (bno, code, d) in nightly]
+        if not today:                            # v3.96.13 the nightly watch rows (zco0) - the page said 「等每晚資料」 for most
+            z = BP.rows_all(code, bno)
+            cut = sorted(index)[-7] if len(index) >= 7 else ""
+            today = [{"day": d, "net": z[d]} for d in sorted(z) if d >= cut and z[d]][-3:]
+        rec = (pnl_rec.get((code, name)) or {}).get("all") or {}
+        fm = (fair_rec.get((code, name)) or {}).get("matched") or {}
         out.append({"code": code, "name": names.get(code, ""), "branch": name, "side": "買" if side > 0 else "賣", "tier": tier,
                     "person": who, "last_month": months[-1],
                     "last_net": ser[months[-1]], "last_act": [act[-1], ser[act[-1]]] if act else None, "today": today, "n": len(RB.rets(code, act, 20, closes, index)),
-                    "gap20": g(act), "half1": g(act[:half]), "half2": g(act[half:])})
+                    "gap20": g(act), "half1": g(act[:half]), "half2": g(act[half:]),
+                    "rec": [rec.get("n"), rec.get("win"), rec.get("ev")] if rec else None,
+                    "fair": [fm.get("n"), fm.get("mean"), fm.get("beat")] if fm else None})
     return out
 
 
