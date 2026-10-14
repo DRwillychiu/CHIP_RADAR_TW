@@ -533,6 +533,19 @@ def main():
                              "signals": [[s["code"], s["who"], s["branch"], s["lots"], s["amt"]] for s in fw["signals"][:10]]}
         if cp:
             priv["copy"] = cp
+        # v3.96.15 owner 2026-10-14 「個股的權證大買截圖，還是這些在網站都看的到?」: the day's warrant big-buyer ranking
+        # (scripts/warrant_rank.py, head offices and market makers out) with each stock's insider branches of the last 3 days
+        rz = sorted((ROOT / "data" / "research" / "warrant_screen").glob("rank_2*.json"))
+        if rz:
+            rkd = json.loads(rz[-1].read_text(encoding="utf-8"))
+            top = sorted((x for x in (rkd.get("stocks") or {}).values() if x.get("top_x")), key=lambda x: -x["sum_x"])[:10]
+            from scripts.daily_digest import insider_links
+            links = insider_links([x["code"] for x in top], rkd["day"]) if top else {}
+            _nm = {c: (v or {}).get("name", "") for c, v in load_json(ROOT / "data" / "stock_history.json")["stocks"].items()}
+            priv["warrant"] = {"day": rkd["day"], "rows": [
+                {"code": x["code"], "name": _nm.get(x["code"]) or x.get("name", ""), "sum": x["sum_x"], "cov": x.get("coverage"),
+                 "top": [[t[0], t[1], t[2], t[3], (t[4] or {}).get("name"), (t[4] or {}).get("pct")] for t in x["top_x"][:2]],
+                 "ins": [[r["role"], r["who"], r["branch"], r["recent"]] for r in links.get(x["code"], [])]} for x in top]}
     priv_path = Path(a.out).with_name(PRIVATE_NAME)
     if pw:
         pub["private"] = PRIVATE_NAME       # the page fetches the encrypted part only when it exists

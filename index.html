@@ -4162,7 +4162,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.96.14 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.96.15 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -9613,6 +9613,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.96.15', date: '10/14', title: '權證大戶排行上網站', desc: '大股東動向的分點警示下方新增「權證大戶排行」：當天每檔權證前 2 大分點合計（不含總公司與造市型）、主力權證與吃下比例，並列出這檔的內部人分點近 3 日進出，內部人也買的標 ◆（解鎖後才看得到）；資料庫更新到 10/14；資訊，不是買賣訊號' },
   { v: 'v3.96.14', date: '10/14', title: '分點警示可點開', desc: '大股東動向的分點警示每一列都能點開：近幾天的分點進出（改用每晚抓的分點資料，不再顯示「等每晚資料」）、這個分點在這檔的歷史紀錄、晚一天跟的公平對照結果、個股全景圖與「人 → 分點」近 12 個月（解鎖後才看得到）；觀測站的造字（例如罕見字）顯示為〇；資訊，不是買賣訊號' },
   { v: 'v3.96.13', date: '10/14', title: '跟單模擬（可選進場時點）', desc: '大股東動向的分點警示下方新增「跟單模擬」：照內部人分點的買進隔天跟、賣出隔天跟著賣，用下拉選單切換隔天開盤、盤中（當天均價）、收盤前三種進場價；列出兩段回測（近一年、第三年，和同一檔抱一樣天數的每天進場比）與 10/14 起的紙上跟單紀錄（解鎖後才看得到）；資訊，不是買賣訊號' },
   { v: 'v3.96.11', date: '10/14', title: '人對應分點＋董監持股比＋質押比', desc: '大股東動向每一列與個股頁直接列出本站比對到的「內部人 → 分點」，附近幾個月的申報張數與分點張數（解鎖後才看得到）；個股全景圖下方新增兩張 36 個月小圖：董監持股比（董監持股 ÷ 已發行股數，觀測站董監持股彙總）與質押比（董監本人質押股數 ÷ 董監持股，只算有逐人申報頁的月份），各自縮放看得出小幅變化' },
@@ -9621,7 +9622,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v3.96.7', date: '10/13', title: '兩年都找到的內部人分點', desc: '分點警示新增 12 組「兩年都找到」：第一年與第二年各自獨立用同一套方法比對內部人申報，都找到同一個分點，並標出對到的人（解鎖後才看得到）；每晚追蹤新增 7 個分點（台新-營業部沒有分點頁，只用月資料）' },
   { v: 'v3.96.6', date: '10/12', title: '分點警示＋長抱選單', desc: '大股東動向下方新增分點警示 5 組（研究名單，前後半都穩定，解鎖後才看得到）；持有天數選單加入 120／250 日；每晚追蹤新增 8 個研究分點（內部人／地緣／本土主力）' },
   { v: 'v3.96.5', date: '10/12', title: '大股東動向（近一年完整）', desc: '近一年逐人申報全部抓完並驗證：持股等式 78,463 列全對、全部頁面與獨立程式 0 差異；修正同一筆持股列在多種身分時重複計算；抽屜分列顯示本人與他人名義；勝率門檻依負責人改為 51%；第二年資料抓取中' },
-  { v: 'v3.96.0', date: '10/11', title: '大股東動向（第一版）', desc: '今日總整理新增 S08 大股東動向：內部人逐人申報（近一年，賣方仍在補抓）、職位＋買／賣標籤、跟單結果扣成本與勝率、同身分回測、年份選單、個股全景圖、檢查更新按鈕；資料經持股等式、獨立程式與人工抽查驗證' },
   { v: 'V1.0', date: '10/10', title: '正式版 V1.0（build v3.95.0）', desc: '新介面全站上線＋富邦抓取間隔 1.6 秒與 8111 等亂碼股名修正併入正式版＋外資規則統一（只算美/歐/亞）＋9/17 期貨資料補齊' },
 ];
 
@@ -10768,7 +10768,7 @@ function _insAlOpen(i) {
 // v3.96.7 owner 2026-10-13: + the 12 insider pairs found in both years (tier 兩年都找到, with the matched person)
 function _insAlerts() {
   const al = (INSIDER_PRIV || {}).alerts;
-  if (!Array.isArray(al) || !al.length) return _insDossier() + _insCopy();
+  if (!Array.isArray(al) || !al.length) return _insWarrant() + _insDossier() + _insCopy();
   const pct = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(1);
   _INS_AL = al;
   const rows = al.map((x, i) => {
@@ -10786,7 +10786,7 @@ function _insAlerts() {
       <span class="ins-al-r">回測 20 日 比平常 ${pct(x.gap20)}<small>${Number(x.n) || 0} 件 · 前半 ${pct(x.half1)}／後半 ${pct(x.half2)}</small></span></li>`;
   }).join('');
   const nA = al.filter(x => x.tier === 'A級').length, n2 = al.filter(x => x.tier === '兩年都找到').length, n1 = al.length - nA - n2;
-  return `<div class="ek-ins-h">分點警示（${nA ? `A級 ${nA} 組：市值 100 億以上、申報逐月對上的內部人分點；` : ''}${n2 ? `兩年都找到 ${n2} 組：內部人分點，標出對到的人；` : ''}${n1 ? `研究名單 ${n1} 組：前後半都穩定；` : ''}月資料回測，件數少，只當盯盤用；<b>資訊，不是買賣訊號</b>：照這些分點進出的第三年期末考沒通過）</div><ul class="ins-al-ul">${rows}</ul>` + _insDossier() + _insCopy();
+  return `<div class="ek-ins-h">分點警示（${nA ? `A級 ${nA} 組：市值 100 億以上、申報逐月對上的內部人分點；` : ''}${n2 ? `兩年都找到 ${n2} 組：內部人分點，標出對到的人；` : ''}${n1 ? `研究名單 ${n1} 組：前後半都穩定；` : ''}月資料回測，件數少，只當盯盤用；<b>資訊，不是買賣訊號</b>：照這些分點進出的第三年期末考沒通過）</div><ul class="ins-al-ul">${rows}</ul>` + _insWarrant() + _insDossier() + _insCopy();
 }
 // v3.96.9 owner 2026-10-14: 「每天的目標就是絕對要給我一檔股票的公司之董事以及內部人，他們的分點」 - the stock of the day
 // (scripts/insider_dossier.py, encrypted part only): every insider with a found branch, September check, relations
@@ -10802,6 +10802,28 @@ function _insDossier() {
   return `<div class="ek-ins-h">今日一檔：${escHtml(d.name || '')} ${escHtml(d.code || '')}（市值第 ${Number(d.rank) || '—'} 名・董事長 ${escHtml(d.chairman || '—')}；${escHtml(String(d.built || '').slice(0, 10))}）</div>`
     + `<ul class="ins-al-ul">${rows}</ul>` + (rel ? `<div class="ek-ins-h">關係（工商登記・共用分點）</div><ul>${rel}</ul>` : '')
     + `<div class="ek-ins-h">${cnt ? `其他內部人：${cnt}；` : ''}統計吻合，不是開戶資料；<b>資訊，不是買賣訊號</b></div>`;
+}
+// v3.96.15 owner 2026-10-14 「個股的權證大買截圖，還是這些在網站都看的到?」: the day's warrant big-buyer ranking (top 2
+// branches per stock, head offices and market makers out, scripts/warrant_rank.py) and, per stock, its insider branches
+// of the last 3 trading days - the owner's flow 權證大買 -> 內部人分點有沒有動作 (encrypted part only)
+function _insWarrant() {
+  const wr = (INSIDER_PRIV || {}).warrant;
+  if (!wr || !Array.isArray(wr.rows) || !wr.rows.length) return '';
+  const d = String(wr.day || '');
+  const wan = v => (Number(v) / 1e4).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  const li = wr.rows.map((w, i) => {
+    const t = w.top || [];
+    const ins = w.ins || [];
+    const linked = ins.some(r => (r[3] || []).some(z => Number(z[1]) > 0));
+    const insTxt = ins.map(r => `${escHtml(r[0])} → ${escHtml(r[2])}：` + ((r[3] || []).length
+      ? (r[3] || []).map(z => `${escHtml(String(z[0]).slice(4, 6))}/${escHtml(String(z[0]).slice(6))} ${Number(z[1]) > 0 ? '+' : ''}${Number(z[1]).toLocaleString('en-US')}`).join('、') + ' 張'
+      : '近 3 日沒有進出')).join('；');
+    return `<li class="ins-al"><span class="ins-al-k ${linked ? 'b' : 's'}">${i + 1}</span>
+      <span class="ins-al-n"><b>${escHtml(w.name || '')} ${escHtml(w.code || '')}</b><small>前 2 大分點合計 ${wan(w.sum)} 萬${linked ? '・◆內部人也買' : ''}</small></span>
+      <span class="ins-al-m">${t[0] ? `${escHtml(t[0][0])} ${wan(t[0][1])} 萬` : ''}<small>${t[0] && t[0][4] ? `${escHtml(t[0][4])}（占 ${Number(t[0][5]) || 0}%）` : ''}${t[1] ? `；${escHtml(t[1][0])} ${wan(t[1][1])} 萬` : ''}</small></span>
+      <span class="ins-al-r">${ins.length ? '內部人分點' : '內部人分點：還沒比對到'}<small>${insTxt}</small></span></li>`;
+  }).join('');
+  return `<div class="ek-ins-h">權證大戶排行 ${escHtml(d.slice(4, 6))}/${escHtml(d.slice(6))}（每檔前 2 大分點合計；不含總公司與造市型；◆＝這檔的內部人分點近 3 日也買；<b>資訊，不是買賣訊號</b>）</div><ul class="ins-al-ul">${li}</ul>`;
 }
 // v3.96.13 跟單模擬 (owner 2026-10-14: 「在隔天開盤就買」「可以設計下拉選單就是收盤前買或者盤中1100點買」): the copy test by
 // entry price and the paper record since 10/14, from the encrypted part (scripts/copy_trade.py, scripts/copy_forward.py).
