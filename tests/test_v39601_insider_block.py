@@ -104,7 +104,8 @@ check("沒有訊號: 一行安靜的字, 不是錯誤", "沒有達門檻的大�
 uses = list(re.finditer(r'\b(?:x|pp)\.(?:name|code|role|headline)\b', js))
 raw = [js[max(0, m.start() - 12):m.end() + 4] for m in uses if not re.search(r'escHtml\($', js[max(0, m.start() - 8):m.start()])
        and not js[m.end():m.end() + 4] == ' ===' and not js[max(0, m.start() - 4):m.start()] == '=== '
-       and not js[max(0, m.start() - 13):m.start()] == '_insPanoDraw(']   # comparisons and the chart's lookup key are not HTML
+       and not js[max(0, m.start() - 13):m.start()] == '_insPanoDraw('
+       and not js[max(0, m.start() - 7):m.start()] == '_insWB(']   # comparisons and lookup keys (chart, v3.96.11 人->分點) are not HTML
 check("從資料來的名稱 / 代號 / 身分 / 標題句一律 escape (比較式除外)", len(uses) >= 8 and not raw, raw)
 check("對照組 B 的說明只在 B 的列顯示", "(inB ? (INSIDER_PRIV || {}).notes || [] : [])" in js)
 check("鎖定時清掉解出來的 B", "INSIDER_RADAR = null; INSIDER_PRIV = null; _INS_LOADING = null;" in h)

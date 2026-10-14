@@ -431,6 +431,27 @@ def main():
             h = (t.get("holdings") or {}).get(code)
             if h and h.get("mega1000_pct") is not None:
                 tdcc[code].append([t.get("effective_date") or f.stem, h["mega1000_pct"]])
+    # v3.96.11 owner 2026-10-14 (toalpha 申報資料 page): 36 months of 董監持股比 = IRB110 dir_pct (all directors' and
+    # supervisors' holdings / issued shares) and 質押比 = pledged shares on the directors' own person-page rows /
+    # IRB110 dir_held; a month without a person page of that company = None (not guessed)
+    pano_set = set(pano_codes)
+    pledged = defaultdict(dict)
+    for f in sorted((ROOT / "data" / "insider_people").glob("2*.json")):
+        pdoc = load_json(f)
+        acc = defaultdict(int)
+        for r in pdoc["people"]:
+            if r["code"] in pano_set and r["kind"] == "本人" and ("董事" in r["role"] or "監察" in r["role"]):
+                acc[r["code"]] += r.get("pledge_shares") or 0
+        for c in set(pdoc.get("pages") or {}) & pano_set:
+            pledged[c][pdoc["ym"]] = acc.get(c, 0)
+    dirs = defaultdict(list)
+    for ym in sorted(monthly)[-36:]:
+        comp = monthly[ym].get("companies") or {}
+        for code in pano_codes:
+            x = comp.get(code)
+            if x and x.get("dir_pct") is not None:
+                pl = pledged[code].get(ym)
+                dirs[code].append([ym, x["dir_pct"], round(pl / x["dir_held"] * 100, 1) if pl is not None and x.get("dir_held") else None])
     stocks = {}
     for code in pano_codes:
         mc = {}
@@ -451,7 +472,8 @@ def main():
                        "ppl": [[p["role"], p["name"], p["market_buy"] - p["market_sell"], p["other_buy"] - p["other_sell"]] for p in moved]}
         stocks[code] = {"close": [mc[m][1] if m in mc else None for m in pm], "ins": ins,
                         "cost": pano_cost(ins, pm, max_pub or latest),
-                        "clusters": pano_clusters(ins, [m for m in pm if m <= (max_pub or latest)]), "tdcc": tdcc.get(code, [])}
+                        "clusters": pano_clusters(ins, [m for m in pm if m <= (max_pub or latest)]), "tdcc": tdcc.get(code, []),
+                        "dirs": dirs.get(code, [])}
     pub["pano"] = {"months": pm, "published_until": max_pub, "stocks": stocks}
     pub["data_until"] = max_pub      # v3.96.4 the 「檢查更新」 line: 資料到 YYYY-MM；下一次約 MM/20 公告
     if pw:
@@ -469,6 +491,11 @@ def main():
         dz = sorted((ROOT / "data" / "research" / "dossier").glob("*_2*.json"), key=lambda f: f.stem.split("_")[1])
         if dz:
             priv["dossier"] = json.loads(dz[-1].read_text(encoding="utf-8"))
+        # v3.96.11 owner 2026-10-14: 「人對應分點的重點!要列在哪?」 - every matched insider -> branch with 12 months of
+        # declared vs branch lots (scripts/build_who_branch.py); private like the pairs
+        wb = ROOT / "data" / "research" / "who_branch.json"
+        if wb.exists():
+            priv["who_branch"] = json.loads(wb.read_text(encoding="utf-8")).get("stocks", {})
     priv_path = Path(a.out).with_name(PRIVATE_NAME)
     if pw:
         pub["private"] = PRIVATE_NAME       # the page fetches the encrypted part only when it exists

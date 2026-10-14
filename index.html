@@ -3986,6 +3986,8 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .ins-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--text-2);margin:2px 0 2px}
 .ins-leg i{display:inline-block;vertical-align:middle;margin-right:4px}
 .ins-pfoot{font-size:11.5px;color:var(--text-3);margin-top:2px}
+.ek-ins-br{display:block;font-size:11.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ins-wb{margin:10px 0;padding:8px 10px;border:1px solid var(--gold);border-radius:8px}.ins-wb ul{margin:6px 0 0;padding-left:16px}.ins-wb li{margin:4px 0}.ins-wb-b{color:var(--gold)}.ins-wb-m{display:inline-block;margin:2px 10px 0 0;font-size:11.5px;color:var(--text-2)}
+.ins-minis{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}.ins-mini{flex:1 1 300px;max-width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px}.ins-mini b{font-size:13px}.ins-mini small{color:var(--text-3);margin-left:6px;font-size:11px}.ins-mini-v{font-size:18px;font-weight:600;margin:2px 0}.ins-mini svg{max-width:100%;height:auto;display:block}.ins-mini-x{font-size:10.5px}
 .ins-pop{position:absolute;z-index:3;background:var(--bg-2);border:1.5px solid var(--line-2);padding:9px 11px;min-width:210px;max-width:min(340px,94%);
   max-height:280px;overflow:auto;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 .ins-pop-h{font-weight:900;font-size:14px;margin-bottom:2px}
@@ -4154,7 +4156,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.96.10 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.96.11 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -9605,6 +9607,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.96.11', date: '10/14', title: '人對應分點＋董監持股比＋質押比', desc: '大股東動向每一列與個股頁直接列出本站比對到的「內部人 → 分點」，附近幾個月的申報張數與分點張數（解鎖後才看得到）；個股全景圖下方新增兩張 36 個月小圖：董監持股比（董監持股 ÷ 已發行股數，觀測站董監持股彙總）與質押比（董監本人質押股數 ÷ 董監持股，只算有逐人申報頁的月份），各自縮放看得出小幅變化' },
   { v: 'v3.96.10', date: '10/14', title: '本人＋他人名義合併比對', desc: '內部人分點比對時，董事長本人與「利用他人名義」持有的公司合併成一組（例：台虹董事長元太科技與兩家公司 6 月合計買 6,243 張，對上單一分點 5,829 張）；A級分點 17 → 19 組；每晚追蹤新增 2 個分點（解鎖後才看得到；一樣只當資訊，不是買賣訊號）' },
   { v: 'v3.96.9', date: '10/14', title: 'A級內部人分點＋今日一檔', desc: '分點警示新增「A級」：市值 100 億以上、申報逐月對上而且次佳分點差一倍以上的內部人分點（17 組，9 月樣本外：本人有交易的 27 組中 16 組吻合；照它進出的第三年期末考沒通過，只當資訊）；新增「今日一檔」：一家公司所有董事與內部人的分點、9 月申報驗證與工商登記關係（解鎖後才看得到）；每晚追蹤新增 A級的分點' },
   { v: 'v3.96.7', date: '10/13', title: '兩年都找到的內部人分點', desc: '分點警示新增 12 組「兩年都找到」：第一年與第二年各自獨立用同一套方法比對內部人申報，都找到同一個分點，並標出對到的人（解鎖後才看得到）；每晚追蹤新增 7 個分點（台新-營業部沒有分點頁，只用月資料）' },
@@ -9614,7 +9617,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'V1.0', date: '10/10', title: '正式版 V1.0（build v3.95.0）', desc: '新介面全站上線＋富邦抓取間隔 1.6 秒與 8111 等亂碼股名修正併入正式版＋外資規則統一（只算美/歐/亞）＋9/17 期貨資料補齊' },
   { v: 'v3.94.0', date: '10/10', title: '每頁都是看板、每塊都能點開', desc: '大數字＋前 5 名，其餘只藏不刪，點標題 / 卡片 / 按鈕從右側抽屜看完整內容' },
   { v: 'v3.92.0', date: '10/10', title: '配色 C 終端', desc: '純黑底、2px 路線色細線、實心編號鍵、琥珀色是唯一品牌色' },
-  { v: 'v3.89–3.91', date: '10/10', title: '駅風格＋20 日走勢＋右側抽屜', desc: '粗黑體大數字、S01 / P02 站名編號、共買榜看板' },
 ];
 
 function toggleChangelog() {
@@ -10726,7 +10728,7 @@ function _insInner() {
     const pick = kind => lay ? (lay[kind + H] || {}) : _insBt(key, H, kind);
     const bt = pick('ex'), main = pick(side === 'buy' ? 'n' : 'r');
     return `<li onclick="_insOpen(${i})"><span class="ek-rk">${i + 1}</span>
-      <span class="ek-nm">${escHtml(x.name || '')}<em>${escHtml(x.code)}</em></span>
+      <span class="ek-nm">${escHtml(x.name || '')}<em>${escHtml(x.code)}</em>${_insWB(x.code)}</span>
       <span class="ek-ins-lb ${side}">${_insLabel(x)}</span>
       <span class="ek-ins-amt">${_insAmt(x.net_yi_est)}</span>
       <span class="ek-ins-ret" title="同類訊號（${side === 'buy' ? '大買' : '賣出'}）過去 ${H} 個交易日">${side === 'buy' ? '跟單 ' : '股價 '}${_insRaw(main.mean)}<small>${side === 'buy' && main.hit !== null && main.hit !== undefined ? '勝率 ' + Number(main.hit) + '% · ' : ''}${lay ? escHtml(grp) + ' ' : ''}${Number(main.n || bt.n) || 0} 件</small><small class="dim">${_insPct(bt.mean)}</small></span></li>`;
@@ -10973,8 +10975,35 @@ function _insPanoDraw(code) {
     + `<span><i style="width:10px;height:10px;border-radius:50%;border:2px solid ${TX3}"></i>贈與・信託（不算買賣）</span>`
     + (costTxt ? `<span><i style="width:18px;height:8px;background:${GOLD}40;border-top:1px solid ${GOLD};border-bottom:1px solid ${GOLD}"></i>${escHtml(costTxt.onChart ? '內部人買進成本' : costTxt.legend)}</span>` : '') + '</div>'
     + `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="個股全景圖">${s}</svg>`
-    + `<div class="ins-pfoot">點圓圈、標籤或月柱看當月每個人。只畫有逐人申報的月份；金額＝集中市場淨股數 × 當月均價（推算）。</div>`;
+    + `<div class="ins-pfoot">點圓圈、標籤或月柱看當月每個人。只畫有逐人申報的月份；金額＝集中市場淨股數 × 當月均價（推算）。</div>`
+    + _insDirMini(st0.dirs || []);
   box.dataset.overlaps = bad; box.dataset.labels = boxes.length;
+}
+// v3.96.11 owner 2026-10-14 「要」 (as on toalpha's 申報資料 page): two small 36-month charts under the panorama, each on
+// its own scale so small changes show - 董監持股比 (IRB110) and 質押比 (pledged shares of the directors' own rows on the
+// person pages / directors' holdings; a month without a person page is a gap, not a guess)
+function _insDirMini(rows) {
+  if (!Array.isArray(rows) || rows.length < 2) return '';
+  const cs = getComputedStyle(document.documentElement), cv = (k, d) => (cs.getPropertyValue(k) || '').trim() || d;
+  const LINE = cv('--gold', '#F5A524'), TX3 = cv('--text-3', '#8A8F97');
+  const one = (title, sub, idx, note) => {
+    const pts = rows.map((r, i) => [i, r[idx]]).filter(p => p[1] !== null && p[1] !== undefined);
+    if (pts.length < 2) return `<div class="ins-mini"><b>${title}</b><small>${sub}</small><div class="dr-note">資料不足</div></div>`;
+    const W = 300, H = 64, vs = pts.map(p => p[1]), lo = Math.min(...vs), hi = Math.max(...vs), span = (hi - lo) || 1;
+    const x = i => 4 + i * (W - 8) / (rows.length - 1), y = v => H - 6 - (v - lo) * (H - 14) / span;
+    let d = '', prev = null;
+    for (const [i, v] of pts) { d += `${prev !== null && i === prev + 1 ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)} `; prev = i; }
+    const first = pts[0][1], last = pts[pts.length - 1][1], chg = last - first;
+    const ym = v => `${String(v).slice(0, 4)}/${String(v).slice(4)}`;
+    return `<div class="ins-mini"><b>${title}</b><small>${sub}</small>`
+      + `<div class="ins-mini-v">${last.toFixed(1)}%<small>期間 ${chg >= 0 ? '+' : ''}${chg.toFixed(1)} 個百分點・區間 ${lo.toFixed(1)}% ~ ${hi.toFixed(1)}%</small></div>`
+      + `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${title}"><path d="${d}" fill="none" stroke="${LINE}" stroke-width="1.6"/></svg>`
+      + `<div class="ins-mini-x" style="color:${TX3}">${ym(rows[0][0])}<span style="float:right">${ym(rows[rows.length - 1][0])}</span></div>`
+      + (note ? `<div class="ins-pfoot">${note}</div>` : '') + `</div>`;
+  };
+  return `<div class="ins-minis">` + one('董監持股比', `佔已發行股數・近 ${rows.length} 個月`, 1, '')
+    + one('質押比', '質押股數 ÷ 董監持股', 2, '只算有逐人申報頁的月份；空白＝那個月還沒有逐人頁')
+    + `</div><div class="ins-pfoot">兩張小圖各自縮放，才看得出小幅變化。持股比往下＝董監整體減碼；質押比高＝持股拿去借款，股價大跌時可能被追繳。</div>`;
 }
 function _insPanoClick(ev) {
   const box = document.getElementById('insPano'), pz = _INS_PANO;
@@ -11033,7 +11062,30 @@ function _insCells(x) {
   const ex = pick('ex'), mn = pick(buy ? 'n' : 'r');
   const c5 = cell(`這類訊號過去 ${H} 日`, `${buy ? '跟單 ' : '股價 '}${_insRaw(mn.mean)}`,
     `${buy && mn.hit !== null && mn.hit !== undefined ? `勝率 ${Number(mn.hit)}% · ` : ''}${lay ? escHtml(grp) + ' ' : ''}${Number(mn.n || ex.n) || 0} 件 · <small>${_insPct(ex.mean)}</small>`);
-  return `<div class="ins-cells">${c1}${c2}${c3}${c4}${c5}</div>`;
+  return `<div class="ins-cells">${c1}${c2}${c3}${c4}${c5}</div>` + _insWBBlock(code);
+}
+// v3.96.11 owner 2026-10-14 「就是要做出差異性，我就直接列出比對後的分點名稱。不然人對應分點的重點!要列在哪?」: the insider ->
+// branch pairs we matched (encrypted part only, scripts/build_who_branch.py) on the S08 row and in the drawer
+function _insWB(code) {
+  const w = ((INSIDER_PRIV || {}).who_branch || {})[code];
+  if (!Array.isArray(w) || !w.length) return '';
+  return `<span class="ek-ins-br" title="本站比對：${escHtml(w[0].who)} → ${escHtml(w[0].branch)}">→ ${escHtml(w[0].branch)}${w.length > 1 ? ` 等 ${w.length}` : ''}</span>`;
+}
+function _insWBBlock(code) {
+  const pv = INSIDER_PRIV;
+  if (!pv) return '<div class="ins-wb"><b>內部人分點</b><span class="dim">　需解鎖</span></div>';
+  const w = (pv.who_branch || {})[code];
+  if (!Array.isArray(w) || !w.length) return '<div class="ins-wb"><b>內部人分點</b><span class="dim">　這檔還沒比對出內部人用的分點</span></div>';
+  const lots = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + Number(v).toLocaleString('en-US');
+  const rows = w.map(p => {
+    const act = (p.months || []).filter(m => m[1] || Math.abs(m[2]) >= 100).slice(-6);
+    const mm = act.map(m => `<span class="ins-wb-m">${escHtml(String(m[0]).slice(2, 4))}/${escHtml(String(m[0]).slice(4))} 申報 ${lots(m[1])}／分點 ${lots(m[2])}</span>`).join('');
+    const tier = p.tier === '指定' ? '負責人指定' : `${escHtml(p.tier)} 級`;
+    return `<li><b>${escHtml(p.role)} ${escHtml(p.who)}</b> → <b class="ins-wb-b">${escHtml(p.branch)}</b>`
+      + `<small>　${tier}・${escHtml(p.hits)} 個月吻合</small><div>${mm}</div></li>`;
+  }).join('');
+  return `<div class="ins-wb"><b>內部人分點（本站比對）</b><ul>${rows}</ul>`
+    + `<div class="ins-pfoot">申報＝本人在集中市場的淨買賣（張）；分點＝該分點當月在這檔的淨額（張）；「—」＝那個月還沒有逐人頁。統計吻合，不是開戶資料；資訊，不是買賣訊號</div></div>`;
 }
 function _insOpen(i) {
   const x = _INS_ROWS[i];
