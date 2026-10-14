@@ -496,6 +496,27 @@ def main():
         wb = ROOT / "data" / "research" / "who_branch.json"
         if wb.exists():
             priv["who_branch"] = json.loads(wb.read_text(encoding="utf-8")).get("stocks", {})
+        # v3.96.13 owner 2026-10-14: 「累積的實績就是去複製…從0至1」「在隔天開盤就買」「可以設計下拉選單就是收盤前買或者盤中
+        # 1100點買」 - the copy test by entry price (scripts/copy_trade.py) and the paper record (scripts/copy_forward.py)
+        cp = {}
+        for mode, fn in (("open", "copy_trade_open.json"), ("avg", "copy_trade_avg.json"), ("close", "copy_trade.json")):
+            f = ROOT / "data" / "research" / fn
+            if f.exists():
+                ct = json.loads(f.read_text(encoding="utf-8"))
+                cp[mode] = {t: {"pass": ct[t]["pass"],
+                                **{g: {"pairs": ct[t][g]["pairs"], "m": ct[t][g].get("matched"), "fx": ct[t][g].get("matched_fixed"),
+                                       "top": [[r["code"], r["who"], r["branch"], (r["matched"] or {}).get("n"), (r["matched"] or {}).get("beat"),
+                                                (r["matched"] or {}).get("mean")] for r in ct[t][g]["per_pair"]
+                                               if (r.get("matched") or {}).get("n", 0) >= 5][:5] if g == "chosen" else []}
+                                   for g in ("chosen", "not_chosen")}} for t in ("A", "B")}
+        fz = sorted((ROOT / "data" / "research" / "copy_forward").glob("2*.json"))
+        if fz:
+            fw = json.loads(fz[-1].read_text(encoding="utf-8"))
+            cp["forward"] = {"day": fw["day"], "start": fw["start"], "pairs": fw["chosen_pairs"], "record": fw["record"],
+                             "verdict": fw["verdict"],
+                             "signals": [[s["code"], s["who"], s["branch"], s["lots"], s["amt"]] for s in fw["signals"][:10]]}
+        if cp:
+            priv["copy"] = cp
     priv_path = Path(a.out).with_name(PRIVATE_NAME)
     if pw:
         pub["private"] = PRIVATE_NAME       # the page fetches the encrypted part only when it exists

@@ -3966,6 +3966,12 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .ins-al-k.s{color:var(--green)}.ins-al-k.b{color:var(--red)}
 @media (max-width:560px){.ins-al-ul li.ins-al{grid-template-columns:48px 1fr;padding:8px 10px}.ins-al-m,.ins-al-r{grid-column:2}}
 .ek-ins-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;font-size:12px;font-weight:700;color:var(--text-3);letter-spacing:.04em}
+/* v3.96.13 跟單模擬: entry-price menu, a small numbers table, short lists */
+.ins-cm{background:var(--bg-2,transparent);color:var(--text-1,inherit);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:12px}
+.ins-cm-t{width:calc(100% - 28px);margin:0 14px 6px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.ins-cm-t th,.ins-cm-t td{padding:4px 6px;border-top:1px solid var(--border);text-align:right}.ins-cm-t th:first-child,.ins-cm-t td:first-child{text-align:left}
+.ins-cm-l{margin:0 14px 8px;padding-left:18px;font-size:12px;line-height:1.7}
+@media (max-width:560px){.ins-cm-t{width:calc(100% - 20px);margin:0 10px 6px}.ins-cm-l{margin:0 10px 8px}}
 .ek-ins-h select{background:var(--bg-3);color:var(--text);border:1px solid var(--line-2);border-radius:0;font:inherit;font-weight:900;padding:2px 4px;cursor:pointer;min-width:0;width:auto}
 .ek-ins .ek-band .ek-go + .en{margin-left:14px}   /* the full-width band: "全部 N 筆 ›" sits right, not in the middle */
 .ek-ins li{display:grid;grid-template-columns:22px minmax(150px,240px) 120px minmax(130px,200px) minmax(0,1fr);gap:12px;cursor:pointer}
@@ -4156,7 +4162,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.96.11 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.96.13 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -9607,6 +9613,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.96.13', date: '10/14', title: '跟單模擬（可選進場時點）', desc: '大股東動向的分點警示下方新增「跟單模擬」：照內部人分點的買進隔天跟、賣出隔天跟著賣，用下拉選單切換隔天開盤、盤中（當天均價）、收盤前三種進場價；列出兩段回測（近一年、第三年，和同一檔抱一樣天數的每天進場比）與 10/14 起的紙上跟單紀錄（解鎖後才看得到）；資訊，不是買賣訊號' },
   { v: 'v3.96.11', date: '10/14', title: '人對應分點＋董監持股比＋質押比', desc: '大股東動向每一列與個股頁直接列出本站比對到的「內部人 → 分點」，附近幾個月的申報張數與分點張數（解鎖後才看得到）；個股全景圖下方新增兩張 36 個月小圖：董監持股比（董監持股 ÷ 已發行股數，觀測站董監持股彙總）與質押比（董監本人質押股數 ÷ 董監持股，只算有逐人申報頁的月份），各自縮放看得出小幅變化' },
   { v: 'v3.96.10', date: '10/14', title: '本人＋他人名義合併比對', desc: '內部人分點比對時，董事長本人與「利用他人名義」持有的公司合併成一組；A級分點 17 → 19 組；每晚追蹤新增 2 個分點（解鎖後才看得到；一樣只當資訊，不是買賣訊號）' },
   { v: 'v3.96.9', date: '10/14', title: 'A級內部人分點＋今日一檔', desc: '分點警示新增「A級」：市值 100 億以上、申報逐月對上而且次佳分點差一倍以上的內部人分點（17 組，9 月樣本外：本人有交易的 27 組中 16 組吻合；照它進出的第三年期末考沒通過，只當資訊）；新增「今日一檔」：一家公司所有董事與內部人的分點、9 月申報驗證與工商登記關係（解鎖後才看得到）；每晚追蹤新增 A級的分點' },
@@ -9616,7 +9623,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v3.96.0', date: '10/11', title: '大股東動向（第一版）', desc: '今日總整理新增 S08 大股東動向：內部人逐人申報（近一年，賣方仍在補抓）、職位＋買／賣標籤、跟單結果扣成本與勝率、同身分回測、年份選單、個股全景圖、檢查更新按鈕；資料經持股等式、獨立程式與人工抽查驗證' },
   { v: 'V1.0', date: '10/10', title: '正式版 V1.0（build v3.95.0）', desc: '新介面全站上線＋富邦抓取間隔 1.6 秒與 8111 等亂碼股名修正併入正式版＋外資規則統一（只算美/歐/亞）＋9/17 期貨資料補齊' },
   { v: 'v3.94.0', date: '10/10', title: '每頁都是看板、每塊都能點開', desc: '大數字＋前 5 名，其餘只藏不刪，點標題 / 卡片 / 按鈕從右側抽屜看完整內容' },
-  { v: 'v3.92.0', date: '10/10', title: '配色 C 終端', desc: '純黑底、2px 路線色細線、實心編號鍵、琥珀色是唯一品牌色' },
 ];
 
 function toggleChangelog() {
@@ -10742,7 +10748,7 @@ function _insInner() {
 // v3.96.7 owner 2026-10-13: + the 12 insider pairs found in both years (tier 兩年都找到, with the matched person)
 function _insAlerts() {
   const al = (INSIDER_PRIV || {}).alerts;
-  if (!Array.isArray(al) || !al.length) return _insDossier();
+  if (!Array.isArray(al) || !al.length) return _insDossier() + _insCopy();
   const pct = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(1);
   const rows = al.map(x => {
     const nm = escHtml(x.name || ''), buy = x.side === '買';
@@ -10759,7 +10765,7 @@ function _insAlerts() {
       <span class="ins-al-r">回測 20 日 比平常 ${pct(x.gap20)}<small>${Number(x.n) || 0} 件 · 前半 ${pct(x.half1)}／後半 ${pct(x.half2)}</small></span></li>`;
   }).join('');
   const nA = al.filter(x => x.tier === 'A級').length, n2 = al.filter(x => x.tier === '兩年都找到').length, n1 = al.length - nA - n2;
-  return `<div class="ek-ins-h">分點警示（${nA ? `A級 ${nA} 組：市值 100 億以上、申報逐月對上的內部人分點；` : ''}${n2 ? `兩年都找到 ${n2} 組：內部人分點，標出對到的人；` : ''}${n1 ? `研究名單 ${n1} 組：前後半都穩定；` : ''}月資料回測，件數少，只當盯盤用；<b>資訊，不是買賣訊號</b>：照這些分點進出的第三年期末考沒通過）</div><ul class="ins-al-ul">${rows}</ul>` + _insDossier();
+  return `<div class="ek-ins-h">分點警示（${nA ? `A級 ${nA} 組：市值 100 億以上、申報逐月對上的內部人分點；` : ''}${n2 ? `兩年都找到 ${n2} 組：內部人分點，標出對到的人；` : ''}${n1 ? `研究名單 ${n1} 組：前後半都穩定；` : ''}月資料回測，件數少，只當盯盤用；<b>資訊，不是買賣訊號</b>：照這些分點進出的第三年期末考沒通過）</div><ul class="ins-al-ul">${rows}</ul>` + _insDossier() + _insCopy();
 }
 // v3.96.9 owner 2026-10-14: 「每天的目標就是絕對要給我一檔股票的公司之董事以及內部人，他們的分點」 - the stock of the day
 // (scripts/insider_dossier.py, encrypted part only): every insider with a found branch, September check, relations
@@ -10775,6 +10781,30 @@ function _insDossier() {
   return `<div class="ek-ins-h">今日一檔：${escHtml(d.name || '')} ${escHtml(d.code || '')}（市值第 ${Number(d.rank) || '—'} 名・董事長 ${escHtml(d.chairman || '—')}；${escHtml(String(d.built || '').slice(0, 10))}）</div>`
     + `<ul class="ins-al-ul">${rows}</ul>` + (rel ? `<div class="ek-ins-h">關係（工商登記・共用分點）</div><ul>${rel}</ul>` : '')
     + `<div class="ek-ins-h">${cnt ? `其他內部人：${cnt}；` : ''}統計吻合，不是開戶資料；<b>資訊，不是買賣訊號</b></div>`;
+}
+// v3.96.13 跟單模擬 (owner 2026-10-14: 「在隔天開盤就買」「可以設計下拉選單就是收盤前買或者盤中1100點買」): the copy test by
+// entry price and the paper record since 10/14, from the encrypted part (scripts/copy_trade.py, scripts/copy_forward.py).
+// 盤中 = the day's average price (no free 11:00 history). Information, not a trading signal.
+let _INS_CM = 'open';
+const _INS_CMS = { open: '隔天開盤', avg: '盤中（當天均價）', close: '收盤前（收盤價）' };
+function _insCopySet(v) { _INS_CM = _INS_CMS[v] ? v : 'open'; _insRender(); }
+function _insCopy() {
+  const cp = (INSIDER_PRIV || {}).copy;
+  if (!cp) return '';
+  const m = cp[_INS_CM] ? _INS_CM : (Object.keys(_INS_CMS).find(k => cp[k]) || 'open');
+  const pct = v => (v == null || !isFinite(+v)) ? '—' : `${(+v) >= 0 ? '+' : ''}${(+v).toFixed(2)}%`;
+  const opts = Object.entries(_INS_CMS).map(([k, t]) => `<option value="${k}"${k === m ? ' selected' : ''}${cp[k] ? '' : ' disabled'}>${escHtml(t)}${cp[k] ? '' : '（價格資料抓取中）'}</option>`).join('');
+  const row = (lab, g) => { const s = (g || {}).m || {}; return `<tr><td>${escHtml(lab)}</td><td>${Number(s.n || 0).toLocaleString('en-US')}</td><td>${pct(s.mean)}</td><td>${pct(s.median)}</td><td>${s.beat == null ? '—' : Number(s.beat).toFixed(1) + '%'}</td></tr>`; };
+  const t = cp[m];
+  const tab = t ? [['A', '近一年'], ['B', '第三年']].map(([k, w]) => row(`${w}・挑中`, (t[k] || {}).chosen) + row(`${w}・沒挑中`, (t[k] || {}).not_chosen)).join('') : '';
+  const top = t && t.A && t.A.chosen ? (t.A.chosen.top || []).map(r => `<li>${escHtml(r[0])} ${escHtml(r[1])} → ${escHtml(r[2])}：${Number(r[3] || 0)} 筆・平均超額 ${pct(r[5])}・${Number(r[4] || 0).toFixed(0)}% 贏對照</li>`).join('') : '';
+  const f = cp.forward, fr = (f && f.record && f.record[m]) || {};
+  const sig = f ? (f.signals || []).slice(0, 5).map(r => `<li>${escHtml(r[0])} ${escHtml(r[1])} → ${escHtml(r[2])} 買 ${Number(r[3] || 0).toLocaleString('en-US')} 張</li>`).join('') : '';
+  return `<div class="ek-ins-h">跟單模擬　<select class="ins-cm" onchange="_insCopySet(this.value)">${opts}</select>　分點買進的隔天跟、賣出的隔天跟著賣；超額＝跟單報酬 − 同一檔抱一樣天數的每天進場平均；成本 0.585%；<b>資訊，不是買賣訊號</b></div>`
+    + (tab ? `<table class="ins-cm-t"><tr><th>樣本</th><th>筆數</th><th>平均超額</th><th>中位數超額</th><th>贏過對照</th></tr>${tab}</table>` : '')
+    + (top ? `<div class="ek-ins-h">近一年挑中的前 5 組（依公平對照後的平均超額，至少 5 筆）</div><ul class="ins-cm-l">${top}</ul>` : '')
+    + (f ? `<div class="ek-ins-h">紙上跟單（${escHtml(String(f.start || '').slice(4, 6))}/${escHtml(String(f.start || '').slice(6))} 起，${Number(f.pairs || 0)} 組）：${Number(fr.n || 0)} 筆${fr.n ? `・平均 ${pct(fr.mean)}・勝率 ${Number(fr.win || 0).toFixed(1)}%` : ''}｜${escHtml(f.verdict || '')}</div>` : '')
+    + (sig ? `<ul class="ins-cm-l">${sig}</ul>` : '');
 }
 function _insRender() { const box = document.getElementById('ekIns'); if (box) box.innerHTML = _insInner(); }
 function _insSetH(v) { _INS_H = _INS_HS.includes(+v) ? +v : 20; _insRender(); }
