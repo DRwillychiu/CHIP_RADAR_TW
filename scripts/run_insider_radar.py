@@ -488,7 +488,7 @@ def main():
     if pw:
         priv["alerts"] = branch_alerts(pw, bdays or [])
         # v3.96.9 owner 2026-10-14: the stock of the day (scripts/insider_dossier.py), newest file; private like the pairs
-        dz = sorted((ROOT / "data" / "research" / "dossier").glob("*_2*.json"), key=lambda f: f.stem.split("_")[1])
+        dz = sorted((ROOT / "data" / "research" / "dossier").glob("*_2*.json"), key=lambda f: f.stat().st_mtime)   # the newest written
         if dz:
             priv["dossier"] = json.loads(dz[-1].read_text(encoding="utf-8"))
         # v3.96.11 owner 2026-10-14: 「人對應分點的重點!要列在哪?」 - every matched insider -> branch with 12 months of
