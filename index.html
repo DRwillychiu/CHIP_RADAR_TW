@@ -4023,6 +4023,33 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .dr-kpis.dr-ins-k{flex-wrap:wrap;row-gap:10px}.dr-ins-k b{white-space:nowrap}
 @media (max-width:560px){.ek-ins li{grid-template-columns:22px minmax(0,1fr) auto;row-gap:6px}
   .ek-ins-amt{grid-row:2;grid-column:2;text-align:left}.ek-ins-ret{grid-row:3;grid-column:2 / -1;text-align:left;white-space:normal}.ek-ins-ret small{display:inline-block}.ek-ins-h{padding:7px 10px}}
+/* v3.96.16 全市場內部人申報排行 + 個股全景圖擴大到全市場: the S08 search box with suggestions, the 3 key cells,
+   tables that scroll sideways inside their own box (phones), one collapsible row per month */
+.ins-q{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px 0}
+.ins-q-w{position:relative;flex:1 1 200px;min-width:0;max-width:440px}
+.ins-q input{width:100%;box-sizing:border-box;background:var(--bg-3);color:var(--text);border:1px solid var(--line-2);border-radius:0;font:inherit;font-size:14px;padding:6px 10px;-webkit-appearance:none;appearance:none}
+.ins-q input:focus{outline:none;border-color:var(--b)}.ins-q input::placeholder{color:var(--text-3)}
+.ins-q-b{flex:0 0 auto;background:none;color:var(--c);border:1px solid var(--b);font:inherit;font-size:13px;font-weight:900;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.ins-q-b:hover{background:var(--bg-3)}
+.ins-sg{display:none;position:absolute;left:0;right:0;top:100%;z-index:20;background:var(--bg-2);border:1px solid var(--line-2);border-top:0;max-height:320px;overflow-y:auto;box-shadow:var(--shadow)}
+.ins-sg.on{display:block}
+.ins-sg-i{padding:8px 10px;font-size:14px;color:var(--text);cursor:pointer;border-top:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ins-sg-i:first-child{border-top:0}.ins-sg-i.on,.ins-sg-i:hover{background:var(--bg-3)}
+.ins-sg-i small{margin-left:8px;font-size:11px;color:var(--text-3)}.ins-sg-n{padding:8px 10px;font-size:13px;color:var(--text-3)}
+.ins-cells.ins-c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ins-sx{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+.dr .ins-sx td,.dr .ins-sx th{white-space:nowrap}
+.dr tr.ek-tap:hover td{background:var(--bg-3)}
+.dr .ins-rk-h{padding:12px 0 8px}
+.ins-mo{border-bottom:1px solid var(--line)}
+.ins-mo summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;padding:10px 0;cursor:pointer;list-style:none;font-size:13px;color:var(--text-2)}
+.ins-mo summary::-webkit-details-marker{display:none}
+.ins-mo summary::before{content:'▸';color:var(--text-3);width:10px}.ins-mo[open] > summary::before{content:'▾'}
+.ins-mo summary > b{font-size:15px;color:var(--text)}
+.ins-mo-b{padding:0 0 10px}
+.ins-mo-x{display:flex;gap:14px;align-items:baseline;padding:8px 0 8px 24px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--text-3)}
+.ins-mo-x b{font-size:14px;font-weight:700}
+@media (max-width:560px){.ins-q{padding:8px 10px 0}.ins-cells.ins-c3{grid-template-columns:1fr 1fr}}
 
 /* v3.90.0 detail drawer: the page shows the big points, details slide in from the right */
 .ek-tap{cursor:pointer}.ek-tap:hover .ek-band{background:var(--bg-3)}
@@ -4162,7 +4189,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.96.15 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.96.16 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -9613,6 +9640,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.96.16', date: '10/15', title: '全市場內部人申報排行＋全景圖擴大到全市場', desc: '內部人申報：全市場排行（每月淨買賣）＋個股全景圖擴大到全市場（1,451 檔，可搜尋）＋近 6／12 月淨買賣、持股前 15 名、逐月明細含設質' },
   { v: 'v3.96.15', date: '10/14', title: '權證大戶排行上網站', desc: '大股東動向的分點警示下方新增「權證大戶排行」：當天每檔權證前 2 大分點合計（不含總公司與造市型）、主力權證與吃下比例，並列出這檔的內部人分點近 3 日進出，內部人也買的標 ◆（解鎖後才看得到）；資料庫更新到 10/14；資訊，不是買賣訊號' },
   { v: 'v3.96.14', date: '10/14', title: '分點警示可點開', desc: '大股東動向的分點警示每一列都能點開：近幾天的分點進出（改用每晚抓的分點資料，不再顯示「等每晚資料」）、這個分點在這檔的歷史紀錄、晚一天跟的公平對照結果、個股全景圖與「人 → 分點」近 12 個月（解鎖後才看得到）；觀測站的造字（例如罕見字）顯示為〇；資訊，不是買賣訊號' },
   { v: 'v3.96.13', date: '10/14', title: '跟單模擬（可選進場時點）', desc: '大股東動向的分點警示下方新增「跟單模擬」：照內部人分點的買進隔天跟、賣出隔天跟著賣，用下拉選單切換隔天開盤、盤中（當天均價）、收盤前三種進場價；列出兩段回測（近一年、第三年，和同一檔抱一樣天數的每天進場比）與 10/14 起的紙上跟單紀錄（解鎖後才看得到）；資訊，不是買賣訊號' },
@@ -9621,7 +9649,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v3.96.9', date: '10/14', title: 'A級內部人分點＋今日一檔', desc: '分點警示新增「A級」：市值 100 億以上、申報逐月對上而且次佳分點差一倍以上的內部人分點（17 組，9 月樣本外：本人有交易的 27 組中 16 組吻合；照它進出的第三年期末考沒通過，只當資訊）；新增「今日一檔」：一家公司所有董事與內部人的分點、9 月申報驗證與工商登記關係（解鎖後才看得到）；每晚追蹤新增 A級的分點' },
   { v: 'v3.96.7', date: '10/13', title: '兩年都找到的內部人分點', desc: '分點警示新增 12 組「兩年都找到」：第一年與第二年各自獨立用同一套方法比對內部人申報，都找到同一個分點，並標出對到的人（解鎖後才看得到）；每晚追蹤新增 7 個分點（台新-營業部沒有分點頁，只用月資料）' },
   { v: 'v3.96.6', date: '10/12', title: '分點警示＋長抱選單', desc: '大股東動向下方新增分點警示 5 組（研究名單，前後半都穩定，解鎖後才看得到）；持有天數選單加入 120／250 日；每晚追蹤新增 8 個研究分點（內部人／地緣／本土主力）' },
-  { v: 'v3.96.5', date: '10/12', title: '大股東動向（近一年完整）', desc: '近一年逐人申報全部抓完並驗證：持股等式 78,463 列全對、全部頁面與獨立程式 0 差異；修正同一筆持股列在多種身分時重複計算；抽屜分列顯示本人與他人名義；勝率門檻依負責人改為 51%；第二年資料抓取中' },
   { v: 'V1.0', date: '10/10', title: '正式版 V1.0（build v3.95.0）', desc: '新介面全站上線＋富邦抓取間隔 1.6 秒與 8111 等亂碼股名修正併入正式版＋外資規則統一（只算美/歐/亞）＋9/17 期貨資料補齊' },
 ];
 
@@ -10712,7 +10739,7 @@ function _insRows() {   // buys (group A) and sells together, the newest signal 
 }
 function _insInner() {
   const band = extra => `<div class="ek-band"><span class="ek-code">S<small>08</small></span>大股東動向${extra}<span class="en">INSIDERS</span></div>`;
-  if (INSIDER_RADAR === null) { _insLoad(); return band('') + '<ul><li class="ek-sub">大股東資料載入中…</li></ul>'; }
+  if (INSIDER_RADAR === null) { _insLoad(); return band('') + _insQBar() + '<ul><li class="ek-sub">大股東資料載入中…</li></ul>'; }   // v3.96.16 search + 全市場排行 in every state
   const rows = _INS_ROWS = _insRows();
   const win = _insWin(), sc = win.scope || {}, ys = _insYears(), H = _INS_H;
   const rf = `<button class="ek-go ins-rf" onclick="_insRefresh(event)">${_INS_CHECK && _INS_CHECK.busy ? '檢查中…' : '檢查更新'}</button>`, st = _insStatus();
@@ -10722,7 +10749,7 @@ function _insInner() {
   const fetching = sc.fetching ? `<li class="ek-sub">資料抓取中（已抓 ${Number(sc.pages) || 0} 頁${Number.isFinite(sc.pending_pages) ? `，還有 ${Number(sc.pending_pages)} 頁` : ''}）${rows.length ? '，數字還會變' : ''}</li>` : '';
   if (!rows.length) {   // empty state: one quiet line, not an error
     const what = INSIDER_RADAR.signals ? `${escHtml(win.label || '近一年')}沒有達門檻的大股東、董監、經理人買賣申報` : '大股東資料尚未產生';
-    return band(rf) + st + (yopt ? `<div class="ek-ins-h">${yopt}</div>` : '') + `<ul>${fetching || `<li class="ek-sub">${what}</li>`}</ul>`;
+    return band(rf) + st + _insQBar() + (yopt ? `<div class="ek-ins-h">${yopt}</div>` : '') + `<ul>${fetching || `<li class="ek-sub">${what}</li>`}</ul>`;
   }
   const li = rows.slice(0, 5).map((x, i) => {
     // owner 2026-10-11 「這樣就對了」: the main number is what following made after costs (sells: the price
@@ -10740,7 +10767,7 @@ function _insInner() {
       <span class="ek-ins-ret" title="同類訊號（${side === 'buy' ? '大買' : '賣出'}）過去 ${H} 個交易日">${side === 'buy' ? '跟單 ' : '股價 '}${_insRaw(main.mean)}<small>${side === 'buy' && main.hit !== null && main.hit !== undefined ? '勝率 ' + Number(main.hit) + '% · ' : ''}${lay ? escHtml(grp) + ' ' : ''}${Number(main.n || bt.n) || 0} 件</small><small class="dim">${_insPct(bt.mean)}</small></span></li>`;
   }).join('');
   const opts = _INS_HS.map(h => `<option value="${h}"${h === H ? ' selected' : ''}>${h}</option>`).join('');
-  return band(`${rf}<button class="ek-go" onclick="_insAll()">全部 ${rows.length} 筆 ›</button>`) + st
+  return band(`${rf}<button class="ek-go" onclick="_insAll()">全部 ${rows.length} 筆 ›</button>`) + st + _insQBar()
     + `<div class="ek-ins-h">${yopt}同身分訊號過去<select aria-label="持有天數" onchange="_insSetH(this.value)">${opts}</select>個交易日：買方＝跟單結果（扣成本 0.585%）· 勝率 · 件數；賣方＝之後股價；小字＝比大盤</div>`
     + `<ul>${fetching}${li}</ul>` + _insAlerts();
 }
@@ -10849,7 +10876,14 @@ function _insCopy() {
     + (f ? `<div class="ek-ins-h">紙上跟單（${escHtml(String(f.start || '').slice(4, 6))}/${escHtml(String(f.start || '').slice(6))} 起，${Number(f.pairs || 0)} 組）：${Number(fr.n || 0)} 筆${fr.n ? `・平均 ${pct(fr.mean)}・勝率 ${Number(fr.win || 0).toFixed(1)}%` : ''}｜${escHtml(f.verdict || '')}</div>` : '')
     + (sig ? `<ul class="ins-cm-l">${sig}</ul>` : '');
 }
-function _insRender() { const box = document.getElementById('ekIns'); if (box) box.innerHTML = _insInner(); }
+function _insRender() {
+  const box = document.getElementById('ekIns');
+  if (!box) return;
+  const q = document.getElementById('insQ'), keep = q && document.activeElement === q ? q.value : null;   // v3.96.16 a reload keeps the search box
+  box.innerHTML = _insInner();
+  const n = keep === null ? null : document.getElementById('insQ');
+  if (n) { n.value = keep; n.focus(); _insQIn(n); }
+}
 function _insSetH(v) { _INS_H = _INS_HS.includes(+v) ? +v : 20; _insRender(); }
 // ========== v3.96.3 3.3 個股全景圖 (spec 4 item 3.3; the owner-approved draft docs/diagrams/insider_radar/panorama_v3_draft.html) ==========
 // Real data from insider_radar.json pano: monthly close (line + area), insider months as circles (red buy /
@@ -11224,6 +11258,216 @@ function _insAll() {
     }</tbody></table><div class="dr-note">點任一列看逐人明細。金額為推算（集中市場淨股數 × 當月平均收盤價）。</div>`;
   _dsDrawer('stocks', 'S', '08', `大股東動向 ${escHtml(_insWin().label || '')} 全部 ${rows.length} 筆`, 'INSIDERS', body);
 }
+
+// ========== v3.96.16 全市場內部人申報排行 + 個股全景圖擴大到全市場 (owner 2026-10-15, as on toalpha's insider pages) ==========
+// Public MOPS data from scripts/run_insider_radar.py, fetched on demand and kept in memory: data/insider_stock/index.json
+// (the search list, read on the first focus), data/insider_stock/<code>.json (one company: the panorama in the same schema
+// as INSIDER_RADAR.pano.stocks[code] + 申報資料) and data/insider_rank.json (every company's monthly market net).
+// Owner rule 重點在頁面，細節點開: the key figures show, each month's people sit in a collapsible row.
+let _INS_IX = null, _INS_IX_P = null;        // the search list
+const _INS_SD = {};                           // code -> promise of the stock file (null = not found)
+let _INS_RK = null, _INS_RK_P = null;         // the ranking file
+let _INS_RKS = { ym: null, side: 'buy', all: false };
+let _INS_RK_ROWS = [];
+let _INS_SV = null;                           // the open stock view { code, doc }
+let _INS_QS = [], _INS_QI = 0;                // the suggestions on show and the highlighted one
+const _INS_KIND = { '利用他人名義持有者': '他人名義', '本人之配偶及未成年子女': '配偶子女', '之法人代表人': '法人代表人' };
+function _insJson(path) {   // revalidated with the server (no-cache); null when missing or unreadable
+  return fetchWithTimeout(`${DATA_BASE}/${path}`, {cache: 'no-cache'}, 15000)
+    .then(res => (res.ok ? res.json() : null)).catch(e => { console.warn('[內部人申報] load failed', path, e); return null; });
+}
+function _insWan(v) {       // 萬 -> 「3.6 億」 (>= 1 億, 1 decimal) or 「1,234 萬」, signed
+  if (v === null || v === undefined || !isFinite(v)) return '—';
+  const a = Math.abs(v), sg = v > 0 ? '+' : v < 0 ? '−' : '';
+  return a >= 1e4 ? `${sg}${(a / 1e4).toFixed(1)} 億` : `${sg}${Math.round(a).toLocaleString('en-US')} 萬`;
+}
+function _insZh(v, sign = false, unit = false) {   // shares -> 張 (under 1 張: the shares)
+  const sh = Number(v) || 0;
+  if (!sh) return unit ? '0 張' : '<span class="dim">—</span>';
+  const a = Math.abs(sh), sg = sign ? (sh > 0 ? '+' : '−') : (sh < 0 ? '−' : '');
+  return sg + (a >= 1000 ? `${Math.round(a / 1000).toLocaleString('en-US')}${unit ? ' 張' : ''}` : `${a.toLocaleString('en-US')} 股`);
+}
+function _insSgn(v, html) { return `<span class="${_dsCls(Number(v) || 0)}">${html}</span>`; }   // red buy / green sell (td colour is fixed)
+function _insQBar() {
+  return `<div class="ins-q"><div class="ins-q-w"><input id="insQ" type="search" placeholder="查個股內部人申報（代號或名稱）" aria-label="查個股內部人申報"
+    autocomplete="off" enterkeyhint="search" onfocus="_insQFocus(this)" oninput="_insQIn(this)" onkeydown="_insQKey(event)" onblur="_insQBlur()">`
+    + `<div class="ins-sg" id="insQS" role="listbox" onmousedown="event.preventDefault()"></div></div>`
+    + `<button class="ins-q-b" onclick="_insRank()">全市場申報排行 ›</button></div>`;
+}
+function _insIxLoad() {
+  if (!_INS_IX_P) _INS_IX_P = _insJson('insider_stock/index.json').then(d => {
+    _INS_IX = d && Array.isArray(d.stocks) ? d : { stocks: [], fail: true };
+    if (_INS_IX.fail) _INS_IX_P = null;   // the next focus tries again
+    return _INS_IX;
+  });
+  return _INS_IX_P;
+}
+function _insQFocus(el) { if (_INS_IX && !_INS_IX.fail) _insQIn(el); _insIxLoad().then(() => { if (document.activeElement === el) _insQIn(el); }); }
+function _insQFind(q) {
+  q = String(q || '').trim().toUpperCase();
+  if (!q) return [];
+  const sc = s => { const c = String(s[0]).toUpperCase(), n = String(s[1] || '').toUpperCase();
+    return c === q ? 0 : c.startsWith(q) ? 1 : n === q ? 2 : n.startsWith(q) ? 3 : n.includes(q) ? 4 : c.includes(q) ? 5 : 9; };
+  return ((_INS_IX || {}).stocks || []).map(s => [sc(s), s]).filter(z => z[0] < 9)
+    .sort((a, b) => a[0] - b[0] || String(a[1][0]).localeCompare(String(b[1][0]))).slice(0, 8).map(z => z[1]);
+}
+function _insQIn(el) {
+  const box = document.getElementById('insQS');
+  if (!box) return;
+  const q = String(el.value || '').trim();
+  _INS_QS = []; _INS_QI = 0;
+  if (!q) { box.innerHTML = ''; box.classList.remove('on'); return; }
+  if (!_INS_IX) { box.innerHTML = '<div class="ins-sg-n">載入股票清單…</div>'; box.classList.add('on'); return; }
+  _INS_QS = _insQFind(q);
+  const mk = { sii: '上市', otc: '上櫃' };
+  box.innerHTML = _INS_QS.length ? _INS_QS.map((s, i) => `<div class="ins-sg-i${i === 0 ? ' on' : ''}" role="option" onclick="_insQGo(${i})"><b>${escHtml(s[0])}</b> ${escHtml(s[1] || '')}<small>${escHtml(mk[s[2]] || '')}</small></div>`).join('')
+    : `<div class="ins-sg-n">${_INS_IX.fail ? '讀不到股票清單，稍後再試' : `找不到「${escHtml(q)}」（清單共 ${(_INS_IX.stocks || []).length.toLocaleString('en-US')} 檔）`}</div>`;
+  box.classList.add('on');
+}
+function _insQKey(ev) {
+  const n = _INS_QS.length;
+  if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+    if (!n) return;
+    ev.preventDefault();
+    _INS_QI = (_INS_QI + (ev.key === 'ArrowDown' ? 1 : n - 1)) % n;
+    document.querySelectorAll('#insQS .ins-sg-i').forEach((d, i) => d.classList.toggle('on', i === _INS_QI));
+  } else if (ev.key === 'Enter') {
+    ev.preventDefault();
+    const q = String(ev.target.value || '').trim().toUpperCase();
+    if (n) _insQGo(_INS_QI);
+    else if (!_INS_IX && /^[0-9]{4}[0-9A-Z]{0,2}$/.test(q)) { ev.target.value = ''; ev.target.blur(); _insStock(q); }   // list not read yet: a code still works
+  } else if (ev.key === 'Escape') { ev.stopPropagation(); _insQHide(); }
+}
+function _insQHide() { const box = document.getElementById('insQS'); if (box) box.classList.remove('on'); }
+function _insQBlur() { setTimeout(_insQHide, 200); }   // after a tap on a suggestion
+function _insQGo(i) {
+  const s = _INS_QS[i];
+  if (!s) return;
+  const el = document.getElementById('insQ');
+  if (el) { el.value = ''; el.blur(); }
+  _insQHide();
+  _insStock(s[0], '', s[1]);
+}
+function _insPanoPut(code, doc) {   // the radar file has only its signal stocks: the stock file's panorama goes in (same schema)
+  const R = INSIDER_RADAR;
+  if (!R || !doc || !doc.pano) return;
+  if (!R.pano) R.pano = { months: doc.months || [], published_until: doc.published_until, stocks: {} };
+  const P = R.pano;
+  if (!P.stocks) P.stocks = {};
+  if (!Array.isArray(P.months) || !P.months.length) { P.months = doc.months || []; if (!P.published_until) P.published_until = doc.published_until; }
+  if (P.stocks[code]) return;
+  const M = P.months, DM = doc.months || [], cl = doc.pano.close || [];
+  const same = M.length === DM.length && M.every((m, i) => m === DM[i]);
+  P.stocks[code] = same ? doc.pano : { ...doc.pano, close: M.map(m => { const i = DM.indexOf(m); return i < 0 || cl[i] === undefined ? null : cl[i]; }) };   // the close is by position
+}
+function _insDrOpen() { const el = document.getElementById('dsDrawer'); return !!(el && el.classList.contains('open')); }
+async function _insStock(code, from = '', name = '') {
+  code = String(code || '').trim().toUpperCase();
+  if (!/^[0-9A-Z]{4,6}$/.test(code)) return;
+  const nm = name || ((((_INS_IX || {}).stocks || []).find(s => s[0] === code)) || [])[1] || '';
+  const foot = from === 'rank' ? '<button onclick="_insRank()">‹ 回排行</button>' : '<button onclick="_insRank()">全市場申報排行 ›</button>';
+  const sv = _INS_SV = { code, doc: null };
+  if (!_INS_SD[code]) _INS_SD[code] = _insJson(`insider_stock/${code}.json`).then(d => { if (!d || !d.filings) { delete _INS_SD[code]; return null; } return d; });
+  _dsDrawer('stocks', 'S', '08', `${escHtml(code)} ${escHtml(nm)}　內部人申報`, 'INSIDERS', '<div class="dr-note" id="insSvWait">載入中…</div>', foot);
+  const [doc] = await Promise.all([_INS_SD[code], INSIDER_RADAR === null ? _insLoad() : null]);
+  if (_INS_SV !== sv || !_insDrOpen() || !document.getElementById('insSvWait')) return;   // closed, or something else opened meanwhile
+  if (!doc) { document.getElementById('insSvWait').textContent = '讀不到這檔的申報資料（不在清單內或暫時讀不到），稍後再試'; return; }
+  sv.doc = doc;
+  _insPanoPut(code, doc);
+  const body = `<div class="dr-pano" id="insPano" onclick="_insPanoClick(event)"></div>` + _insSvBody(doc);
+  _dsDrawer('stocks', 'S', '08', `${escHtml(code)} ${escHtml(doc.name || nm)}　內部人申報`, 'INSIDERS', body, foot);
+  _INS_PF = { role: '全部', span: 2 };
+  _insPanoDraw(code);
+  const pz = document.getElementById('insPano');   // a stock without a price line still gets the two small charts
+  if (pz && !pz.querySelector('.ins-minis')) pz.insertAdjacentHTML('beforeend', _insDirMini((doc.pano || {}).dirs || []));
+  const first = document.querySelector('#dsDrawer details.ins-mo[open]');
+  if (first) _insMoFill(first);
+}
+function _insSvBody(doc) {
+  const f = doc.filings || {}, pu = String(doc.published_until || ''), nx = _insNextPub(pu);
+  const cell = (q, a, s, cls = '') => `<div class="ins-cell"><div class="q">${q}</div><div class="a ${cls}">${a}</div><div class="s">${s}</div></div>`;
+  const net = (q, v) => { v = Array.isArray(v) ? v : []; const lots = Number(v[0]) || 0;
+    return cell(q, lots ? `${lots > 0 ? '淨買' : '淨賣'} ${Math.abs(lots).toLocaleString('en-US')}<small>張</small>` : '持平',
+      `金額 ${_insWan(Number(v[1]) || 0)}<small>（推算）</small>`, _dsCls(lots)); };
+  const cells = `<div class="ins-cells ins-c3">${net('近 6 個月淨買賣', f.net6)}${net('近 12 個月淨買賣', f.net12)}`
+    + `${cell('資料到', escHtml(_insYm(pu)), nx ? `下一次約 ${nx.label} 公告` : '')}</div>`
+    + `<div class="dr-note">淨買賣＝董事、監察人、經理人、大股東在集中市場的淨股數；金額＝淨股數 × 當月均價（推算）。</div>`;
+  const hr = (f.holders || []).map(h => { const e = Number(h[3]) || 0, pl = Number(h[4]) || 0;
+    return `<tr><td>${escHtml(h[0])}</td><td class="nm"><b>${escHtml(h[1])}</b></td><td>${escHtml(_INS_KIND[h[2]] || h[2] || '本人')}</td>`
+      + `<td class="num">${_insZh(e)}</td><td class="num">${_insZh(pl)}</td><td class="num">${e && pl ? `${(pl / e * 100).toFixed(1)}%` : '<span class="dim">—</span>'}</td></tr>`; }).join('');
+  const hold = `<div class="dr-series"><div class="dr-sh"><b>持股前 15 名</b><span class="dim">${f.holders_ym ? `${escHtml(_insYm(f.holders_ym))} 月底` : ''}</span></div>`
+    + (hr ? `<div class="ins-sx"><table><thead><tr><th>身分</th><th>姓名</th><th>持有方式</th><th class="r">持股張數</th><th class="r">質押張數</th><th class="r">質押比</th></tr></thead><tbody>${hr}</tbody></table></div>`
+      : '<div class="dr-note">沒有持股資料</div>')
+    + `<div class="dr-note">依月底持股排序；質押比＝質押張數 ÷ 持股張數；本人、配偶子女、他人名義分開列。</div></div>`;
+  const det = f.detail || {}, pages = new Set(f.pages || []);
+  let opened = false;
+  const mo = (doc.months || []).filter(m => !pu || m <= pu || pages.has(m)).slice().reverse().map(ym => {   // a month after 資料到 shows only when its page is already out
+    if (!pages.has(ym)) return `<div class="ins-mo-x"><b>${escHtml(_insYm(ym))}</b>未抓（該月沒有逐人頁）</div>`;
+    const L = det[ym] || [];
+    if (!L.length) return `<div class="ins-mo-x"><b>${escHtml(_insYm(ym))}</b>沒有人變動</div>`;
+    const mk = L.reduce((a, z) => a + (Number(z[3]) || 0), 0), pl = L.reduce((a, z) => a + (Number(z[5]) || 0), 0);
+    const op = !opened; opened = true;   // only the newest month starts open
+    return `<details class="ins-mo" data-ym="${escHtml(ym)}" ontoggle="_insMoFill(this)"${op ? ' open' : ''}><summary><b>${escHtml(_insYm(ym))}</b><span>${L.length} 筆變動</span>`
+      + `<span>集中市場 ${mk ? _insSgn(mk, _insZh(mk, true, true)) : '沒有買賣'}</span>${pl ? `<span>${pl > 0 ? '設質' : '解質'} ${_insZh(Math.abs(pl), false, true)}</span>` : ''}</summary><div class="ins-mo-b"></div></details>`;
+  }).join('');
+  const months = `<div class="dr-series"><div class="dr-sh"><b>逐月明細</b><span class="dim">新的在上，點月份展開</span></div>${mo || '<div class="dr-note">沒有逐月資料</div>'}`
+    + `<div class="dr-note">只列當月有變動的人；單位：張（不足 1 張寫股數）。其他增減＝贈與、信託、繼承、員工認股等，不算買賣；設質＋／解質−。資訊，不是買賣訊號。</div></div>`;
+  return cells + hold + months;
+}
+function _insMoFill(el) {   // a month's people are built when the row is opened
+  if (!el || !el.open || el.dataset.done) return;
+  const doc = (_INS_SV || {}).doc, L = doc ? (((doc.filings || {}).detail || {})[el.dataset.ym] || []) : [];
+  const b = el.querySelector('.ins-mo-b');
+  if (!b || !doc) return;
+  el.dataset.done = '1';
+  b.innerHTML = `<div class="ins-sx"><table><thead><tr><th>身分</th><th>姓名</th><th>持有方式</th><th class="r">集中市場買賣</th><th class="r">其他增減</th><th class="r">設質／解質</th><th class="r">月底持股</th></tr></thead><tbody>${
+    L.map(z => `<tr><td>${escHtml(z[0])}</td><td class="nm"><b>${escHtml(z[1])}</b></td><td>${escHtml(_INS_KIND[z[2]] || z[2] || '本人')}</td>`
+      + `<td class="num">${Number(z[3]) ? _insSgn(z[3], _insZh(z[3], true)) : _insZh(0)}</td><td class="num">${_insZh(z[4], true)}</td>`
+      + `<td class="num">${_insZh(z[5], true)}</td><td class="num">${_insZh(z[6])}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function _insRkLoad() {
+  if (!_INS_RK_P) _INS_RK_P = _insJson('insider_rank.json').then(d => { _INS_RK = d && d.rank ? d : null; if (!_INS_RK) _INS_RK_P = null; return _INS_RK; });
+  return _INS_RK_P;
+}
+async function _insRank() {
+  _INS_SV = null;
+  _dsDrawer('stocks', 'S', '08', '全市場內部人申報排行', 'INSIDERS', `<div id="insRk">${_INS_RK ? _insRkInner() : '<div class="dr-note">載入中…</div>'}</div>`);
+  if (_INS_RK) return;
+  const d = await _insRkLoad(), box = document.getElementById('insRk');
+  if (box) box.innerHTML = d ? _insRkInner() : '<div class="dr-note">讀不到排行資料，稍後再試</div>';
+}
+function _insRkSet(k, v) {
+  _INS_RKS = { ..._INS_RKS, [k]: v, ...(k === 'all' ? {} : { all: false }) };
+  const box = document.getElementById('insRk');
+  if (box) box.innerHTML = _insRkInner();
+}
+function _insRkInner() {
+  const d = _INS_RK || {}, ms = (d.months || []).filter(m => (d.rank || {})[m]).slice().reverse();   // newest first
+  if (!ms.length) return '<div class="dr-note">還沒有排行資料</div>';
+  const S = _INS_RKS, ym = ms.includes(S.ym) ? S.ym : ms[0], buy = S.side !== 'sell';
+  const sg = z => Math.sign(Number(z[3]) || Number(z[2]) || 0);
+  const all = d.rank[ym] || [], rows = buy ? all.filter(z => sg(z) > 0) : all.filter(z => sg(z) < 0).reverse();   // sell = the list reversed
+  _INS_RK_ROWS = rows;
+  const show = S.all ? rows : rows.slice(0, 50);
+  const opt = ms.map(m => `<option value="${escHtml(m)}"${m === ym ? ' selected' : ''}>${escHtml(_insYm(m))}</option>`).join('');
+  const chips = ['buy', 'sell'].map(k => `<span class="ins-chip${(k === 'buy') === buy ? ' on' : ''}" onclick="_insRkSet('side','${k}')">${k === 'buy' ? '買超' : '賣超'}</span>`).join('');
+  const num = v => (v === null || v === undefined || !isFinite(v) ? null : +v);
+  const avg = v => (num(v) === null ? '—' : num(v) >= 100 ? num(v).toFixed(0) : num(v).toFixed(1));
+  const pct = v => (num(v) === null ? '—' : `${num(v) > 0 ? '+' : num(v) < 0 ? '−' : ''}${Math.abs(num(v)).toFixed(2)}%`);
+  const tr = show.map((z, i) => { const lots = Number(z[2]) || 0, w = Number(z[3]) || 0, s = buy ? 1 : -1;
+    return `<tr class="ek-tap" onclick="_insRkGo(${i})"><td class="dim">${i + 1}</td><td class="nm"><b>${escHtml(z[0])}</b> ${escHtml(z[1] || '')}</td>`
+      + `<td class="num">${_insSgn(s, `${lots > 0 ? '+' : lots < 0 ? '−' : ''}${Math.abs(lots).toLocaleString('en-US')}`)}</td>`
+      + `<td class="num">${_insSgn(s, w ? _insWan(w) : '未滿 100 萬')}</td><td class="num">${Number(z[4]) || 0}</td><td>${escHtml(z[5] || '')}</td>`
+      + `<td class="num">${avg(z[6])}</td><td class="num">${pct(z[7])}</td></tr>`; }).join('');
+  const nB = all.filter(z => sg(z) > 0).length, nS = all.filter(z => sg(z) < 0).length;
+  return `<div class="ek-ins-h ins-rk-h"><select aria-label="申報月份" onchange="_insRkSet('ym',this.value)">${opt}</select><span class="ins-chips">${chips}</span>`
+    + `<span>${escHtml(_insYm(ym))} 集中市場淨買超 ${nB} 檔・淨賣超 ${nS} 檔</span></div>`
+    + `<div class="ins-sx"><table><thead><tr><th>名次</th><th>代號 名稱</th><th class="r">淨買賣(張)</th><th class="r">金額</th><th class="r">人數</th><th>身分</th><th class="r">均價</th><th class="r">占股本%</th></tr></thead>`
+    + `<tbody>${tr || '<tr><td colspan="8" class="dim">這個月沒有</td></tr>'}</tbody></table></div>`
+    + (rows.length > show.length ? `<button class="bd-more" onclick="_insRkSet('all',true)">顯示全部 ${rows.length} 檔 ›</button>` : '')
+    + `<div class="dr-note">每月董事、監察人、經理人、大股東在集中市場的淨買賣，依金額排序；金額＝淨股數 × 當月均價（推算）；占股本＝淨股數占已發行股數。點任一列看這檔的全景圖與逐月明細。資訊，不是買賣訊號。</div>`;
+}
+function _insRkGo(i) { const z = _INS_RK_ROWS[i]; if (z) _insStock(z[0], 'rank', z[1] || ''); }
 
 // ========== v3.94.0 every page a board ==========
 // Owner 2026-10-10 "完整套用全部…彈出畫面的部分，所有區塊都要設置": the board on every display page,

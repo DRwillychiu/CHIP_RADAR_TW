@@ -163,6 +163,67 @@ def fetch_state(since, until, built_pages, queue):
     return pending, bool(pending or missing)
 
 
+def write_stock_files(stocks, pm, until, raw, rows, monthly, short):
+    """v3.96.16 data/insider_stock/<code>.json (the panorama + the toalpha 申報資料 items: 近 6／12 個月淨買賣, 持股前 15 名,
+    逐月明細 with 設質／解質) and data/insider_stock/index.json (the search list), plus data/insider_rank.json (全市場內部人
+    申報排行: every company's insider market net per published month). A file is rewritten only when it changed."""
+    out = ROOT / "data" / "insider_stock"
+    out.mkdir(exist_ok=True)
+    pub_m = [m for m in pm if m <= until]
+    names = {}
+    for ym in sorted(monthly):
+        for code, c in (monthly[ym].get("companies") or {}).items():
+            nm = short.get(code) or re.sub(r"(股份有限公司|股份有限|股份有|股份)$", "", c.get("name") or "")
+            names[code] = (nm.rstrip("*"), c.get("market"))     # the quote feed's trailing * (a special-trading note)
+    written = 0
+    for code, st in stocks.items():
+        prev_pl, det = {}, {}
+        for ym in pm:
+            recs = raw.get((code, ym)) or []
+            lines = []
+            for r in recs:
+                key = (r["role"], r["name"], r["kind"])
+                pl = r.get("pledge_shares") or 0
+                dpl = pl - prev_pl[key] if key in prev_pl else 0
+                prev_pl[key] = pl
+                mk, ot = r["market_buy"] - r["market_sell"], r["other_buy"] - r["other_sell"]
+                if mk or ot or dpl:
+                    lines.append([r["role"], r["name"], r["kind"], mk, ot, dpl, r["end_shares"], pl])
+            if lines:
+                det[ym] = lines
+        yms = [ym for ym in pm if raw.get((code, ym))]
+        hold = sorted(([r["role"], r["name"], r["kind"], r["end_shares"], r.get("pledge_shares") or 0] for r in raw[(code, yms[-1])]
+                       if r["end_shares"]), key=lambda x: -x[3])[:15] if yms else []
+
+        def net(k):
+            ms = [m for m in pub_m[-k:] if m in st["ins"]]
+            return [round(sum(st["ins"][m]["net_sh"] for m in ms) / 1000),
+                    round(sum(st["ins"][m]["net_sh"] * (st["ins"][m]["avg"] or 0) for m in ms) / 1e4)]
+        doc = {"code": code, "name": names.get(code, ("", ""))[0], "months": pm, "published_until": until, "pano": st,
+               "filings": {"net6": net(6), "net12": net(12), "holders_ym": yms[-1] if yms else None, "holders": hold,
+                           "pages": yms, "detail": det}}
+        txt = json.dumps(doc, ensure_ascii=False, separators=(",", ":"))
+        f = out / f"{code}.json"
+        if not f.exists() or f.read_text(encoding="utf-8") != txt:
+            f.write_text(txt, encoding="utf-8")
+            written += 1
+    idx = {"months": pm, "published_until": until,
+           "stocks": [[c, names.get(c, ("", ""))[0], names.get(c, ("", ""))[1]] for c in sorted(stocks)]}
+    (out / "index.json").write_text(json.dumps(idx, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    rank = defaultdict(list)
+    for r in rows:
+        if r["ym"] in pub_m and r["net_shares"]:
+            traders = len({x["holder"] or x["name"] for x in raw.get((r["code"], r["ym"]), []) if x["market_buy"] != x["market_sell"]})
+            rank[r["ym"]].append([r["code"], (r.get("name") or names.get(r["code"], ("", ""))[0]).rstrip("*"), round(r["net_shares"] / 1000),
+                                  round((r["net_yi_est"] or 0) * 1e4), traders,     # 人數 = the people who traded on the market
+                                  ((r.get("buyers") if r["net_shares"] > 0 else r.get("sellers")) or ""), r.get("avg_price"),
+                                  r.get("pct_of_shares")])
+    rk = {"months": pub_m, "rank": {ym: sorted(v, key=lambda x: -x[3]) for ym, v in sorted(rank.items())}}
+    (ROOT / "data" / "insider_rank.json").write_text(json.dumps(rk, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(f"[radar] insider_stock: {len(stocks)} stocks ({written} files written); insider_rank: {len(rk['rank'])} months, "
+          f"{sum(len(v) for v in rk['rank'].values())} company-months")
+
+
 def person_detail(records):
     """The drawer's per-person table for one company-month (spec 5: 他人名義 joins the person).
     -> (people with any change, biggest market net first; number of people without a change)."""
@@ -440,17 +501,23 @@ def main():
     pmset = set(pm)
     max_pub = max((ym for ym, mo in monthly.items() if mo.get("published")), default=None)
     rows_by = {(r["code"], r["ym"]): r for r in rows}
+    # v3.96.16 owner 2026-10-15 00:2x 「全市場內部人申報排行+個股全景圖擴大到全市場」: the same panorama for EVERY stock with
+    # a person page in the panorama months and a price (data/insider_stock/<code>.json, fetched by the page on demand);
+    # insider_radar.json keeps only the window stocks (pano_codes) so the first load stays small
+    all_codes = sorted({c for (c, ym) in raw if ym in pmset and closes.get(c)} | set(pano_codes))
+    all_set = set(all_codes)
     tdcc = defaultdict(list)
     for f in sorted((ROOT / "data" / "tdcc_history").glob("*.json")):
         t = load_json(f)
-        for code in pano_codes:
-            h = (t.get("holdings") or {}).get(code)
+        hd = t.get("holdings") or {}
+        for code in all_set & set(hd):
+            h = hd.get(code)
             if h and h.get("mega1000_pct") is not None:
                 tdcc[code].append([t.get("effective_date") or f.stem, h["mega1000_pct"]])
     # v3.96.11 owner 2026-10-14 (toalpha 申報資料 page): 36 months of 董監持股比 = IRB110 dir_pct (all directors' and
     # supervisors' holdings / issued shares) and 質押比 = pledged shares on the directors' own person-page rows /
     # IRB110 dir_held; a month without a person page of that company = None (not guessed)
-    pano_set = set(pano_codes)
+    pano_set = all_set
     pledged = defaultdict(dict)
     for f in sorted((ROOT / "data" / "insider_people").glob("2*.json")):
         pdoc = load_json(f)
@@ -463,13 +530,13 @@ def main():
     dirs = defaultdict(list)
     for ym in sorted(monthly)[-36:]:
         comp = monthly[ym].get("companies") or {}
-        for code in pano_codes:
+        for code in all_codes:
             x = comp.get(code)
             if x and x.get("dir_pct") is not None:
                 pl = pledged[code].get(ym)
                 dirs[code].append([ym, x["dir_pct"], round(pl / x["dir_held"] * 100, 1) if pl is not None and x.get("dir_held") else None])
     stocks = {}
-    for code in pano_codes:
+    for code in all_codes:
         mc = {}
         for day, v in closes.get(code, {}).items():
             if day[:6] in pmset and (day[:6] not in mc or day > mc[day[:6]][0]):
@@ -490,6 +557,8 @@ def main():
                         "cost": pano_cost(ins, pm, max_pub or latest),
                         "clusters": pano_clusters(ins, [m for m in pm if m <= (max_pub or latest)]), "tdcc": tdcc.get(code, []),
                         "dirs": dirs.get(code, [])}
+    write_stock_files(stocks, pm, max_pub or latest, raw, rows, monthly, short)
+    stocks = {c: stocks[c] for c in pano_codes if c in stocks}
     pub["pano"] = {"months": pm, "published_until": max_pub, "stocks": stocks}
     pub["data_until"] = max_pub      # v3.96.4 the 「檢查更新」 line: 資料到 YYYY-MM；下一次約 MM/20 公告
     if pw:
