@@ -84,6 +84,87 @@ TWO_YEAR_PAIRS = tuple(tuple(p) for p in _PAIRS.get("two_year", []))
 A_LEVEL_PAIRS = tuple(tuple(p) for p in _PAIRS.get("a_level", []))   # v3.96.9: the market-cap >= 100 億 A-level watch list
 
 
+def tracked_branches(password, day):
+    """v3.97.1 the site's tracked branch codes (the daily crawl's branch list on `day`)."""
+    from src.exports.transfer_watch import read_day
+    d = read_day(ROOT / "data", day, password) or {}
+    return {b.get("code") for b in d.get("branches") or [] if b.get("code")}
+
+
+def master_months(codes, masters, months, avg):
+    """v3.97.1 owner 2026-10-15 「分點大戶部分的資料立即補齊」: before the site's daily crawls the tracked branches' monthly net
+    per stock = the sum of their net lots on the stock's month ranking page (Fubon top 15 buyers / sellers, so a tracked
+    branch outside the top 15 is missed: an ESTIMATE) x the month's average close -> 億. Parsed pages are cached by mtime."""
+    from src.fetchers import stock_branch_ranking as S
+    rawd = ROOT / "data" / "insider_branch_raw"
+    cf = ROOT / "data" / "research" / "master_month_cache.json"
+    cache = json.loads(cf.read_text(encoding="utf-8")) if cf.exists() else {}
+    out = defaultdict(dict)
+    for code in codes:
+        for ym in months:
+            f = rawd / f"{code}_{ym}.html"
+            if not f.exists():
+                continue
+            key, mt = f"{code}_{ym}", int(f.stat().st_mtime)
+            c = cache.get(key)
+            if not c or c[0] != mt:
+                pg = S.parse_fubon_stock_page(f.read_text(encoding="utf-8"), code) or {}
+                c = [mt, {b["bno"]: b["net"] for b in (pg.get("buys") or []) + (pg.get("sells") or []) if b.get("bno") and b.get("net")}]
+                cache[key] = c
+            net = sum(n for b, n in c[1].items() if b in masters)       # Fubon branch codes are case-sensitive
+            if net and avg.get((code, ym)):
+                out[code][ym] = round(net * 1000 * avg[(code, ym)] / 1e8, 3)
+    cf.write_text(json.dumps(cache, separators=(",", ":")), encoding="utf-8")
+    return out
+
+
+def branch_months_net(codes, months):
+    """v3.97.1 {code: {ym: 億}} = the sum over the tracked branches' monthly pages (zgb0 pinned to a month, mode B, 仟元)
+    of each stock's net; a stock outside a branch's top 50 buy / 50 sell that month is not on its page. Cached by mtime."""
+    from src.pipelines.crawler_fetch import parse_region
+    rawd = ROOT / "data" / "research" / "branch_months" / "raw"
+    cf = ROOT / "data" / "research" / "branch_months" / "parsed_cache.json"
+    cache = json.loads(cf.read_text(encoding="utf-8")) if cf.exists() else {}
+    want, out = set(months), defaultdict(lambda: defaultdict(int))
+    for f in sorted(rawd.glob("*_*_2*.html")) if rawd.exists() else []:
+        ym = f.stem.rsplit("_", 1)[1]
+        if ym not in want:
+            continue
+        mt = int(f.stat().st_mtime)
+        c = cache.get(f.name)
+        if not c or c[0] != mt:
+            html = f.read_text(encoding="utf-8")
+            i, j = html.find("買超</td>"), html.find("賣超</td>")
+            rows = parse_region(html[i:j]) + parse_region(html[j:]) if i >= 0 and j > i else []
+            c = [mt, [[r["code"], (r.get("v1") or 0) - (r.get("v2") or 0)] for r in rows if r.get("code")]]   # buy - sell: signed in both tables
+            cache[f.name] = c
+        for code, net in c[1]:
+            if code in codes and net:
+                out[code][ym] += net
+    cf.write_text(json.dumps(cache, separators=(",", ":")), encoding="utf-8")
+    return {c: {m: round(v / 1e5, 3) for m, v in sorted(ms.items())} for c, ms in out.items()}
+
+
+def tdcc_history(codes, official_from, first_month):
+    """v3.97.1 owner 2026-10-15 「千張大戶持股...立即補齊」: the weeks before the official files (data/tdcc_history) from the
+    third-party history (scripts/fetch_holders_history.py, 神秘金字塔), only for stocks whose every overlapping week matched
+    the official one (holders_check use) - one point per month (its last week), for the ENCRYPTED part only."""
+    hd = ROOT / "data" / "research" / "holders"
+    ck = (load_json(hd / "holders_check.json") if (hd / "holders_check.json").exists() else {}).get("stocks", {})
+    out = {}
+    for code in codes:
+        if not (ck.get(code) or {}).get("use") or not (hd / f"{code}.json").exists():
+            continue
+        weeks = load_json(hd / f"{code}.json").get("weeks") or {}
+        last = {}
+        for d, w in sorted(weeks.items()):
+            if first_month <= d[:6] and d < official_from and w.get("mega1000_pct") is not None:
+                last[d[:6]] = [d, w["mega1000_pct"]]
+        if last:
+            out[code] = [last[m] for m in sorted(last)]
+    return out
+
+
 def branch_alerts(password, days):
     """-> [{code, branch, side, tier, person, last_month, last_net, today, n, gap20, half1, half2}] or [] when the raw pages
     are absent. tier A級 (A_LEVEL_PAIRS, v3.96.9) first, then 兩年都找到 (TWO_YEAR_PAIRS, with the person), then 研究
@@ -400,7 +481,7 @@ def main():
     pano_codes = sorted({s["code"] for w in WINDOWS for s in in_window(sig_a + sells, w[2], w[3])})
     bn = {}
     if pw:
-        bn, bdays = branch_net({s["code"] for s in sig_a} | set(pano_codes), pw)
+        bn, bdays = branch_net({s["code"] for s in sig_a} | set(pano_codes) | {c for (c, _ym) in raw}, pw)   # v3.97.1 every stock
         first_ok = tdays[tdays.index(bdays[0]) + 10] if bdays and bdays[0] in tdays else None
         a_cov = [s for s in sig_a if first_ok and s["signal_day"] and s["signal_day"] >= first_ok]
         sig_b = R.group_b(a_cov, bn, 10, tdays)
@@ -558,6 +639,7 @@ def main():
                         "clusters": pano_clusters(ins, [m for m in pm if m <= (max_pub or latest)]), "tdcc": tdcc.get(code, []),
                         "dirs": dirs.get(code, [])}
     write_stock_files(stocks, pm, max_pub or latest, raw, rows, monthly, short)
+    every = set(stocks)                  # v3.97.1 the private 分點大戶 row for every stock file, not only the window stocks
     stocks = {c: stocks[c] for c in pano_codes if c in stocks}
     pub["pano"] = {"months": pm, "published_until": max_pub, "stocks": stocks}
     pub["data_until"] = max_pub      # v3.96.4 the 「檢查更新」 line: 資料到 YYYY-MM；下一次約 MM/20 公告
@@ -566,10 +648,28 @@ def main():
     if pw and bdays:
         bm = defaultdict(lambda: defaultdict(int))
         for (code, day), v in bn.items():
-            if code in stocks and day[:6] in pmset:
+            if code in every and day[:6] in pmset:
                 bm[code][day[:6]] += v
-        priv["pano"] = {"from": bdays[0], "until": bdays[-1],   # net_amt is in 仟元 -> 億
-                        "stocks": {c: {m: round(v / 1e5, 3) for m, v in sorted(ms.items())} for c, ms in bm.items()}}
+        ms_out = {c: {m: round(v / 1e5, 3) for m, v in sorted(ms.items())} for c, ms in bm.items()}
+        # v3.97.1 owner 2026-10-15 10:3x 「千張大戶持股以及分點大戶部分的資料立即補齊」: the months before the site's own daily
+        # crawls (bdays[0]) are estimated from the month ranking pages (tracked branches inside the top 15 only)
+        # 2026-10-15 11:0x owner 「我認為要實際抓出數據」: the months before the first full month of daily records come from the
+        # tracked branches' own MONTHLY pages (scripts/backfill_branch_months.py, real data, each branch's top 50 + 50 stocks);
+        # the stock-page estimate (master_months, sign matched 20/25) is no longer used. The crawl's first month (4/21 on)
+        # is partial, so the monthly pages also cover that month
+        cut = bdays[0][:6] if bdays[0][6:] <= "05" else next_ym(bdays[0][:6])
+        est = branch_months_net(every, [m for m in pm if m < cut])
+        for c in list(ms_out):
+            ms_out[c] = {m: v for m, v in ms_out[c].items() if m >= cut}
+        for c, mv in est.items():
+            ms_out.setdefault(c, {}).update(mv)
+        ms_out = {c: dict(sorted(v.items())) for c, v in ms_out.items() if v}
+        est_months = sorted({m for mv in est.values() for m in mv})
+        priv["pano"] = {"from": f"{est_months[0]}01" if est_months else bdays[0], "until": bdays[-1],   # net_amt is in 仟元 -> 億
+                        "crawl_from": f"{cut}01", "est_until": est_months[-1] if est_months else None, "stocks": ms_out}
+        th = tdcc_history(every, min((f.stem for f in (ROOT / "data" / "tdcc_history").glob("2*.json")), default="99999999"), pm[0])
+        if th:
+            priv["tdcc_hist"] = th
     if pw:
         priv["alerts"] = branch_alerts(pw, bdays or [])
         # v3.96.9 owner 2026-10-14: the stock of the day (scripts/insider_dossier.py), newest file; private like the pairs
@@ -621,7 +721,7 @@ def main():
             from scripts.home_board import board
         except ImportError:                      # the public repo holds no research scripts
             board = None
-        bd = board(closes=closes) if board else None
+        bd = board() if board else None          # 2026-10-15: the board loads its own closes (+ the nightly quotes)
         if bd:
             priv["board"] = bd
     priv_path = Path(a.out).with_name(PRIVATE_NAME)

@@ -3965,6 +3965,8 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .ins-al-k{display:inline-block;text-align:center;padding:2px 0;border:1px solid;border-radius:4px;font-weight:700;font-size:12px}
 .ins-al-k.s{color:var(--green)}.ins-al-k.b{color:var(--red)}
 @media (max-width:560px){.ins-al-ul li.ins-al{grid-template-columns:48px 1fr;padding:8px 10px}.ins-al-m,.ins-al-r{grid-column:2}}
+.ins-al-more{display:flex;padding:8px 14px 10px;border-top:1px solid var(--border)}   /* v3.97.1 「看更多 N ›」 under the first 5 alerts */
+@media (max-width:560px){.ins-al-more{padding:8px 10px 10px}}
 .ek-ins-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;font-size:12px;font-weight:700;color:var(--text-3);letter-spacing:.04em}
 /* v3.96.13 跟單模擬: entry-price menu, a small numbers table, short lists */
 .ins-cm{background:var(--bg-2,transparent);color:var(--text-1,inherit);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:12px}
@@ -4238,7 +4240,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.97.0 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.97.1 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -9689,6 +9691,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.97.1', date: '10/15', title: '分點警示看更多＋全景圖資料補齊', desc: '分點警示只列前 5 筆（看更多點入）；全景圖分點大戶補到 2024-10（2026-04 前為追蹤分點的月資料）、千張大戶補到 2024-09（2026-06 前為第三方週資料）' },
   { v: 'v3.97.0', date: '10/15', title: '首頁改成搜尋＋三格', desc: '首頁改成搜尋＋三格：權證大買＋內部人有動作／權證大買、內部人還沒動／內部人有動作、權證還沒動；其他清單改成按鈕' },
   { v: 'v3.96.16', date: '10/15', title: '全市場內部人申報排行＋全景圖擴大到全市場', desc: '內部人申報：全市場排行（每月淨買賣）＋個股全景圖擴大到全市場（1,451 檔，可搜尋）＋近 6／12 月淨買賣、持股前 15 名、逐月明細含設質' },
   { v: 'v3.96.15', date: '10/14', title: '權證大戶排行上網站', desc: '大股東動向的分點警示下方新增「權證大戶排行」：當天每檔權證前 2 大分點合計（不含總公司與造市型）、主力權證與吃下比例，並列出這檔的內部人分點近 3 日進出，內部人也買的標 ◆（解鎖後才看得到）；資料庫更新到 10/14；資訊，不是買賣訊號' },
@@ -9697,7 +9700,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v3.96.11', date: '10/14', title: '人對應分點＋董監持股比＋質押比', desc: '大股東動向每一列與個股頁直接列出本站比對到的「內部人 → 分點」，附近幾個月的申報張數與分點張數（解鎖後才看得到）；個股全景圖下方新增兩張 36 個月小圖：董監持股比（董監持股 ÷ 已發行股數，觀測站董監持股彙總）與質押比（董監本人質押股數 ÷ 董監持股，只算有逐人申報頁的月份），各自縮放看得出小幅變化' },
   { v: 'v3.96.10', date: '10/14', title: '本人＋他人名義合併比對', desc: '內部人分點比對時，董事長本人與「利用他人名義」持有的公司合併成一組；A級分點 17 → 19 組；每晚追蹤新增 2 個分點（解鎖後才看得到；一樣只當資訊，不是買賣訊號）' },
   { v: 'v3.96.9', date: '10/14', title: 'A級內部人分點＋今日一檔', desc: '分點警示新增「A級」：市值 100 億以上、申報逐月對上而且次佳分點差一倍以上的內部人分點（17 組，9 月樣本外：本人有交易的 27 組中 16 組吻合；照它進出的第三年期末考沒通過，只當資訊）；新增「今日一檔」：一家公司所有董事與內部人的分點、9 月申報驗證與工商登記關係（解鎖後才看得到）；每晚追蹤新增 A級的分點' },
-  { v: 'v3.96.7', date: '10/13', title: '兩年都找到的內部人分點', desc: '分點警示新增 12 組「兩年都找到」：第一年與第二年各自獨立用同一套方法比對內部人申報，都找到同一個分點，並標出對到的人（解鎖後才看得到）；每晚追蹤新增 7 個分點（台新-營業部沒有分點頁，只用月資料）' },
   { v: 'V1.0', date: '10/10', title: '正式版 V1.0（build v3.95.0）', desc: '新介面全站上線＋富邦抓取間隔 1.6 秒與 8111 等亂碼股名修正併入正式版＋外資規則統一（只算美/歐/亞）＋9/17 期貨資料補齊' },
 ];
 
@@ -10915,7 +10917,7 @@ function _insInner() {
 // the matched person -> branch with 12 months of declared vs branch lots, the last days, the branch's own record in the
 // stock and the one-day-late fair copy result (encrypted part only). Information, not a trading signal.
 let _INS_AL = [];
-function _insAlOpen(i) {
+function _insAlOpen(i, all = 0) {
   const a = _INS_AL[i];
   if (!a) return;
   const buy = a.side === '買';
@@ -10927,33 +10929,49 @@ function _insAlOpen(i) {
   const body = _dsKpis([['近幾天', now], ['分點自己在這檔', rec], ['晚一天跟（近一年，公平對照）', fair], ['回測 20 日比平常', pc(a.gap20)]])
     + `<div class="dr-note">${escHtml(a.person || '')}${a.person ? ' → ' : ''}${escHtml(a.branch || '')}${a.tier ? '・' + escHtml(a.tier) : ''}；分點自己的勝率多半是股票本身在漲，晚一天跟的公平對照＝同一檔、抱一樣天數的隨機進場；<b>資訊，不是買賣訊號</b></div>`
     + `<div class="dr-pano" id="insPano" onclick="_insPanoClick(event)"></div>` + _insWBBlock(a.code);
-  _dsDrawer('stocks', 'S', '08', `${escHtml(a.name || '')} ${escHtml(a.code || '')}　${buy ? '買進' : '賣壓'}・${escHtml(a.branch || '')}`, 'INSIDERS', body, '<button onclick="_hmIns()">‹ 回大股東動向</button>');
+  const back = all ? `<button onclick="_insAlAll()">‹ 回分點警示</button>` : '<button onclick="_hmIns()">‹ 回大股東動向</button>';   // v3.97.1 opened from the full list
+  _dsDrawer('stocks', 'S', '08', `${escHtml(a.name || '')} ${escHtml(a.code || '')}　${buy ? '買進' : '賣壓'}・${escHtml(a.branch || '')}`, 'INSIDERS', body, back);
   _INS_PF = { role: '全部', span: 2 };
   _insPanoDraw(a.code);
 }
 // v3.96.6 owner 2026-10-12: the 5 stable research pairs as a nightly 賣壓 / 買進 alert (encrypted part only)
 // v3.96.7 owner 2026-10-13: + the 12 insider pairs found in both years (tier 兩年都找到, with the matched person)
+// v3.97.1 owner 2026-10-15 「下面這串太長，我要你變成:如果想看更多就點入」: the block shows the first 5 rows, 「看更多 N ›」
+// opens the whole list in the drawer (same rows, each still opens _insAlOpen)
+function _insAlHead(al) {
+  const nA = al.filter(x => x.tier === 'A級').length, n2 = al.filter(x => x.tier === '兩年都找到').length, n1 = al.length - nA - n2;
+  return `<div class="ek-ins-h">分點警示（${nA ? `A級 ${nA} 組：市值 100 億以上、申報逐月對上的內部人分點；` : ''}${n2 ? `兩年都找到 ${n2} 組：內部人分點，標出對到的人；` : ''}${n1 ? `研究名單 ${n1} 組：前後半都穩定；` : ''}月資料回測，件數少，只當盯盤用；<b>資訊，不是買賣訊號</b>：照這些分點進出的第三年期末考沒通過）</div>`;
+}
 function _insAlerts() {
   const al = (INSIDER_PRIV || {}).alerts;
   if (!Array.isArray(al) || !al.length) return _insWarrant() + _insDossier() + _insCopy();
-  const pct = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(1);
   _INS_AL = al;
-  const rows = al.map((x, i) => {
-    const nm = escHtml(x.name || ''), buy = x.side === '買';
-    const t = (x.today || []).filter(d => d.net);
-    const now = t.length ? t.map(d => `${escHtml(String(d.day).slice(4, 6))}/${escHtml(String(d.day).slice(6))} ${d.net > 0 ? '買' : '賣'} ${Math.abs(d.net).toLocaleString('en-US')} 張`).join('、')
-      : '近 7 個交易日沒有進出';
-    const lm = String(x.last_month || ''), on = (x.last_net || 0) * (buy ? 1 : -1) > 0, la = x.last_act || null;
-    const ym = v => `${escHtml(String(v).slice(0, 4))}-${escHtml(String(v).slice(4))}`;
-    const last = la ? `最近一次${buy ? '買' : '賣'}：${ym(la[0])}（${Math.abs(la[1]).toLocaleString('en-US')} 張）` : '';
-    const cur = on ? `${ym(lm)} ${buy ? '淨買' : '淨賣'} ${Math.abs(x.last_net).toLocaleString('en-US')} 張` : `${ym(lm)} 沒進前 15 名`;
-    return `<li class="ins-al ek-tap" onclick="_insAlOpen(${i})"><span class="ins-al-k ${buy ? 'b' : 's'}">${buy ? '買進' : '賣壓'}</span>
+  const rows = al.slice(0, 5).map((x, i) => _insAlRow(x, i)).join('');
+  const more = al.length > 5 ? `<div class="ins-al-more"><button class="ek-go" onclick="_insAlAll()">看更多 ${al.length - 5} ›</button></div>` : '';
+  return _insAlHead(al) + `<ul class="ins-al-ul">${rows}</ul>` + more + _insWarrant() + _insDossier() + _insCopy();
+}
+function _insAlAll() {   // v3.97.1 the whole alert list in the drawer
+  const al = _INS_AL || [];
+  if (!al.length) return;
+  _INS_SV = null;
+  const body = `<div class="ek hm-ins"><div class="ek-blk k-stocks ek-ins">${_insAlHead(al)}<ul class="ins-al-ul">${al.map((x, i) => _insAlRow(x, i, true)).join('')}</ul></div></div>`;
+  _dsDrawer('stocks', 'S', '08', `分點警示　全部 ${al.length} 組`, 'INSIDERS', body, '<button onclick="_hmIns()">‹ 回大股東動向</button>');
+  document.querySelector('#dsDrawer .dr').classList.add('hm-wide');
+}
+function _insAlRow(x, i, all = false) {   // one alert row (the block's first 5 and the drawer's full list)
+  const pct = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + Number(v).toFixed(1);
+  const nm = escHtml(x.name || ''), buy = x.side === '買';
+  const t = (x.today || []).filter(d => d.net);
+  const now = t.length ? t.map(d => `${escHtml(String(d.day).slice(4, 6))}/${escHtml(String(d.day).slice(6))} ${d.net > 0 ? '買' : '賣'} ${Math.abs(d.net).toLocaleString('en-US')} 張`).join('、')
+    : '近 7 個交易日沒有進出';
+  const lm = String(x.last_month || ''), on = (x.last_net || 0) * (buy ? 1 : -1) > 0, la = x.last_act || null;
+  const ym = v => `${escHtml(String(v).slice(0, 4))}-${escHtml(String(v).slice(4))}`;
+  const last = la ? `最近一次${buy ? '買' : '賣'}：${ym(la[0])}（${Math.abs(la[1]).toLocaleString('en-US')} 張）` : '';
+  const cur = on ? `${ym(lm)} ${buy ? '淨買' : '淨賣'} ${Math.abs(x.last_net).toLocaleString('en-US')} 張` : `${ym(lm)} 沒進前 15 名`;
+  return `<li class="ins-al ek-tap" onclick="_insAlOpen(${i}${all ? ', 1' : ''})"><span class="ins-al-k ${buy ? 'b' : 's'}">${buy ? '買進' : '賣壓'}</span>
       <span class="ins-al-n"><b>${nm} ${escHtml(x.code)}</b><small>${escHtml(x.branch)}${x.tier && x.tier !== '研究' ? ' · ' + escHtml(x.tier) : ''}</small>${x.person ? `<small>${escHtml(x.person)}</small>` : ''}</span>
       <span class="ins-al-m">${on ? cur : (last || cur)}<small>${on ? '' : cur + '；'}今天：${now}</small></span>
       <span class="ins-al-r">回測 20 日 比平常 ${pct(x.gap20)}<small>${Number(x.n) || 0} 件 · 前半 ${pct(x.half1)}／後半 ${pct(x.half2)}</small></span></li>`;
-  }).join('');
-  const nA = al.filter(x => x.tier === 'A級').length, n2 = al.filter(x => x.tier === '兩年都找到').length, n1 = al.length - nA - n2;
-  return `<div class="ek-ins-h">分點警示（${nA ? `A級 ${nA} 組：市值 100 億以上、申報逐月對上的內部人分點；` : ''}${n2 ? `兩年都找到 ${n2} 組：內部人分點，標出對到的人；` : ''}${n1 ? `研究名單 ${n1} 組：前後半都穩定；` : ''}月資料回測，件數少，只當盯盤用；<b>資訊，不是買賣訊號</b>：照這些分點進出的第三年期末考沒通過）</div><ul class="ins-al-ul">${rows}</ul>` + _insWarrant() + _insDossier() + _insCopy();
 }
 // v3.96.9 owner 2026-10-14: 「每天的目標就是絕對要給我一檔股票的公司之董事以及內部人，他們的分點」 - the stock of the day
 // (scripts/insider_dossier.py, encrypted part only): every insider with a found branch, September check, relations
@@ -11071,9 +11089,25 @@ function _insPanoDraw(code) {
   const L = mob ? 30 : 52, R = W - (mob ? 44 : 62), lh = mob ? 22 : 26, fs = mob ? 12 : 14;
   const brP = (INSIDER_PRIV || {}).pano, brs = brP && brP.stocks ? (brP.stocks[code] || {}) : null;   // only when the private part was decrypted
   const clusters = st.clusters || [], tdcc = st.tdcc || [];
+  // canvas text widths for every label box (overlap check) and the two sub-panel legend lines
+  const ctx = document.createElement('canvas').getContext('2d');
+  const tw = (t, f) => { ctx.font = f; return ctx.measureText(t).width; };
+  // v3.97.1 owner 2026-10-15 「第三張的千張大戶持股以及分點大戶部分的資料立即補齊」: the branch row goes back to the private
+  // pano.from (months up to est_until = estimates from the monthly broker ranking pages, drawn at half opacity), the
+  // 1000-lot row gets INSIDER_PRIV.tdcc_hist (third-party weekly data, one point a month) as a dashed line before the official weeks
+  const ym6 = v => `${String(v).slice(0, 4)}-${String(v).slice(4, 6)}`;
+  const fm = brP ? String(brP.from || '').slice(0, 6) : '', um = brP ? String(brP.until || '').slice(0, 6) : '', eu = brP ? String(brP.est_until || '').slice(0, 6) : '';
+  const brEst = m => !!eu && m <= eu;
+  const t0 = tdcc.length ? String(tdcc[0][0]) : '';
+  const th = (((INSIDER_PRIV || {}).tdcc_hist || {})[code] || []).filter(p => Array.isArray(p) && (!t0 || String(p[0]) < t0) && p[1] !== null && p[1] !== '' && isFinite(+p[1]));
+  const LF = '10.5px Noto Sans TC';
+  const legLines = (t, pad) => { if (!t) return []; const k = t.indexOf('（'); return tw(t, LF) + pad <= W - L || k < 0 ? [t] : [t.slice(0, k), t.slice(k)]; };
+  const l1 = brs && eu && M.some(m => brs[m] && brEst(m)) ? legLines(`${ym6(eu)} 以前＝追蹤分點的月資料（每家分點每月買超、賣超各前 50 檔；和本站每日資料重疊 5 個月比對：相關 0.96，5 億以上方向一致 87%）`, 14) : [];
+  const l2 = th.some(p => M.includes(String(p[0]).slice(0, 6))) ? legLines(`${t0 ? ym6(t0) + ' 以前' : '全部'}＝第三方週資料（神秘金字塔，和官方重疊週逐週比對通過）`, 18) : [];
   const T = 28, LB = T + 4, TOP = LB + lh + 20, PB = TOP + (mob ? 150 : 200), SB = PB + (clusters.length ? 30 : 10);
   const B0T = SB + lh + 30, B0B = B0T + (mob ? 48 : 62);
-  const S1T = B0B + 28, S1B = brs ? S1T + 44 : B0B, S2T = S1B + 28, S2B = S2T + 40, AX = S2B + 16, H = AX + (mob ? 20 : 24);
+  const S1T = B0B + 28, S1B = brs ? S1T + 44 : B0B, S1E = S1B + (l1.length ? 4 + 13 * l1.length : 0);
+  const S2T = S1E + 28, S2B = S2T + 40, S2E = S2B + (l2.length ? 4 + 13 * l2.length : 0), AX = S2E + 16, H = AX + (mob ? 20 : 24);
   const dx = (R - L) / Math.max(1, n - 1), X = i => L + dx * i;
   const vals = st.close.filter(v => v !== null), VMIN = Math.min(...vals) * 0.85, VMAX = Math.max(...vals) * 1.12;
   const Y = v => PB - (PB - TOP) * (v - VMIN) / (VMAX - VMIN);
@@ -11094,9 +11128,6 @@ function _insPanoDraw(code) {
     s += ns('text', { x: L - 5, y: Y(v) + 4, 'text-anchor': 'end', fill: TX3, 'font-size': 10.5 }, +v.toFixed(2));
   }
   M.forEach((m, i) => { if (m.slice(4) === '01') s += ns('line', { x1: X(i) - dx / 2, x2: X(i) - dx / 2, y1: T, y2: S2B, stroke: LN2, 'stroke-dasharray': '3 4' }); });
-  // canvas text widths for every label box (overlap check)
-  const ctx = document.createElement('canvas').getContext('2d');
-  const tw = (t, f) => { ctx.font = f; return ctx.measureText(t).width; };
   const circles = [], obst = [];
   const lastI = st.close.reduce((a, v, i) => (v !== null ? i : a), -1), last = st.close[lastI];
   // cost band
@@ -11184,27 +11215,53 @@ function _insPanoDraw(code) {
   s += ns('text', { x: R + 6, y: B0T + 10, fill: TX2, 'font-size': 11 }, '買 ↑') + ns('text', { x: R + 6, y: B0B, fill: TX2, 'font-size': 11 }, '賣 ↓');
   M.forEach((m, i) => { const v = yi(st.ins[m]); if (!v) return; const h = Math.max(2, Math.abs(v) / mx * (B0B - B0T) / 2);
     s += ns('rect', { x: X(i) - dx * .3, y: v > 0 ? mid - h : mid, width: dx * .6, height: h, fill: v > 0 ? RED : GREEN, 'data-pop': i }); });
-  // sub-panel 1: our branch masters (encrypted part; data from its first day, grey before)
+  // sub-panel 1: our branch masters (encrypted part). v3.97.1 grey only for the months with no value at all (before from /
+  // after until); estimated months (<= est_until, the monthly ranking pages' top 15) at half opacity, legend under the row
+  let nEst = 0;
   if (brs) {
-    const fm = String(brP.from || '').slice(0, 6), fi = Math.max(0, M.findIndex(m => m >= fm));
     s += ns('text', { x: L, y: S1T - 8, fill: BLUE, 'font-size': 12, 'font-weight': 700 }, '分點大戶每月淨買（億）');
-    if (fi > 0) { s += ns('rect', { x: L - dx / 2, y: S1T, width: X(fi) - L, height: S1B - S1T, fill: BG2 });
-      s += ns('text', { x: (L + X(fi) - dx / 2) / 2, y: (S1T + S1B) / 2 + 4, 'text-anchor': 'middle', fill: TX3, 'font-size': 11 }, `本站分點資料從 ${fm.slice(0, 4)}-${fm.slice(4)} 起`); }
+    const miss = m => (!!fm && m < fm) || (!!um && m > um);
+    for (let i = 0, i0 = -1; i <= n; i++) {
+      const gone = i < n && miss(M[i]);
+      if (gone && i0 < 0) i0 = i;
+      if (gone || i0 < 0) continue;
+      const x0 = X(i0) - dx / 2, x1 = X(i) - dx / 2, t = M[i0] < fm ? `本站分點資料從 ${ym6(fm)} 起` : `分點資料到 ${ym6(um)}`;
+      s += ns('rect', { x: x0, y: S1T, width: x1 - x0, height: S1B - S1T, fill: BG2 }, `<title>${t}</title>`);
+      if (tw(t, '11px Noto Sans TC') + 8 <= x1 - x0) s += ns('text', { x: (x0 + x1) / 2, y: (S1T + S1B) / 2 + 4, 'text-anchor': 'middle', fill: TX3, 'font-size': 11 }, t);
+      i0 = -1;
+    }
     const m1 = (S1T + S1B) / 2, bx = Math.max(1e-9, ...Object.values(brs).map(v => Math.abs(v)));
     s += ns('line', { x1: L, x2: R, y1: m1, y2: m1, stroke: LN2 });
     M.forEach((m, i) => { const v = brs[m]; if (!v) return; const h = Math.max(2, Math.abs(v) / bx * (S1B - S1T) / 2);
-      s += ns('rect', { x: X(i) - dx * .3, y: v > 0 ? m1 - h : m1, width: dx * .6, height: h, fill: v > 0 ? BLUE : 'none', stroke: BLUE }); });
+      const a = { x: X(i) - dx * .3, y: v > 0 ? m1 - h : m1, width: dx * .6, height: h, fill: v > 0 ? BLUE : 'none', stroke: BLUE };
+      if (brEst(m)) { a.opacity = .5; a['data-est'] = 1; nEst++; }
+      s += ns('rect', a); });
+    l1.forEach((t, k) => { const y = S1B + 14 + 13 * k;
+      if (!k) s += ns('rect', { x: L, y: y - 8, width: 10, height: 8, fill: BLUE, opacity: .5 });
+      s += ns('text', { x: L + 14, y, fill: TX3, 'font-size': 10.5 }, escHtml(t)); });
   }
-  // sub-panel 2: TDCC 1000-lot holders % (weekly)
+  // sub-panel 2: TDCC 1000-lot holders % (weekly). v3.97.1 + tdcc_hist (dashed, joining the official solid line)
   s += ns('text', { x: L, y: S2T - 8, fill: TEAL, 'font-size': 12, 'font-weight': 700 }, '千張大戶持股 %');
   const xd = d => { const i = M.indexOf(String(d).slice(0, 6)); return i < 0 ? null : X(i) + dx * ((+String(d).slice(6, 8) || 15) - 15) / 30; };
   const tp = tdcc.map(([d, v]) => [xd(d), v]).filter(([px]) => px !== null);
-  if (tp.length) {
-    const lo = Math.min(...tp.map(p => p[1])) - .5, hi = Math.max(...tp.map(p => p[1])) + .5, yb = v => S2B - (S2B - S2T) * (v - lo) / (hi - lo);
-    if (tp[0][0] > L + 4) { s += ns('rect', { x: L - dx / 2, y: S2T, width: tp[0][0] - L, height: S2B - S2T, fill: BG2 });
-      const d0 = String(tdcc[0][0]); s += ns('text', { x: (L + tp[0][0] - dx / 2) / 2, y: (S2T + S2B) / 2 + 4, 'text-anchor': 'middle', fill: TX3, 'font-size': 11 }, `集保週資料從 ${d0.slice(0, 4)}-${d0.slice(4, 6)} 起`); }
-    s += ns('polyline', { points: tp.map(([px, v]) => `${px},${yb(v)}`).join(' '), fill: 'none', stroke: TEAL, 'stroke-width': 2 });
-    const lp = tp[tp.length - 1]; s += ns('text', { x: lp[0] + 6, y: yb(lp[1]) + 4, fill: TEAL, 'font-size': 12, 'font-weight': 700 }, `${(+lp[1]).toFixed(1)}%`);
+  const thv = th.filter(p => xd(p[0]) !== null), tph = thv.map(([d, v]) => [xd(d), +v]);
+  if (tp.length || tph.length) {
+    const ap = tph.concat(tp), lo = Math.min(...ap.map(p => p[1])) - .5, hi = Math.max(...ap.map(p => p[1])) + .5, yb = v => S2B - (S2B - S2T) * (v - lo) / (hi - lo);
+    if (!tph.length) {   // no third-party weeks: grey before the first official week (as before)
+      if (tp[0][0] > L + 4) { s += ns('rect', { x: L - dx / 2, y: S2T, width: tp[0][0] - L, height: S2B - S2T, fill: BG2 });
+        const d0 = String(tdcc[0][0]); s += ns('text', { x: (L + tp[0][0] - dx / 2) / 2, y: (S2T + S2B) / 2 + 4, 'text-anchor': 'middle', fill: TX3, 'font-size': 11 }, `集保週資料從 ${d0.slice(0, 4)}-${d0.slice(4, 6)} 起`); }
+    } else {   // grey only for the months before the first point
+      const hm = M.indexOf(String(thv[0][0]).slice(0, 6));
+      if (hm > 0) { const x0 = X(0) - dx / 2, x1 = X(hm) - dx / 2, t = `集保資料從 ${ym6(thv[0][0])} 起`;
+        s += ns('rect', { x: x0, y: S2T, width: x1 - x0, height: S2B - S2T, fill: BG2 }, `<title>${t}</title>`);
+        if (tw(t, '11px Noto Sans TC') + 8 <= x1 - x0) s += ns('text', { x: (x0 + x1) / 2, y: (S2T + S2B) / 2 + 4, 'text-anchor': 'middle', fill: TX3, 'font-size': 11 }, t); }
+      s += ns('polyline', { points: tph.concat(tp.slice(0, 1)).map(([px, v]) => `${px},${yb(v)}`).join(' '), fill: 'none', stroke: TEAL, 'stroke-width': 1.6, 'stroke-dasharray': '4 3', 'data-hist': tph.length });
+    }
+    if (tp.length) s += ns('polyline', { points: tp.map(([px, v]) => `${px},${yb(v)}`).join(' '), fill: 'none', stroke: TEAL, 'stroke-width': 2 });
+    const lp = ap[ap.length - 1]; s += ns('text', { x: lp[0] + 6, y: yb(lp[1]) + 4, fill: TEAL, 'font-size': 12, 'font-weight': 700 }, `${(+lp[1]).toFixed(1)}%`);
+    l2.forEach((t, k) => { const y = S2B + 14 + 13 * k;
+      if (!k) s += ns('line', { x1: L, x2: L + 14, y1: y - 4, y2: y - 4, stroke: TEAL, 'stroke-width': 1.6, 'stroke-dasharray': '4 3' });
+      s += ns('text', { x: L + 18, y, fill: TX3, 'font-size': 10.5 }, escHtml(t)); });
   } else {
     s += ns('rect', { x: L, y: S2T, width: R - L, height: S2B - S2T, fill: BG2 }) + ns('text', { x: (L + R) / 2, y: (S2T + S2B) / 2 + 4, 'text-anchor': 'middle', fill: TX3, 'font-size': 11 }, '沒有集保資料');
   }
@@ -11225,7 +11282,7 @@ function _insPanoDraw(code) {
     + `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="個股全景圖">${s}</svg>`
     + `<div class="ins-pfoot">點圓圈、標籤或月柱看當月每個人。只畫有逐人申報的月份；金額＝集中市場淨股數 × 當月均價（推算）。</div>`
     + _insDirMini(st0.dirs || []);
-  box.dataset.overlaps = bad; box.dataset.labels = boxes.length;
+  box.dataset.overlaps = bad; box.dataset.labels = boxes.length; box.dataset.est = nEst; box.dataset.hist = tph.length;   // v3.97.1 estimated branch bars / third-party weeks drawn
 }
 // v3.96.11 owner 2026-10-14 「要」 (as on toalpha's 申報資料 page): two small 36-month charts under the panorama, each on
 // its own scale so small changes show - 董監持股比 (IRB110) and 質押比 (pledged shares of the directors' own rows on the
@@ -11300,7 +11357,7 @@ function _insCells(x) {
   const c3 = st.cost && last ? cell('內部人成本', `均 ${st.cost >= 100 ? st.cost.toFixed(0) : st.cost.toFixed(2)}<small>推算</small>`,
       `現價 ${last} · <span class="${last >= st.cost ? 'ds-up' : 'ds-down'}">${last >= st.cost ? '高' : '低'}於成本 ${Math.abs((last / st.cost - 1) * 100).toFixed(0)}%</span>`)
     : cell('內部人成本', '—', '近 12 個月沒有集中市場買進');
-  const pv = INSIDER_PRIV, br = pv && pv.br10 ? pv.br10[`${code}:${ym}`] : undefined, from = String(((pv || {}).pano || {}).from || '');
+  const pv = INSIDER_PRIV, br = pv && pv.br10 ? pv.br10[`${code}:${ym}`] : undefined, pp = (pv || {}).pano || {}, from = String(pp.crawl_from || pp.from || '');   // v3.97.1 br10 = the site's own daily records (crawl_from); pano.from now reaches the estimates
   const c4 = !pv ? cell('分點大戶', '—', '需解鎖')   // our branch masters: encrypted part only
     : br === undefined || br === null ? cell('分點大戶', '—', from ? `本站分點資料從 ${_insDay(from)} 起，這筆在那之前` : '沒有分點資料')
     : cell('分點大戶', br === 0 ? '持平' : `${(br > 0) === buy ? '同向' : '反向'} ${br > 0 ? '▲' : '▼'}`, `公開前 10 日${br >= 0 ? '淨買' : '淨賣'} ${escHtml(_insPanoAmt(br))}`, 'ins-bl');
