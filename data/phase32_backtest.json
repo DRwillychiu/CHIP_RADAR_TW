@@ -1,20 +1,20 @@
 {
   "summary": {
     "baseline": {
-      "n": 719,
-      "hits": 332,
-      "hit_rate": 0.4617524339360223,
-      "mean_change": 0.18995827538247556,
-      "median_change": -0.1,
+      "n": 730,
+      "hits": 328,
+      "hit_rate": 0.44931506849315067,
+      "mean_change": 0.018794520547945122,
+      "median_change": -0.22,
       "days": 59,
       "desc": "全部共識股 (對照)"
     },
     "e_anomaly_only": {
-      "n": 714,
-      "hits": 331,
-      "hit_rate": 0.4635854341736695,
-      "mean_change": 0.2161064425770307,
-      "median_change": 0.0,
+      "n": 725,
+      "hits": 327,
+      "hit_rate": 0.4510344827586207,
+      "mean_change": 0.04336551724137931,
+      "median_change": -0.21,
       "days": 59,
       "desc": "共識 ∩ ≥1 master 異常 (vol_spike OR new_stocks)"
     },
@@ -28,11 +28,11 @@
       "desc": "共識 ∩ ≥1 master volume_spike"
     },
     "e_new_stocks_only": {
-      "n": 686,
-      "hits": 325,
-      "hit_rate": 0.4737609329446064,
-      "mean_change": 0.31934402332361544,
-      "median_change": 0.0,
+      "n": 697,
+      "hits": 321,
+      "hit_rate": 0.460545193687231,
+      "mean_change": 0.13803443328550957,
+      "median_change": -0.13,
       "days": 57,
       "desc": "共識 ∩ ≥1 master new_stocks"
     },
@@ -66,16 +66,6 @@
   },
   "best": [],
   "per_day": [
-    {
-      "date": "20260720",
-      "next": "20260721",
-      "cons": 5,
-      "next_avail": 5,
-      "q5": "中性",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 8,
-      "e_hits": 4
-    },
     {
       "date": "20260721",
       "next": "20260722",
@@ -655,9 +645,19 @@
       "vol_spike_masters": 1,
       "new_stocks_masters": 3,
       "e_hits": 10
+    },
+    {
+      "date": "20261014",
+      "next": "20261015",
+      "cons": 16,
+      "next_avail": 16,
+      "q5": "中性",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 5,
+      "e_hits": 0
     }
   ],
-  "updated_at": "2026-10-14T15:00:25.117486",
+  "updated_at": "2026-10-15T13:36:49.923261",
   "window_days": 59,
   "thresholds": {
     "anomaly_sigma": 2.0,
