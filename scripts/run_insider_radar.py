@@ -643,6 +643,13 @@ def main():
     stocks = {c: stocks[c] for c in pano_codes if c in stocks}
     pub["pano"] = {"months": pm, "published_until": max_pub, "stocks": stocks}
     pub["data_until"] = max_pub      # v3.96.4 the 「檢查更新」 line: 資料到 YYYY-MM；下一次約 MM/20 公告
+    # v3.97.2 method spec §11 (valid avoid signal): the last 20 trading days' insider market-sale pre-declarations (public
+    # MOPS data, scripts/predeclare_today.py) for the home board badge and the stock page banner
+    pdf = ROOT / "data" / "research" / "predeclare" / "today.json"
+    if pdf.exists():
+        pdd = load_json(pdf)
+        pub["predeclare"] = {"day": pdd.get("day"), "since": pdd.get("since"), "active": [
+            {k: x.get(k) for k in ("code", "name", "day", "pct", "lots", "methods", "who", "period")} for x in pdd.get("active") or []]}
     if pw:
         priv["br10"] = br10              # {code:ym: 億}, from the first covered day on
     if pw and bdays:
