@@ -4074,7 +4074,7 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .hm-pd{flex:0 0 auto;font-style:normal;padding:0 5px;border:1px solid var(--green);color:var(--green);font-size:11px;font-weight:900;line-height:1.6;white-space:nowrap}
 .ins-pd{margin:0 0 10px;padding:8px 12px;border:1px solid var(--green);border-left:4px solid var(--green);background:var(--bg-2);color:var(--text);font-size:13px;line-height:1.6}
 .ins-pd b{color:var(--green)}.ins-pd .s{font-size:12px;color:var(--text-3)}
-.ek .hm-it{display:block;padding:9px 14px;border-top:1px solid var(--line);color:var(--text-2);cursor:pointer}
+.ek .hm-wl{color:var(--accent,#2563eb);text-decoration:none;margin-left:6px;white-space:nowrap}.ek .hm-it{display:block;padding:9px 14px;border-top:1px solid var(--line);color:var(--text-2);cursor:pointer}
 .hm-l1{display:flex;align-items:baseline;gap:10px;min-width:0}
 .hm-v{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:600;line-height:1.1;white-space:nowrap}
 .hm-l2{margin-top:2px;font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -10419,10 +10419,13 @@ function _hmItem(g, r, i, ru) {   // v3.97.0 owner 「整理後，又重新進�
   const insQ = `${_hmLots(r.lots)}${r.pct != null ? `・占股本${Math.abs(Number(r.pct)) < 0.01 ? '' : ' '}${pc(r.pct)}` : ''}`
     + (r.x != null ? `・平常的 ${Number(r.x).toFixed(1)} 倍` : (g === 'B' ? '' : '・平常沒有交易'));   // strategy item 1: how unusual
   const warQ = `${(Number(r.wlots) || 0).toLocaleString('en-US')} 張${r.wpct != null ? `・佔當日權證 ${Number(r.wpct).toFixed(1)}%` : ''}`;
+  // owner 2026-10-15 22:1x 「可以」: the main warrant's branch page of the board day (the mirror page the ranking comes from)
+  const bd = String(((INSIDER_PRIV || {}).board || {}).day || ''), dd = `${+bd.slice(0, 4)}-${+bd.slice(4, 6)}-${+bd.slice(6)}`;
+  const wLink = (r.w && /^\d{8}$/.test(bd)) ? ` <a class="hm-wl" href="https://stockchannelnew.sinotrade.com.tw/z/zc/zco/zco.djhtm?a=${encodeURIComponent(r.w)}&e=${dd}&f=${dd}" target="_blank" rel="noopener" onclick="event.stopPropagation()">權證↗</a>` : '';
   const sub = g === 'A' ? `${insQ}</div><div class="hm-l2">權證 #${Number(r.rank) || '—'} · ${_hmAmt(r.warrant)}（${warQ}）${_hmDir(r.dir)}`
     : g === 'B' ? `${warQ}｜${r.matched ? `有對到分點，${ru.days} 日沒動` : '還沒對到分點'}`
     : `${insQ}${role ? `｜${role}` : ''}`;
-  return `<li class="hm-it" onclick="_hmGo('${g}',${i})"><div class="hm-l1"><span class="hm-nm"><em>${escHtml(r.code || '')}</em>${escHtml(r.name || '')}</span>${_pdBadge(r.code)}${big}</div>`
+  return `<li class="hm-it" onclick="_hmGo('${g}',${i})"><div class="hm-l1"><span class="hm-nm"><em>${escHtml(r.code || '')}</em>${escHtml(r.name || '')}</span>${wLink}${_pdBadge(r.code)}${big}</div>`
     + `<div class="hm-l2">${sub}</div></li>`;   // ① has two grey lines (insider, then warrant + 同向／反向)
 }
 function _hmCol(g, cls, rows, ru, foot) {
