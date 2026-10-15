@@ -615,6 +615,15 @@ def main():
                 {"code": x["code"], "name": _nm.get(x["code"]) or x.get("name", ""), "sum": x["sum_x"], "cov": x.get("coverage"),
                  "top": [[t[0], t[1], t[2], t[3], (t[4] or {}).get("name"), (t[4] or {}).get("pct")] for t in x["top_x"][:2]],
                  "ins": [[r["role"], r["who"], r["branch"], r["recent"]] for r in links.get(x["code"], [])]} for x in top]}
+    if pw:
+        # v3.96.16 owner 2026-10-15 08:1x: the home board's three groups (scripts/home_board.py), private like the pairs
+        try:
+            from scripts.home_board import board
+        except ImportError:                      # the public repo holds no research scripts
+            board = None
+        bd = board(closes=closes) if board else None
+        if bd:
+            priv["board"] = bd
     priv_path = Path(a.out).with_name(PRIVATE_NAME)
     if pw:
         pub["private"] = PRIVATE_NAME       # the page fetches the encrypted part only when it exists

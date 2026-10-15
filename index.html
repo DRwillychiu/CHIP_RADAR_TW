@@ -4050,6 +4050,55 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .ins-mo-x{display:flex;gap:14px;align-items:baseline;padding:8px 0 8px 24px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--text-3)}
 .ins-mo-x b{font-size:14px;font-weight:700}
 @media (max-width:560px){.ins-q{padding:8px 10px 0}.ins-cells.ins-c3{grid-template-columns:1fr 1fr}}
+/* v3.97.0 home (owner 2026-10-15, draft docs/diagrams/home_search/home_search_v2_draft.html): the big search box, the
+   three-group board (① gold = both, ② blue = warrant only, ③ teal = insider branches only), the other lists as small keys */
+.hm-q{margin:0 0 14px}
+.hm-q .ins-q{padding:0}
+.hm-q .ins-q-w{max-width:none;flex:1 1 100%}
+.hm-q .ins-q-w::before{content:'⌕';position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:22px;font-weight:900;line-height:1;pointer-events:none}
+.hm-q input{font-size:19px;padding:14px 16px 14px 46px;background:var(--bg-2);border:2px solid var(--gold)}
+.hm-q input:focus{border-color:var(--gold-bright)}
+.hm-q .ins-sg{border:2px solid var(--gold);border-top:0}
+.hm-q .ins-sg-i{font-size:16px;padding:10px 16px}
+.hm-wait{padding:18px 14px;background:var(--bg-2);border-top:2px solid var(--b);color:var(--text-3);font-size:14px;font-weight:700}
+.hm-rule{margin:0 0 8px;font-size:12px;line-height:1.6;color:var(--text-3);font-weight:700}
+.hm-tri{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.hm-col{--hm:var(--line-2);display:flex;flex-direction:column;min-width:0;background:var(--bg-2);border:1px solid var(--line);border-top:2px solid var(--hm)}
+.hm-col.hm-a{--hm:var(--gold);border-color:var(--gold)}.hm-col.hm-b{--hm:var(--b-players)}.hm-col.hm-c{--hm:var(--b-market)}
+.hm-col ul{flex:1}
+.hm-ch{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:15px;font-weight:900;letter-spacing:.04em;color:var(--text)}
+.hm-dot{flex:0 0 10px;height:10px;border-radius:50%;background:var(--hm)}
+.hm-ch b{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--gold);white-space:nowrap}
+.ek .hm-it{display:block;padding:9px 14px;border-top:1px solid var(--line);color:var(--text-2);cursor:pointer}
+.hm-l1{display:flex;align-items:baseline;gap:10px;min-width:0}
+.hm-v{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:600;line-height:1.1;white-space:nowrap}
+.hm-l2{margin-top:2px;font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ek .hm-it:hover{background:var(--bg-3)}
+.hm-nm{min-width:0;font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hm-nm em{font-style:normal;font-family:'Barlow Condensed',sans-serif;font-size:15px;color:var(--gold);margin-right:6px}
+.hm-m{white-space:nowrap}.hm-r{min-width:0}.hm-n{white-space:nowrap}
+.hm-g{color:var(--text-3);font-size:12px}.hm-g small{display:block;font-size:11.5px}
+.hm-dir{display:inline-block;margin-left:6px;padding:0 5px;border:1px solid currentColor;font-style:normal;font-size:11px;font-weight:900;line-height:1.5;color:var(--text-3);white-space:nowrap}
+.hm-dir.on{color:var(--gold)}
+.hm-cf{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:8px 14px 12px;border-top:1px solid var(--line);font-size:12px;color:var(--text-3)}
+.hm-all{background:none;border:0;padding:0;color:var(--gold);font:inherit;font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap}
+.hm-keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.hm-key{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;min-width:0;padding:9px 12px;background:var(--bg-2);color:var(--c);border:0;border-top:2px solid var(--b);
+  font:inherit;font-size:14px;font-weight:900;letter-spacing:.04em;text-align:left;cursor:pointer}
+.hm-key:hover{background:var(--bg-3)}.hm-key[disabled]{cursor:default}
+.hm-kl{white-space:nowrap}
+.hm-kv{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:600;line-height:1;color:var(--text);white-space:nowrap}
+.hm-kv small{margin-left:4px;font-family:'Noto Sans TC',sans-serif;font-size:12px;font-weight:700;color:var(--text-3)}
+.hm-ks{flex:0 0 56px;color:var(--c)}.hm-ks svg{display:block;max-width:100%;height:auto}
+.hm-t td small{display:block;font-size:11px;color:var(--text-3)}
+.hm-w i{font-style:normal;color:var(--gold)}
+.dr.hm-wide{width:min(1360px,96vw)}
+.dr .hm-ins{padding:6px 0 0}.dr .hm-ins .ek-ins{margin-top:0}.dr .hm-ins .ek-ins-ret{white-space:normal;line-height:1.2}
+.dr .hm-ins .ek-ins > .ek-band .ek-code,.dr .hm-ins .ek-ins > .ek-band .en{display:none}   /* the drawer band already says S08 大股東動向 */
+@media (max-width:900px){.hm-tri{grid-template-columns:1fr}.hm-keys{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.hm-q input{font-size:16px;padding:12px 12px 12px 40px}.hm-q .ins-q-w::before{left:12px;font-size:19px}
+  .ek .hm-it{grid-template-columns:minmax(0,1fr) auto;padding:8px 10px}.hm-r{grid-column:1 / -1}
+  .hm-ch{padding:9px 10px}.hm-cf{padding:8px 10px 10px}.hm-key{padding:8px 10px}.hm-kl{white-space:normal}.hm-ks{display:none}.dr.hm-wide{width:100vw}}
 
 /* v3.90.0 detail drawer: the page shows the big points, details slide in from the right */
 .ek-tap{cursor:pointer}.ek-tap:hover .ek-band{background:var(--bg-3)}
@@ -4189,7 +4238,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.96.16 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.97.0 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -6631,7 +6680,7 @@ function _loadDayDataInBackground() {
 function lockApp() {
   if (!confirm('確定要鎖定？')) return;
   _DAY_LOADING = null; CURRENT_LATEST_ETAG = null; DAILY_SUMMARY = null; _DS_TOKEN = null;   // v3.86.1
-  INSIDER_RADAR = null; INSIDER_PRIV = null; _INS_LOADING = null;   // v3.96.1 the decrypted group B goes with the lock
+  INSIDER_RADAR = null; INSIDER_PRIV = null; _INS_LOADING = null; _INS_DONE = false;   // v3.96.1 the decrypted group B goes with the lock (v3.97.0 + the home board)
   if (typeof _dsClose === 'function') _dsClose();   // v3.90.0
   SESSION_PASSWORD = null;
   CURRENT_CRAWLED_AT = null;   // P0-4
@@ -9640,6 +9689,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.97.0', date: '10/15', title: '首頁改成搜尋＋三格', desc: '首頁改成搜尋＋三格：權證大買＋內部人有動作／權證大買、內部人還沒動／內部人有動作、權證還沒動；其他清單改成按鈕' },
   { v: 'v3.96.16', date: '10/15', title: '全市場內部人申報排行＋全景圖擴大到全市場', desc: '內部人申報：全市場排行（每月淨買賣）＋個股全景圖擴大到全市場（1,451 檔，可搜尋）＋近 6／12 月淨買賣、持股前 15 名、逐月明細含設質' },
   { v: 'v3.96.15', date: '10/14', title: '權證大戶排行上網站', desc: '大股東動向的分點警示下方新增「權證大戶排行」：當天每檔權證前 2 大分點合計（不含總公司與造市型）、主力權證與吃下比例，並列出這檔的內部人分點近 3 日進出，內部人也買的標 ◆（解鎖後才看得到）；資料庫更新到 10/14；資訊，不是買賣訊號' },
   { v: 'v3.96.14', date: '10/14', title: '分點警示可點開', desc: '大股東動向的分點警示每一列都能點開：近幾天的分點進出（改用每晚抓的分點資料，不再顯示「等每晚資料」）、這個分點在這檔的歷史紀錄、晚一天跟的公平對照結果、個股全景圖與「人 → 分點」近 12 個月（解鎖後才看得到）；觀測站的造字（例如罕見字）顯示為〇；資訊，不是買賣訊號' },
@@ -9648,7 +9698,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v3.96.10', date: '10/14', title: '本人＋他人名義合併比對', desc: '內部人分點比對時，董事長本人與「利用他人名義」持有的公司合併成一組；A級分點 17 → 19 組；每晚追蹤新增 2 個分點（解鎖後才看得到；一樣只當資訊，不是買賣訊號）' },
   { v: 'v3.96.9', date: '10/14', title: 'A級內部人分點＋今日一檔', desc: '分點警示新增「A級」：市值 100 億以上、申報逐月對上而且次佳分點差一倍以上的內部人分點（17 組，9 月樣本外：本人有交易的 27 組中 16 組吻合；照它進出的第三年期末考沒通過，只當資訊）；新增「今日一檔」：一家公司所有董事與內部人的分點、9 月申報驗證與工商登記關係（解鎖後才看得到）；每晚追蹤新增 A級的分點' },
   { v: 'v3.96.7', date: '10/13', title: '兩年都找到的內部人分點', desc: '分點警示新增 12 組「兩年都找到」：第一年與第二年各自獨立用同一套方法比對內部人申報，都找到同一個分點，並標出對到的人（解鎖後才看得到）；每晚追蹤新增 7 個分點（台新-營業部沒有分點頁，只用月資料）' },
-  { v: 'v3.96.6', date: '10/12', title: '分點警示＋長抱選單', desc: '大股東動向下方新增分點警示 5 組（研究名單，前後半都穩定，解鎖後才看得到）；持有天數選單加入 120／250 日；每晚追蹤新增 8 個研究分點（內部人／地緣／本土主力）' },
   { v: 'V1.0', date: '10/10', title: '正式版 V1.0（build v3.95.0）', desc: '新介面全站上線＋富邦抓取間隔 1.6 秒與 8111 等亂碼股名修正併入正式版＋外資規則統一（只算美/歐/亞）＋9/17 期貨資料補齊' },
 ];
 
@@ -10262,9 +10311,15 @@ function renderDailySummary() {
   const box = document.getElementById('summary-container');
   if (!box) return;
   const s = DAILY_SUMMARY;
-  if (!s) {
-    box.innerHTML = `<div class="ds-empty">今日總整理尚未產生（每晚抓取完成後產生）。<br>
+  // v3.97.0 owner 2026-10-15 「我的重點以及目標就是知道當天有沒有權證大買，同時內部人潛在有動作的個股」: search first,
+  // the three-group board (INSIDER_PRIV.board) is the main block, every other list is a small key opening its drawer.
+  // A re-render (new data every 5 minutes) keeps what is being typed in the home search box.
+  const q0 = document.getElementById('hmQ'), keep = q0 && document.activeElement === q0 ? q0.value : null;
+  const lead = () => `<div class="hm-q k-stocks">${_insQBar('hmQ', true)}</div><section class="hm-bd k-stocks" id="hmBoard">${_hmBoard()}</section>`;
+  if (!s) {   // no summary file: the search and the board still work (they read their own files)
+    box.innerHTML = (SESSION_PASSWORD ? `<div class="ek">${lead()}</div>` : '') + `<div class="ds-empty">今日總整理尚未產生（每晚抓取完成後產生）。<br>
       <button onclick="_dsGo('today3')">先看今日三視角 →</button></div>`;
+    _hmKeep(keep);
     return;
   }
   // v3.89.0 駅 EKI: line bands with station codes, condensed big numbers, 20-day sparklines.
@@ -10275,54 +10330,137 @@ function renderDailySummary() {
   const fb = s.fubon || {};
   const fbOk = fb.total && fb.ok === fb.total;
   const headline = s.headline || String((s.sentences || [])[0] || '').replace(/\*\*/g, '');
-  const band = (L, no, label, en, extra = '') =>
-    `<div class="ek-band"><span class="ek-code">${L}<small>${no}</small></span>${label}${extra}<span class="en">${en}</span></div>`;
   const frn = s.foreign || [];
+  // v3.97.0 the big number blocks (S01-R04) and the S05 / C06 / M07 / S08 blocks became one row of small keys:
+  // same numbers, same drawers; the note line is the key's tooltip
   const big = (cls, L, no, label, en, value, unit, note, trend, zero, kind = '') =>
-    `<div class="ek-blk ${cls}${kind ? ' ek-tap' : ''}"${kind ? ` onclick="_dsOpen('${kind}')"` : ''}>
-      ${band(L, no, label, en, kind ? '<span class="more">詳細 ›</span>' : '')}
-      <div class="ek-v">${value}<small>${unit}</small></div>
-      <div class="ek-spark">${trend ? _dsSpark(trend, 280, 36, zero) : ''}</div>
-      <div class="ek-d">${escHtml(note || '')}</div></div>`;
-  const nums = [
+    `<button class="hm-key ${cls}"${kind ? ` onclick="_dsOpen('${kind}')"` : ' disabled'} title="${escHtml(note || '')}">
+      <span class="ek-code">${L}<small>${no}</small></span><span class="hm-kl">${label}</span>
+      <span class="hm-kv">${value}<small>${unit}</small></span><span class="hm-ks">${trend ? _dsSpark(trend, 56, 18, zero) : ''}</span></button>`;
+  const keys = [
     big('k-stocks', 'S', '01', '強籌', 'STRONG CHIPS', k.strong_count ?? '—', '檔', n.strong, t.strong, false, 'strong'),
     big('k-players', 'P', '02', '本土大戶', 'DOMESTIC', _dsSign(k.domestic_net_yi), '億', n.domestic, t.domestic, true, 'domestic'),
     big('k-players', 'P', '03', '外資大戶', 'FOREIGN', _dsSign(k.foreign_net_yi), '億', n.foreign, t.foreign, true, frn.length ? 'foreign' : ''),
     big('k-risk', 'R', '04', '明日恐處置', 'RISK', k.disposal_pending ?? '—', '檔', n.risk, null, false, 'risk'),
-  ].join('');
-  const top = s.strong_top || [];
-  const mx = Math.max(1, ...top.map(r => r.masters || 0));
-  const strong = top.map((r, i) => `<li class="ek-tap" onclick="_dsOpen('strong')"><span class="ek-rk">${i + 1}</span>
-      <span class="ek-nm">${escHtml(r.name)}<em>${escHtml(r.code)}</em>${r.new ? '<i>新進</i>' : ''}</span>
-      <span class="ek-bar"><b style="width:${Math.round((r.masters || 0) / mx * 100)}%"></b></span>
-      <span class="ek-cnt">${r.masters}</span></li>`).join('') || '<li class="ek-sub">今晚沒有 3 位以上大戶同時布局的股票</li>';
-  const chg = (s.changes || []).filter(c => !String(c.tag).startsWith('期貨')).map(c => {   // futures sit in MARKET
-    const lab = (_DS_CHG_LABEL.find(([p]) => String(c.tag).startsWith(p)) || [null, c.tag])[1];
-    return `<li><span class="ek-lb">${escHtml(lab)}</span><span>${escHtml(c.text)}</span></li>`;
-  }).join('') || '<li class="ek-sub">和昨天相比沒有明顯變化</li>';
-  const oi = k.fut_foreign_oi, oiChg = k.fut_foreign_oi_chg;
-  const mkt = [
-    ['加權指數', k.taiex == null ? '—' : _dsNum(k.taiex, 0), _dsUpDn(k.taiex_chg_pct), t.taiex, false],
-    ['外資台指期', oi == null ? '—' : `淨${oi < 0 ? '空' : '多'} ${_dsNum(oi, 0)}`, oiChg == null ? '' : `<span class="ek-sub">${(oiChg < 0) === (oi < 0) ? '增' : '減'} ${_dsNum(oiChg, 0)}</span>`, t.fut_oi, false],
-    ['融資', `${_dsSign(k.margin_chg_yi)} 億`, `<span class="ek-sub">昨 ${_dsSign(k.margin_chg_yi_prev)}</span>`, t.margin, true],
-    ['P/C', k.pc_ratio == null ? '—' : k.pc_ratio.toFixed(2), `<span class="ek-sub">${_dsSign(k.pc_ratio_chg, 2)}</span>`, t.pc, false],
-  ].map(([a, b, c, tr, z]) => `<li><span class="ek-lb">${a}</span><span class="ek-mv">${b}</span><span class="ek-ms">${tr ? _dsSpark(tr, 64, 20, z) : ''}</span>${c}</li>`).join('').replace(/<li>/g, `<li onclick="_dsOpen('market')">`);
+  ].join('')
+    + `<button class="hm-key k-meta" onclick="_dsOpen('changes')"><span class="ek-code">C<small>06</small></span><span class="hm-kl">今天變了什麼</span><span class="hm-kv">›</span></button>`
+    + `<button class="hm-key k-market" onclick="_dsOpen('market')"><span class="ek-code">M<small>07</small></span><span class="hm-kl">市場</span>`
+    + `<span class="hm-kv">${k.taiex == null ? '—' : _dsNum(k.taiex, 0)}<small>${_dsUpDn(k.taiex_chg_pct)}</small></span></button>`
+    + `<button class="hm-key k-stocks" onclick="_insRank()"><span class="ek-code">S<small>08</small></span><span class="hm-kl">內部人申報排行</span><span class="hm-kv">›</span></button>`
+    + `<button class="hm-key k-stocks" onclick="_hmIns()"><span class="ek-code">S<small>08</small></span><span class="hm-kl">大股東動向</span><span class="hm-kv">›</span></button>`;
   const days = (t.dates || []).length;
   box.innerHTML = `<div class="ek">
     <div class="ek-eye"><span><span class="dt">${date}</span>（${escHtml(s.weekday || '')}）今日總整理</span>
       <span class="r"><span>爬取 ${escHtml(s.crawled_at || '—')}</span><span><span class="${fbOk ? 'ek-ok' : 'ek-bad'}">●</span> 富邦 ${fb.ok ?? '—'}/${fb.total ?? '—'}</span>
       <button class="ek-xl" onclick="document.getElementById('excelDownloadBtn').click()">Excel 日報 ↓</button></span></div>
     <h2 class="ek-h1">${escHtml(headline)}</h2>
-    <section class="ek-nums">${nums}</section>
-    <section class="ek-cols">
-      <div class="ek-blk k-stocks">${band('S', '05', '強籌前 5', 'STRONG CHIPS', `<button class="ek-go" onclick="_dsOpen('strong')">全部 ${k.strong_count ?? ''} 檔 ›</button>`)}<ul>${strong}</ul></div>
-      <div class="ek-blk k-meta ek-tap" onclick="_dsOpen('changes')">${band('C', '06', '今天變了什麼', 'CHANGES', '<span class="more">詳細 ›</span>')}<ul>${chg}</ul></div>
-      <div class="ek-blk k-market ek-mkt">${band('M', '07', '市場', 'MARKET', '<button class="ek-go" onclick="_dsOpen(\'market\')">20 日 ›</button>')}<ul>${mkt}</ul></div>
-    </section>
-    <div class="ek-blk k-stocks ek-ins" id="ekIns">${_insInner()}</div>
+    ${lead()}
+    <section class="hm-keys">${keys}</section>
     <div class="ek-foot"><span>路線色：S 個股（黃）・P 大戶（藍）・M 市場（青）・R 風險（紫）・C 一般（灰）。小圖＝近 ${days || 20} 個交易日走勢。</span>
       <span>強籌：每位大戶近 ${s.window_days || 10} 日淨買 ≥ 3,000 萬、買超 ≥ 5 天、仍在高點 80% 以上，3 位以上同時布局。</span></div>
   </div>`;
+  _hmKeep(keep);
+}
+function _hmKeep(keep) {
+  const q1 = keep === null ? null : document.getElementById('hmQ');
+  if (q1) { q1.value = keep; q1.focus(); _insQIn(q1); }
+}
+
+// ========== v3.97.0 home: the three-group board (權證大買 x 內部人分點) ==========
+// Owner 2026-10-15 「權證大買，同時內部人潛在有動作的個股。以及權證大買，內部人還沒有動作，還有內部人有動作，但權證還沒有動作」;
+// approved draft docs/diagrams/home_search/home_search_v2_draft.html. INSIDER_PRIV.board is built nightly (encrypted part only):
+// A = warrant top N and the insider branches moved, B = warrant top N and they did not, C = they moved, no warrant buy.
+// Every branch / person name comes from the decrypted part; nothing is written into the page.
+let _HM_ROWS = { A: [], B: [], C: [] };
+const _HM_T = { A: '① 權證大買 ＋ 內部人有動作', B: '② 權證大買，內部人還沒動', C: '③ 內部人有動作，權證還沒動' };
+function _hmAmt(v, signed = false) {   // 萬 -> 「1.23 億」 (>= 1 億, 2 decimals) or 「1,234 萬」
+  const x = Number(v);
+  if (v === null || v === undefined || !isFinite(x)) return '—';
+  const a = Math.abs(x), sg = signed ? (x > 0 ? '+' : x < 0 ? '−' : '') : '';
+  return Math.round(a) >= 1e4 ? `${sg}${(a / 1e4).toFixed(2)} 億` : `${sg}${Math.round(a).toLocaleString('en-US')} 萬`;
+}
+function _hmLots(v) { const x = Number(v) || 0; return `${x > 0 ? '+' : x < 0 ? '−' : ''}${Math.abs(x).toLocaleString('en-US')} 張`; }
+function _hmRule(bd) {
+  const ru = bd.rule || {};
+  return { top: Number(ru.top_n) || 20, min: Number(ru.min_amt_wan) || 500, days: Number(ru.days) || 3, ratio: Number(ru.ratio) || 3, base: Number(ru.base) || 60 };
+}
+function _hmRuleTxt(bd, ru) {
+  return `權證大買＝權證大戶排行前 ${ru.top}（前兩名分點淨買，不含總公司、造市）｜內部人有動作＝已對到的內部人分點近 ${ru.days} 日淨買賣 ≥ ${ru.min.toLocaleString('en-US')} 萬，且 ≥ 該分點平常 ${ru.days} 日的 ${ru.ratio} 倍（平常＝前 ${ru.base} 個交易日）`
+    + `（分點也替其他客戶交易，屬潛在動作）｜資料日 ${escHtml(_insDay(bd.day))}｜資料庫 ${(Number(bd.stocks) || 0).toLocaleString('en-US')} 檔／${(Number(bd.pairs) || 0).toLocaleString('en-US')} 組`;
+}
+function _hmWho(w) {   // [role, who, branch, lots]
+  w = Array.isArray(w) ? w : [];
+  const lots = Number(w[3]) || 0;
+  const x = w[4] != null && isFinite(Number(w[4])) ? ` <small class="dim">平常的 ${Number(w[4]).toFixed(1)} 倍</small>` : '';   // [.., lots, x]
+  return `<span class="hm-w"><b>${escHtml(w[0] || '')}</b> ${escHtml(w[1] || '')} → <i>${escHtml(w[2] || '')}</i> <span class="${_dsCls(lots)}">${_hmLots(lots)}</span>${x}</span>`;
+}
+function _hmDir(dir) { return dir ? `<i class="hm-dir${dir === '同向' ? ' on' : ''}">${escHtml(dir)}</i>` : ''; }
+function _hmItem(g, r, i, ru) {   // v3.97.0 owner 「整理後，又重新進行排版的模範生」: two lines - name + one big number, one grey line
+  const n = Number(r.amt) || 0;
+  const big = g === 'B' ? `<span class="hm-v ds-up">${_hmAmt(r.warrant)}</span>` : `<span class="hm-v ${_dsCls(n)}">${_hmAmt(r.amt, true)}</span>`;
+  const role = escHtml(((Array.isArray(r.who) ? r.who : [])[0] || [])[0] || '');
+  // owner 2026-10-15 09:3x 「金額的部分，還是必須附上(%)或者張數」: every amount comes with its lots and a %
+  const pc = v => { const x = Number(v); if (v === null || v === undefined || !isFinite(x)) return ''; const sg = x > 0 ? '+' : x < 0 ? '−' : ''; return Math.abs(x) < 0.01 ? '未滿 0.01%' : `${sg}${Math.abs(x).toFixed(2)}%`; };
+  const insQ = `${_hmLots(r.lots)}${r.pct != null ? `・占股本${Math.abs(Number(r.pct)) < 0.01 ? '' : ' '}${pc(r.pct)}` : ''}`
+    + (r.x != null ? `・平常的 ${Number(r.x).toFixed(1)} 倍` : (g === 'B' ? '' : '・平常沒有交易'));   // strategy item 1: how unusual
+  const warQ = `${(Number(r.wlots) || 0).toLocaleString('en-US')} 張${r.wpct != null ? `・佔當日權證 ${Number(r.wpct).toFixed(1)}%` : ''}`;
+  const sub = g === 'A' ? `${insQ}</div><div class="hm-l2">權證 #${Number(r.rank) || '—'} · ${_hmAmt(r.warrant)}（${warQ}）${_hmDir(r.dir)}`
+    : g === 'B' ? `${warQ}｜${r.matched ? `有對到分點，${ru.days} 日沒動` : '還沒對到分點'}`
+    : `${insQ}${role ? `｜${role}` : ''}`;
+  return `<li class="hm-it" onclick="_hmGo('${g}',${i})"><div class="hm-l1"><span class="hm-nm"><em>${escHtml(r.code || '')}</em>${escHtml(r.name || '')}</span>${big}</div>`
+    + `<div class="hm-l2">${sub}</div></li>`;   // ① has two grey lines (insider, then warrant + 同向／反向)
+}
+function _hmCol(g, cls, rows, ru, foot) {
+  const li = rows.slice(0, 5).map((r, i) => _hmItem(g, r, i, ru)).join('') || '<li class="ek-sub">今天沒有</li>';   // 模範生: at most 5
+  return `<div class="hm-col ${cls}"><div class="hm-ch"><span class="hm-dot"></span><span>${_HM_T[g]}</span><b>${rows.length} 檔</b></div><ul>${li}</ul>`
+    + `<div class="hm-cf">${rows.length ? `<button class="hm-all" onclick="_hmAll('${g}')">全部 ${rows.length} ›</button>` : ''}<span>${foot}</span></div></div>`;
+}
+function _hmBoard() {
+  const bd = (INSIDER_PRIV || {}).board;
+  if (!bd || typeof bd !== 'object') {
+    if (INSIDER_RADAR === null) _insLoad();   // the first render starts the load; _insRender fills the board when it is in
+    return `<div class="hm-wait">${INSIDER_RADAR === null || !_INS_DONE ? '三格載入中…' : '今天的三格還沒產生（每晚約 21:30 更新）'}</div>`;
+  }
+  const ru = _hmRule(bd), arr = v => (Array.isArray(v) ? v : []);
+  const A = arr(bd.A), B = arr(bd.B), C = arr(bd.C);
+  _HM_ROWS = { A, B, C };
+  const nU = B.filter(r => !r.matched).length;
+  return `<div class="hm-rule">權證前 ${ru.top} × 內部人分點 ${ru.days} 日 ≥ ${ru.min.toLocaleString('en-US')} 萬且 ≥ 平常 ${ru.ratio} 倍｜資料日 ${escHtml(_insDay(bd.day))}｜資料庫 ${(Number(bd.stocks) || 0).toLocaleString('en-US')} 檔（規則全文在「全部」裡）</div><div class="hm-tri">`
+    + _hmCol('A', 'hm-a', A, ru, '同向＝內部人分點也在買；反向＝在賣')
+    + _hmCol('B', 'hm-b', B, ru, B.length ? `${nU} 檔還沒對到分點` : '')
+    + _hmCol('C', 'hm-c', C, ru, '紅＝買、綠＝賣')
+    + '</div>';
+}
+function _hmBoardFill() { const el = document.getElementById('hmBoard'); if (el) el.innerHTML = _hmBoard(); }
+function _hmGo(g, i, fromList = 0) {
+  const r = (_HM_ROWS[g] || [])[i];
+  if (r && r.code) _insStock(r.code, fromList ? `hm${g}` : '', r.name || '');
+}
+function _hmAll(g) {   // the full list of one group with every insider -> branch row (role, who, branch, lots)
+  const bd = (INSIDER_PRIV || {}).board;
+  if (!bd || !_HM_T[g]) return;
+  const ru = _hmRule(bd), rows = Array.isArray(bd[g]) ? bd[g] : [];
+  _HM_ROWS[g] = rows;
+  const who = r => (Array.isArray(r.who) ? r.who : []).map(w => `<div>${_hmWho(w)}</div>`).join('') || '<span class="dim">—</span>';
+  const amt = r => `<span class="${_dsCls(Number(r.amt) || 0)}">${_hmAmt(r.amt, true)}</span><small>${_hmLots(r.lots)}</small>`;
+  const head = g === 'A' ? ['權證', `內部人分點 ${ru.days} 日`, '方向', '內部人 → 分點（張）']
+    : g === 'B' ? ['權證', '內部人分點'] : [`內部人分點 ${ru.days} 日`, '內部人 → 分點（張）', '權證'];
+  const cells = r => g === 'A' ? [`#${Number(r.rank) || '—'} · ${_hmAmt(r.warrant)}`, amt(r), _hmDir(r.dir), who(r)]
+    : g === 'B' ? [`#${Number(r.rank) || '—'} · <span class="ds-up">${_hmAmt(r.warrant)}</span>`, r.matched ? `有對到分點，${ru.days} 日沒動` : '還沒對到內部人分點']
+    : [amt(r), who(r), `沒進前 ${ru.top}`];
+  const tr = rows.map((r, i) => `<tr class="ek-tap" onclick="_hmGo('${g}',${i},1)"><td class="dim">${i + 1}</td>`
+    + `<td><b>${escHtml(r.code || '')}</b> ${escHtml(r.name || '')}</td>${cells(r).map(c => `<td>${c}</td>`).join('')}</tr>`).join('');
+  const body = `<div class="ins-sx"><table class="hm-t"><thead><tr><th>#</th><th>股票</th>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead>`
+    + `<tbody>${tr || `<tr><td colspan="${head.length + 2}" class="dim">今天沒有</td></tr>`}</tbody></table></div>`
+    + `<div class="dr-note">${_hmRuleTxt(bd, ru)}。點任一列看這檔的內部人申報與全景圖。資訊，不是買賣訊號。</div>`;
+  _dsDrawer('stocks', 'S', '05', `${_HM_T[g]}　${rows.length} 檔`, 'WARRANT × INSIDER', body);
+}
+// the S08 大股東動向 block (year / holding menus, alerts, warrant ranking, copy test) now lives in a drawer;
+// _insRender re-renders #ekIns wherever it is
+function _hmIns() {
+  _INS_SV = null;
+  _dsDrawer('stocks', 'S', '08', '大股東動向', 'INSIDERS', `<div class="ek hm-ins"><div class="ek-blk k-stocks ek-ins" id="ekIns">${_insInner()}</div></div>`);
+  document.querySelector('#dsDrawer .dr').classList.add('hm-wide');   // the block was laid out for the full page width (not dr-wide: phones hide .dr-wide)
 }
 
 // ========== v3.90.0 detail drawer ==========
@@ -10640,7 +10778,8 @@ function _boardToday3() {
 let INSIDER_RADAR = null;    // null = not loaded yet, {} = no file
 let INSIDER_PRIV = null;
 let _INS_LOADING = null;
-let _INS_H = 20;             // owner: the 20-day excess return is the main number, 5 / 10 / 60 from the menu
+let _INS_DONE = false;       // v3.97.0 the load (public + private part) finished: the home board may say 「還沒產生」
+let _INS_H = 20;            // owner: the 20-day excess return is the main number, 5 / 10 / 60 from the menu
 let _INS_ROWS = [];
 const _INS_HS = [5, 10, 20, 60, 120, 250];   // v3.96.6 owner 2026-10-12: 長抱 120 / 250 日 in the same menu
 const _INS_HS_TB = [5, 20, 60, 120, 250];    // the drawer's backtest table: short / mid / long columns
@@ -10674,6 +10813,7 @@ function _insLoad() {
         if (plain && SESSION_PASSWORD === pw) INSIDER_PRIV = JSON.parse(plain);
       } catch (e) { console.warn('[大股東動向] private part not loaded', e); INSIDER_PRIV = null; }
     }
+    _INS_DONE = true;
     _insRender();
     return ok;
   })();
@@ -10787,7 +10927,7 @@ function _insAlOpen(i) {
   const body = _dsKpis([['近幾天', now], ['分點自己在這檔', rec], ['晚一天跟（近一年，公平對照）', fair], ['回測 20 日比平常', pc(a.gap20)]])
     + `<div class="dr-note">${escHtml(a.person || '')}${a.person ? ' → ' : ''}${escHtml(a.branch || '')}${a.tier ? '・' + escHtml(a.tier) : ''}；分點自己的勝率多半是股票本身在漲，晚一天跟的公平對照＝同一檔、抱一樣天數的隨機進場；<b>資訊，不是買賣訊號</b></div>`
     + `<div class="dr-pano" id="insPano" onclick="_insPanoClick(event)"></div>` + _insWBBlock(a.code);
-  _dsDrawer('stocks', 'S', '08', `${escHtml(a.name || '')} ${escHtml(a.code || '')}　${buy ? '買進' : '賣壓'}・${escHtml(a.branch || '')}`, 'INSIDERS', body, '');
+  _dsDrawer('stocks', 'S', '08', `${escHtml(a.name || '')} ${escHtml(a.code || '')}　${buy ? '買進' : '賣壓'}・${escHtml(a.branch || '')}`, 'INSIDERS', body, '<button onclick="_hmIns()">‹ 回大股東動向</button>');
   _INS_PF = { role: '全部', span: 2 };
   _insPanoDraw(a.code);
 }
@@ -10877,7 +11017,8 @@ function _insCopy() {
     + (sig ? `<ul class="ins-cm-l">${sig}</ul>` : '');
 }
 function _insRender() {
-  const box = document.getElementById('ekIns');
+  _hmBoardFill();   // v3.97.0 the home board reads the same decrypted part
+  const box = document.getElementById('ekIns');   // v3.97.0 the S08 block sits in the 大股東動向 drawer (_hmIns)
   if (!box) return;
   const q = document.getElementById('insQ'), keep = q && document.activeElement === q ? q.value : null;   // v3.96.16 a reload keeps the search box
   box.innerHTML = _insInner();
@@ -11242,7 +11383,7 @@ function _insOpen(i) {
     + `<div class="dr-series"><div class="dr-sh"><b>這一筆之後的實際超額</b></div><div class="dr-last">${_INS_HS.map(h => `<span><em>${h} 日</em>${_insPct(x['ex' + h])}</span>`).join('')}</div></div>`
     + `<div class="dr-series"><div class="dr-sh"><b>同身分訊號的回測</b></div><div class="dr-ins-tb">${layerTb}</div><div class="dr-note">${sample}</div></div>`
     + `<div class="dr-note">${notes}</div>`;
-  _dsDrawer('stocks', 'S', '08', `${escHtml(x.name || '')} ${escHtml(x.code)}　${_insLabel(x)}`, 'INSIDERS', body, `<button onclick="_insAll()">全部 ${_INS_ROWS.length} 筆 ›</button>`);
+  _dsDrawer('stocks', 'S', '08', `${escHtml(x.name || '')} ${escHtml(x.code)}　${_insLabel(x)}`, 'INSIDERS', body, `<button onclick="_hmIns()">‹ 回大股東動向</button><button onclick="_insAll()">全部 ${_INS_ROWS.length} 筆 ›</button>`);
   _INS_PF = { role: '全部', span: 2 };
   _insPanoDraw(x.code);
 }
@@ -11256,7 +11397,7 @@ function _insAll() {
         <td><span class="ek-ins-lb ${_insSide(x)}">${_insLabel(x)}</span></td><td class="num">${escHtml(_insAmtTxt(x.net_yi_est))}</td>
         <td class="dr-wide">${_insYm(x.ym)}</td><td>${_insDay(x.signal_day)}</td><td class="r">${_insPct(x['ex' + H])}</td></tr>`).join('')
     }</tbody></table><div class="dr-note">點任一列看逐人明細。金額為推算（集中市場淨股數 × 當月平均收盤價）。</div>`;
-  _dsDrawer('stocks', 'S', '08', `大股東動向 ${escHtml(_insWin().label || '')} 全部 ${rows.length} 筆`, 'INSIDERS', body);
+  _dsDrawer('stocks', 'S', '08', `大股東動向 ${escHtml(_insWin().label || '')} 全部 ${rows.length} 筆`, 'INSIDERS', body, '<button onclick="_hmIns()">‹ 回大股東動向</button>');
 }
 
 // ========== v3.96.16 全市場內部人申報排行 + 個股全景圖擴大到全市場 (owner 2026-10-15, as on toalpha's insider pages) ==========
@@ -11271,6 +11412,7 @@ let _INS_RKS = { ym: null, side: 'buy', all: false };
 let _INS_RK_ROWS = [];
 let _INS_SV = null;                           // the open stock view { code, doc }
 let _INS_QS = [], _INS_QI = 0;                // the suggestions on show and the highlighted one
+let _INS_QEL = null;                          // v3.97.0 the search box they belong to (home hmQ or S08 insQ)
 const _INS_KIND = { '利用他人名義持有者': '他人名義', '本人之配偶及未成年子女': '配偶子女', '之法人代表人': '法人代表人' };
 function _insJson(path) {   // revalidated with the server (no-cache); null when missing or unreadable
   return fetchWithTimeout(`${DATA_BASE}/${path}`, {cache: 'no-cache'}, 15000)
@@ -11288,11 +11430,12 @@ function _insZh(v, sign = false, unit = false) {   // shares -> 張 (under 1 張
   return sg + (a >= 1000 ? `${Math.round(a / 1000).toLocaleString('en-US')}${unit ? ' 張' : ''}` : `${a.toLocaleString('en-US')} 股`);
 }
 function _insSgn(v, html) { return `<span class="${_dsCls(Number(v) || 0)}">${html}</span>`; }   // red buy / green sell (td colour is fixed)
-function _insQBar() {
-  return `<div class="ins-q"><div class="ins-q-w"><input id="insQ" type="search" placeholder="查個股內部人申報（代號或名稱）" aria-label="查個股內部人申報"
+function _insQBar(id = 'insQ', home = false) {   // v3.97.0 the home page has its own big box (hmQ); each box has its own list (id + 'S')
+  const ph = home ? '輸入代號或名稱，看這檔的內部人申報與全景圖' : '查個股內部人申報（代號或名稱）';
+  return `<div class="ins-q"><div class="ins-q-w"><input id="${id}" type="search" placeholder="${ph}" aria-label="${home ? '搜尋個股' : '查個股內部人申報'}"
     autocomplete="off" enterkeyhint="search" onfocus="_insQFocus(this)" oninput="_insQIn(this)" onkeydown="_insQKey(event)" onblur="_insQBlur()">`
-    + `<div class="ins-sg" id="insQS" role="listbox" onmousedown="event.preventDefault()"></div></div>`
-    + `<button class="ins-q-b" onclick="_insRank()">全市場申報排行 ›</button></div>`;
+    + `<div class="ins-sg" id="${id}S" role="listbox" onmousedown="event.preventDefault()"></div></div>`
+    + (home ? '' : `<button class="ins-q-b" onclick="_insRank()">全市場申報排行 ›</button>`) + '</div>';
 }
 function _insIxLoad() {
   if (!_INS_IX_P) _INS_IX_P = _insJson('insider_stock/index.json').then(d => {
@@ -11312,8 +11455,9 @@ function _insQFind(q) {
     .sort((a, b) => a[0] - b[0] || String(a[1][0]).localeCompare(String(b[1][0]))).slice(0, 8).map(z => z[1]);
 }
 function _insQIn(el) {
-  const box = document.getElementById('insQS');
+  const box = document.getElementById(`${el.id}S`);
   if (!box) return;
+  _INS_QEL = el;
   const q = String(el.value || '').trim();
   _INS_QS = []; _INS_QI = 0;
   if (!q) { box.innerHTML = ''; box.classList.remove('on'); return; }
@@ -11330,7 +11474,7 @@ function _insQKey(ev) {
     if (!n) return;
     ev.preventDefault();
     _INS_QI = (_INS_QI + (ev.key === 'ArrowDown' ? 1 : n - 1)) % n;
-    document.querySelectorAll('#insQS .ins-sg-i').forEach((d, i) => d.classList.toggle('on', i === _INS_QI));
+    document.querySelectorAll(`#${ev.target.id}S .ins-sg-i`).forEach((d, i) => d.classList.toggle('on', i === _INS_QI));
   } else if (ev.key === 'Enter') {
     ev.preventDefault();
     const q = String(ev.target.value || '').trim().toUpperCase();
@@ -11338,12 +11482,12 @@ function _insQKey(ev) {
     else if (!_INS_IX && /^[0-9]{4}[0-9A-Z]{0,2}$/.test(q)) { ev.target.value = ''; ev.target.blur(); _insStock(q); }   // list not read yet: a code still works
   } else if (ev.key === 'Escape') { ev.stopPropagation(); _insQHide(); }
 }
-function _insQHide() { const box = document.getElementById('insQS'); if (box) box.classList.remove('on'); }
+function _insQHide() { document.querySelectorAll('.ins-sg.on').forEach(b => b.classList.remove('on')); }
 function _insQBlur() { setTimeout(_insQHide, 200); }   // after a tap on a suggestion
 function _insQGo(i) {
   const s = _INS_QS[i];
   if (!s) return;
-  const el = document.getElementById('insQ');
+  const el = _INS_QEL || document.getElementById('insQ');   // the box the suggestions came from
   if (el) { el.value = ''; el.blur(); }
   _insQHide();
   _insStock(s[0], '', s[1]);
@@ -11365,7 +11509,9 @@ async function _insStock(code, from = '', name = '') {
   code = String(code || '').trim().toUpperCase();
   if (!/^[0-9A-Z]{4,6}$/.test(code)) return;
   const nm = name || ((((_INS_IX || {}).stocks || []).find(s => s[0] === code)) || [])[1] || '';
-  const foot = from === 'rank' ? '<button onclick="_insRank()">‹ 回排行</button>' : '<button onclick="_insRank()">全市場申報排行 ›</button>';
+  const foot = from === 'rank' ? '<button onclick="_insRank()">‹ 回排行</button>'
+    : /^hm[ABC]$/.test(from) ? `<button onclick="_hmAll('${from.slice(2)}')">‹ 回清單</button>`   // v3.97.0 from a home board list
+    : '<button onclick="_insRank()">全市場申報排行 ›</button>';
   const sv = _INS_SV = { code, doc: null };
   if (!_INS_SD[code]) _INS_SD[code] = _insJson(`insider_stock/${code}.json`).then(d => { if (!d || !d.filings) { delete _INS_SD[code]; return null; } return d; });
   _dsDrawer('stocks', 'S', '08', `${escHtml(code)} ${escHtml(nm)}　內部人申報`, 'INSIDERS', '<div class="dr-note" id="insSvWait">載入中…</div>', foot);
