@@ -731,6 +731,16 @@ def main():
         bd = board() if board else None          # 2026-10-15: the board loads its own closes (+ the nightly quotes)
         if bd:
             priv["board"] = bd
+        # 2026-10-16 owner 「質押比變化，絕對要加入到每晚追蹤以及網站上」: scripts/pledge_watch.py (branch rows inside -> private)
+        pw_f = ROOT / "data" / "research" / "pledge_watch.json"
+        if pw_f.exists():
+            pdoc = load_json(pw_f)
+            priv["pledge"] = {"newest_month": pdoc.get("newest_month"), "built": pdoc.get("built"),
+                              "changes": (pdoc.get("changes") or [])[:80], "longhold": (pdoc.get("longhold") or [])[:80]}
+            pe_f = ROOT / "data" / "research" / "pledge_events.json"     # 2026-10-16 daily announcements (MoneyDJ ZEU, third party)
+            if pe_f.exists():
+                pe = load_json(pe_f)
+                priv["pledge"]["events"] = {k: pe.get(k) for k in ("newest", "since", "alerts")}
     priv_path = Path(a.out).with_name(PRIVATE_NAME)
     if pw:
         pub["private"] = PRIVATE_NAME       # the page fetches the encrypted part only when it exists

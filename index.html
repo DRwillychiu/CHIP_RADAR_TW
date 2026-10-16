@@ -10352,7 +10352,8 @@ function renderDailySummary() {
     + `<button class="hm-key k-market" onclick="_dsOpen('market')"><span class="ek-code">M<small>07</small></span><span class="hm-kl">市場</span>`
     + `<span class="hm-kv">${k.taiex == null ? '—' : _dsNum(k.taiex, 0)}<small>${_dsUpDn(k.taiex_chg_pct)}</small></span></button>`
     + `<button class="hm-key k-stocks" onclick="_insRank()"><span class="ek-code">S<small>08</small></span><span class="hm-kl">內部人申報排行</span><span class="hm-kv">›</span></button>`
-    + `<button class="hm-key k-stocks" onclick="_hmIns()"><span class="ek-code">S<small>08</small></span><span class="hm-kl">大股東動向</span><span class="hm-kv">›</span></button>`;
+    + `<button class="hm-key k-stocks" onclick="_hmIns()"><span class="ek-code">S<small>08</small></span><span class="hm-kl">大股東動向</span><span class="hm-kv">›</span></button>`
+    + `<button class="hm-key k-risk" onclick="_plOpen()"><span class="ek-code">S<small>09</small></span><span class="hm-kl">質押追蹤</span><span class="hm-kv">›</span></button>`;
   const days = (t.dates || []).length;
   box.innerHTML = `<div class="ek">
     <div class="ek-eye"><span><span class="dt">${date}</span>（${escHtml(s.weekday || '')}）今日總整理</span>
@@ -10460,6 +10461,39 @@ function _hmBoard() {
     + (bd.D ? `<div class="hm-tri hm-tri-d">${_hmCol('D', 'hm-d', D, ru, '過去一年在這檔低買高賣的分點；驗證：跟著它的買單，第二年多賺約 1.1 個百分點')}</div>` : '');
 }
 function _hmBoardFill() { const el = document.getElementById('hmBoard'); if (el) el.innerHTML = _hmBoard(); }
+// owner 2026-10-16 10:0x 「質押比變化，絕對要加入到每晚追蹤以及網站上。然後特別是針對那些特定分點卻持有超過5000千張然後都可以不賣出的」
+// (scripts/pledge_watch.py, in the encrypted part): the newest month's pledge changes and the long-held branches (>= 5,000 lots)
+let _PL_ROWS = [];
+function _plOpen() {
+  const pl = (INSIDER_PRIV || {}).pledge;
+  if (!pl) { _dsDrawer('stocks', 'S', '09', '質押追蹤', 'PLEDGES', '<div class="dr-note">質押資料還沒產生（每晚約 21:30 更新；需要登入）</div>'); return; }
+  const ch = Array.isArray(pl.changes) ? pl.changes : [], lh = Array.isArray(pl.longhold) ? pl.longhold : [];
+  _PL_ROWS = [...ch, ...lh];
+  const n = v => (Number(v) || 0).toLocaleString('en-US');
+  const t1 = ch.map((x, i) => `<tr class="ek-tap" onclick="_insStock(_PL_ROWS[${i}].code, '', _PL_ROWS[${i}].name)"><td><b>${escHtml(x.code)}</b> ${escHtml(x.name || '')}</td>`
+    + `<td>${escHtml(x.who)}<small class="dim">（${escHtml(x.role)}）</small></td><td>${escHtml(_insYm(x.month))}</td><td>${n(x.lots)}</td><td>${n(x.pledged)}</td>`
+    + `<td class="${x.change > 0 ? 'ds-dn' : 'ds-up'}">${x.change > 0 ? '+' : ''}${n(x.change)}</td><td>${x.ratio_before}% → <b>${x.ratio}%</b></td></tr>`).join('');
+  const t2 = lh.map((x, i) => `<tr class="ek-tap" onclick="_insStock(_PL_ROWS[${ch.length + i}].code, '', _PL_ROWS[${ch.length + i}].name)"><td><b>${escHtml(x.code)}</b> ${escHtml(x.name || '')}</td>`
+    + `<td>${escHtml(x.branch)}</td><td>${n(x.net)}<small class="dim">（${escHtml(String(x.pct))}%）</small></td>`
+    + `<td>${(Array.isArray(x.holders) ? x.holders : []).slice(0, 3).map(h => `${escHtml(h.who)} ${n(h.lots)} 張／質押 ${h.ratio}%`).join('<br>')}</td></tr>`).join('');
+  // 2026-10-16 10:0x owner 「近一周解質押超過50%…就要去特別注意」: daily announcements (scripts/pledge_events.py)
+  const ev = pl.events || {}, al = Array.isArray(ev.alerts) ? ev.alerts : [];
+  const md = d => d ? `${String(d).slice(4, 6)}/${String(d).slice(6, 8)}` : '';
+  const t0 = al.map(x => `<tr class="ek-tap"${x.big ? '' : ' style="opacity:.5"'} onclick="_insStock('${escHtml(x.code)}', '', '${escHtml(x.name || '')}')"><td><b>${escHtml(x.code)}</b> ${escHtml(x.name || '')}</td>`
+    + `<td>${escHtml(x.who)}<small class="dim">（${escHtml(x.role)}）</small></td>`
+    + `<td>${(Array.isArray(x.days) ? x.days : []).map(d => `${md(d[0])} ${d[2] ? '解 ' + n(d[2]) : ''}${d[1] ? '設 ' + n(d[1]) : ''}<small class="dim">（${escHtml(d[3] || '')}）</small>`).join('<br>')}</td>`
+    + `<td class="ds-up"><b>${n(x.released)}</b><small class="dim">（${x.pct}%）</small></td><td>${n(x.pledged_now)}／${x.held != null ? n(x.held) : '—'}</td>`
+    + `<td>${x.declared && Array.isArray(x.declared.period) ? `<b>已申報 ${n(x.declared.lots)} 張</b><br>${md(x.declared.period[0])} 起` : '<span class="dim">還沒申報</span>'}</td></tr>`).join('');
+  const body = (ev.newest ? `<div class="dr-series"><div class="dr-sh"><b>一週解質 > 50%（${md(ev.since)}～${md(ev.newest)} 公告）</b><span class="dim">${al.filter(x => x.big).length} 位 ≥ 1,000 張或 ≥ 股本 0.5%；灰色是張數小的</span></div>`
+    + `<div class="ins-sx"><table class="hm-t"><thead><tr><th>股票</th><th>誰</th><th>公告（張；質權人）</th><th>一週解質</th><th>還押／持股</th><th>轉讓申報</th></tr></thead><tbody>${t0 || '<tr><td colspan="6" class="dim">沒有</td></tr>'}</tbody></table></div>`
+    + `<div class="dr-note">解質後股票才能賣。<b>如果解質是為了賣股</b>：要先做轉讓事前申報，<b>申報日＋3 天</b>起、一個月內才能在市場賣（例：10/14 申報 → 10/17 起；每天 10 張以內免申報），所以要盯「轉讓申報」這一欄。<b>如果解質是為了還款</b>（或降低借款、換一家銀行再押），就不用在意這個日期。另外也可能是鉅額轉讓或贈與，一樣要先申報。</div></div>` : '')
+    + `<div class="dr-series"><div class="dr-sh"><b>質押變化（每家公司最新一個申報月；最新到 ${escHtml(_insYm(pl.newest_month))}）</b><span class="dim">${ch.length} 位：比例 ±10 點、≥ 1,000 張或 ≥ 股本 0.5%</span></div>`
+    + `<div class="ins-sx"><table class="hm-t"><thead><tr><th>股票</th><th>誰</th><th>月份</th><th>持股（張）</th><th>質押（張）</th><th>變化</th><th>質押比</th></tr></thead><tbody>${t1 || '<tr><td colspan="7" class="dim">沒有</td></tr>'}</tbody></table></div></div>`
+    + `<div class="dr-series"><div class="dr-sh"><b>長期持有 ≥ 5,000 張的分點</b><span class="dim">2015 年起淨買；旁邊是這檔的大股東與質押比</span></div>`
+    + `<div class="ins-sx"><table class="hm-t"><thead><tr><th>股票</th><th>分點</th><th>2015 起淨買（張）</th><th>大股東／質押比</th></tr></thead><tbody>${t2 || '<tr><td colspan="4" class="dim">沒有</td></tr>'}</tbody></table></div></div>`
+    + `<div class="dr-note">質押＝把股票押給銀行或券商借錢，股票不能賣，要先還款解除質押。董監、經理人、10% 大股東設質要立即通知公司，公司 5 日內公告（證交法第 25 條）；每月持股申報次月 15 日前公告。長期持有分點是推測，要用 XQ 累計線確認。點任一列看這檔的內部人申報。</div>`;
+  _dsDrawer('stocks', 'S', '09', `質押追蹤　${al.filter(x => x.big).length} 位一週解質・${ch.length} 位月變化・${lh.length} 個長期持有分點`, 'PLEDGES', body);
+}
 function _hmGo(g, i, fromList = 0) {
   const r = (_HM_ROWS[g] || [])[i];
   if (r && r.code) _insStock(r.code, fromList ? `hm${g}` : '', r.name || '');
