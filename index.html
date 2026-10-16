@@ -4066,7 +4066,7 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .hm-rule{margin:0 0 8px;font-size:12px;line-height:1.6;color:var(--text-3);font-weight:700}
 .hm-tri{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .hm-col{--hm:var(--line-2);display:flex;flex-direction:column;min-width:0;background:var(--bg-2);border:1px solid var(--line);border-top:2px solid var(--hm)}
-.hm-col.hm-a{--hm:var(--gold);border-color:var(--gold)}.hm-col.hm-b{--hm:var(--b-players)}.hm-col.hm-c{--hm:var(--b-market)}
+.hm-col.hm-a{--hm:var(--gold);border-color:var(--gold)}.hm-col.hm-b{--hm:var(--b-players)}.hm-col.hm-c{--hm:var(--b-market)}.hm-col.hm-d{--hm:#16a34a}.hm-tri.hm-tri-d{grid-template-columns:1fr;margin-top:10px}.hm-d ul{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}@media (max-width:900px){.hm-d ul{grid-template-columns:1fr}}
 .hm-col ul{flex:1}
 .hm-ch{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:15px;font-weight:900;letter-spacing:.04em;color:var(--text)}
 .hm-dot{flex:0 0 10px;height:10px;border-radius:50%;background:var(--hm)}
@@ -4074,7 +4074,7 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .hm-pd{flex:0 0 auto;font-style:normal;padding:0 5px;border:1px solid var(--green);color:var(--green);font-size:11px;font-weight:900;line-height:1.6;white-space:nowrap}
 .ins-pd{margin:0 0 10px;padding:8px 12px;border:1px solid var(--green);border-left:4px solid var(--green);background:var(--bg-2);color:var(--text);font-size:13px;line-height:1.6}
 .ins-pd b{color:var(--green)}.ins-pd .s{font-size:12px;color:var(--text-3)}
-.ek .hm-wl{color:var(--accent,#2563eb);text-decoration:none;margin-left:6px;white-space:nowrap}.ek .hm-it{display:block;padding:9px 14px;border-top:1px solid var(--line);color:var(--text-2);cursor:pointer}
+.ek .hm-lb{font-size:11px;color:#16a34a;border:1px solid currentColor;border-radius:4px;padding:0 4px;margin-left:6px;white-space:nowrap}.ek .hm-wl{color:var(--accent,#2563eb);text-decoration:none;margin-left:6px;white-space:nowrap}.ek .hm-it{display:block;padding:9px 14px;border-top:1px solid var(--line);color:var(--text-2);cursor:pointer}
 .hm-l1{display:flex;align-items:baseline;gap:10px;min-width:0}
 .hm-v{margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:600;line-height:1.1;white-space:nowrap}
 .hm-l2{margin-top:2px;font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -10376,8 +10376,8 @@ function _hmKeep(keep) {
 // approved draft docs/diagrams/home_search/home_search_v2_draft.html. INSIDER_PRIV.board is built nightly (encrypted part only):
 // A = warrant top N and the insider branches moved, B = warrant top N and they did not, C = they moved, no warrant buy.
 // Every branch / person name comes from the decrypted part; nothing is written into the page.
-let _HM_ROWS = { A: [], B: [], C: [] };
-const _HM_T = { A: '① 權證大買 ＋ 內部人有動作', B: '② 權證大買，內部人還沒動', C: '③ 內部人有動作，權證還沒動' };
+let _HM_ROWS = { A: [], B: [], C: [], D: [] };
+const _HM_T = { A: '① 權證大買 ＋ 內部人有動作', B: '② 權證大買，內部人還沒動', C: '③ 內部人有動作，權證還沒動', D: '④ 低買高賣分點今天買進' };
 function _hmAmt(v, signed = false) {   // 萬 -> 「1.23 億」 (>= 1 億, 2 decimals) or 「1,234 萬」
   const x = Number(v);
   if (v === null || v === undefined || !isFinite(x)) return '—';
@@ -10410,9 +10410,15 @@ function _pdBadge(code) {
   const x = _pdOf(code);
   return x ? `<i class="hm-pd" title="${escHtml(_insDay(x.day))} 申報市場賣出 ${Number(x.lots || 0).toLocaleString('en-US')} 張">⚠ 申報賣 ${Number(x.pct || 0).toFixed(2)}%</i>` : '';
 }
+// owner 2026-10-16 00:1x 「低買高賣做成三格的標籤」 (method spec §12b type 1, valid): the warrant buyer (lbw) or the moving insider
+// branch (lbi) is a branch that bought low and sold high in this stock in the newest year
+function _lbBadge(r) {
+  const b = [...(Array.isArray(r.lbw) ? r.lbw : []), ...(Array.isArray(r.lbi) ? r.lbi : [])];
+  return b.length ? ` <span class="hm-lb" title="${escHtml(b.join('、'))}：過去一年在這檔低買高賣">📈低買高賣</span>` : '';
+}
 function _hmItem(g, r, i, ru) {   // v3.97.0 owner 「整理後，又重新進行排版的模範生」: two lines - name + one big number, one grey line
   const n = Number(r.amt) || 0;
-  const big = g === 'B' ? `<span class="hm-v ds-up">${_hmAmt(r.warrant)}</span>` : `<span class="hm-v ${_dsCls(n)}">${_hmAmt(r.amt, true)}</span>`;
+  const big = g === 'D' ? `<span class="hm-v ds-up">${_hmAmt(r.amt, true)}</span>` : g === 'B' ? `<span class="hm-v ds-up">${_hmAmt(r.warrant)}</span>` : `<span class="hm-v ${_dsCls(n)}">${_hmAmt(r.amt, true)}</span>`;
   const role = escHtml(((Array.isArray(r.who) ? r.who : [])[0] || [])[0] || '');
   // owner 2026-10-15 09:3x 「金額的部分，還是必須附上(%)或者張數」: every amount comes with its lots and a %
   const pc = v => { const x = Number(v); if (v === null || v === undefined || !isFinite(x)) return ''; const sg = x > 0 ? '+' : x < 0 ? '−' : ''; return Math.abs(x) < 0.01 ? '未滿 0.01%' : `${sg}${Math.abs(x).toFixed(2)}%`; };
@@ -10424,8 +10430,9 @@ function _hmItem(g, r, i, ru) {   // v3.97.0 owner 「整理後，又重新進�
   const wLink = (r.w && /^\d{8}$/.test(bd)) ? ` <a class="hm-wl" href="https://stockchannelnew.sinotrade.com.tw/z/zc/zco/zco.djhtm?a=${encodeURIComponent(r.w)}&e=${dd}&f=${dd}" target="_blank" rel="noopener" onclick="event.stopPropagation()">權證↗</a>` : '';
   const sub = g === 'A' ? `${insQ}</div><div class="hm-l2">權證 #${Number(r.rank) || '—'} · ${_hmAmt(r.warrant)}（${warQ}）${_hmDir(r.dir)}`
     : g === 'B' ? `${warQ}｜${r.matched ? `有對到分點，${ru.days} 日沒動` : '還沒對到分點'}`
+    : g === 'D' ? `${_hmLots(r.lots)}${r.pct != null ? `・占股本 ${pc(r.pct)}` : ''}${r.x != null ? (Number(r.x) >= 100 ? '・平常幾乎沒交易' : `・平常的 ${Number(r.x).toFixed(1)} 倍`) : ''}｜${escHtml(r.branch || '')}`
     : `${insQ}${role ? `｜${role}` : ''}`;
-  return `<li class="hm-it" onclick="_hmGo('${g}',${i})"><div class="hm-l1"><span class="hm-nm"><em>${escHtml(r.code || '')}</em>${escHtml(r.name || '')}</span>${wLink}${_pdBadge(r.code)}${big}</div>`
+  return `<li class="hm-it" onclick="_hmGo('${g}',${i})"><div class="hm-l1"><span class="hm-nm"><em>${escHtml(r.code || '')}</em>${escHtml(r.name || '')}</span>${wLink}${_lbBadge(r)}${_pdBadge(r.code)}${big}</div>`
     + `<div class="hm-l2">${sub}</div></li>`;   // ① has two grey lines (insider, then warrant + 同向／反向)
 }
 function _hmCol(g, cls, rows, ru, foot) {
@@ -10440,14 +10447,17 @@ function _hmBoard() {
     return `<div class="hm-wait">${INSIDER_RADAR === null || !_INS_DONE ? '三格載入中…' : '今天的三格還沒產生（每晚約 21:30 更新）'}</div>`;
   }
   const ru = _hmRule(bd), arr = v => (Array.isArray(v) ? v : []);
-  const A = arr(bd.A), B = arr(bd.B), C = arr(bd.C);
-  _HM_ROWS = { A, B, C };
+  const A = arr(bd.A), B = arr(bd.B), C = arr(bd.C), D = arr(bd.D);
+  _HM_ROWS = { A, B, C, D };
   const nU = B.filter(r => !r.matched).length;
   return `<div class="hm-rule">權證前 ${ru.top} × 內部人分點 ${ru.days} 日 ≥ ${ru.min.toLocaleString('en-US')} 萬且 ≥ 平常 ${ru.ratio} 倍｜資料日 ${escHtml(_insDay(bd.day))}｜資料庫 ${(Number(bd.stocks) || 0).toLocaleString('en-US')} 檔（規則全文在「全部」裡）</div><div class="hm-tri">`
     + _hmCol('A', 'hm-a', A, ru, '同向＝內部人分點也在買；反向＝在賣')
     + _hmCol('B', 'hm-b', B, ru, B.length ? `${nU} 檔還沒對到分點` : '')
     + _hmCol('C', 'hm-c', C, ru, '紅＝買、綠＝賣')
-    + '</div>';
+    + '</div>'
+    // owner 2026-10-16 07:1x 「網站的「低買高賣今天買進」清單」 (method spec §12b type 1, valid: following these branches' buys, year 2
+    // +2.07 % vs +0.98 % for the other branches) - the branch's own buy of the day, >= 500 萬, head offices out
+    + (bd.D ? `<div class="hm-tri hm-tri-d">${_hmCol('D', 'hm-d', D, ru, '過去一年在這檔低買高賣的分點；驗證：跟著它的買單，第二年多賺約 1.1 個百分點')}</div>` : '');
 }
 function _hmBoardFill() { const el = document.getElementById('hmBoard'); if (el) el.innerHTML = _hmBoard(); }
 function _hmGo(g, i, fromList = 0) {
@@ -10461,9 +10471,10 @@ function _hmAll(g) {   // the full list of one group with every insider -> branc
   _HM_ROWS[g] = rows;
   const who = r => (Array.isArray(r.who) ? r.who : []).map(w => `<div>${_hmWho(w)}</div>`).join('') || '<span class="dim">—</span>';
   const amt = r => `<span class="${_dsCls(Number(r.amt) || 0)}">${_hmAmt(r.amt, true)}</span><small>${_hmLots(r.lots)}</small>`;
-  const head = g === 'A' ? ['權證', `內部人分點 ${ru.days} 日`, '方向', '內部人 → 分點（張）']
+  const head = g === 'D' ? ['分點', '今天買進', '平常的倍數'] : g === 'A' ? ['權證', `內部人分點 ${ru.days} 日`, '方向', '內部人 → 分點（張）']
     : g === 'B' ? ['權證', '內部人分點'] : [`內部人分點 ${ru.days} 日`, '內部人 → 分點（張）', '權證'];
-  const cells = r => g === 'A' ? [`#${Number(r.rank) || '—'} · ${_hmAmt(r.warrant)}`, amt(r), _hmDir(r.dir), who(r)]
+  const cells = r => g === 'D' ? [escHtml(r.branch || ''), amt(r), r.x != null ? (Number(r.x) >= 100 ? '平常幾乎沒交易' : `${Number(r.x).toFixed(1)} 倍`) : '—']
+    : g === 'A' ? [`#${Number(r.rank) || '—'} · ${_hmAmt(r.warrant)}`, amt(r), _hmDir(r.dir), who(r)]
     : g === 'B' ? [`#${Number(r.rank) || '—'} · <span class="ds-up">${_hmAmt(r.warrant)}</span>`, r.matched ? `有對到分點，${ru.days} 日沒動` : '還沒對到內部人分點']
     : [amt(r), who(r), `沒進前 ${ru.top}`];
   const tr = rows.map((r, i) => `<tr class="ek-tap" onclick="_hmGo('${g}',${i},1)"><td class="dim">${i + 1}</td>`
@@ -10839,16 +10850,16 @@ function _insLoad() {
 }
 // v3.96.4 owner 2026-10-11 「面板上也要有一個自動fresh的按鈕，確保如果發現沒有更新，可以手動補上」: 「檢查更新」 re-reads the
 // file past every cache (no-store + ?t=); the line says how far the data goes and when MOPS publishes next. The
-// monthly declarations of month M are public around the 20th of M+1; 2 days after that with no new month = red.
+// monthly declarations of month M are complete from the 16th of M+1 (filed by the 15th); 2 days after that with no new month = red.
 let _INS_CHECK = null;
 function _insDataUntil() { const d = INSIDER_RADAR || {}; return String(d.data_until || (d.pano || {}).published_until || ''); }
 function _insNextPub(until, now = new Date()) {
   if (!/^\d{6}$/.test(until || '')) return null;
   let y = +until.slice(0, 4), m = +until.slice(4) + 1;   // the next data month ...
   if (m > 12) { m = 1; y++; }
-  let py = y, pm = m + 1;                                // ... is published around the 20th of the month after it
-  if (pm > 12) { pm = 1; py++; }
-  return { label: `${pm}/20`, due: new Date(py, pm - 1, 20), overdue: now > new Date(py, pm - 1, 22, 23, 59, 59) };
+  let py = y, pm = m + 1;                                // ... is complete from the 16th of the month after it
+  if (pm > 12) { pm = 1; py++; }                         // (2026-10-16 owner: companies file by the 15th, 證交法 §25; was 「約 20 日」)
+  return { label: `${pm}/16`, due: new Date(py, pm - 1, 16), overdue: now > new Date(py, pm - 1, 18, 23, 59, 59) };
 }
 function _insStatus() {
   const u = _insDataUntil(), nx = _insNextPub(u), c = _INS_CHECK;
@@ -11618,7 +11629,11 @@ function _insSvBody(doc) {
       `金額 ${_insWan(Number(v[1]) || 0)}<small>（推算）</small>`, _dsCls(lots)); };
   const cells = `<div class="ins-cells ins-c3">${net('近 6 個月淨買賣', f.net6)}${net('近 12 個月淨買賣', f.net12)}`
     + `${cell('資料到', escHtml(_insYm(pu)), nx ? `下一次約 ${nx.label} 公告` : '')}</div>`
-    + `<div class="dr-note">淨買賣＝董事、監察人、經理人、大股東在集中市場的淨股數；金額＝淨股數 × 當月均價（推算）。</div>`;
+    + `<div class="dr-note">淨買賣＝董事、監察人、經理人、大股東在集中市場的淨股數；金額＝淨股數 × 當月均價（推算）。</div>`
+    // owner 2026-10-16 09:3x 「要在網站的內部人申報頁加上這行說明」 (證交法 §25: the insider reports to the company by the 5th,
+    // the company files by the 15th; the complete month is in from the 16th)
+    + `<div class="dr-note ins-when"><b>申報月份＝交易月份</b>：內部人次月 5 日前報給公司、公司次月 15 日前公告到觀測站，次月 16 日起是完整的一個月（例：9/1～9/30 的買賣，10/16 起完整）。`
+    + `比對分點請用<b>張數</b>、看<b>同一個日曆月</b>（1 日～月底）的淨買賣；鉅額交易不會出現在分點進出，贈與／信託不經過分點。</div>`;
   const hr = (f.holders || []).map(h => { const e = Number(h[3]) || 0, pl = Number(h[4]) || 0;
     return `<tr><td>${escHtml(h[0])}</td><td class="nm"><b>${escHtml(h[1])}</b></td><td>${escHtml(_INS_KIND[h[2]] || h[2] || '本人')}</td>`
       + `<td class="num">${_insZh(e)}</td><td class="num">${_insZh(pl)}</td><td class="num">${e && pl ? `${(pl / e * 100).toFixed(1)}%` : '<span class="dim">—</span>'}</td></tr>`; }).join('');

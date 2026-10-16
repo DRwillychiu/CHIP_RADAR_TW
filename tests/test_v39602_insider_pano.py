@@ -114,7 +114,8 @@ check("身分 / 1 年・2 年 切換一起改圓圈、標籤、月柱 (圖從同
 sj = h[h.index("let _INS_CHECK = null;"):h.index("function _insSide(x)")]
 check("檢查更新: 繞過快取重讀、寫資料到哪個月與下次公告日", "_INS_LOADING = null;" in sj and "資料到 ${u.slice(0, 4)}-${u.slice(4)}；下一次約 ${nx.label} 公告" in sj
       and "{cache: 'no-store'}" in h[h.index("function _insLoad() {"):h.index("let _INS_CHECK = null;")])
-check("過了公告日 + 2 天還沒新資料 → 紅字", "overdue: now > new Date(py, pm - 1, 22, 23, 59, 59)" in sj and "官方應已公告，資料未更新" in sj)
+# 2026-10-16 owner: complete from the 16th (filed by the 15th, 證交法 §25) - the red line comes 2 days later, on the 18th (was 20th / 22nd)
+check("過了公告日 + 2 天還沒新資料 → 紅字", "overdue: now > new Date(py, pm - 1, 18, 23, 59, 59)" in sj and "官方應已公告，資料未更新" in sj)
 check("頁面不放任何 token / key", not re.search(r"ghp_|github_pat_|Authorization|api[_-]?key", sj + cj, re.I))
 if f.exists():
     check("公開檔寫了資料到哪個月 (data_until)", bool(load(f).get("data_until")))
