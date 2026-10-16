@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-16T21:32:12.895520+08:00",
+  "generated_at": "2026-10-16T22:57:59.572835+08:00",
   "trade_date": "20261016",
   "pump_suspicion": [
     {
@@ -560,103 +560,12 @@
       "reasoning": "9A8F 買 83 張 vs 9217 賣 74 張 (匹配 89%)"
     }
   ],
-  "distribution": [
-    {
-      "stock_code": "6278",
-      "stock_name": "台表科",
-      "branch_code": "9B25",
-      "branch_name": "台新-五權西",
-      "master": "民哥",
-      "sell_lot": 322,
-      "sell_amt_wan": 9679,
-      "avg_30d_sell_lot": 16.0,
-      "sell_vs_avg_x": 20.1,
-      "recent_5d_limit_up_count": 82,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 322 張 (30 天均 16 張 × 20.1) + 近 5 天漲停 82 次"
-    },
-    {
-      "stock_code": "6278",
-      "stock_name": "台表科",
-      "branch_code": "9300",
-      "branch_name": "華南永昌證券",
-      "master": "陳族元",
-      "sell_lot": 789,
-      "sell_amt_wan": 23961,
-      "avg_30d_sell_lot": 104.7,
-      "sell_vs_avg_x": 7.5,
-      "recent_5d_limit_up_count": 82,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 789 張 (30 天均 105 張 × 7.5) + 近 5 天漲停 82 次"
-    },
-    {
-      "stock_code": "6415",
-      "stock_name": "矽力*-KY",
-      "branch_code": "9676",
-      "branch_name": "富邦-仁愛",
-      "master": "謝孟恭(股癌)",
-      "sell_lot": 201,
-      "sell_amt_wan": 10080,
-      "avg_30d_sell_lot": 20.0,
-      "sell_vs_avg_x": 10.1,
-      "recent_5d_limit_up_count": 23,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 201 張 (30 天均 20 張 × 10.1) + 近 5 天漲停 23 次"
-    },
-    {
-      "stock_code": "3605",
-      "stock_name": "宏致",
-      "branch_code": "9B29",
-      "branch_name": "台新-府城",
-      "master": "台新府城(可成主力買)",
-      "sell_lot": 134,
-      "sell_amt_wan": 2308,
-      "avg_30d_sell_lot": 12.0,
-      "sell_vs_avg_x": 11.2,
-      "recent_5d_limit_up_count": 28,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 134 張 (30 天均 12 張 × 11.2) + 近 5 天漲停 28 次"
-    },
-    {
-      "stock_code": "8039",
-      "stock_name": "台虹",
-      "branch_code": "700P",
-      "branch_name": "兆豐-南京",
-      "master": "A級內部人分點(兆豐-南京)",
-      "sell_lot": 80,
-      "sell_amt_wan": 2454,
-      "avg_30d_sell_lot": 7.0,
-      "sell_vs_avg_x": 11.4,
-      "recent_5d_limit_up_count": 53,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 80 張 (30 天均 7 張 × 11.4) + 近 5 天漲停 53 次"
-    },
-    {
-      "stock_code": "6715",
-      "stock_name": "嘉基",
-      "branch_code": "7000",
-      "branch_name": "兆豐證券",
-      "master": "兆豐證券",
-      "sell_lot": 157,
-      "sell_amt_wan": 8062,
-      "avg_30d_sell_lot": 27.5,
-      "sell_vs_avg_x": 5.7,
-      "recent_5d_limit_up_count": 20,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 157 張 (30 天均 28 張 × 5.7) + 近 5 天漲停 20 次"
-    }
-  ],
+  "distribution": [],
   "summary": {
     "pump_count": 3,
     "wash_count": 30,
-    "distribution_count": 6,
-    "total": 39
+    "distribution_count": 0,
+    "total": 33
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }

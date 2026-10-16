@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-16T21:32:04.370661+08:00",
+  "updated_at": "2026-10-16T22:57:51.033827+08:00",
   "actions": {
     "1516": [
       {
@@ -882,6 +882,17 @@
         "raw_move_pct": 13.84,
         "source": "price_series",
         "bad_data_dates": []
+      },
+      {
+        "date": "20261016",
+        "type": "detected_gap",
+        "pre_price": 10.75,
+        "post_price": 15.6,
+        "factor": 0.689103,
+        "confidence": "inferred",
+        "raw_move_pct": 45.12,
+        "source": "price_series",
+        "bad_data_dates": []
       }
     ],
     "2428": [
@@ -941,6 +952,17 @@
         "factor": 0.874341,
         "confidence": "inferred",
         "raw_move_pct": 14.37,
+        "source": "price_series",
+        "bad_data_dates": []
+      },
+      {
+        "date": "20261016",
+        "type": "detected_gap",
+        "pre_price": 59.8,
+        "post_price": 52.6,
+        "factor": 1.136882,
+        "confidence": "inferred",
+        "raw_move_pct": -12.04,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -2463,6 +2485,19 @@
         "bad_data_dates": []
       }
     ],
+    "6756": [
+      {
+        "date": "20261016",
+        "type": "detected_gap",
+        "pre_price": 96.1,
+        "post_price": 110.0,
+        "factor": 0.873636,
+        "confidence": "inferred",
+        "raw_move_pct": 14.46,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
     "6782": [
       {
         "date": "20260825",
@@ -2855,6 +2890,17 @@
         "factor": 0.864979,
         "confidence": "inferred",
         "raw_move_pct": 15.61,
+        "source": "price_series",
+        "bad_data_dates": []
+      },
+      {
+        "date": "20261016",
+        "type": "detected_gap",
+        "pre_price": 115.0,
+        "post_price": 102.0,
+        "factor": 1.127451,
+        "confidence": "inferred",
+        "raw_move_pct": -11.3,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -3277,7 +3323,7 @@
   },
   "stats": {
     "official": 3,
-    "inferred": 256,
+    "inferred": 260,
     "merged_dup": 4
   }
 }
