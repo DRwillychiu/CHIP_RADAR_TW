@@ -456,6 +456,16 @@ def main():
             break
         data_start = since
     closes, index, avg = prices()
+    # 2026-10-16 15:2x owner (S08 3532 台勝科 「2026-08 淨賣 35.4 億（推算）均 341」 = 10,360 張 x the month's average close):
+    # the sale was ONE block trade on 2026-08-20 at a weighted 321.72 -> 33.3 億. A company-month whose insider trade was a
+    # block trade (scripts/insider_block_ledger.py: the block volume 0.8-1.25 x the insiders', public TWSE / TPEx data)
+    # is priced at that block trade's weighted price, not the month's average close
+    blk_px = set()
+    lf = ROOT / "data" / "research" / "insider_block_ledger.json"
+    for x in (load_json(lf) if lf.exists() else []):
+        if x.get("price"):
+            avg[(x["code"], x["ym"])] = x["price"]
+            blk_px.add((x["code"], x["ym"]))
     tdays = sorted(index)
     have = {d[:6] for d in tdays}
     issued = {}
@@ -536,7 +546,8 @@ def main():
         br = s.get("branch_net_10d")
         tail = "" if br is None else ("，分點大戶同向" if (br > 0) == buy else "，分點大戶反向")
         return (f"{who}{'買' if buy else '賣'} {amt_s}（股本 {abs(s['pct_of_shares'] or 0):.2f}%），"
-                f"均 {s['avg_price']:.0f}（推算）{tail}" if s.get("avg_price") else f"{who}{'買' if buy else '賣'}")
+                f"均 {s['avg_price']:.0f}（{'鉅額成交價' if (s['code'], s['ym']) in blk_px else '推算'}）{tail}"
+                if s.get("avg_price") else f"{who}{'買' if buy else '賣'}")
 
     def pack(v):
         out = []
@@ -632,6 +643,7 @@ def main():
             ins[ym] = {"net_sh": net, "oth_sh": sum(p["other_buy"] - p["other_sell"] for p in moved),
                        "buy_sh": sum(p["market_buy"] for p in moved),
                        "avg": round(avg[(code, ym)], 2) if avg.get((code, ym)) else None,
+                       "blk": 1 if (code, ym) in blk_px else 0,          # avg = the block trade's weighted price
                        "role": ((r0.get("buyers") if net > 0 else r0.get("sellers")) or "").split(" 等 ")[0].replace("(他人名義)", ""),
                        "ppl": [[p["role"], p["name"], p["market_buy"] - p["market_sell"], p["other_buy"] - p["other_sell"]] for p in moved]}
         stocks[code] = {"close": [mc[m][1] if m in mc else None for m in pm], "ins": ins,

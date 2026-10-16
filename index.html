@@ -11341,7 +11341,7 @@ function _insPanoDraw(code) {
     + `<span><i style="width:10px;height:10px;border-radius:50%;border:2px solid ${TX3}"></i>贈與・信託（不算買賣）</span>`
     + (costTxt ? `<span><i style="width:18px;height:8px;background:${GOLD}40;border-top:1px solid ${GOLD};border-bottom:1px solid ${GOLD}"></i>${escHtml(costTxt.onChart ? '內部人買進成本' : costTxt.legend)}</span>` : '') + '</div>'
     + `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="個股全景圖">${s}</svg>`
-    + `<div class="ins-pfoot">點圓圈、標籤或月柱看當月每個人。只畫有逐人申報的月份；金額＝集中市場淨股數 × 當月均價（推算）。</div>`
+    + `<div class="ins-pfoot">點圓圈、標籤或月柱看當月每個人。只畫有逐人申報的月份；金額＝集中市場淨股數 × 當月均價（推算）；內部人走鉅額交易的月份改用當月鉅額成交加權均價（證交所／櫃買中心公布）。</div>`
     + _insDirMini(st0.dirs || []);
   box.dataset.overlaps = bad; box.dataset.labels = boxes.length; box.dataset.est = nEst; box.dataset.hist = tph.length;   // v3.97.1 estimated branch bars / third-party weeks drawn
 }
@@ -11389,7 +11389,7 @@ function _insPanoClick(ev) {
   const pop = document.createElement('div');
   pop.className = 'ins-pop';
   pop.style.borderColor = col;
-  pop.innerHTML = `<div class="ins-pop-h" style="color:${col}">${m.slice(0, 4)}-${m.slice(4)}・${e.net_sh ? (e.net_sh > 0 ? '淨買 ' : '淨賣 ') + _insPanoAmt(net) + '（推算）' : '沒有集中市場買賣'}${e.avg ? `・均 ${e.avg >= 100 ? e.avg.toFixed(0) : e.avg.toFixed(2)}` : ''}</div>`
+  pop.innerHTML = `<div class="ins-pop-h" style="color:${col}">${m.slice(0, 4)}-${m.slice(4)}・${e.net_sh ? (e.net_sh > 0 ? '淨買 ' : '淨賣 ') + _insPanoAmt(net) + (e.blk ? '（鉅額成交價）' : '（推算）') : '沒有集中市場買賣'}${e.avg ? `・均 ${e.avg >= 100 ? e.avg.toFixed(0) : e.avg.toFixed(2)}` : ''}</div>`
     + (e.oth_sh ? `<div class="dim" style="font-size:12px">贈與・信託等（不算買賣）${_insPanoAmt(oth)}</div>` : '') + ppl.map(row).join('');
   box.appendChild(pop);
   const sv = box.querySelector('svg').getBoundingClientRect().top - box.getBoundingClientRect().top;   // SVG elements have no offsetTop
