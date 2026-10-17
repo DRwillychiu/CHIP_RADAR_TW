@@ -743,6 +743,14 @@ def main():
         # v3.96.11 owner 2026-10-14: 「人對應分點的重點!要列在哪?」 - every matched insider -> branch with 12 months of
         # declared vs branch lots (scripts/build_who_branch.py); private like the pairs
         wb = ROOT / "data" / "research" / "who_branch.json"
+        # 2026-10-17 owner 「可以」: 權證大戶追蹤 (scripts/warrant_track.py, docs/WARRANT_APP_SPEC.md F2) - branch-derived, private
+        wt = ROOT / "data" / "research" / "warrant_track" / "track.json"
+        if wt.exists():
+            t = json.loads(wt.read_text(encoding="utf-8"))
+            keep = ("day", "code", "name", "branch", "hi_turn", "why", "lots", "amt", "warrants", "daily", "held", "status", "closed",
+                    "warrant_pct", "warrant_as_of", "stock_pct", "as_of")
+            priv["warrant_track"] = {"newest": t.get("newest"), "built": t.get("built"),
+                                     "events": [{k: e.get(k) for k in keep} for e in t.get("events", [])]}
         if wb.exists():
             priv["who_branch"] = json.loads(wb.read_text(encoding="utf-8")).get("stocks", {})
             # 2026-10-17 owner 「要」 (the TG's 「這分點在這檔比大盤」 line in the stock drawer too): spec §12f, the same
@@ -830,7 +838,8 @@ def main():
             shn = {c: (v or {}).get("name", "").rstrip("*") for c, v in (load_json(ROOT / "data" / "stock_history.json").get("stocks") or {}).items()}
             names.update({c: names.get(c) or shn.get(c, "") for c in pct})
             priv["warrant_windows"] = {"day": rk.get("day"), "days": ww.get("days"), "movers": pct, "stocks": {
-                c: {"name": names.get(c, ""), "w": {n: st[c][n] for n in ("1", "3", "5", "10", "20") if n in st[c]}}
+                c: {"name": names.get(c, ""), "w": {n: st[c][n] for n in ("1", "3", "5", "10", "20") if n in st[c]},
+                    "days": st[c].get("days") or {}}         # 2026-10-17 owner: a row -> the branch's last 5 days (S10 popup)
                 for c in dict.fromkeys(top + obs) if c in st}}
     priv_path = Path(a.out).with_name(PRIVATE_NAME)
     if pw:
