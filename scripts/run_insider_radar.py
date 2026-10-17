@@ -806,7 +806,14 @@ def main():
                 if (ROOT / "data" / "research" / "watch" / "observe_list.json").exists() else []
             names = {c: (v or {}).get("name", "") for c, v in (rk.get("stocks") or {}).items()}
             st = ww.get("stocks") or {}
-            priv["warrant_windows"] = {"day": rk.get("day"), "days": ww.get("days"), "stocks": {
+            # 2026-10-17 owner 「A，可以」: the day's top-100 gainers / losers with warrant pages too (scripts/warrant_movers_fetch.py)
+            mvf = ROOT / "data" / "research" / "warrant_movers" / f"{rk.get('day')}.json"
+            mvd = load_json(mvf) if mvf.exists() else {}
+            pct = {c: p for c, p in (mvd.get("up") or []) + (mvd.get("down") or [])}
+            top = top + [c for c in pct if c in st]
+            shn = {c: (v or {}).get("name", "").rstrip("*") for c, v in (load_json(ROOT / "data" / "stock_history.json").get("stocks") or {}).items()}
+            names.update({c: names.get(c) or shn.get(c, "") for c in pct})
+            priv["warrant_windows"] = {"day": rk.get("day"), "days": ww.get("days"), "movers": pct, "stocks": {
                 c: {"name": names.get(c, ""), "w": {n: st[c][n] for n in ("1", "3", "5", "10", "20") if n in st[c]}}
                 for c in dict.fromkeys(top + obs) if c in st}}
     priv_path = Path(a.out).with_name(PRIVATE_NAME)
