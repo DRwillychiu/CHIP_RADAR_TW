@@ -3994,7 +3994,7 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .ins-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--text-2);margin:2px 0 2px}
 .ins-leg i{display:inline-block;vertical-align:middle;margin-right:4px}
 .ins-pfoot{font-size:11.5px;color:var(--text-3);margin-top:2px}
-.ek-ins-br{display:block;font-size:11.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ins-wb{margin:10px 0;padding:8px 10px;border:1px solid var(--gold);border-radius:8px}.ins-wb ul{margin:6px 0 0;padding-left:16px}.ins-wb li{margin:4px 0}.ins-wb-b{color:var(--gold)}.ins-wb-m{display:inline-block;margin:2px 10px 0 0;font-size:11.5px;color:var(--text-2)}.ins-wb-vm{margin:3px 0 1px;font-size:12px}.wb-pop-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10050;display:flex;align-items:center;justify-content:center;padding:16px}.wb-pop{background:var(--bg-1,#0f1628);border:1px solid var(--gold);border-radius:10px;padding:12px 14px;width:100%;max-width:520px;max-height:80vh;overflow:auto;font-size:13px}.wb-pop ul{margin:4px 0 8px;padding-left:18px}.wb-pop li{margin:2px 0}.wb-pop-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.wb-pop-x{margin-left:auto;background:none;border:1px solid var(--line);color:var(--text-2);border-radius:6px;padding:2px 10px;cursor:pointer}.wb-pop-t{display:block;margin-top:8px;color:var(--gold)}
+.ek-ins-br{display:block;font-size:11.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ins-wb{margin:10px 0;padding:8px 10px;border:1px solid var(--gold);border-radius:8px}.ins-wb ul{margin:6px 0 0;padding-left:16px}.ins-wb li{margin:4px 0}.ins-wb-b{color:var(--gold)}.ins-wb-m{display:inline-block;margin:2px 10px 0 0;font-size:11.5px;color:var(--text-2)}.ins-wb-vm{margin:3px 0 1px;font-size:12px}.wb-pop-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10050;display:flex;align-items:center;justify-content:center;padding:16px}.wb-pop{background:var(--bg-1,#0f1628);border:1px solid var(--gold);border-radius:10px;padding:12px 14px;width:100%;max-width:520px;max-height:80vh;overflow:auto;font-size:13px}.wb-pop ul{margin:4px 0 8px;padding-left:18px}.wb-pop li{margin:2px 0}.wb-pop-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.wb-pop-x{margin-left:auto;background:none;border:1px solid var(--line);color:var(--text-2);border-radius:6px;padding:2px 10px;cursor:pointer}.wb-pop-t{display:block;margin-top:8px;color:var(--gold)}.wr-wl{font-size:12px;color:var(--text-2);margin:1px 0 0 2px}.wb-pop .hm-wl{color:var(--gold);text-decoration:underline;margin-left:6px;white-space:nowrap}
 .ins-minis{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}.ins-mini{flex:1 1 300px;max-width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px}.ins-mini b{font-size:13px}.ins-mini small{color:var(--text-3);margin-left:6px;font-size:11px}.ins-mini-v{font-size:18px;font-weight:600;margin:2px 0}.ins-mini svg{max-width:100%;height:auto;display:block}.ins-mini-x{font-size:10.5px}
 .ins-pop{position:absolute;z-index:3;background:var(--bg-2);border:1.5px solid var(--line-2);padding:9px 11px;min-width:210px;max-width:min(340px,94%);
   max-height:280px;overflow:auto;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
@@ -4250,7 +4250,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.97.12 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.97.13 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -9701,6 +9701,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.97.13', date: '10/17', title: '權證連結＋分點逐日權證', desc: 'S10 權證分點排名點開的近 5 日，每一天列出這個分點買賣的每一檔權證（張數），點權證名稱直接開那一天的權證分點頁；S11 權證大戶追蹤的買進權證也可點開；資訊，不是買賣訊號' },
   { v: 'v3.97.12', date: '10/17', title: '權證大戶追蹤＋分點近 5 日', desc: '新增 S11 權證大戶追蹤：觀察清單、權證大買＋內部人有動作、權證大買前 5 名的權證買方前 2 名，之後 20 個交易日看它在同一批權證續買、還抱著或賣出，附權證與股價收盤漲跌；S10 權證分點排名點一列看這個分點近 5 個交易日的買賣；彈出視窗修正為顯示在抽屜上方；資訊，不是買賣訊號' },
   { v: 'v3.97.11', date: '10/17', title: '分點警示改用比大盤', desc: '大股東動向的分點警示：「分點自己在這檔」改成近一年勝率、期望值、比大盤與兩年成績分類（和 TG 同一套算法，不再用 10/14 的舊勝率檔）；資訊，不是買賣訊號' },
   { v: 'v3.97.10', date: '10/17', title: '分點比大盤＋名稱修正', desc: '個股全景圖「內部人分點」改成一列一組：分點、比大盤、兩年成績分類，點一下彈出細節；S10 權證分點排名加上當天漲跌幅前 100 名；首頁 ④ 說明改成「還不是買進訊號」；「造市型」改名「高周轉型」（查證後不是發行券商造市）；買賣顏色改回紅買綠賣；資訊，不是買賣訊號' },
@@ -9709,7 +9710,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v3.97.0', date: '10/15', title: '首頁改成搜尋＋三格', desc: '首頁改成搜尋＋三格：權證大買＋內部人有動作／權證大買、內部人還沒動／內部人有動作、權證還沒動；其他清單改成按鈕' },
   { v: 'v3.96.16', date: '10/15', title: '全市場內部人申報排行＋全景圖擴大到全市場', desc: '內部人申報：全市場排行（每月淨買賣）＋個股全景圖擴大到全市場（1,451 檔，可搜尋）＋近 6／12 月淨買賣、持股前 15 名、逐月明細含設質' },
   { v: 'v3.96.15', date: '10/14', title: '權證大戶排行上網站', desc: '大股東動向的分點警示下方新增「權證大戶排行」：當天每檔權證前 2 大分點合計（不含總公司與造市型）、主力權證與吃下比例，並列出這檔的內部人分點近 3 日進出，內部人也買的標 ◆（解鎖後才看得到）；資料庫更新到 10/14；資訊，不是買賣訊號' },
-  { v: 'v3.96.14', date: '10/14', title: '分點警示可點開', desc: '大股東動向的分點警示每一列都能點開：近幾天的分點進出（改用每晚抓的分點資料，不再顯示「等每晚資料」）、這個分點在這檔的歷史紀錄、晚一天跟的公平對照結果、個股全景圖與「人 → 分點」近 12 個月（解鎖後才看得到）；觀測站的造字（例如罕見字）顯示為〇；資訊，不是買賣訊號' },
   { v: 'V1.0', date: '10/10', title: '正式版 V1.0（build v3.95.0）', desc: '新介面全站上線＋富邦抓取間隔 1.6 秒與 8111 等亂碼股名修正併入正式版＋外資規則統一（只算美/歐/亞）＋9/17 期貨資料補齊' },
 ];
 
@@ -10536,6 +10536,12 @@ function _wrOpen(code) {
   _dsDrawer('stocks', 'S', '10', `權證分點排名　${escHtml(_WR.code)} ${escHtml(st.name || '')}`, 'WARRANT BRANCHES', body);
 }
 let _WR_ROWS = [];
+function _wrLink(w, day) {   // the warrant's branch page of that day on the mirror the data comes from (same as TG / home board)
+  const d = String(day || '');
+  if (!/^\w{6}$/.test(String(w || '')) || !/^\d{8}$/.test(d)) return '';
+  const dd = `${+d.slice(0, 4)}-${+d.slice(4, 6)}-${+d.slice(6)}`;
+  return `<a class="hm-wl" href="https://stockchannelnew.sinotrade.com.tw/z/zc/zco/zco.djhtm?a=${encodeURIComponent(w)}&e=${dd}&f=${dd}" target="_blank" rel="noopener">權證分點↗</a>`;
+}
 function _wrPop(i) {   // v3.97.12 the branch's last 5 ranked days in this stock's calls (warrant_windows.stocks[code].days)
   const x = _WR_ROWS[i], ww = (INSIDER_PRIV || {}).warrant_windows || {}, st = (ww.stocks || {})[_WR.code] || {};
   if (!x) return;
@@ -10544,9 +10550,11 @@ function _wrPop(i) {   // v3.97.12 the branch's last 5 ranked days in this stock
   const md = d => d ? `${String(d).slice(4, 6)}/${String(d).slice(6, 8)}` : '';
   const n = v => Number(v || 0).toLocaleString('en-US');
   const days = ((st.days || {})[x[0]] || []);
+  // owner 2026-10-17 21:5x 「我是希望這邊可以有超連結，讓我直接彈出到權證頁面」: each warrant of the day -> its branch page
+  const wl = d => (Array.isArray(d[3]) ? d[3] : []).map(w => `<div class="wr-wl">${escHtml(w[1] || w[0])} ${+w[2] > 0 ? '+' : ''}${n(w[2])} 張 ${_wrLink(w[0], d[0])}</div>`).join('');
   const li = days.map(d => `<li>${md(d[0])}：${d[1] === null || d[1] === undefined ? '<span class="dim">沒有資料</span>'
     : +d[1] > 0 ? `<b class="ds-up">買 ${n(Math.round(+d[1] / 1e4))} 萬</b>（${n(d[2])} 張）`
-    : +d[1] < 0 ? `<b class="ds-down">賣 ${n(Math.round(Math.abs(+d[1]) / 1e4))} 萬</b>（${n(Math.abs(+d[2]))} 張）` : '沒有進出'}</li>`).join('')
+    : +d[1] < 0 ? `<b class="ds-down">賣 ${n(Math.round(Math.abs(+d[1]) / 1e4))} 萬</b>（${n(Math.abs(+d[2]))} 張）` : '沒有進出'}${wl(d)}</li>`).join('')
     || '<li class="dim">這個分點沒有逐日資料</li>';
   const tot = days.reduce((a, d) => a + (+d[1] || 0), 0);
   const ov = document.createElement('div');
@@ -10593,7 +10601,7 @@ function _wtPop(i) {
   const old = document.getElementById('wbPop');
   if (old) old.remove();
   const n = v => Number(v || 0).toLocaleString('en-US');
-  const ws = (e.warrants || []).map(w => `<li>${escHtml(w.name || w.w)}：${n(w.lots)} 張</li>`).join('');
+  const ws = (e.warrants || []).map(w => `<li>${escHtml(w.name || w.w)}：${n(w.lots)} 張 ${_wrLink(w.w, e.day)}</li>`).join('');
   const dl = (e.daily || []).map(d => `<li>${_wtMd(d[0])}：${d[1] === null || d[1] === undefined ? '<span class="dim">沒有資料</span>'
     : +d[1] > 0 ? `續買 +${n(d[1])} 張` : +d[1] < 0 ? `賣出 ${n(Math.abs(+d[1]))} 張` : '沒動'}</li>`).join('') || '<li class="dim">還沒有之後的交易日</li>';
   const main = ((e.warrants || [])[0] || {}).name || '';
