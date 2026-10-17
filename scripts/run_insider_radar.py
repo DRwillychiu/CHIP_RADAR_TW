@@ -226,10 +226,11 @@ def branch_alerts(password, days):
     pairs = uniq
     # v3.96.13 owner 2026-10-14 「這區塊是可不可以點入查看」: each alert carries the branch's own record in the stock
     # (scripts/branch_pnl.py) and the one-day-late fair copy result (scripts/copy_trade.py, next open, recent year)
+    # 2026-10-17 project review: the record = spec §12f (scripts/branch_vs_market.py, vs the market, the TG's numbers), not
+    # the 10/14 174-pair branch_pnl.json (no control, year-3 trades)
     from scripts import branch_pnl as BP
+    from scripts.branch_vs_market import record as vs_market
     rp = ROOT / "data" / "research"
-    pnl_rec = {(q["code"], q["branch"]): q for q in (json.loads((rp / "branch_pnl.json").read_text(encoding="utf-8"))
-                                                     if (rp / "branch_pnl.json").exists() else [])}
     ctj = json.loads((rp / "copy_trade_open.json").read_text(encoding="utf-8")) if (rp / "copy_trade_open.json").exists() else {}
     fair_rec = {(r["code"], r["branch"]): r for g_ in ("chosen", "not_chosen") for r in ((ctj.get("A") or {}).get(g_) or {}).get("per_pair", [])}
     for code, bno, name, side, tier, who in pairs:
@@ -249,13 +250,15 @@ def branch_alerts(password, days):
             z = BP.rows_all(code, bno)
             cut = sorted(index)[-7] if len(index) >= 7 else ""
             today = [{"day": d, "net": z[d]} for d in sorted(z) if d >= cut and z[d]][-3:]
-        rec = (pnl_rec.get((code, name)) or {}).get("all") or {}
+        vm = vs_market(code, bno) or {}
+        y2 = vm.get("y2") or {}
+        rec = {"n": y2.get("n"), "win": y2.get("win"), "ev": y2.get("ev"), "ex": y2.get("ex"), "class": vm.get("class")} if y2.get("n") else {}
         fm = (fair_rec.get((code, name)) or {}).get("matched") or {}
         out.append({"code": code, "name": names.get(code, ""), "branch": name, "side": "買" if side > 0 else "賣", "tier": tier,
                     "person": who, "last_month": months[-1],
                     "last_net": ser[months[-1]], "last_act": [act[-1], ser[act[-1]]] if act else None, "today": today, "n": len(RB.rets(code, act, 20, closes, index)),
                     "gap20": g(act), "half1": g(act[:half]), "half2": g(act[half:]),
-                    "rec": [rec.get("n"), rec.get("win"), rec.get("ev")] if rec else None,
+                    "rec": [rec.get("n"), rec.get("win"), rec.get("ev"), rec.get("ex"), rec.get("class")] if rec else None,
                     "fair": [fm.get("n"), fm.get("mean"), fm.get("beat")] if fm else None})
     return out
 
@@ -620,7 +623,9 @@ def main():
     # Our branch masters' monthly net goes into the encrypted part only.
     latest = tdays[-1][:6] if tdays else data_start
     first_px = tdays[0][:6] if tdays else data_start
-    pm = month_list(first_px, latest)[-26:]
+    # 2026-10-17 project review: the year-3 exam months (2023-09..2024-09) never reach the public files - the 26-month window
+    # had begun to show 2024-09 once the MOPS backfill brought its person pages
+    pm = [ym for ym in month_list(first_px, latest)[-26:] if ym >= "202410"]
     pmset = set(pm)
     max_pub = max((ym for ym, mo in monthly.items() if mo.get("published")), default=None)
     rows_by = {(r["code"], r["ym"]): r for r in rows}
