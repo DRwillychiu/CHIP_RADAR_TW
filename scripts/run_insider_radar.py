@@ -37,9 +37,40 @@ PRIVATE_NAME = "insider_radar_private.json"
 DETAIL_FIELDS = ("market_buy", "market_sell", "other_buy", "other_sell", "end_shares")
 # v3.96.2 owner 2026-10-11 「設置一個可以下拉選年份的選單」: the year windows, newest first, the first one ending
 # at the latest published month. (key, label, first ym, last ym); a signal belongs to the window of its ym.
+def people_until():
+    """2026-10-16 18:5x owner 「日期的那種不要寫死，因為會有很多資料沒有抓取完成，然後就看到垃圾標題就認為抓取成功完成」: the
+    newest month of person pages that is COMPLETE - its page count >= 80 % of the median of the 6 months before it (a
+    half-fetched month is not shown as data). 2026-09: 818 pages vs ~760 before -> complete; 2026-10: 14 -> not."""
+    import statistics as _st
+    cnt = {}
+    for f in sorted((ROOT / "data" / "insider_people").glob("2*.json")):
+        try:
+            cnt[f.stem] = len(json.loads(f.read_text(encoding="utf-8")).get("pages") or {})
+        except (OSError, ValueError):
+            continue
+    yms = sorted(cnt)
+    for i in range(len(yms) - 1, 5, -1):
+        ref = _st.median(cnt[m] for m in yms[i - 6:i])
+        if cnt[yms[i]] >= 0.8 * ref:
+            return yms[i], cnt[yms[i]]
+    return (yms[-1], cnt[yms[-1]]) if yms else (None, 0)
+
+
+def _ym_add(ym, k):
+    y, m = int(ym[:4]), int(ym[4:]) + k
+    while m < 1:
+        y, m = y - 1, m + 12
+    while m > 12:
+        y, m = y + 1, m - 12
+    return f"{y}{m:02d}"
+
+
+# v3.96.2 owner 2026-10-11 「設置一個可以下拉選年份的選單」; 2026-10-16 18:5x owner 「要」: 近一年 rolls with the newest
+# complete person-page month (was typed 2025-09..2026-08); y3 is the year-3 data block (2023-09..2024-09, fixed by the fetch)
+_NEW = people_until()[0] or "202608"
 WINDOWS = (
-    ("y1", "近一年", "202509", "202608"),
-    ("y2", "2024-10～2025-08", "202410", "202508"),
+    ("y1", f"近一年（{_ym_add(_NEW, -11)[:4]}-{_ym_add(_NEW, -11)[4:]}～{_NEW[:4]}-{_NEW[4:]}）", _ym_add(_NEW, -11), _NEW),
+    ("y2", f"2024-10～{_ym_add(_NEW, -12)[:4]}-{_ym_add(_NEW, -12)[4:]}", "202410", _ym_add(_NEW, -12)),
     ("y3", "2023-09～2024-09", "202309", "202409"),
 )
 
@@ -654,7 +685,16 @@ def main():
     every = set(stocks)                  # v3.97.1 the private 分點大戶 row for every stock file, not only the window stocks
     stocks = {c: stocks[c] for c in pano_codes if c in stocks}
     pub["pano"] = {"months": pm, "published_until": max_pub, "stocks": stocks}
-    pub["data_until"] = max_pub      # v3.96.4 the 「檢查更新」 line: 資料到 YYYY-MM；下一次約 MM/20 公告
+    # 2026-10-16 18:5x: 資料到 = the newest COMPLETE person-page month (the page's data); the company summary tables
+    # (IRB110, published ~the 20th) are named apart - 「資料到 2026-08」 hid that September's filings were in
+    pu, pn = people_until()
+    pub["data_until"] = pu or max_pub      # v3.96.4 the 「檢查更新」 line: 資料到 YYYY-MM
+    pub["company_tables_until"] = max_pub
+    st_f = ROOT / "data" / "insider_update_status.json"
+    st = load_json(st_f) if st_f.exists() else {}
+    pub["notes"] = (pub.get("notes") or []) + [
+        f"逐人申報到 {pu[:4]}-{pu[4:]}（{pn} 家）；公司彙總表（觀測站 IRB110）到 {max_pub[:4]}-{max_pub[4:]}"
+        + (f"；{st['target'][:4]}-{st['target'][4:]} 彙總表官方尚未公告" if st.get("target") and not st.get("published") else "")]         if pu and max_pub else (pub.get("notes") or [])
     # v3.97.2 method spec §11 (valid avoid signal): the last 20 trading days' insider market-sale pre-declarations (public
     # MOPS data, scripts/predeclare_today.py) for the home board badge and the stock page banner
     pdf = ROOT / "data" / "research" / "predeclare" / "today.json"
@@ -743,6 +783,9 @@ def main():
         bd = board() if board else None          # 2026-10-15: the board loads its own closes (+ the nightly quotes)
         if bd:
             priv["board"] = bd
+            # 2026-10-16 22:4x scripts/nightly_check.py reads this file: the board the site got (it was written only by a hand
+            # run of scripts/home_board.py, so the 10/16 check showed 20261015 while the site had 20261016). Private folder.
+            (ROOT / "data" / "research" / "home_board.json").write_text(json.dumps(bd, ensure_ascii=False, indent=1), encoding="utf-8")
         # 2026-10-16 owner 「質押比變化，絕對要加入到每晚追蹤以及網站上」: scripts/pledge_watch.py (branch rows inside -> private)
         pw_f = ROOT / "data" / "research" / "pledge_watch.json"
         if pw_f.exists():
@@ -753,6 +796,19 @@ def main():
             if pe_f.exists():
                 pe = load_json(pe_f)
                 priv["pledge"]["events"] = {k: pe.get(k) for k in ("newest", "since", "alerts")}
+        # 2026-10-17 owner 「這是APP的權證呈現內容，立即模仿以及補上我的網站以及TG的功能」: 權證分點排名 by window
+        # (scripts/warrant_branch_ability.py stocks.json) for the day's top 30 warrant stocks + the observe list; private
+        ww_f, rk_fs = ROOT / "data" / "research" / "warrant_ability" / "stocks.json", sorted((ROOT / "data" / "research" / "warrant_screen").glob("rank_2*.json"))
+        if ww_f.exists() and rk_fs:
+            ww, rk = load_json(ww_f), load_json(rk_fs[-1])
+            top = [x["code"] for x in sorted((rk.get("stocks") or {}).values(), key=lambda x: -(x.get("sum_x") or 0))[:30]]
+            obs = [x["code"] for x in (load_json(ROOT / "data" / "research" / "watch" / "observe_list.json") or {}).get("stocks", [])] \
+                if (ROOT / "data" / "research" / "watch" / "observe_list.json").exists() else []
+            names = {c: (v or {}).get("name", "") for c, v in (rk.get("stocks") or {}).items()}
+            st = ww.get("stocks") or {}
+            priv["warrant_windows"] = {"day": rk.get("day"), "days": ww.get("days"), "stocks": {
+                c: {"name": names.get(c, ""), "w": {n: st[c][n] for n in ("1", "3", "5", "10", "20") if n in st[c]}}
+                for c in dict.fromkeys(top + obs) if c in st}}
     priv_path = Path(a.out).with_name(PRIVATE_NAME)
     if pw:
         pub["private"] = PRIVATE_NAME       # the page fetches the encrypted part only when it exists

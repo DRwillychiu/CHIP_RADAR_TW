@@ -4201,6 +4201,13 @@ body.dr-lock{overflow:hidden}
 .bd-auto-on .sniper-details,.bd-auto-on .sniper-stats .sniper-stat:nth-child(n+4){display:none}
 .bd-auto-on .consensus-lu-buyers{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:2.4em}
 .stat-box.bd-tap:hover,.inst-stat-card.bd-tap:hover,.sentiment-card.bd-tap:hover,.futures-hero-card.bd-tap:hover,.margin-rank-card.bd-tap:hover,.help-card.bd-tap:hover{background:var(--bg-3)!important}
+.wr-pick{background:var(--bg2,#151b22);color:inherit;border:1px solid var(--line,#2a333d);border-radius:8px;padding:6px 8px;font-size:14px}
+.wr-bar{display:flex;gap:6px;margin:8px 0;align-items:center;flex-wrap:wrap}
+.wr-b{border:1px solid var(--line,#2a333d);background:transparent;color:inherit;border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer}
+.wr-b.on{background:#f2c14e;color:#111;border-color:#f2c14e;font-weight:700}
+.wr-rk{width:42px;text-align:center;color:var(--dim,#8a96a3)}.wr-rk.top{color:#f2c14e;font-weight:700}
+.wr-bar-in{height:4px;background:rgba(127,127,127,.15);border-radius:2px;margin-top:4px}.wr-bar-in i{display:block;height:4px;border-radius:2px}
+.wr-bar-in i.b{background:#ff5a5f}.wr-bar-in i.s{background:#2ecc71}
 </style>
 </head>
 <body>
@@ -10353,7 +10360,8 @@ function renderDailySummary() {
     + `<span class="hm-kv">${k.taiex == null ? '—' : _dsNum(k.taiex, 0)}<small>${_dsUpDn(k.taiex_chg_pct)}</small></span></button>`
     + `<button class="hm-key k-stocks" onclick="_insRank()"><span class="ek-code">S<small>08</small></span><span class="hm-kl">內部人申報排行</span><span class="hm-kv">›</span></button>`
     + `<button class="hm-key k-stocks" onclick="_hmIns()"><span class="ek-code">S<small>08</small></span><span class="hm-kl">大股東動向</span><span class="hm-kv">›</span></button>`
-    + `<button class="hm-key k-risk" onclick="_plOpen()"><span class="ek-code">S<small>09</small></span><span class="hm-kl">質押追蹤</span><span class="hm-kv">›</span></button>`;
+    + `<button class="hm-key k-risk" onclick="_plOpen()"><span class="ek-code">S<small>09</small></span><span class="hm-kl">質押追蹤</span><span class="hm-kv">›</span></button>`
+    + `<button class="hm-key k-stocks" onclick="_wrOpen()"><span class="ek-code">S<small>10</small></span><span class="hm-kl">權證分點排名</span><span class="hm-kv">›</span></button>`;
   const days = (t.dates || []).length;
   box.innerHTML = `<div class="ek">
     <div class="ek-eye"><span><span class="dt">${date}</span>（${escHtml(s.weekday || '')}）今日總整理</span>
@@ -10493,6 +10501,35 @@ function _plOpen() {
     + `<div class="ins-sx"><table class="hm-t"><thead><tr><th>股票</th><th>分點</th><th>2015 起淨買（張）</th><th>大股東／質押比</th></tr></thead><tbody>${t2 || '<tr><td colspan="4" class="dim">沒有</td></tr>'}</tbody></table></div></div>`
     + `<div class="dr-note">質押＝把股票押給銀行或券商借錢，股票不能賣，要先還款解除質押。董監、經理人、10% 大股東設質要立即通知公司，公司 5 日內公告（證交法第 25 條）；每月持股申報次月 15 日前公告。長期持有分點是推測，要用 XQ 累計線確認。點任一列看這檔的內部人申報。</div>`;
   _dsDrawer('stocks', 'S', '09', `質押追蹤　${al.filter(x => x.big).length} 位一週解質・${ch.length} 位月變化・${lh.length} 個長期持有分點`, 'PLEDGES', body);
+}
+// 2026-10-17 owner 「這是APP的權證呈現內容，立即模仿以及補上我的網站以及TG的功能」: the warrant app's 權證分點排名 - per stock the
+// call warrants' net amount by branch over the last 1/3/5/10/20 page days, 買方 / 賣方 (scripts/warrant_branch_ability.py,
+// in the encrypted part; head offices, 凱基-台北 and 國泰-敦南 out)
+let _WR = { code: '', n: '5', side: 'buy' };
+function _wrOpen(code) {
+  const ww = (INSIDER_PRIV || {}).warrant_windows;
+  if (!ww || !ww.stocks || !Object.keys(ww.stocks).length) {
+    _dsDrawer('stocks', 'S', '10', '權證分點排名', 'WARRANT BRANCHES', '<div class="dr-note">權證分點排名還沒產生（每晚約 21:40 更新；需要登入）</div>'); return;
+  }
+  const codes = Object.keys(ww.stocks);
+  if (code && ww.stocks[code]) _WR.code = code;
+  if (!ww.stocks[_WR.code]) _WR.code = codes[0];
+  const st = ww.stocks[_WR.code], w = (st.w || {})[_WR.n] || {}, rows = Array.isArray(w[_WR.side]) ? w[_WR.side] : [];
+  const md = d => d ? `${String(d).slice(4, 6)}/${String(d).slice(6, 8)}` : '';
+  const pick = `<select class="wr-pick" onchange="_WR.code=this.value;_wrOpen()">${codes.map(c => `<option value="${escHtml(c)}"${c === _WR.code ? ' selected' : ''}>${escHtml(c)} ${escHtml(ww.stocks[c].name || '')}</option>`).join('')}</select>`;
+  const btn = (k, v, lab) => `<button class="wr-b${_WR[k] === v ? ' on' : ''}" onclick="_WR.${k}='${v}';_wrOpen()">${lab}</button>`;
+  const tabs = `<div class="wr-bar">${btn('side', 'buy', '買方')}${btn('side', 'sell', '賣方')}</div>`
+    + `<div class="wr-bar">${['1', '3', '5', '10', '20'].map(n => btn('n', n, n)).join('')}<span class="dim">天</span></div>`;
+  const max = Math.max(1, ...rows.map(x => Math.abs(x[1])));
+  const tb = rows.map((x, i) => `<tr><td class="wr-rk${i < 3 ? ' top' : ''}">${i + 1}</td><td><b>${escHtml(x[0])}</b>`
+    + `<div class="wr-bar-in"><i style="width:${(Math.abs(x[1]) / max * 100).toFixed(0)}%" class="${x[1] > 0 ? 'b' : 's'}"></i></div></td>`
+    + `<td class="${x[1] > 0 ? 'ds-dn' : 'ds-up'}"><b>${Math.round(x[1] / 1e4).toLocaleString('en-US')}</b></td></tr>`).join('');
+  const body = `<div class="dr-series"><div class="dr-sh">${pick}<span class="dim">資料到 ${md(ww.day)}</span></div>${tabs}`
+    + `<div class="ins-sx"><table class="hm-t"><thead><tr><th>排名</th><th>券商分點</th><th>金額（萬）</th></tr></thead><tbody>`
+    + `${tb || '<tr><td colspan="3" class="dim">這段期間沒有</td></tr>'}</tbody></table></div></div>`
+    + `<div class="dr-note">每檔股票的認購權證，各分點在最近 1／3／5／10／20 個有資料的交易日的淨買賣金額（張數 × 當天均價，推估）。`
+    + `資料是每天依成交值挑出的權證分點頁，不是每一檔權證；總公司、凱基-台北、國泰-敦南不列。資訊，不是買賣訊號。</div>`;
+  _dsDrawer('stocks', 'S', '10', `權證分點排名　${escHtml(_WR.code)} ${escHtml(st.name || '')}`, 'WARRANT BRANCHES', body);
 }
 function _hmGo(g, i, fromList = 0) {
   const r = (_HM_ROWS[g] || [])[i];

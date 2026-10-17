@@ -114,12 +114,15 @@ check("手機: 一列分兩行, 抽屜從下方拉出 (沿用)", re.search(r"@me
 
 print("\n[E] 年份選單 (v3.96.2): 每年一個視窗, 訊號只落在自己月份的那一年")
 W = RR.WINDOWS
-check("視窗由新到舊、首尾相接不重疊, 第一個是近一年", W[0][1] == "近一年" and all(RR.next_ym(W[i + 1][3]) == W[i][2] for i in range(len(W) - 1))
+# 2026-10-16 18:5x owner 「日期的那種不要寫死」: 近一年 rolls with the newest complete person-page month - the test checks the
+# rule (newest first, contiguous, the boundary months), not typed months
+check("視窗由新到舊、首尾相接不重疊, 第一個是近一年", W[0][1].startswith("近一年") and all(RR.next_ym(W[i + 1][3]) == W[i][2] for i in range(len(W) - 1))
       and all(w[2] <= w[3] for w in W), W)
-sig = [{"code": "1111", "ym": ym} for ym in ("202608", "202509", "202508", "202410", "202409", "202309", "202308")]
+_edge = (W[0][3], W[0][2], W[1][3], "202410", "202409", "202309", "202308")
+sig = [{"code": "1111", "ym": ym} for ym in _edge]
 homes = {s["ym"]: [w[0] for w in W if s in RR.in_window(sig, w[2], w[3])] for s in sig}
 check("每筆訊號只在一個視窗 (邊界月份也一樣); 範圍外的不進任何一個",
-      homes == {"202608": ["y1"], "202509": ["y1"], "202508": ["y2"], "202410": ["y2"], "202409": ["y3"], "202309": ["y3"], "202308": []}, homes)
+      homes == dict(zip(_edge, (["y1"], ["y1"], ["y2"], ["y2"], ["y3"], ["y3"], []))), homes)
 built = {m: {"1111"} for m in RR.month_list("202410", "202608")}
 q = [[1, "202509", "1111"], [1, "202510", "2222"], [0, "202410", "3333"]]
 check("抓取狀態: 佇列裡還沒建好的頁 → 抓取中, 有幾頁", RR.fetch_state("202509", "202608", built, q) == (1, True))
