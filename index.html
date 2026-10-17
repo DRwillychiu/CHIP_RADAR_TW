@@ -3994,7 +3994,7 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .ins-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--text-2);margin:2px 0 2px}
 .ins-leg i{display:inline-block;vertical-align:middle;margin-right:4px}
 .ins-pfoot{font-size:11.5px;color:var(--text-3);margin-top:2px}
-.ek-ins-br{display:block;font-size:11.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ins-wb{margin:10px 0;padding:8px 10px;border:1px solid var(--gold);border-radius:8px}.ins-wb ul{margin:6px 0 0;padding-left:16px}.ins-wb li{margin:4px 0}.ins-wb-b{color:var(--gold)}.ins-wb-m{display:inline-block;margin:2px 10px 0 0;font-size:11.5px;color:var(--text-2)}.ins-wb-vm{margin:3px 0 1px;font-size:12px}
+.ek-ins-br{display:block;font-size:11.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ins-wb{margin:10px 0;padding:8px 10px;border:1px solid var(--gold);border-radius:8px}.ins-wb ul{margin:6px 0 0;padding-left:16px}.ins-wb li{margin:4px 0}.ins-wb-b{color:var(--gold)}.ins-wb-m{display:inline-block;margin:2px 10px 0 0;font-size:11.5px;color:var(--text-2)}.ins-wb-vm{margin:3px 0 1px;font-size:12px}.wb-pop-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px}.wb-pop{background:var(--bg-1,#0f1628);border:1px solid var(--gold);border-radius:10px;padding:12px 14px;width:100%;max-width:520px;max-height:80vh;overflow:auto;font-size:13px}.wb-pop ul{margin:4px 0 8px;padding-left:18px}.wb-pop li{margin:2px 0}.wb-pop-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.wb-pop-x{margin-left:auto;background:none;border:1px solid var(--line);color:var(--text-2);border-radius:6px;padding:2px 10px;cursor:pointer}.wb-pop-t{display:block;margin-top:8px;color:var(--gold)}
 .ins-minis{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}.ins-mini{flex:1 1 300px;max-width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px}.ins-mini b{font-size:13px}.ins-mini small{color:var(--text-3);margin-left:6px;font-size:11px}.ins-mini-v{font-size:18px;font-weight:600;margin:2px 0}.ins-mini svg{max-width:100%;height:auto;display:block}.ins-mini-x{font-size:10.5px}
 .ins-pop{position:absolute;z-index:3;background:var(--bg-2);border:1.5px solid var(--line-2);padding:9px 11px;min-width:210px;max-width:min(340px,94%);
   max-height:280px;overflow:auto;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
@@ -11477,26 +11477,49 @@ function _insWB(code) {
   return `<span class="ek-ins-br" title="本站比對：${escHtml(w[0].who)} → ${escHtml(w[0].branch)}">→ ${escHtml(w[0].branch)}${w.length > 1 ? ` 等 ${w.length}` : ''}</span>`;
 }
 function _insWBBlock(code) {
+  // v3.97.9 owner 2026-10-17 「截圖用列點式呈現，細部資訊就是彈出就好」: one bullet per insider -> branch pair with the key
+  // point (the branch's record in this stock against the market, spec §12f); a tap opens the details (_insWBPop)
   const pv = INSIDER_PRIV;
   if (!pv) return '<div class="ins-wb"><b>內部人分點</b><span class="dim">　需解鎖</span></div>';
   const w = (pv.who_branch || {})[code];
   if (!Array.isArray(w) || !w.length) return '<div class="ins-wb"><b>內部人分點</b><span class="dim">　這檔還沒比對出內部人用的分點</span></div>';
-  const lots = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + Number(v).toLocaleString('en-US');
-  const rows = w.map(p => {
-    const act = (p.months || []).filter(m => m[1] || Math.abs(m[2]) >= 100).slice(-6);
-    const mm = act.map(m => `<span class="ins-wb-m">${escHtml(String(m[0]).slice(2, 4))}/${escHtml(String(m[0]).slice(4))} 申報 ${lots(m[1])}／分點 ${lots(m[2])}</span>`).join('');
-    const tier = p.tier === '指定' ? '負責人指定' : `${escHtml(p.tier)} 級`;
-    // 2026-10-17 owner 「要」: the TG's line - the branch's own trades in this stock against the market (spec §12f,
-    // scripts/branch_vs_market.py, the same numbers as the TG)
-    const y = (p.vm || {}).y2 || {}, cls = { '穩定贏': '兩年都贏大盤', '穩定輸': '兩年都輸大盤', '贏但不穩': '一年贏、一年輸', '雜訊': '筆數太少' }[(p.vm || {}).class] || '';
-    const sg = v => (Number(v) > 0 ? '+' : '') + Number(v).toFixed(1);
-    const vm = Number(y.n) ? `<div class="ins-wb-vm">📊 這分點在這檔：近一年 勝率 ${Number(y.win)}%・期望值 ${sg(y.ev)}%・比大盤 ${sg(y.ex)} 點（${Number(y.n)} 筆）`
-      + `${cls ? `<b class="${(p.vm || {}).class === '穩定贏' ? 'ds-up' : (p.vm || {}).class === '穩定輸' ? 'ds-down' : ''}">｜${cls}</b>` : ''}</div>` : '';
-    return `<li><b>${escHtml(p.role)} ${escHtml(p.who)}</b> → <b class="ins-wb-b">${escHtml(p.branch)}</b>`
-      + `<small>　${tier}・${escHtml(p.hits)} 個月吻合</small>${vm}<div>${mm}</div></li>`;
+  _WB_ROWS = w;
+  const rows = w.map((p, i) => {
+    const y = (p.vm || {}).y2 || {}, c = (p.vm || {}).class;
+    const key = Number(y.n) ? `比大盤 <b class="${Number(y.ex) > 0 ? 'ds-up' : Number(y.ex) < 0 ? 'ds-down' : ''}">${_wbSg(y.ex)} 點</b>`
+      + (c ? `｜<b class="${c === '穩定贏' ? 'ds-up' : c === '穩定輸' ? 'ds-down' : ''}">${_WB_CLS[c] || ''}</b>` : '') : '<span class="dim">還沒有成績</span>';
+    const nm = escHtml(p.who).includes("的配偶") ? `${escHtml(p.role)}配偶` : `${escHtml(p.role)} ${escHtml(p.who)}`;   // the TG's short form
+    return `<li class="ek-tap" onclick="_insWBPop(${i})"><b>${nm}</b> → <b class="ins-wb-b">${escHtml(p.branch)}</b>｜${key} <span class="dim">›</span></li>`;
   }).join('');
-  return `<div class="ins-wb"><b>內部人分點（本站比對）</b><ul>${rows}</ul>`
-    + `<div class="ins-pfoot">申報＝本人在集中市場的淨買賣（張）；分點＝該分點當月在這檔的淨額（張）；「—」＝那個月還沒有逐人頁。比大盤＝這分點自己在這檔的交易（收盤買、先買先賣、沒賣的用最新收盤估）減去同期加權指數；統計吻合，不是開戶資料；資訊，不是買賣訊號</div></div>`;
+  return `<div class="ins-wb"><b>內部人分點（本站比對）</b><ul>${rows}</ul><div class="ins-pfoot">點一列看細節；統計吻合，不是開戶資料；資訊，不是買賣訊號</div></div>`;
+}
+let _WB_ROWS = [];
+const _WB_CLS = { '穩定贏': '兩年都贏大盤', '穩定輸': '兩年都輸大盤', '贏但不穩': '一年贏、一年輸', '雜訊': '筆數太少' };
+function _wbSg(v) { return (Number(v) > 0 ? '+' : '') + Number(v).toFixed(1); }
+function _insWBPop(i) {   // the details of one pair in a popup; a tap outside or 關閉 closes it
+  const p = _WB_ROWS[i];
+  if (!p) return;
+  const old = document.getElementById('wbPop');
+  if (old) old.remove();
+  const lots = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + Number(v).toLocaleString('en-US');
+  const yr = (lab, y) => Number((y || {}).n) ? `<li>${lab}：勝率 ${Number(y.win)}%・期望值 ${_wbSg(y.ev)}%・比大盤 ${_wbSg(y.ex)} 點・${Number(y.beat)}% 贏大盤（${Number(y.n)} 筆）</li>`
+    : `<li>${lab}：筆數太少</li>`;
+  const vm = p.vm || {};
+  const act = (p.months || []).filter(m => m[1] || Math.abs(m[2]) >= 100).slice(-6);
+  const mm = act.map(m => `<li>${escHtml(String(m[0]).slice(0, 4))}-${escHtml(String(m[0]).slice(4))}：申報 ${lots(m[1])}／分點 ${lots(m[2])} 張</li>`).join('')
+    || '<li class="dim">近期沒有明顯進出</li>';
+  const tier = p.tier === '指定' ? '負責人指定' : `${escHtml(p.tier)} 級`;
+  const ov = document.createElement('div');
+  ov.id = 'wbPop';
+  ov.className = 'wb-pop-ov';
+  ov.onclick = e => { if (e.target === ov) ov.remove(); };
+  ov.innerHTML = `<div class="wb-pop"><div class="wb-pop-h"><b>${escHtml(p.role)} ${escHtml(p.who)}</b> → <b class="ins-wb-b">${escHtml(p.branch)}</b>`
+    + `<button class="wb-pop-x" onclick="document.getElementById('wbPop').remove()">關閉</button></div>`
+    + `<div class="dim">${tier}・${escHtml(p.hits)} 個月吻合${vm.class ? `・${_WB_CLS[vm.class] || ''}` : ''}</div>`
+    + `<b class="wb-pop-t">這分點在這檔的成績</b><ul>${yr('近一年', vm.y2)}${yr('前一年', vm.y1)}</ul>`
+    + `<b class="wb-pop-t">近期每月（申報＝本人市場淨買賣；分點＝當月淨額）</b><ul>${mm}</ul>`
+    + `<div class="ins-pfoot">比大盤＝這分點自己在這檔的交易（收盤買、先買先賣、沒賣的用最新收盤估）減去同期加權指數；「—」＝那個月還沒有逐人頁</div></div>`;
+  document.body.appendChild(ov);
 }
 function _insOpen(i) {
   const x = _INS_ROWS[i];
