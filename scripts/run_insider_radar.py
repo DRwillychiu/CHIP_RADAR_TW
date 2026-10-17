@@ -740,6 +740,17 @@ def main():
         wb = ROOT / "data" / "research" / "who_branch.json"
         if wb.exists():
             priv["who_branch"] = json.loads(wb.read_text(encoding="utf-8")).get("stocks", {})
+            # 2026-10-17 owner 「要」 (the TG's 「這分點在這檔比大盤」 line in the stock drawer too): spec §12f, the same
+            # program as the TG (scripts/branch_vs_market.py); per pair the two years and the class, private like the pairs
+            from scripts.branch_vs_market import record as vs_market
+            for code, ps in priv["who_branch"].items():
+                for p in ps:
+                    try:
+                        r = vs_market(code, p["bno"]) if p.get("bno") else None
+                    except (OSError, ValueError, KeyError):
+                        r = None
+                    if r:
+                        p["vm"] = {"y1": r["y1"], "y2": r["y2"], "class": r["class"], "newest": r["newest"]}
         # v3.96.13 owner 2026-10-14: 「累積的實績就是去複製…從0至1」「在隔天開盤就買」「可以設計下拉選單就是收盤前買或者盤中
         # 1100點買」 - the copy test by entry price (scripts/copy_trade.py) and the paper record (scripts/copy_forward.py)
         cp = {}

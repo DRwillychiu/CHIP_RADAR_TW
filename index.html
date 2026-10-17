@@ -3994,7 +3994,7 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .ins-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--text-2);margin:2px 0 2px}
 .ins-leg i{display:inline-block;vertical-align:middle;margin-right:4px}
 .ins-pfoot{font-size:11.5px;color:var(--text-3);margin-top:2px}
-.ek-ins-br{display:block;font-size:11.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ins-wb{margin:10px 0;padding:8px 10px;border:1px solid var(--gold);border-radius:8px}.ins-wb ul{margin:6px 0 0;padding-left:16px}.ins-wb li{margin:4px 0}.ins-wb-b{color:var(--gold)}.ins-wb-m{display:inline-block;margin:2px 10px 0 0;font-size:11.5px;color:var(--text-2)}
+.ek-ins-br{display:block;font-size:11.5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ins-wb{margin:10px 0;padding:8px 10px;border:1px solid var(--gold);border-radius:8px}.ins-wb ul{margin:6px 0 0;padding-left:16px}.ins-wb li{margin:4px 0}.ins-wb-b{color:var(--gold)}.ins-wb-m{display:inline-block;margin:2px 10px 0 0;font-size:11.5px;color:var(--text-2)}.ins-wb-vm{margin:3px 0 1px;font-size:12px}
 .ins-minis{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}.ins-mini{flex:1 1 300px;max-width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px}.ins-mini b{font-size:13px}.ins-mini small{color:var(--text-3);margin-left:6px;font-size:11px}.ins-mini-v{font-size:18px;font-weight:600;margin:2px 0}.ins-mini svg{max-width:100%;height:auto;display:block}.ins-mini-x{font-size:10.5px}
 .ins-pop{position:absolute;z-index:3;background:var(--bg-2);border:1.5px solid var(--line-2);padding:9px 11px;min-width:210px;max-width:min(340px,94%);
   max-height:280px;overflow:auto;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
@@ -10480,7 +10480,7 @@ function _plOpen() {
   const n = v => (Number(v) || 0).toLocaleString('en-US');
   const t1 = ch.map((x, i) => `<tr class="ek-tap" onclick="_insStock(_PL_ROWS[${i}].code, '', _PL_ROWS[${i}].name)"><td><b>${escHtml(x.code)}</b> ${escHtml(x.name || '')}</td>`
     + `<td>${escHtml(x.who)}<small class="dim">（${escHtml(x.role)}）</small></td><td>${escHtml(_insYm(x.month))}</td><td>${n(x.lots)}</td><td>${n(x.pledged)}</td>`
-    + `<td class="${x.change > 0 ? 'ds-dn' : 'ds-up'}">${x.change > 0 ? '+' : ''}${n(x.change)}</td><td>${x.ratio_before}% → <b>${x.ratio}%</b></td></tr>`).join('');
+    + `<td><b class="${x.change > 0 ? 'ds-down' : 'ds-up'}">${x.change > 0 ? '+' : ''}${n(x.change)}</b></td><td>${x.ratio_before}% → <b>${x.ratio}%</b></td></tr>`).join('');
   const t2 = lh.map((x, i) => `<tr class="ek-tap" onclick="_insStock(_PL_ROWS[${ch.length + i}].code, '', _PL_ROWS[${ch.length + i}].name)"><td><b>${escHtml(x.code)}</b> ${escHtml(x.name || '')}</td>`
     + `<td>${escHtml(x.branch)}</td><td>${n(x.net)}<small class="dim">（${escHtml(String(x.pct))}%）</small></td>`
     + `<td>${(Array.isArray(x.holders) ? x.holders : []).slice(0, 3).map(h => `${escHtml(h.who)} ${n(h.lots)} 張／質押 ${h.ratio}%`).join('<br>')}</td></tr>`).join('');
@@ -10524,7 +10524,7 @@ function _wrOpen(code) {
   const max = Math.max(1, ...rows.map(x => Math.abs(x[1])));
   const tb = rows.map((x, i) => `<tr><td class="wr-rk${i < 3 ? ' top' : ''}">${i + 1}</td><td><b>${escHtml(x[0])}</b>`
     + `<div class="wr-bar-in"><i style="width:${(Math.abs(x[1]) / max * 100).toFixed(0)}%" class="${x[1] > 0 ? 'b' : 's'}"></i></div></td>`
-    + `<td class="${x[1] > 0 ? 'ds-dn' : 'ds-up'}"><b>${Math.round(x[1] / 1e4).toLocaleString('en-US')}</b></td></tr>`).join('');
+    + `<td><b class="${_dsCls(x[1])}">${Math.round(x[1] / 1e4).toLocaleString('en-US')}</b></td></tr>`).join('');
   const body = `<div class="dr-series"><div class="dr-sh">${pick}<span class="dim">資料到 ${md(ww.day)}</span></div>${tabs}`
     + `<div class="ins-sx"><table class="hm-t"><thead><tr><th>排名</th><th>券商分點</th><th>金額（萬）</th></tr></thead><tbody>`
     + `${tb || '<tr><td colspan="3" class="dim">這段期間沒有</td></tr>'}</tbody></table></div></div>`
@@ -11486,11 +11486,17 @@ function _insWBBlock(code) {
     const act = (p.months || []).filter(m => m[1] || Math.abs(m[2]) >= 100).slice(-6);
     const mm = act.map(m => `<span class="ins-wb-m">${escHtml(String(m[0]).slice(2, 4))}/${escHtml(String(m[0]).slice(4))} 申報 ${lots(m[1])}／分點 ${lots(m[2])}</span>`).join('');
     const tier = p.tier === '指定' ? '負責人指定' : `${escHtml(p.tier)} 級`;
+    // 2026-10-17 owner 「要」: the TG's line - the branch's own trades in this stock against the market (spec §12f,
+    // scripts/branch_vs_market.py, the same numbers as the TG)
+    const y = (p.vm || {}).y2 || {}, cls = { '穩定贏': '兩年都贏大盤', '穩定輸': '兩年都輸大盤', '贏但不穩': '一年贏、一年輸', '雜訊': '筆數太少' }[(p.vm || {}).class] || '';
+    const sg = v => (Number(v) > 0 ? '+' : '') + Number(v).toFixed(1);
+    const vm = Number(y.n) ? `<div class="ins-wb-vm">📊 這分點在這檔：近一年 勝率 ${Number(y.win)}%・期望值 ${sg(y.ev)}%・比大盤 ${sg(y.ex)} 點（${Number(y.n)} 筆）`
+      + `${cls ? `<b class="${(p.vm || {}).class === '穩定贏' ? 'ds-up' : (p.vm || {}).class === '穩定輸' ? 'ds-down' : ''}">｜${cls}</b>` : ''}</div>` : '';
     return `<li><b>${escHtml(p.role)} ${escHtml(p.who)}</b> → <b class="ins-wb-b">${escHtml(p.branch)}</b>`
-      + `<small>　${tier}・${escHtml(p.hits)} 個月吻合</small><div>${mm}</div></li>`;
+      + `<small>　${tier}・${escHtml(p.hits)} 個月吻合</small>${vm}<div>${mm}</div></li>`;
   }).join('');
   return `<div class="ins-wb"><b>內部人分點（本站比對）</b><ul>${rows}</ul>`
-    + `<div class="ins-pfoot">申報＝本人在集中市場的淨買賣（張）；分點＝該分點當月在這檔的淨額（張）；「—」＝那個月還沒有逐人頁。統計吻合，不是開戶資料；資訊，不是買賣訊號</div></div>`;
+    + `<div class="ins-pfoot">申報＝本人在集中市場的淨買賣（張）；分點＝該分點當月在這檔的淨額（張）；「—」＝那個月還沒有逐人頁。比大盤＝這分點自己在這檔的交易（收盤買、先買先賣、沒賣的用最新收盤估）減去同期加權指數；統計吻合，不是開戶資料；資訊，不是買賣訊號</div></div>`;
 }
 function _insOpen(i) {
   const x = _INS_ROWS[i];
