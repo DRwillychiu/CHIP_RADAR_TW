@@ -3944,6 +3944,11 @@ th{background:var(--bg-3)!important;color:var(--text-2)!important;font-weight:70
 .ek-mv{flex:1;font-weight:700;white-space:nowrap}
 .ek-ms{flex:0 0 64px;color:var(--c)}
 .ds-up{color:var(--red);font-weight:700}.ds-down{color:var(--green);font-weight:700}.ds-flat{color:var(--text-3)}
+/* 2026-10-18 buy / sell pill (docs/specs/BUY_SELL_LABELS.md): 買 red, 賣 green, 沒進出 grey; white text; the dark theme's
+   --green is too light for white text, so its sell pill takes --green-dim (about 3.8:1 like the red) */
+.bs{display:inline-block;font-size:max(11px,.66em);font-weight:700;font-style:normal;line-height:1.5;letter-spacing:0;color:#fff;border-radius:3px;padding:0 4px;margin-right:3px;vertical-align:middle;white-space:nowrap}
+.bs.b{background:var(--red)}.bs.s{background:var(--green)}.bs.z{background:var(--text-3)}
+:root:not([data-theme="light"]) .bs.s{background:var(--green-dim)}
 .ek-sub{color:var(--text-3);font-size:13px;white-space:nowrap}
 .ek-go{margin-left:auto;background:none;border:0;padding:0;color:inherit;font:inherit;font-size:12px;font-weight:900;cursor:pointer;opacity:.9}
 .ek-foot{margin-top:12px;font-size:11.5px;color:var(--text-3);display:flex;justify-content:space-between;gap:6px 20px;flex-wrap:wrap}
@@ -4250,7 +4255,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.97.13 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.97.14 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -9701,6 +9706,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.97.14', date: '10/18', title: '買賣標籤', desc: '每一筆交易都標明「買」「賣」（紅底、綠底小方框），數字不再用正負號，沒有交易寫「沒進出」；同向／反向改成直接寫「內部人買・權證買」；首頁 ①③ 的內部人金額標明是近 3 日；設質／解質、增／減用文字；分點動態的箭頭改成跟著買賣走' },
   { v: 'v3.97.13', date: '10/17', title: '權證連結＋分點逐日權證', desc: 'S10 權證分點排名點開的近 5 日，每一天列出這個分點買賣的每一檔權證（張數），點權證名稱直接開那一天的權證分點頁；S11 權證大戶追蹤的買進權證也可點開；資訊，不是買賣訊號' },
   { v: 'v3.97.12', date: '10/17', title: '權證大戶追蹤＋分點近 5 日', desc: '新增 S11 權證大戶追蹤：觀察清單、權證大買＋內部人有動作、權證大買前 5 名的權證買方前 2 名，之後 20 個交易日看它在同一批權證續買、還抱著或賣出，附權證與股價收盤漲跌；S10 權證分點排名點一列看這個分點近 5 個交易日的買賣；彈出視窗修正為顯示在抽屜上方；資訊，不是買賣訊號' },
   { v: 'v3.97.11', date: '10/17', title: '分點警示改用比大盤', desc: '大股東動向的分點警示：「分點自己在這檔」改成近一年勝率、期望值、比大盤與兩年成績分類（和 TG 同一套算法，不再用 10/14 的舊勝率檔）；資訊，不是買賣訊號' },
@@ -9709,7 +9715,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v3.97.1', date: '10/15', title: '分點警示看更多＋全景圖資料補齊', desc: '分點警示只列前 5 筆（看更多點入）；全景圖分點大戶補到 2024-10（2026-04 前為追蹤分點的月資料）、千張大戶補到 2024-09（2026-06 前為第三方週資料）' },
   { v: 'v3.97.0', date: '10/15', title: '首頁改成搜尋＋三格', desc: '首頁改成搜尋＋三格：權證大買＋內部人有動作／權證大買、內部人還沒動／內部人有動作、權證還沒動；其他清單改成按鈕' },
   { v: 'v3.96.16', date: '10/15', title: '全市場內部人申報排行＋全景圖擴大到全市場', desc: '內部人申報：全市場排行（每月淨買賣）＋個股全景圖擴大到全市場（1,451 檔，可搜尋）＋近 6／12 月淨買賣、持股前 15 名、逐月明細含設質' },
-  { v: 'v3.96.15', date: '10/14', title: '權證大戶排行上網站', desc: '大股東動向的分點警示下方新增「權證大戶排行」：當天每檔權證前 2 大分點合計（不含總公司與造市型）、主力權證與吃下比例，並列出這檔的內部人分點近 3 日進出，內部人也買的標 ◆（解鎖後才看得到）；資料庫更新到 10/14；資訊，不是買賣訊號' },
   { v: 'V1.0', date: '10/10', title: '正式版 V1.0（build v3.95.0）', desc: '新介面全站上線＋富邦抓取間隔 1.6 秒與 8111 等亂碼股名修正併入正式版＋外資規則統一（只算美/歐/亞）＋9/17 期貨資料補齊' },
 ];
 
@@ -10297,6 +10302,20 @@ function _dsSign(v, nd = 1) {
   return (v > 0 ? '+' : v < 0 ? '−' : '±') + _dsNum(v, nd);
 }
 function _dsCls(v) { return v > 0 ? 'ds-up' : v < 0 ? 'ds-down' : 'ds-flat'; }
+// 2026-10-18 owner 「必須非常清楚簡潔。我希望能夠在一秒就能夠清楚知道內容」 (docs/specs/BUY_SELL_LABELS.md): every traded number is
+// a 買 / 賣 pill + its absolute value (fmt gets the absolute value), 0 = 沒進出; a change that is not a trade uses its own words
+// (_bsW: 設質／解質, 增／減, 多單／空單, 融資增／融資減). Missing values stay '—'.
+function _bs(v) { const x = Number(v) || 0; return x > 0 ? '<span class="bs b">買</span>' : x < 0 ? '<span class="bs s">賣</span>' : '<span class="bs z">沒進出</span>'; }
+function _bsN(v, fmt) {
+  const x = Number(v);
+  if (v === null || v === undefined || v === '' || !isFinite(x)) return '—';
+  return x ? _bs(x) + fmt(Math.abs(x)) : _bs(0);
+}
+function _bsW(v, up, down, fmt) {
+  const x = Number(v);
+  if (v === null || v === undefined || v === '' || !isFinite(x)) return '—';
+  return x > 0 ? `${up} ${fmt(x)}` : x < 0 ? `${down} ${fmt(-x)}` : fmt(0);
+}
 function _dsUpDn(v, nd = 2, unit = '%') {
   if (v === null || v === undefined) return '<span class="ds-flat">—</span>';
   const a = v > 0 ? '▲' : v < 0 ? '▼' : '■';
@@ -10351,8 +10370,8 @@ function renderDailySummary() {
       <span class="hm-kv">${value}<small>${unit}</small></span><span class="hm-ks">${trend ? _dsSpark(trend, 56, 18, zero) : ''}</span></button>`;
   const keys = [
     big('k-stocks', 'S', '01', '強籌', 'STRONG CHIPS', k.strong_count ?? '—', '檔', n.strong, t.strong, false, 'strong'),
-    big('k-players', 'P', '02', '本土大戶', 'DOMESTIC', _dsSign(k.domestic_net_yi), '億', n.domestic, t.domestic, true, 'domestic'),
-    big('k-players', 'P', '03', '外資大戶', 'FOREIGN', _dsSign(k.foreign_net_yi), '億', n.foreign, t.foreign, true, frn.length ? 'foreign' : ''),
+    big('k-players', 'P', '02', '本土大戶', 'DOMESTIC', _bsN(k.domestic_net_yi, a => _dsNum(a, 1)), k.domestic_net_yi ? '億' : '', n.domestic, t.domestic, true, 'domestic'),
+    big('k-players', 'P', '03', '外資大戶', 'FOREIGN', _bsN(k.foreign_net_yi, a => _dsNum(a, 1)), k.foreign_net_yi ? '億' : '', n.foreign, t.foreign, true, frn.length ? 'foreign' : ''),
     big('k-risk', 'R', '04', '明日恐處置', 'RISK', k.disposal_pending ?? '—', '檔', n.risk, null, false, 'risk'),
   ].join('')
     + `<button class="hm-key k-meta" onclick="_dsOpen('changes')"><span class="ek-code">C<small>06</small></span><span class="hm-kl">今天變了什麼</span><span class="hm-kv">›</span></button>`
@@ -10394,7 +10413,7 @@ function _hmAmt(v, signed = false) {   // 萬 -> 「1.23 億」 (>= 1 億, 2 dec
   const a = Math.abs(x), sg = signed ? (x > 0 ? '+' : x < 0 ? '−' : '') : '';
   return Math.round(a) >= 1e4 ? `${sg}${(a / 1e4).toFixed(2)} 億` : `${sg}${Math.round(a).toLocaleString('en-US')} 萬`;
 }
-function _hmLots(v) { const x = Number(v) || 0; return `${x > 0 ? '+' : x < 0 ? '−' : ''}${Math.abs(x).toLocaleString('en-US')} 張`; }
+function _hmLots(v) { return `${Math.abs(Number(v) || 0).toLocaleString('en-US')} 張`; }   // absolute: the 買 / 賣 pill is on the trade's first number
 function _hmRule(bd) {
   const ru = bd.rule || {};
   return { top: Number(ru.top_n) || 20, min: Number(ru.min_amt_wan) || 500, days: Number(ru.days) || 3, ratio: Number(ru.ratio) || 3, base: Number(ru.base) || 60 };
@@ -10407,9 +10426,10 @@ function _hmWho(w) {   // [role, who, branch, lots]
   w = Array.isArray(w) ? w : [];
   const lots = Number(w[3]) || 0;
   const x = w[4] != null && isFinite(Number(w[4])) ? ` <small class="dim">平常的 ${Number(w[4]).toFixed(1)} 倍</small>` : '';   // [.., lots, x]
-  return `<span class="hm-w"><b>${escHtml(w[0] || '')}</b> ${escHtml(w[1] || '')} → <i>${escHtml(w[2] || '')}</i> <span class="${_dsCls(lots)}">${_hmLots(lots)}</span>${x}</span>`;
+  return `<span class="hm-w"><b>${escHtml(w[0] || '')}</b> ${escHtml(w[1] || '')} → <i>${escHtml(w[2] || '')}</i> <span class="${_dsCls(lots)}">${_bsN(lots, _hmLots)}</span>${x}</span>`;
 }
-function _hmDir(dir) { return dir ? `<i class="hm-dir${dir === '同向' ? ' on' : ''}">${escHtml(dir)}</i>` : ''; }
+// group ① (r.dir from scripts/home_board.py: by the insider lots' sign): both sides written out (spec rule 5)
+function _hmDir(r) { return r.dir ? `<i class="hm-dir${(Number(r.lots) || 0) > 0 ? ' on' : ''}">內部人${_bs(r.lots)}・權證${_bs(r.warrant)}</i>` : ''; }
 // v3.97.2 owner 2026-10-15 15:0x 「要」: the insider market-sale pre-declaration badge (method spec §11: valid avoid signal,
 // 20 trading days -2.43 % vs the fair control, both years negative; 一般交易 -3.7 %, 鉅額 about 0)
 function _pdOf(code) {
@@ -10428,22 +10448,24 @@ function _lbBadge(r) {
 }
 function _hmItem(g, r, i, ru) {   // v3.97.0 owner 「整理後，又重新進行排版的模範生」: two lines - name + one big number, one grey line
   const n = Number(r.amt) || 0;
-  const big = g === 'D' ? `<span class="hm-v ds-up">${_hmAmt(r.amt, true)}</span>` : g === 'B' ? `<span class="hm-v ds-up">${_hmAmt(r.warrant)}</span>` : `<span class="hm-v ${_dsCls(n)}">${_hmAmt(r.amt, true)}</span>`;
+  const big = g === 'D' ? `<span class="hm-v ds-up">${_bsN(r.amt, _hmAmt)}</span>` : g === 'B' ? `<span class="hm-v ds-up">${_bsN(r.warrant, _hmAmt)}</span>` : `<span class="hm-v ${_dsCls(n)}">${_bsN(r.amt, _hmAmt)}</span>`;
   const role = escHtml(((Array.isArray(r.who) ? r.who : [])[0] || [])[0] || '');
   // owner 2026-10-15 09:3x 「金額的部分，還是必須附上(%)或者張數」: every amount comes with its lots and a %
-  const pc = v => { const x = Number(v); if (v === null || v === undefined || !isFinite(x)) return ''; const sg = x > 0 ? '+' : x < 0 ? '−' : ''; return Math.abs(x) < 0.01 ? '未滿 0.01%' : `${sg}${Math.abs(x).toFixed(2)}%`; };
+  const pc = v => { const x = Number(v); if (v === null || v === undefined || !isFinite(x)) return ''; return Math.abs(x) < 0.01 ? '未滿 0.01%' : `${Math.abs(x).toFixed(2)}%`; };   // absolute (the pill is on the big number)
   const insQ = `${_hmLots(r.lots)}${r.pct != null ? `・占股本${Math.abs(Number(r.pct)) < 0.01 ? '' : ' '}${pc(r.pct)}` : ''}`
     + (r.x != null ? `・平常的 ${Number(r.x).toFixed(1)} 倍` : (g === 'B' ? '' : '・平常沒有交易'));   // strategy item 1: how unusual
   const warQ = `${(Number(r.wlots) || 0).toLocaleString('en-US')} 張${r.wpct != null ? `・佔當日權證 ${Number(r.wpct).toFixed(1)}%` : ''}`;
   // owner 2026-10-15 22:1x 「可以」: the main warrant's branch page of the board day (the mirror page the ranking comes from)
   const bd = String(((INSIDER_PRIV || {}).board || {}).day || ''), dd = `${+bd.slice(0, 4)}-${+bd.slice(4, 6)}-${+bd.slice(6)}`;
   const wLink = (r.w && /^\d{8}$/.test(bd)) ? ` <a class="hm-wl" href="https://stockchannelnew.sinotrade.com.tw/z/zc/zco/zco.djhtm?a=${encodeURIComponent(r.w)}&e=${dd}&f=${dd}" target="_blank" rel="noopener" onclick="event.stopPropagation()">權證↗</a>` : '';
-  const sub = g === 'A' ? `${insQ}</div><div class="hm-l2">權證 #${Number(r.rank) || '—'} · ${_hmAmt(r.warrant)}（${warQ}）${_hmDir(r.dir)}`
+  // 10/18 preview: at the end of the line the direction was cut off in the narrow column -> it leads the line
+  // 10/18 6715: ① / ③ amounts are the insider branch's net over the rule's days (賣 26 = 10/14 賣 27 + 10/16 買 1) - said on the line
+  const sub = g === 'A' ? `近 ${ru.days} 日 ${insQ}</div><div class="hm-l2">${r.dir ? `${_hmDir(r)}｜#${Number(r.rank) || '—'} · ${_hmAmt(Math.abs(Number(r.warrant) || 0))}` : `權證 #${Number(r.rank) || '—'} · ${_bsN(r.warrant, _hmAmt)}`}（${warQ}）`
     : g === 'B' ? `${warQ}｜${r.matched ? `有對到分點，${ru.days} 日沒動` : '還沒對到分點'}`
     : g === 'D' ? `${_hmLots(r.lots)}${r.pct != null ? `・占股本 ${pc(r.pct)}` : ''}${r.x != null ? (Number(r.x) >= 100 ? '・平常幾乎沒交易' : `・平常的 ${Number(r.x).toFixed(1)} 倍`) : ''}｜${escHtml(r.branch || '')}`
-    : `${insQ}${role ? `｜${role}` : ''}`;
+    : `近 ${ru.days} 日 ${insQ}${role ? `｜${role}` : ''}`;
   return `<li class="hm-it" onclick="_hmGo('${g}',${i})"><div class="hm-l1"><span class="hm-nm"><em>${escHtml(r.code || '')}</em>${escHtml(r.name || '')}</span>${wLink}${_lbBadge(r)}${_pdBadge(r.code)}${big}</div>`
-    + `<div class="hm-l2">${sub}</div></li>`;   // ① has two grey lines (insider, then warrant + 同向／反向)
+    + `<div class="hm-l2">${sub}</div></li>`;   // ① has two grey lines (insider, then warrant + 內部人買・權證買)
 }
 function _hmCol(g, cls, rows, ru, foot) {
   const li = rows.slice(0, 5).map((r, i) => _hmItem(g, r, i, ru)).join('') || '<li class="ek-sub">今天沒有</li>';   // 模範生: at most 5
@@ -10461,7 +10483,7 @@ function _hmBoard() {
   _HM_ROWS = { A, B, C, D };
   const nU = B.filter(r => !r.matched).length;
   return `<div class="hm-rule">權證前 ${ru.top} × 內部人分點 ${ru.days} 日 ≥ ${ru.min.toLocaleString('en-US')} 萬且 ≥ 平常 ${ru.ratio} 倍｜資料日 ${escHtml(_insDay(bd.day))}｜資料庫 ${(Number(bd.stocks) || 0).toLocaleString('en-US')} 檔（規則全文在「全部」裡）</div><div class="hm-tri">`
-    + _hmCol('A', 'hm-a', A, ru, '同向＝內部人分點也在買；反向＝在賣')
+    + _hmCol('A', 'hm-a', A, ru, '紅＝買、綠＝賣')
     + _hmCol('B', 'hm-b', B, ru, B.length ? `${nU} 檔還沒對到分點` : '')
     + _hmCol('C', 'hm-c', C, ru, '紅＝買、綠＝賣')
     + '</div>'
@@ -10481,7 +10503,7 @@ function _plOpen() {
   const n = v => (Number(v) || 0).toLocaleString('en-US');
   const t1 = ch.map((x, i) => `<tr class="ek-tap" onclick="_insStock(_PL_ROWS[${i}].code, '', _PL_ROWS[${i}].name)"><td><b>${escHtml(x.code)}</b> ${escHtml(x.name || '')}</td>`
     + `<td>${escHtml(x.who)}<small class="dim">（${escHtml(x.role)}）</small></td><td>${escHtml(_insYm(x.month))}</td><td>${n(x.lots)}</td><td>${n(x.pledged)}</td>`
-    + `<td><b class="${x.change > 0 ? 'ds-down' : 'ds-up'}">${x.change > 0 ? '+' : ''}${n(x.change)}</b></td><td>${x.ratio_before}% → <b>${x.ratio}%</b></td></tr>`).join('');
+    + `<td><b>${_bsW(x.change, '設質', '解質', n)}</b></td><td>${x.ratio_before}% → <b>${x.ratio}%</b></td></tr>`).join('');   // not a trade: words, no red / green
   const t2 = lh.map((x, i) => `<tr class="ek-tap" onclick="_insStock(_PL_ROWS[${ch.length + i}].code, '', _PL_ROWS[${ch.length + i}].name)"><td><b>${escHtml(x.code)}</b> ${escHtml(x.name || '')}</td>`
     + `<td>${escHtml(x.branch)}</td><td>${n(x.net)}<small class="dim">（${escHtml(String(x.pct))}%）</small></td>`
     + `<td>${(Array.isArray(x.holders) ? x.holders : []).slice(0, 3).map(h => `${escHtml(h.who)} ${n(h.lots)} 張／質押 ${h.ratio}%`).join('<br>')}</td></tr>`).join('');
@@ -10526,7 +10548,7 @@ function _wrOpen(code) {
   _WR_ROWS = rows;
   const tb = rows.map((x, i) => `<tr class="ek-tap" onclick="_wrPop(${i})"><td class="wr-rk${i < 3 ? ' top' : ''}">${i + 1}</td><td><b>${escHtml(x[0])}</b>`
     + `<div class="wr-bar-in"><i style="width:${(Math.abs(x[1]) / max * 100).toFixed(0)}%" class="${x[1] > 0 ? 'b' : 's'}"></i></div></td>`
-    + `<td><b class="${_dsCls(x[1])}">${Math.round(x[1] / 1e4).toLocaleString('en-US')}</b></td></tr>`).join('');
+    + `<td><b class="${_dsCls(x[1])}">${_bsN(x[1], a => Math.round(a / 1e4).toLocaleString('en-US'))}</b></td></tr>`).join('');
   const body = `<div class="dr-series"><div class="dr-sh">${pick}<span class="dim">資料到 ${md(ww.day)}</span></div>${tabs}`
     + `<div class="ins-sx"><table class="hm-t"><thead><tr><th>排名</th><th>券商分點</th><th>金額（萬）</th></tr></thead><tbody>`
     + `${tb || '<tr><td colspan="3" class="dim">這段期間沒有</td></tr>'}</tbody></table></div></div>`
@@ -10551,10 +10573,9 @@ function _wrPop(i) {   // v3.97.12 the branch's last 5 ranked days in this stock
   const n = v => Number(v || 0).toLocaleString('en-US');
   const days = ((st.days || {})[x[0]] || []);
   // owner 2026-10-17 21:5x 「我是希望這邊可以有超連結，讓我直接彈出到權證頁面」: each warrant of the day -> its branch page
-  const wl = d => (Array.isArray(d[3]) ? d[3] : []).map(w => `<div class="wr-wl">${escHtml(w[1] || w[0])} ${+w[2] > 0 ? '+' : ''}${n(w[2])} 張 ${_wrLink(w[0], d[0])}</div>`).join('');
+  const wl = d => (Array.isArray(d[3]) ? d[3] : []).map(w => `<div class="wr-wl">${escHtml(w[1] || w[0])} ${_bsN(w[2], a => `${n(a)} 張`)} ${_wrLink(w[0], d[0])}</div>`).join('');
   const li = days.map(d => `<li>${md(d[0])}：${d[1] === null || d[1] === undefined ? '<span class="dim">沒有資料</span>'
-    : +d[1] > 0 ? `<b class="ds-up">買 ${n(Math.round(+d[1] / 1e4))} 萬</b>（${n(d[2])} 張）`
-    : +d[1] < 0 ? `<b class="ds-down">賣 ${n(Math.round(Math.abs(+d[1]) / 1e4))} 萬</b>（${n(Math.abs(+d[2]))} 張）` : '沒有進出'}${wl(d)}</li>`).join('')
+    : +d[1] ? `<b class="${_dsCls(+d[1])}">${_bsN(+d[1], a => `${n(Math.round(a / 1e4))} 萬`)}</b>（${n(Math.abs(+d[2]))} 張）` : _bs(0)}${wl(d)}</li>`).join('')
     || '<li class="dim">這個分點沒有逐日資料</li>';
   const tot = days.reduce((a, d) => a + (+d[1] || 0), 0);
   const ov = document.createElement('div');
@@ -10564,7 +10585,7 @@ function _wrPop(i) {   // v3.97.12 the branch's last 5 ranked days in this stock
   ov.innerHTML = `<div class="wb-pop"><div class="wb-pop-h"><b>${escHtml(_WR.code)} ${escHtml(st.name || '')}</b> → <b class="ins-wb-b">${escHtml(x[0])}</b>`
     + `<button class="wb-pop-x" onclick="document.getElementById('wbPop').remove()">關閉</button></div>`
     + `<b class="wb-pop-t">近 5 個交易日（這檔所有認購權證合計）</b><ul>${li}</ul>`
-    + `<div>5 日合計：<b class="${_dsCls(tot)}">${tot >= 0 ? '買' : '賣'} ${n(Math.round(Math.abs(tot) / 1e4))} 萬</b></div>`
+    + `<div>5 日合計：<b class="${_dsCls(tot)}">${_bsN(tot, a => `${n(Math.round(a / 1e4))} 萬`)}</b></div>`
     + `<div class="ins-pfoot">金額＝張數 × 當天均價（推估）；分點頁只列每檔權證買賣前 15 名，沒上榜＝當天沒有明顯進出；「沒有資料」＝那天沒有抓到這檔的權證分點頁。資訊，不是買賣訊號</div></div>`;
   document.body.appendChild(ov);
 }
@@ -10630,12 +10651,12 @@ function _hmAll(g) {   // the full list of one group with every insider -> branc
   const ru = _hmRule(bd), rows = Array.isArray(bd[g]) ? bd[g] : [];
   _HM_ROWS[g] = rows;
   const who = r => (Array.isArray(r.who) ? r.who : []).map(w => `<div>${_hmWho(w)}</div>`).join('') || '<span class="dim">—</span>';
-  const amt = r => `<span class="${_dsCls(Number(r.amt) || 0)}">${_hmAmt(r.amt, true)}</span><small>${_hmLots(r.lots)}</small>`;
+  const amt = r => `<span class="${_dsCls(Number(r.amt) || 0)}">${_bsN(r.amt, _hmAmt)}</span><small>${_hmLots(r.lots)}</small>`;
   const head = g === 'D' ? ['分點', '今天買進', '平常的倍數'] : g === 'A' ? ['權證', `內部人分點 ${ru.days} 日`, '方向', '內部人 → 分點（張）']
     : g === 'B' ? ['權證', '內部人分點'] : [`內部人分點 ${ru.days} 日`, '內部人 → 分點（張）', '權證'];
   const cells = r => g === 'D' ? [escHtml(r.branch || ''), amt(r), r.x != null ? (Number(r.x) >= 100 ? '平常幾乎沒交易' : `${Number(r.x).toFixed(1)} 倍`) : '—']
-    : g === 'A' ? [`#${Number(r.rank) || '—'} · ${_hmAmt(r.warrant)}`, amt(r), _hmDir(r.dir), who(r)]
-    : g === 'B' ? [`#${Number(r.rank) || '—'} · <span class="ds-up">${_hmAmt(r.warrant)}</span>`, r.matched ? `有對到分點，${ru.days} 日沒動` : '還沒對到內部人分點']
+    : g === 'A' ? [`#${Number(r.rank) || '—'} · ${_bsN(r.warrant, _hmAmt)}`, amt(r), _hmDir(r), who(r)]
+    : g === 'B' ? [`#${Number(r.rank) || '—'} · <span class="ds-up">${_bsN(r.warrant, _hmAmt)}</span>`, r.matched ? `有對到分點，${ru.days} 日沒動` : '還沒對到內部人分點']
     : [amt(r), who(r), `沒進前 ${ru.top}`];
   const tr = rows.map((r, i) => `<tr class="ek-tap" onclick="_hmGo('${g}',${i},1)"><td class="dim">${i + 1}</td>`
     + `<td><b>${escHtml(r.code || '')}</b> ${escHtml(r.name || '')}</td>${cells(r).map(c => `<td>${c}</td>`).join('')}</tr>`).join('');
@@ -10694,10 +10715,10 @@ function _dsKpis(items) {
   return `<div class="dr-kpis">${items.map(([a, b]) => `<div>${a}<b>${b}</b></div>`).join('')}</div>`;
 }
 function _dsPlayersTable(rows) {
-  return `<table><thead><tr><th>#</th><th>大戶</th><th class="r">今晚淨買(億)</th><th class="r">分點</th><th>主要個股</th></tr></thead><tbody>${
+  return `<table><thead><tr><th>#</th><th>大戶</th><th class="r">今晚淨額(億)</th><th class="r">分點</th><th>主要個股</th></tr></thead><tbody>${
     rows.map((p, i) => `<tr><td class="dim">${i + 1}</td><td><b>${escHtml(p.master)}</b></td>
-      <td class="num ${_dsCls(p.net_yi)}">${_dsSign(p.net_yi)}</td><td class="num">${p.branches ?? '—'}</td>
-      <td>${escHtml(p.best_name || '')} <span class="dim">${p.best_code ? _dsSign(p.best_yi) : ''}</span></td></tr>`).join('')
+      <td class="num ${_dsCls(p.net_yi)}">${_bsN(p.net_yi, a => _dsNum(a, 1))}</td><td class="num">${p.branches ?? '—'}</td>
+      <td>${escHtml(p.best_name || '')} <span class="dim">${p.best_code ? _bsN(p.best_yi, a => _dsNum(a, 1)) : ''}</span></td></tr>`).join('')
   }</tbody></table>`;
 }
 function _dsOpen(kind) {
@@ -10718,13 +10739,13 @@ function _dsOpen(kind) {
     _dsDrawer('stocks', 'S', '01', `強籌 ${rows.length} 檔`, 'STRONG CHIPS', body, _dsPage('overview', '共買榜（完整頁）'));
   } else if (kind === 'domestic') {
     const rows = s.domestic_all || s.domestic_top || [];
-    const body = _dsKpis([['本土合計', `${_dsSign(k.domestic_net_yi)} 億`], ['大戶', `${k.domestic_masters ?? rows.length} 位`], ['分點', `${k.domestic_branches ?? '—'}`]])
-      + `<div class="dr-trend k-players">${_dsSpark(t.domestic, 760, 70, true)}<span>近 ${(t.dates || []).length} 日本土淨買</span></div>` + _dsPlayersTable(rows);
+    const body = _dsKpis([['本土合計', _bsN(k.domestic_net_yi, a => `${_dsNum(a, 1)} 億`)], ['大戶', `${k.domestic_masters ?? rows.length} 位`], ['分點', `${k.domestic_branches ?? '—'}`]])
+      + `<div class="dr-trend k-players">${_dsSpark(t.domestic, 760, 70, true)}<span>近 ${(t.dates || []).length} 日本土淨額</span></div>` + _dsPlayersTable(rows);
     _dsDrawer('players', 'P', '02', `本土大戶 ${rows.length} 位`, 'DOMESTIC', body, _dsPage('masterview', '高手合併視圖（完整頁）'));
   } else if (kind === 'foreign') {
     const rows = s.foreign || [];
-    const body = _dsKpis([['外資合計', `${_dsSign(k.foreign_net_yi)} 億`], ['券商', `${rows.length} 家`]])
-      + `<div class="dr-trend k-players">${_dsSpark(t.foreign, 760, 70, true)}<span>近 ${(t.dates || []).length} 日外資券商淨買</span></div>` + _dsPlayersTable(rows);
+    const body = _dsKpis([['外資合計', _bsN(k.foreign_net_yi, a => `${_dsNum(a, 1)} 億`)], ['券商', `${rows.length} 家`]])
+      + `<div class="dr-trend k-players">${_dsSpark(t.foreign, 760, 70, true)}<span>近 ${(t.dates || []).length} 日外資券商淨額</span></div>` + _dsPlayersTable(rows);
     _dsDrawer('players', 'P', '03', `外資大戶 ${rows.length} 家`, 'FOREIGN', body, _dsPage('masterview', '高手合併視圖（完整頁）'));
   } else if (kind === 'risk') {
     const rk = s.risk || {};
@@ -10738,8 +10759,8 @@ function _dsOpen(kind) {
   } else if (kind === 'market') {
     const ds = t.dates || [];
     const last5 = ds.slice(-5);
-    const series = [['加權指數', t.taiex, v => _dsNum(v, 0), false], ['外資台指期淨單（口）', t.fut_oi, v => (v < 0 ? '−' : '') + _dsNum(v, 0), false],
-                    ['融資增減（億）', t.margin, v => _dsSign(v, 1), true], ['P/C（未平倉）', t.pc, v => v.toFixed(2), false]];
+    const series = [['加權指數', t.taiex, v => _dsNum(v, 0), false], ['外資台指期淨單（口）', t.fut_oi, v => _bsW(v, '多單', '空單', a => _dsNum(a, 0)), false],
+                    ['融資增減（億）', t.margin, v => _bsW(v, '融資增', '融資減', a => _dsNum(a, 1)), true], ['P/C（未平倉）', t.pc, v => v.toFixed(2), false]];
     const body = series.map(([label, vals, fmt, zero]) => {
       const v = vals || [];
       const tail = v.slice(-5);
@@ -11168,10 +11189,14 @@ function _insAlRow(x, i, all = false) {   // one alert row (the block's first 5 
 function _insDossier() {
   const d = (INSIDER_PRIV || {}).dossier;
   if (!d || !Array.isArray(d.people)) return '';
+  // since / sep come pre-formatted from scripts/insider_dossier.py ("+300 張", "（申報 +120／分點 -80 張）"): escaped first,
+  // then each signed number becomes a pill + its absolute value
+  const bt = s => escHtml(s).replace(/(^|[\s（])([+\-−])(\d[\d,]*)( 張)?/g, (m, p, sg, num, u) =>
+    p + _bsN((sg === '+' ? 1 : -1) * Number(num.replace(/,/g, '')), a => `${a.toLocaleString('en-US')}${u || ''}`));
   const rows = d.people.map(x => `<li class="ins-al"><span class="ins-al-k b">分點</span>
       <span class="ins-al-n"><b>${escHtml(x.who || '')}</b><small>${escHtml(x.role || '')} · ${Number(x.lots || 0).toLocaleString('en-US')} 張</small></span>
       <span class="ins-al-m">${escHtml(x.branch || '')}<small>${escHtml(x.tier || '未複核')} · ${escHtml(x.hits || '')} 個月吻合</small></span>
-      <span class="ins-al-r">9/1 起 ${escHtml(x.since || '')}<small>9 月申報：${escHtml(x.sep || '—')}</small></span></li>`).join('');
+      <span class="ins-al-r">9/1 起 ${bt(x.since || '')}<small>9 月申報：${bt(x.sep || '—')}</small></span></li>`).join('');
   const rel = (d.relations || []).map(r => `<li>${escHtml(r)}</li>`).join('');
   const cnt = Object.entries(d.counts || {}).filter(([, v]) => v).map(([k, v]) => `${escHtml(k)} ${Number(v)} 位`).join('、');
   return `<div class="ek-ins-h">今日一檔：${escHtml(d.name || '')} ${escHtml(d.code || '')}（市值第 ${Number(d.rank) || '—'} 名・董事長 ${escHtml(d.chairman || '—')}；${escHtml(String(d.built || '').slice(0, 10))}）</div>`
@@ -11191,11 +11216,12 @@ function _insWarrant() {
     const ins = w.ins || [];
     const linked = ins.some(r => (r[3] || []).some(z => Number(z[1]) > 0));
     const insTxt = ins.map(r => `${escHtml(r[0])} → ${escHtml(r[2])}：` + ((r[3] || []).length
-      ? (r[3] || []).map(z => `${escHtml(String(z[0]).slice(4, 6))}/${escHtml(String(z[0]).slice(6))} ${Number(z[1]) > 0 ? '+' : ''}${Number(z[1]).toLocaleString('en-US')}`).join('、') + ' 張'
+      ? (r[3] || []).map(z => `${escHtml(String(z[0]).slice(4, 6))}/${escHtml(String(z[0]).slice(6))} ${_bsN(z[1], a => `${a.toLocaleString('en-US')} 張`)}`).join('、')
       : '近 3 日沒有進出')).join('；');
+    const wn = v => _bsN(v, a => `${wan(a)} 萬`);
     return `<li class="ins-al"><span class="ins-al-k ${linked ? 'b' : 's'}">${i + 1}</span>
-      <span class="ins-al-n"><b>${escHtml(w.name || '')} ${escHtml(w.code || '')}</b><small>前 2 大分點合計 ${wan(w.sum)} 萬${linked ? '・◆內部人也買' : ''}</small></span>
-      <span class="ins-al-m">${t[0] ? `${escHtml(t[0][0])} ${wan(t[0][1])} 萬` : ''}<small>${t[0] && t[0][4] ? `${escHtml(t[0][4])}（占 ${Number(t[0][5]) || 0}%）` : ''}${t[1] ? `；${escHtml(t[1][0])} ${wan(t[1][1])} 萬` : ''}</small></span>
+      <span class="ins-al-n"><b>${escHtml(w.name || '')} ${escHtml(w.code || '')}</b><small>前 2 大分點合計 ${wn(w.sum)}${linked ? '・◆內部人也買' : ''}</small></span>
+      <span class="ins-al-m">${t[0] ? `${escHtml(t[0][0])} ${wn(t[0][1])}` : ''}<small>${t[0] && t[0][4] ? `${escHtml(t[0][4])}（占 ${Number(t[0][5]) || 0}%）` : ''}${t[1] ? `；${escHtml(t[1][0])} ${wn(t[1][1])}` : ''}</small></span>
       <span class="ins-al-r">${ins.length ? '內部人分點' : '內部人分點：還沒比對到'}<small>${insTxt}</small></span></li>`;
   }).join('');
   return `<div class="ek-ins-h">權證大戶排行 ${escHtml(d.slice(4, 6))}/${escHtml(d.slice(6))}（每檔前 2 大分點合計；不含總公司與高周轉型；◆＝這檔的內部人分點近 3 日也買；<b>資訊，不是買賣訊號</b>）</div><ul class="ins-al-ul">${li}</ul>`;
@@ -11409,7 +11435,7 @@ function _insPanoDraw(code) {
   // after until); estimated months (<= est_until, the monthly ranking pages' top 15) at half opacity, legend under the row
   let nEst = 0;
   if (brs) {
-    s += ns('text', { x: L, y: S1T - 8, fill: BLUE, 'font-size': 12, 'font-weight': 700 }, '分點大戶每月淨買（億）');
+    s += ns('text', { x: L, y: S1T - 8, fill: BLUE, 'font-size': 12, 'font-weight': 700 }, `分點大戶每月淨額（億）<tspan fill="${TX2}" font-weight="400">　實心＝買　空心＝賣</tspan>`);
     const miss = m => (!!fm && m < fm) || (!!um && m > um);
     for (let i = 0, i0 = -1; i <= n; i++) {
       const gone = i < n && miss(M[i]);
@@ -11550,7 +11576,7 @@ function _insCells(x) {
   const pv = INSIDER_PRIV, br = pv && pv.br10 ? pv.br10[`${code}:${ym}`] : undefined, pp = (pv || {}).pano || {}, from = String(pp.crawl_from || pp.from || '');   // v3.97.1 br10 = the site's own daily records (crawl_from); pano.from now reaches the estimates
   const c4 = !pv ? cell('分點大戶', '—', '需解鎖')   // our branch masters: encrypted part only
     : br === undefined || br === null ? cell('分點大戶', '—', from ? `本站分點資料從 ${_insDay(from)} 起，這筆在那之前` : '沒有分點資料')
-    : cell('分點大戶', br === 0 ? '持平' : `${(br > 0) === buy ? '同向' : '反向'} ${br > 0 ? '▲' : '▼'}`, `公開前 10 日${br >= 0 ? '淨買' : '淨賣'} ${escHtml(_insPanoAmt(br))}`, 'ins-bl');
+    : cell('分點大戶', _bsN(br, a => escHtml(_insPanoAmt(a))), '公開前 10 日淨額', 'ins-bl');   // the insider's side is in 誰在買 / 買多少
   const win = _insWin(), grp = x.role_group || '';
   const lay = ((((win.backtest || {})[buy ? 'layers_A' : 'layers_sells'] || {})['身分'] || {})[grp] || {}).all;
   const pick = kind => lay ? (lay[kind + H] || {}) : _insBt(_insType(x), H, kind);
@@ -11591,12 +11617,12 @@ function _insWBPop(i) {   // the details of one pair in a popup; a tap outside o
   if (!p) return;
   const old = document.getElementById('wbPop');
   if (old) old.remove();
-  const lots = v => v === null || v === undefined ? '—' : (v > 0 ? '+' : '') + Number(v).toLocaleString('en-US');
+  const lots = v => _bsN(v, a => `${a.toLocaleString('en-US')} 張`);
   const yr = (lab, y) => Number((y || {}).n) ? `<li>${lab}：勝率 ${Number(y.win)}%・期望值 ${_wbSg(y.ev)}%・比大盤 ${_wbSg(y.ex)} 點・${Number(y.beat)}% 贏大盤（${Number(y.n)} 筆）</li>`
     : `<li>${lab}：筆數太少</li>`;
   const vm = p.vm || {};
   const act = (p.months || []).filter(m => m[1] || Math.abs(m[2]) >= 100).slice(-6);
-  const mm = act.map(m => `<li>${escHtml(String(m[0]).slice(0, 4))}-${escHtml(String(m[0]).slice(4))}：申報 ${lots(m[1])}／分點 ${lots(m[2])} 張</li>`).join('')
+  const mm = act.map(m => `<li>${escHtml(String(m[0]).slice(0, 4))}-${escHtml(String(m[0]).slice(4))}：申報 ${lots(m[1])}／分點 ${lots(m[2])}</li>`).join('')
     || '<li class="dim">近期沒有明顯進出</li>';
   const tier = p.tier === '指定' ? '負責人指定' : `${escHtml(p.tier)} 級`;
   const ov = document.createElement('div');
@@ -11618,7 +11644,6 @@ function _insOpen(i) {
   const side = _insSide(x), buy = side === 'buy';
   const lots = v => { const sh = Number(v) || 0;   // 張; under 1 張 the shares
     return !sh ? '<span class="dim">—</span>' : Math.abs(sh) >= 1000 ? Math.round(sh / 1000).toLocaleString('en-US') : `${sh.toLocaleString('en-US')} 股`; };
-  const signed = v => v ? (v > 0 ? '+' : '−') + lots(Math.abs(v)) : lots(0);
   const ppl = (x.detail || []).map(pp => {
     const role = escHtml(pp.role || ''), kinds = (pp.kinds || []).map(escHtml).join('、');
     // v3.96.5 7689 2026-08: one person = several official rows (本人 + 他人名義 ...); show each so it can be checked
@@ -11629,7 +11654,7 @@ function _insOpen(i) {
     }).join('＋');
     return `<tr><td class="ins-role">${role}${kinds ? `<small>${kinds}</small>` : ''}</td>
       <td class="nm"><b>${escHtml(pp.name || '—')}</b>${parts ? `<small class="ins-parts">${parts}</small>` : ''}<small class="ins-mrole">${role}${kinds ? '・' + kinds : ''}</small></td><td class="num">${lots(pp.market_buy)}</td><td class="num">${lots(pp.market_sell)}</td>
-      <td class="num">${signed((Number(pp.other_buy) || 0) - (Number(pp.other_sell) || 0))}</td><td class="num">${lots(pp.end_shares)}</td></tr>`;
+      <td class="num">${_bsW((Number(pp.other_buy) || 0) - (Number(pp.other_sell) || 0), '增', '減', lots)}</td><td class="num">${lots(pp.end_shares)}</td></tr>`;
   }).join('')
     || '<tr><td colspan="6" class="dim">沒有逐人明細</td></tr>';
   const privB = (pw.signals || {}).B || [];
@@ -11643,13 +11668,13 @@ function _insOpen(i) {
   const layerTb = `<table><thead><tr><th>平均超額・勝率</th>${_INS_HS_TB.map(h => `<th class="r">${h} 日</th>`).join('')}</tr></thead><tbody>`
     + (layer ? tr(`${escHtml(grp)}${buy ? '買' : '賣'}`, layer.all || {}) : '<tr><td colspan="5" class="dim">這個身分沒有回測樣本</td></tr>')
     + tr(buy ? '全部大買（A）' : '全部賣出', (bt[_insType(x)] || {}).all || {})
-    + (inB ? tr('對照組 B（分點大戶同向）', (((pw.backtest || {}).B || {}).all) || {}) : '') + '</tbody></table>';
+    + (inB ? tr(`對照組 B（內部人${_bs(1)}・分點大戶${_bs(1)}）`, (((pw.backtest || {}).B || {}).all) || {}) : '') + '</tbody></table>';   // B = buys only (scripts group_b)
   const split = (win.scope || d.scope || {}).split_day;
   const sample = layer ? `${escHtml(win.label || '')}${win.label ? '・' : ''}${escHtml(grp)}：樣本內 ${Number((layer.in || {}).n) || 0} 件、樣本外 ${Number((layer.out || {}).n) || 0} 件（樣本外從 ${_insDay(split)} 起）。超額＝個股報酬 − 大盤。` : '';
   const notes = [...(d.notes || []), ...(inB ? (INSIDER_PRIV || {}).notes || [] : [])].map(escHtml).join('<br>');   // B's notes only where B shows
   const body = _insCells(x) + `<div class="dr-pano" id="insPano" onclick="_insPanoClick(event)"></div>`   // v3.96.3/4 the cells and the chart open the drawer
     + `<div class="dr-ins-hl">${escHtml(x.headline || '')}</div>`
-    + `<div class="dr-note">公開日 ${_insDay(x.published)}・訊號日 ${_insDay(x.signal_day)}（公開後第一個交易日，報酬從這天收盤算起）${inB ? '・分點大戶訊號日前 10 日同向淨買（對照組 B）' : ''}</div>`
+    + `<div class="dr-note">公開日 ${_insDay(x.published)}・訊號日 ${_insDay(x.signal_day)}（公開後第一個交易日，報酬從這天收盤算起）${inB ? '・分點大戶訊號日前 10 日也淨買（對照組 B）' : ''}</div>`
     + _dsKpis([['推算淨額', `${buy ? '買' : '賣'} ${escHtml(_insAmtTxt(x.net_yi_est))}`], ['占股本', x.pct_of_shares === null || x.pct_of_shares === undefined ? '—' : `${Math.abs(x.pct_of_shares).toFixed(2)}%`],
                ['當月均價', x.avg_price ? Number(x.avg_price).toFixed(2) : '—'], ['申報月份', _insYm(x.ym)]]).replace('class="dr-kpis"', 'class="dr-kpis dr-ins-k"')
     + `<div class="dr-series"><div class="dr-sh"><b>逐人明細</b><span class="num">${(x.detail || []).length} 人</span></div>
@@ -11699,6 +11724,7 @@ function _insWan(v) {       // 萬 -> 「3.6 億」 (>= 1 億, 1 decimal) or 「
   const a = Math.abs(v), sg = v > 0 ? '+' : v < 0 ? '−' : '';
   return a >= 1e4 ? `${sg}${(a / 1e4).toFixed(1)} 億` : `${sg}${Math.round(a).toLocaleString('en-US')} 萬`;
 }
+function _insWanA(v) { return _insWan(Math.abs(Number(v) || 0)).replace(/^\+/, ''); }   // unsigned, for after a 買／賣 pill (10/18 preview: 「[買]+3.6 億」)
 function _insZh(v, sign = false, unit = false) {   // shares -> 張 (under 1 張: the shares)
   const sh = Number(v) || 0;
   if (!sh) return unit ? '0 張' : '<span class="dim">—</span>';
@@ -11818,7 +11844,7 @@ function _insSvBody(doc) {
   const cell = (q, a, s, cls = '') => `<div class="ins-cell"><div class="q">${q}</div><div class="a ${cls}">${a}</div><div class="s">${s}</div></div>`;
   const net = (q, v) => { v = Array.isArray(v) ? v : []; const lots = Number(v[0]) || 0;
     return cell(q, lots ? `${lots > 0 ? '淨買' : '淨賣'} ${Math.abs(lots).toLocaleString('en-US')}<small>張</small>` : '持平',
-      `金額 ${_insWan(Number(v[1]) || 0)}<small>（推算）</small>`, _dsCls(lots)); };
+      `金額 ${_bsN(v[1], _insWanA)}<small>（推算）</small>`, _dsCls(lots)); };   // its own pill (10/18 preview: Math.abs into the signed _insWan printed 「淨賣 36 張・金額 +1.6 億」; the money is 賣 1.6 億 too)
   const cells = `<div class="ins-cells ins-c3">${net('近 6 個月淨買賣', f.net6)}${net('近 12 個月淨買賣', f.net12)}`
     + `${cell('資料到', escHtml(_insYm(pu)), nx ? `下一次約 ${nx.label} 公告` : '')}</div>`
     + `<div class="dr-note">淨買賣＝董事、監察人、經理人、大股東在集中市場的淨股數；金額＝淨股數 × 當月均價（推算）。</div>`
@@ -11842,10 +11868,10 @@ function _insSvBody(doc) {
     const mk = L.reduce((a, z) => a + (Number(z[3]) || 0), 0), pl = L.reduce((a, z) => a + (Number(z[5]) || 0), 0);
     const op = !opened; opened = true;   // only the newest month starts open
     return `<details class="ins-mo" data-ym="${escHtml(ym)}" ontoggle="_insMoFill(this)"${op ? ' open' : ''}><summary><b>${escHtml(_insYm(ym))}</b><span>${L.length} 筆變動</span>`
-      + `<span>集中市場 ${mk ? _insSgn(mk, _insZh(mk, true, true)) : '沒有買賣'}</span>${pl ? `<span>${pl > 0 ? '設質' : '解質'} ${_insZh(Math.abs(pl), false, true)}</span>` : ''}</summary><div class="ins-mo-b"></div></details>`;
+      + `<span>集中市場 ${_insSgn(mk, _bsN(mk, a => _insZh(a, false, true)))}</span>${pl ? `<span>${_bsW(pl, '設質', '解質', a => _insZh(a, false, true))}</span>` : ''}</summary><div class="ins-mo-b"></div></details>`;
   }).join('');
   const months = `<div class="dr-series"><div class="dr-sh"><b>逐月明細</b><span class="dim">新的在上，點月份展開</span></div>${mo || '<div class="dr-note">沒有逐月資料</div>'}`
-    + `<div class="dr-note">只列當月有變動的人；單位：張（不足 1 張寫股數）。其他增減＝贈與、信託、繼承、員工認股等，不算買賣；設質＋／解質−。資訊，不是買賣訊號。</div></div>`;
+    + `<div class="dr-note">只列當月有變動的人；單位：張（不足 1 張寫股數）。其他增減＝贈與、信託、繼承、員工認股等，不算買賣。資訊，不是買賣訊號。</div></div>`;
   return cells + hold + months;
 }
 function _insMoFill(el) {   // a month's people are built when the row is opened
@@ -11856,8 +11882,8 @@ function _insMoFill(el) {   // a month's people are built when the row is opened
   el.dataset.done = '1';
   b.innerHTML = `<div class="ins-sx"><table><thead><tr><th>身分</th><th>姓名</th><th>持有方式</th><th class="r">集中市場買賣</th><th class="r">其他增減</th><th class="r">設質／解質</th><th class="r">月底持股</th></tr></thead><tbody>${
     L.map(z => `<tr><td>${escHtml(z[0])}</td><td class="nm"><b>${escHtml(z[1])}</b></td><td>${escHtml(_INS_KIND[z[2]] || z[2] || '本人')}</td>`
-      + `<td class="num">${Number(z[3]) ? _insSgn(z[3], _insZh(z[3], true)) : _insZh(0)}</td><td class="num">${_insZh(z[4], true)}</td>`
-      + `<td class="num">${_insZh(z[5], true)}</td><td class="num">${_insZh(z[6])}</td></tr>`).join('')}</tbody></table></div>`;
+      + `<td class="num">${_insSgn(z[3], _bsN(Number(z[3]) || 0, a => _insZh(a)))}</td><td class="num">${_bsW(Number(z[4]) || 0, '增', '減', a => _insZh(a))}</td>`
+      + `<td class="num">${_bsW(Number(z[5]) || 0, '設質', '解質', a => _insZh(a))}</td><td class="num">${_insZh(z[6])}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function _insRkLoad() {
   if (!_INS_RK_P) _INS_RK_P = _insJson('insider_rank.json').then(d => { _INS_RK = d && d.rank ? d : null; if (!_INS_RK) _INS_RK_P = null; return _INS_RK; });
@@ -11887,11 +11913,11 @@ function _insRkInner() {
   const chips = ['buy', 'sell'].map(k => `<span class="ins-chip${(k === 'buy') === buy ? ' on' : ''}" onclick="_insRkSet('side','${k}')">${k === 'buy' ? '買超' : '賣超'}</span>`).join('');
   const num = v => (v === null || v === undefined || !isFinite(v) ? null : +v);
   const avg = v => (num(v) === null ? '—' : num(v) >= 100 ? num(v).toFixed(0) : num(v).toFixed(1));
-  const pct = v => (num(v) === null ? '—' : `${num(v) > 0 ? '+' : num(v) < 0 ? '−' : ''}${Math.abs(num(v)).toFixed(2)}%`);
+  const pct = v => (num(v) === null ? '—' : `${Math.abs(num(v)).toFixed(2)}%`);   // absolute: the row's pills give the side
   const tr = show.map((z, i) => { const lots = Number(z[2]) || 0, w = Number(z[3]) || 0, s = buy ? 1 : -1;
     return `<tr class="ek-tap" onclick="_insRkGo(${i})"><td class="dim">${i + 1}</td><td class="nm"><b>${escHtml(z[0])}</b> ${escHtml(z[1] || '')}</td>`
-      + `<td class="num">${_insSgn(s, `${lots > 0 ? '+' : lots < 0 ? '−' : ''}${Math.abs(lots).toLocaleString('en-US')}`)}</td>`
-      + `<td class="num">${_insSgn(s, w ? _insWan(w) : '未滿 100 萬')}</td><td class="num">${Number(z[4]) || 0}</td><td>${escHtml(z[5] || '')}</td>`
+      + `<td class="num">${_insSgn(s, _bsN(lots, a => a.toLocaleString('en-US')))}</td>`
+      + `<td class="num">${_insSgn(s, w ? _bsN(w, _insWanA) :`${_bs(s)}未滿 100 萬`)}</td><td class="num">${Number(z[4]) || 0}</td><td>${escHtml(z[5] || '')}</td>`
       + `<td class="num">${avg(z[6])}</td><td class="num">${pct(z[7])}</td></tr>`; }).join('');
   const nB = all.filter(z => sg(z) > 0).length, nS = all.filter(z => sg(z) < 0).length;
   return `<div class="ek-ins-h ins-rk-h"><select aria-label="申報月份" onchange="_insRkSet('ym',this.value)">${opt}</select><span class="ins-chips">${chips}</span>`
@@ -13437,11 +13463,11 @@ function renderBranches() {
       // 金額顯示
       let amtLine;
       if (hasAmt) {
-        amtLine = `<div class="net ${netClass}">▲ ${fmtAmt(net)}</div>
+        amtLine = `<div class="net ${netClass}">${_bsN(net, fmtAmt)}</div>
                    <div class="amt">買 ${fmtAmt(buy)} / 賣 ${fmtAmt(sell)}</div>`;
       } else {
         // 只有張數沒金額（低價股）
-        amtLine = `<div class="net ${(s.net_lot || 0) > 0 ? 'pos' : 'neg'}">▲ ${s.net_lot}張</div>
+        amtLine = `<div class="net ${(s.net_lot || 0) > 0 ? 'pos' : 'neg'}">${_bsN(s.net_lot, a => `${a}張`)}</div>
                    <div class="amt" style="color:var(--text-3);">（金額未排進前30）</div>`;
       }
       
@@ -14650,7 +14676,7 @@ async function showStockDetail(code, name) {
     <div style="padding:8px 0;border-bottom:1px solid var(--line);font-size:12px;">
       <div style="display:flex;justify-content:space-between;">
         <span style="color:var(--text-2);font-family:monospace;">${formatDate(r.date)}</span>
-        <span class="${r.net>0?'pos-strong':'neg-strong'}" style="font-family:monospace;">▲ ${fmtAmt(r.net)}</span>
+        <span class="${r.net>0?'pos-strong':'neg-strong'}" style="font-family:monospace;">${_bsN(r.net, fmtAmt)}</span>
       </div>
       <div style="color:var(--text-3);font-size:11px;margin-top:2px;">${r.master} · 買${r.buy_lot}張/賣${r.sell_lot}張 · 買${fmtAmt(r.buy)}/賣${fmtAmt(r.sell)}</div>
     </div>`).join('');
