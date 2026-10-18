@@ -748,7 +748,8 @@ def main():
         if wt.exists():
             t = json.loads(wt.read_text(encoding="utf-8"))
             keep = ("day", "code", "name", "branch", "hi_turn", "why", "lots", "amt", "warrants", "daily", "held", "status", "closed",
-                    "warrant_pct", "warrant_as_of", "stock_pct", "as_of")
+                    "warrant_pct", "warrant_as_of", "stock_pct", "as_of",
+                    "warrant_px", "warrant_last", "warrant_basis")      # 2026-10-18 the % from the buy price
             priv["warrant_track"] = {"newest": t.get("newest"), "built": t.get("built"),
                                      "events": [{k: e.get(k) for k in keep} for e in t.get("events", [])]}
         if wb.exists():

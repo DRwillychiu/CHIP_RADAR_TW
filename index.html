@@ -4255,7 +4255,7 @@ body.dr-lock{overflow:hidden}
   <div class="header-inner">
     <div class="logo">
       <div class="logo-cn">分點籌碼觀察站</div>
-      <div class="logo-en" title="build v3.97.15 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
+      <div class="logo-en" title="build v3.97.16 ・ 點 📋 更新看版本歷史">Chip Radar V1.0</div>
       <span class="auto-badge">AUTO · LIVE</span>
       <span class="lock-badge">🔒 ENCRYPTED</span>
     </div>
@@ -9706,6 +9706,7 @@ function toggleHelp() {
 
 // v3.71.9 B6: 前端 changelog modal (近 10 個 version snapshot)
 const CHANGELOG_ENTRIES = [
+  { v: 'v3.97.16', date: '10/18', title: '權證大戶追蹤改從買價算', desc: 'S11 權證大戶追蹤與 TG 📌 追蹤的權證 %，改成和 S10 一樣從買價（買進那天的成交均價，推估）算到最新收盤（上櫃權證用均價）；彈出視窗每檔權證加買價、主力權證寫出買價 → 最新收盤，賺錢紅色、虧錢綠色；續買／賣出改用買賣標籤' },
   { v: 'v3.97.15', date: '10/18', title: '權證買價與之後損益', desc: 'S10 權證分點排名點開的近 5 日：每一檔權證加上買價（賣價）＝那天的成交均價（推估），買進的權證再列出之後每天收盤對買價的損益 %（上櫃權證沒有收盤，用均價）' },
   { v: 'v3.97.14', date: '10/18', title: '買賣標籤', desc: '每一筆交易都標明「買」「賣」（紅底、綠底小方框），數字不再用正負號，沒有交易寫「沒進出」；同向／反向改成直接寫「內部人買・權證買」；首頁 ①③ 的內部人金額標明是近 3 日；設質／解質、增／減用文字；分點動態的箭頭改成跟著買賣走' },
   { v: 'v3.97.13', date: '10/17', title: '權證連結＋分點逐日權證', desc: 'S10 權證分點排名點開的近 5 日，每一天列出這個分點買賣的每一檔權證（張數），點權證名稱直接開那一天的權證分點頁；S11 權證大戶追蹤的買進權證也可點開；資訊，不是買賣訊號' },
@@ -9714,7 +9715,6 @@ const CHANGELOG_ENTRIES = [
   { v: 'v3.97.10', date: '10/17', title: '分點比大盤＋名稱修正', desc: '個股全景圖「內部人分點」改成一列一組：分點、比大盤、兩年成績分類，點一下彈出細節；S10 權證分點排名加上當天漲跌幅前 100 名；首頁 ④ 說明改成「還不是買進訊號」；「造市型」改名「高周轉型」（查證後不是發行券商造市）；買賣顏色改回紅買綠賣；資訊，不是買賣訊號' },
   { v: 'v3.97.2', date: '10/15', title: '內部人申報賣標記', desc: '首頁三格與個股頁加上「⚠ 申報賣」：內部人事前申報要在市場賣（近 20 個交易日、≥ 0.1% 股本）；回測申報後 20 日平均落後對照 2.4%、兩年都負' },
   { v: 'v3.97.1', date: '10/15', title: '分點警示看更多＋全景圖資料補齊', desc: '分點警示只列前 5 筆（看更多點入）；全景圖分點大戶補到 2024-10（2026-04 前為追蹤分點的月資料）、千張大戶補到 2024-09（2026-06 前為第三方週資料）' },
-  { v: 'v3.97.0', date: '10/15', title: '首頁改成搜尋＋三格', desc: '首頁改成搜尋＋三格：權證大買＋內部人有動作／權證大買、內部人還沒動／內部人有動作、權證還沒動；其他清單改成按鈕' },
   { v: 'V1.0', date: '10/10', title: '正式版 V1.0（build v3.95.0）', desc: '新介面全站上線＋富邦抓取間隔 1.6 秒與 8111 等亂碼股名修正併入正式版＋外資規則統一（只算美/歐/亞）＋9/17 期貨資料補齊' },
 ];
 
@@ -10602,6 +10602,7 @@ function _wrPop(i) {   // v3.97.12 the branch's last 5 ranked days in this stock
 let _WT = { tab: 'open' }, _WT_ROWS = [];
 function _wtMd(d) { return d ? `${String(d).slice(4, 6)}/${String(d).slice(6, 8)}` : ''; }
 function _wtPct(v) { return v === null || v === undefined || !isFinite(+v) ? '—' : `${+v > 0 ? '+' : ''}${(+v).toFixed(1)}%`; }
+function _wtPctC(v) { return `<b class="${_dsCls(+v || 0)}">${_wtPct(v)}</b>`; }   // owner 2026-10-18 「賺錢就是紅色，虧錢就是綠色」
 function _wtOpen() {
   const wt = (INSIDER_PRIV || {}).warrant_track;
   if (!wt || !Array.isArray(wt.events)) {
@@ -10615,7 +10616,7 @@ function _wtOpen() {
     + `<b class="ins-wb-b">${escHtml(e.branch)}</b>${e.hi_turn ? '<small class="dim">（高周轉型）</small>' : ''} ${_wtMd(e.day)} 買 ${n(e.lots)} 張 → `
     + `<b class="${e.status === '已賣完' ? 'ds-down' : e.status === '還抱著' ? 'ds-up' : ''}">${escHtml(e.status)}</b>${e.status !== '已賣完' ? ` ${n(e.held)} 張` : ''}`
     + (e.day === wt.newest ? `｜<span class="dim">今天買進</span> <span class="dim">›</span></li>`
-      : `｜權證 <span class="${_dsCls(+e.warrant_pct || 0)}">${_wtPct(e.warrant_pct)}</span>｜股價 <span class="${_dsCls(+e.stock_pct || 0)}">${_wtPct(e.stock_pct)}</span> <span class="dim">›</span></li>`)).join('');
+      : `｜權證 <span class="${_dsCls(+e.warrant_pct || 0)}">${_wtPct(e.warrant_pct)}</span>${e.warrant_basis === 'a' ? '<small class="dim">（均價）</small>' : ''}｜股價 <span class="${_dsCls(+e.stock_pct || 0)}">${_wtPct(e.stock_pct)}</span> <span class="dim">›</span></li>`)).join('');
   const btn = (v, lab) => `<button class="wr-b${_WT.tab === v ? ' on' : ''}" onclick="_WT.tab='${v}';_wtOpen()">${lab}</button>`;
   const body = `<div class="dr-series"><div class="dr-sh"><span class="dim">資料到 ${_wtMd(wt.newest)}</span></div>`
     + `<div class="wr-bar">${btn('open', '追蹤中')}${btn('closed', '歷史')}</div>`
@@ -10630,9 +10631,12 @@ function _wtPop(i) {
   const old = document.getElementById('wbPop');
   if (old) old.remove();
   const n = v => Number(v || 0).toLocaleString('en-US');
-  const ws = (e.warrants || []).map(w => `<li>${escHtml(w.name || w.w)}：${n(w.lots)} 張 ${_wrLink(w.w, e.day)}</li>`).join('');
+  // 2026-10-18 owner 「要」: each warrant's buy price (its average price that day, an estimate) and the % from it (S10 / TG alike)
+  const bp = v => v !== null && v !== undefined ? `・買價 ${(+v).toFixed(2)}` : '';
+  const ws = (e.warrants || []).map(w => `<li>${escHtml(w.name || w.w)}：${_bs(1)}${n(w.lots)} 張${bp(w.px)} ${_wrLink(w.w, e.day)}</li>`).join('');
   const dl = (e.daily || []).map(d => `<li>${_wtMd(d[0])}：${d[1] === null || d[1] === undefined ? '<span class="dim">沒有資料</span>'
-    : +d[1] > 0 ? `續買 +${n(d[1])} 張` : +d[1] < 0 ? `賣出 ${n(Math.abs(+d[1]))} 張` : '沒動'}</li>`).join('') || '<li class="dim">還沒有之後的交易日</li>';
+    : +d[1] > 0 ? `${_bs(1)}${n(d[1])} 張` : +d[1] < 0 ? `${_bs(-1)}${n(Math.abs(+d[1]))} 張` : _bs(0)}</li>`).join('') || '<li class="dim">還沒有之後的交易日</li>';
+  const mk = e.warrant_basis === 'a' ? '均價' : '收盤';
   const main = ((e.warrants || [])[0] || {}).name || '';
   const ov = document.createElement('div');
   ov.id = 'wbPop';
@@ -10644,9 +10648,9 @@ function _wtPop(i) {
     + `<b class="wb-pop-t">${_wtMd(e.day)} 買的權證（合計 ${n(e.lots)} 張、${n(Math.round((+e.amt || 0) / 1e4))} 萬）</b><ul>${ws}</ul>`
     + `<b class="wb-pop-t">之後每天（同一批權證）</b><ul>${dl}</ul>`
     + `<b class="wb-pop-t">目前</b><ul><li>${escHtml(e.status)}${e.status !== '已賣完' ? `：還有 ${n(e.held)} 張` : ''}</li>`
-    + `<li>主力權證（${escHtml(main)}）收盤：${_wtPct(e.warrant_pct)}${e.warrant_as_of ? `（到 ${_wtMd(e.warrant_as_of)}）` : ''}</li>`
-    + `<li>股價收盤：${_wtPct(e.stock_pct)}${e.as_of ? `（到 ${_wtMd(e.as_of)}）` : ''}</li></ul>`
-    + `<div class="ins-pfoot">分點頁只列每檔權證買賣前 15 名，沒上榜＝當天沒有明顯進出；「沒有資料」＝那天沒有抓到這批權證的分點頁；收盤價、未扣成本。資訊，不是買賣訊號</div></div>`;
+    + `<li>主力權證（${escHtml(main)}）：${e.warrant_px ? `買價 ${(+e.warrant_px).toFixed(2)} → ` : ''}${e.warrant_last ? `${_wtMd(e.warrant_as_of)} ${mk} ${(+e.warrant_last).toFixed(2)} ` : ''}${_wtPctC(e.warrant_pct)}</li>`
+    + `<li>股價收盤：${_wtPctC(e.stock_pct)}${e.as_of ? `（到 ${_wtMd(e.as_of)}）` : ''}</li></ul>`
+    + `<div class="ins-pfoot">分點頁只列每檔權證買賣前 15 名，沒上榜＝當天沒有明顯進出；「沒有資料」＝那天沒有抓到這批權證的分點頁；買價＝買進那天這檔權證的成交均價（分點頁沒有自己的價格，推估）；權證 %＝最新收盤 ÷ 買價（上櫃權證用均價）；股價是收盤到收盤；未扣成本。資訊，不是買賣訊號</div></div>`;
   document.body.appendChild(ov);
 }
 function _hmGo(g, i, fromList = 0) {
