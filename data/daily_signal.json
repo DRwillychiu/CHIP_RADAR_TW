@@ -1,11 +1,11 @@
 {
-  "date": "20261016",
-  "generated_at": "2026-10-16T14:58:59.364039",
+  "date": "20261019",
+  "generated_at": "2026-10-19T13:37:25.080178",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "籌碼偏向偏多 (強度+0.13, 非預測訊號) · 3 檔個股關注",
+  "headline": "籌碼偏向偏空 (強度-0.28, 非預測訊號) · 3 檔個股關注",
   "market_direction": {
-    "direction": "偏多",
-    "confidence_pct": 63.1,
+    "direction": "偏空",
+    "confidence_pct": 21.9,
     "confidence_is_measured_alpha": false,
     "alpha_verdict": {
       "verdict": "no_measurable_edge",
@@ -36,14 +36,8 @@
       ],
       "doc": "docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md"
     },
-    "net_weight": 0.131,
+    "net_weight": -0.281,
     "contributing": [
-      {
-        "name": "外資現貨",
-        "level": "extreme-bull",
-        "weight": 0.202,
-        "sign": "bull"
-      },
       {
         "name": "P/C Ratio",
         "level": "bear",
@@ -57,64 +51,60 @@
         "sign": "bull"
       },
       {
-        "name": "融資熱度",
+        "name": "結算日壓力",
         "level": "bull",
-        "weight": 0.196,
-        "sign": "bull"
-      },
-      {
-        "name": "法人共識",
-        "level": "extreme-bull",
-        "weight": 0.15,
+        "weight": 0.136,
         "sign": "bull"
       }
     ],
     "ignored": [
+      "外資現貨",
       "外資期貨",
-      "結算日壓力"
+      "融資熱度",
+      "法人共識"
     ]
   },
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "3167",
-      "name": "大量",
-      "change_pct": 9.9,
+      "code": "1815",
+      "name": "富喬",
+      "change_pct": 10.0,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 3051990,
-      "total_buy_amt_yi": 30.52,
+      "total_buy_amt_K": 11920445,
+      "total_buy_amt_yi": 119.2,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.9%, 共淨買 30.52 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 10.0%, 共淨買 119.2 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "1815",
-      "name": "富喬",
-      "change_pct": 9.8,
+      "code": "6141",
+      "name": "柏承",
+      "change_pct": 9.98,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 12073368,
-      "total_buy_amt_yi": 120.73,
+      "total_buy_amt_K": 101462,
+      "total_buy_amt_yi": 1.01,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.8%, 共淨買 120.73 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.98%, 共淨買 1.01 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 3,
-      "code": "8039",
-      "name": "台虹",
-      "change_pct": 9.88,
+      "code": "5498",
+      "name": "凱崴",
+      "change_pct": 9.87,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 4299958,
-      "total_buy_amt_yi": 43.0,
+      "total_buy_amt_K": 585369,
+      "total_buy_amt_yi": 5.85,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.88%, 共淨買 43.0 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.87%, 共淨買 5.85 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],

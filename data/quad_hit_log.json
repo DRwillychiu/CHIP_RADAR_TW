@@ -1,171 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260722",
-      "next_date": "20260723",
-      "q5_direction": "偏多",
-      "q5_confidence": 95,
-      "taifex_change": 0.06,
-      "vol_spike_masters": [
-        "蔣承翰"
-      ],
-      "quad_picks": [
-        {
-          "code": "3481",
-          "name": "群創",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -1.14,
-          "hit": false,
-          "leader_pct": 0.378,
-          "excess_return": -1.2,
-          "failure_reasons": [
-            "alpha noise (個股無系統性原因)"
-          ]
-        },
-        {
-          "code": "6213",
-          "name": "聯茂",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -6.4,
-          "hit": false,
-          "leader_pct": 0.434,
-          "excess_return": -6.46,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2634",
-          "name": "漢翔",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -3.88,
-          "hit": false,
-          "leader_pct": 0.268,
-          "excess_return": -3.94,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "8358",
-          "name": "金居",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -1.45,
-          "hit": false,
-          "leader_pct": 0.349,
-          "excess_return": -1.51,
-          "failure_reasons": [
-            "alpha noise (個股無系統性原因)"
-          ]
-        },
-        {
-          "code": "3189",
-          "name": "景碩",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -1.38,
-          "hit": false,
-          "leader_pct": 0.371,
-          "excess_return": -1.44,
-          "failure_reasons": [
-            "alpha noise (個股無系統性原因)"
-          ]
-        },
-        {
-          "code": "8150",
-          "name": "南茂",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -1.8,
-          "hit": false,
-          "leader_pct": 0.223,
-          "excess_return": -1.86,
-          "failure_reasons": [
-            "alpha noise (個股無系統性原因)"
-          ]
-        },
-        {
-          "code": "1718",
-          "name": "中纖",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -8.1,
-          "hit": false,
-          "leader_pct": 0.196,
-          "excess_return": -8.16,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": 0.21,
-          "hit": true,
-          "leader_pct": 0.565,
-          "excess_return": 0.15,
-          "failure_reasons": []
-        },
-        {
-          "code": "2409",
-          "name": "友達",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": 1.74,
-          "hit": true,
-          "leader_pct": 0.545,
-          "excess_return": 1.68,
-          "failure_reasons": []
-        },
-        {
-          "code": "2313",
-          "name": "華通",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": 2.88,
-          "hit": true,
-          "leader_pct": 0.308,
-          "excess_return": 2.82,
-          "failure_reasons": []
-        },
-        {
-          "code": "6182",
-          "name": "合晶",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -1.94,
-          "hit": false,
-          "leader_pct": 0.685,
-          "excess_return": -2.0,
-          "failure_reasons": [
-            "假共識 (領頭獨佔 ≥50%)",
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        }
-      ],
-      "n": 11,
-      "hits": 3,
-      "hit_rate": 0.2727,
-      "mean_change": -1.93
-    },
-    {
       "date": "20260803",
       "next_date": "20260804",
       "q5_direction": "偏多",
@@ -1198,16 +1033,16 @@
     "mean_change": 1.81
   },
   "rolling_all": {
-    "trigger_days": 8,
-    "n": 80,
-    "hits": 39,
-    "hit_rate": 0.4875,
-    "mean_change": 0.43
+    "trigger_days": 7,
+    "n": 69,
+    "hits": 36,
+    "hit_rate": 0.5217,
+    "mean_change": 0.81
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.4875,
-    "delta_pp": -30.2
+    "actual_hit_rate": 0.5217,
+    "delta_pp": -26.7
   },
-  "updated_at": "2026-10-16T15:01:19.714307"
+  "updated_at": "2026-10-19T13:40:35.021619"
 }
