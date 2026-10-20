@@ -1,11 +1,11 @@
 {
-  "date": "20261019",
-  "generated_at": "2026-10-19T20:44:58.249138",
+  "date": "20261020",
+  "generated_at": "2026-10-20T13:35:20.572916",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "籌碼偏向偏空 (強度-0.28, 非預測訊號) · 3 檔個股關注",
+  "headline": "籌碼偏向偏空 (強度-0.19, 非預測訊號) · 3 檔個股關注",
   "market_direction": {
     "direction": "偏空",
-    "confidence_pct": 21.9,
+    "confidence_pct": 31.2,
     "confidence_is_measured_alpha": false,
     "alpha_verdict": {
       "verdict": "no_measurable_edge",
@@ -36,7 +36,7 @@
       ],
       "doc": "docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md"
     },
-    "net_weight": -0.281,
+    "net_weight": -0.188,
     "contributing": [
       {
         "name": "P/C Ratio",
@@ -51,60 +51,65 @@
         "sign": "bull"
       },
       {
-        "name": "結算日壓力",
+        "name": "融資熱度",
         "level": "bull",
-        "weight": 0.136,
+        "weight": 0.196,
+        "sign": "bull"
+      },
+      {
+        "name": "結算日壓力",
+        "level": "extreme-bull",
+        "weight": 0.033,
         "sign": "bull"
       }
     ],
     "ignored": [
       "外資現貨",
       "外資期貨",
-      "融資熱度",
       "法人共識"
     ]
   },
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "1815",
-      "name": "富喬",
-      "change_pct": 10.0,
+      "code": "4960",
+      "name": "誠美材",
+      "change_pct": 9.89,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 11920445,
-      "total_buy_amt_yi": 119.2,
+      "total_buy_amt_K": 295308,
+      "total_buy_amt_yi": 2.95,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 10.0%, 共淨買 119.2 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.89%, 共淨買 2.95 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "6141",
-      "name": "柏承",
-      "change_pct": 9.98,
+      "code": "6269",
+      "name": "台郡",
+      "change_pct": 9.96,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 101462,
-      "total_buy_amt_yi": 1.01,
+      "total_buy_amt_K": 1527143,
+      "total_buy_amt_yi": 15.27,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.98%, 共淨買 1.01 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.96%, 共淨買 15.27 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 3,
-      "code": "5498",
-      "name": "凱崴",
-      "change_pct": 9.87,
+      "code": "6209",
+      "name": "今國光",
+      "change_pct": 9.8,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 585369,
-      "total_buy_amt_yi": 5.85,
+      "total_buy_amt_K": 1162235,
+      "total_buy_amt_yi": 11.62,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.87%, 共淨買 5.85 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.8%, 共淨買 11.62 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],
