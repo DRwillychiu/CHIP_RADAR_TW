@@ -1,17 +1,16 @@
 {
-  "fetched_at": "2026-10-21T02:17:54+08:00",
+  "fetched_at": "2026-10-21T21:36:23+08:00",
   "source": "attstock.tw/api/stocks/risk + /api/stocks/disposal",
-  "total_risk_count": 131,
+  "total_risk_count": 136,
   "total_disposal_rows": 11,
-  "count_in_disposal": 11,
-  "count_pending_1d": 1,
+  "count_in_disposal": 10,
+  "count_pending_1d": 5,
   "codes_in_disposal": [
     "2221",
     "2424",
     "3055",
     "3167",
     "3230",
-    "3287",
     "3354",
     "3597",
     "4979",
@@ -19,7 +18,11 @@
     "8111"
   ],
   "codes_pending_1d": [
-    "8291"
+    "4542",
+    "5205",
+    "6269",
+    "8358",
+    "8437"
   ],
   "sample": [
     {
@@ -37,8 +40,8 @@
       "end": "2026-10-23"
     },
     {
-      "code": "3287",
-      "name": "廣寰科",
+      "code": "3055",
+      "name": "蔚華科",
       "status": "in_disposal",
       "start": "2026-10-19",
       "end": "2026-10-23"
@@ -46,13 +49,6 @@
     {
       "code": "2221",
       "name": "大甲",
-      "status": "in_disposal",
-      "start": "2026-10-19",
-      "end": "2026-10-23"
-    },
-    {
-      "code": "3055",
-      "name": "蔚華科",
       "status": "in_disposal",
       "start": "2026-10-19",
       "end": "2026-10-23"
@@ -100,8 +96,36 @@
       "end": "2026-10-28"
     },
     {
-      "code": "8291",
-      "name": "尚茂",
+      "code": "6269",
+      "name": "台郡",
+      "type": "2分盤",
+      "status": "pending_1d",
+      "days_to_disposal": 1
+    },
+    {
+      "code": "8358",
+      "name": "金居",
+      "type": "2分盤",
+      "status": "pending_1d",
+      "days_to_disposal": 1
+    },
+    {
+      "code": "4542",
+      "name": "科嶠",
+      "type": "2分盤",
+      "status": "pending_1d",
+      "days_to_disposal": 1
+    },
+    {
+      "code": "8437",
+      "name": "大地-KY",
+      "type": "2分盤",
+      "status": "pending_1d",
+      "days_to_disposal": 1
+    },
+    {
+      "code": "5205",
+      "name": "中茂",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1
