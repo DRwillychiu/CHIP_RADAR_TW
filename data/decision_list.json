@@ -1,0 +1,245 @@
+{
+  "signal_date": "20261019",
+  "source_orders": "20261020_all_accounts.json",
+  "source_status": "paper_entry_recorded",
+  "paper_strategy_only": true,
+  "rows": [
+    {
+      "code": "2106",
+      "name": "建大",
+      "tier": "候選",
+      "tracking_state": "可追蹤",
+      "decision": "無動作",
+      "evidence_status": "strict_double_trigger_blocked",
+      "blockers": [
+        "G1_missing",
+        "G2_not_pass",
+        "warrant_not_held",
+        "no_identity_pair_passes_flow_and_quality"
+      ],
+      "failed_gates": [
+        "資料完整性缺資料",
+        "資料正確性未通過",
+        "追蹤分點沒有持有權證",
+        "沒有分點同時通過囤貨與品質"
+      ],
+      "paper_strategy": true
+    },
+    {
+      "code": "2301",
+      "name": "光寶科",
+      "tier": "候選",
+      "tracking_state": "可追蹤",
+      "decision": "續抱",
+      "evidence_status": "paper_order_recorded",
+      "blockers": [
+        "G1_not_pass",
+        "warrant_rank_coverage_not_100pct",
+        "G2_missing",
+        "warrant_not_held"
+      ],
+      "failed_gates": [
+        "資料完整性未通過",
+        "權證資料不完整",
+        "資料正確性缺資料",
+        "追蹤分點沒有持有權證"
+      ],
+      "paper_strategy": true
+    },
+    {
+      "code": "2313",
+      "name": "華通",
+      "tier": "候選",
+      "tracking_state": "可追蹤",
+      "decision": "無動作",
+      "evidence_status": "strict_double_trigger_blocked",
+      "blockers": [
+        "G1_missing",
+        "G2_missing",
+        "warrant_not_held",
+        "no_identity_pair_passes_flow_and_quality"
+      ],
+      "failed_gates": [
+        "資料完整性缺資料",
+        "資料正確性缺資料",
+        "追蹤分點沒有持有權證",
+        "沒有分點同時通過囤貨與品質"
+      ],
+      "paper_strategy": true
+    },
+    {
+      "code": "2449",
+      "name": "京元電子",
+      "tier": "候選",
+      "tracking_state": "可追蹤",
+      "decision": "無動作",
+      "evidence_status": "strict_double_trigger_blocked",
+      "blockers": [
+        "G1_missing",
+        "G2_missing",
+        "warrant_not_held",
+        "no_identity_pair_passes_flow_and_quality"
+      ],
+      "failed_gates": [
+        "資料完整性缺資料",
+        "資料正確性缺資料",
+        "追蹤分點沒有持有權證",
+        "沒有分點同時通過囤貨與品質"
+      ],
+      "paper_strategy": true
+    },
+    {
+      "code": "2520",
+      "name": "冠德",
+      "tier": "觀察中",
+      "tracking_state": "可追蹤",
+      "decision": "無動作",
+      "evidence_status": "strict_double_trigger_blocked",
+      "blockers": [
+        "G1_missing",
+        "warrant_not_held",
+        "no_identity_pair_passes_flow_and_quality"
+      ],
+      "failed_gates": [
+        "資料完整性缺資料",
+        "追蹤分點沒有持有權證",
+        "沒有分點同時通過囤貨與品質"
+      ],
+      "paper_strategy": true
+    },
+    {
+      "code": "3189",
+      "name": "景碩",
+      "tier": "候選",
+      "tracking_state": "待確認",
+      "decision": "無動作",
+      "evidence_status": "strict_double_trigger_blocked",
+      "blockers": [
+        "G1_missing",
+        "G2_missing",
+        "warrant_not_held",
+        "identity_not_A_B_or_research",
+        "filing_reconciliation_not_matched"
+      ],
+      "failed_gates": [
+        "資料完整性缺資料",
+        "資料正確性缺資料",
+        "追蹤分點沒有持有權證",
+        "內部人身分尚未確認",
+        "申報比對未達八成吻合"
+      ],
+      "paper_strategy": true
+    },
+    {
+      "code": "3441",
+      "name": "聯一光",
+      "tier": "候選",
+      "tracking_state": "可追蹤",
+      "decision": "無動作",
+      "evidence_status": "strict_double_trigger_blocked",
+      "blockers": [
+        "G1_missing",
+        "G2_missing",
+        "warrant_not_held",
+        "no_identity_pair_passes_flow_and_quality"
+      ],
+      "failed_gates": [
+        "資料完整性缺資料",
+        "資料正確性缺資料",
+        "追蹤分點沒有持有權證",
+        "沒有分點同時通過囤貨與品質"
+      ],
+      "paper_strategy": true
+    },
+    {
+      "code": "5469",
+      "name": "瀚宇博",
+      "tier": "候選",
+      "tracking_state": "無法比對",
+      "decision": "無動作",
+      "evidence_status": "strict_double_trigger_blocked",
+      "blockers": [
+        "G1_missing",
+        "G2_missing",
+        "warrant_not_held",
+        "identity_not_A_B_or_research",
+        "filing_reconciliation_not_matched"
+      ],
+      "failed_gates": [
+        "資料完整性缺資料",
+        "資料正確性缺資料",
+        "追蹤分點沒有持有權證",
+        "內部人身分尚未確認",
+        "申報比對未達八成吻合"
+      ],
+      "paper_strategy": true
+    },
+    {
+      "code": "6116",
+      "name": "彩晶",
+      "tier": "候選",
+      "tracking_state": "待確認",
+      "decision": "無動作",
+      "evidence_status": "strict_double_trigger_blocked",
+      "blockers": [
+        "G1_missing",
+        "G2_not_pass",
+        "warrant_not_held",
+        "identity_not_A_B_or_research",
+        "filing_reconciliation_not_matched"
+      ],
+      "failed_gates": [
+        "資料完整性缺資料",
+        "資料正確性未通過",
+        "追蹤分點沒有持有權證",
+        "內部人身分尚未確認",
+        "申報比對未達八成吻合"
+      ],
+      "paper_strategy": true
+    },
+    {
+      "code": "6269",
+      "name": "台郡",
+      "tier": "候選",
+      "tracking_state": "可追蹤",
+      "decision": "續抱",
+      "evidence_status": "paper_order_recorded",
+      "blockers": [
+        "G1_not_pass",
+        "warrant_rank_coverage_not_100pct",
+        "G2_missing",
+        "warrant_not_held",
+        "no_identity_pair_passes_flow_and_quality"
+      ],
+      "failed_gates": [
+        "資料完整性未通過",
+        "權證資料不完整",
+        "資料正確性缺資料",
+        "追蹤分點沒有持有權證",
+        "沒有分點同時通過囤貨與品質"
+      ],
+      "paper_strategy": true
+    },
+    {
+      "code": "8039",
+      "name": "台虹",
+      "tier": "觀察中",
+      "tracking_state": "可追蹤",
+      "decision": "續抱",
+      "evidence_status": "paper_order_recorded",
+      "blockers": [
+        "G1_not_pass",
+        "warrant_rank_coverage_not_100pct",
+        "G2_missing",
+        "warrant_not_held"
+      ],
+      "failed_gates": [
+        "資料完整性未通過",
+        "權證資料不完整",
+        "資料正確性缺資料",
+        "追蹤分點沒有持有權證"
+      ],
+      "paper_strategy": true
+    }
+  ]
+}
