@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-23T21:29:27.478287+08:00",
+  "updated_at": "2026-10-23T22:50:21.166581+08:00",
   "actions": {
     "1516": [
       {
@@ -1215,6 +1215,17 @@
         "factor": 0.835689,
         "confidence": "inferred",
         "raw_move_pct": 19.66,
+        "source": "price_series",
+        "bad_data_dates": []
+      },
+      {
+        "date": "20261022",
+        "type": "detected_gap",
+        "pre_price": 28.75,
+        "post_price": 24.3,
+        "factor": 1.183128,
+        "confidence": "inferred",
+        "raw_move_pct": -15.48,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -2874,6 +2885,30 @@
         "raw_move_pct": -11.42,
         "source": "price_series",
         "bad_data_dates": []
+      },
+      {
+        "date": "20261022",
+        "type": "detected_gap",
+        "pre_price": 21.5,
+        "post_price": 17.05,
+        "factor": 1.260997,
+        "confidence": "inferred",
+        "raw_move_pct": -20.7,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
+    "7689": [
+      {
+        "date": "20261022",
+        "type": "detected_gap",
+        "pre_price": 154.5,
+        "post_price": 132.0,
+        "factor": 1.170455,
+        "confidence": "inferred",
+        "raw_move_pct": -14.56,
+        "source": "price_series",
+        "bad_data_dates": []
       }
     ],
     "7825": [
@@ -2903,7 +2938,7 @@
   },
   "stats": {
     "official": 3,
-    "inferred": 226,
+    "inferred": 229,
     "merged_dup": 4
   }
 }
