@@ -1,18 +1,18 @@
 {
-  "updated_at": "2026-10-18T17:04:37.778355",
-  "days_analyzed": 41,
+  "updated_at": "2026-10-25T17:24:08.118162",
+  "days_analyzed": 39,
   "summary": {
-    "mild_only_pct": 83.44827586206897,
-    "both_overlap_pct_of_quad": 30.0,
+    "mild_only_pct": 83.56164383561644,
+    "both_overlap_pct_of_quad": 34.78260869565217,
     "verdict": "雙層獨立 — mild_up 大部分非 quad subset, 維持雙層 sub-banner 合理"
   },
   "buckets": {
     "quad_only": {
-      "n": 56,
-      "hits": 28,
-      "hit_rate": 0.5,
-      "mean_change": 0.6096428571428573,
-      "median_change": 0.105
+      "n": 45,
+      "hits": 25,
+      "hit_rate": 0.5555555555555556,
+      "mean_change": 1.2311111111111113,
+      "median_change": 0.28
     },
     "both": {
       "n": 24,
@@ -22,41 +22,14 @@
       "median_change": -0.535
     },
     "mild_up_only": {
-      "n": 121,
+      "n": 122,
       "hits": 52,
-      "hit_rate": 0.4297520661157025,
-      "mean_change": 0.11504132231404926,
-      "median_change": -0.32
+      "hit_rate": 0.4262295081967213,
+      "mean_change": 0.07516393442622919,
+      "median_change": -0.33499999999999996
     }
   },
   "per_day": [
-    {
-      "date": "20260722",
-      "next_date": "20260723",
-      "quad_n": 11,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 11,
-      "mild_only": 0
-    },
-    {
-      "date": "20260723",
-      "next_date": "20260724",
-      "quad_n": 0,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 0
-    },
-    {
-      "date": "20260727",
-      "next_date": "20260728",
-      "quad_n": 0,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 0
-    },
     {
       "date": "20260731",
       "next_date": "20260803",
@@ -398,6 +371,15 @@
       "intersection": 0,
       "quad_only": 0,
       "mild_only": 7
+    },
+    {
+      "date": "20261016",
+      "next_date": "20261019",
+      "quad_n": 0,
+      "mild_n": 1,
+      "intersection": 0,
+      "quad_only": 0,
+      "mild_only": 1
     }
   ]
 }

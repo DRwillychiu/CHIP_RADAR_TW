@@ -4,85 +4,85 @@
       "description": "全部 quad picks (baseline, 含所有 master)",
       "all": {
         "cum_1d": {
-          "n": 80,
-          "hits": 39,
-          "hit_rate": 0.4875,
-          "mean": 0.429,
-          "median": -0.08,
-          "cum": 34.3,
-          "ci_lo": 0.3811,
-          "ci_hi": 0.5951
+          "n": 69,
+          "hits": 36,
+          "hit_rate": 0.5217,
+          "mean": 0.805,
+          "median": 0.211,
+          "cum": 55.6,
+          "ci_lo": 0.4059,
+          "ci_hi": 0.6353
         },
         "cum_3d": {
-          "n": 80,
+          "n": 69,
           "hits": 36,
-          "hit_rate": 0.45,
-          "mean": -0.085,
-          "median": -0.375,
-          "cum": -6.8,
-          "ci_lo": 0.3458,
-          "ci_hi": 0.5588
+          "hit_rate": 0.5217,
+          "mean": 1.376,
+          "median": 0.659,
+          "cum": 95.0,
+          "ci_lo": 0.4059,
+          "ci_hi": 0.6353
         },
         "cum_5d": {
-          "n": 80,
+          "n": 69,
           "hits": 41,
-          "hit_rate": 0.5125,
-          "mean": -1.239,
-          "median": 0.318,
-          "cum": -99.1,
-          "ci_lo": 0.4049,
-          "ci_hi": 0.6189
+          "hit_rate": 0.5942,
+          "mean": 1.854,
+          "median": 1.75,
+          "cum": 127.9,
+          "ci_lo": 0.4764,
+          "ci_hi": 0.7021
         },
         "peak_5d": {
-          "n": 80,
-          "hits": 60,
-          "hit_rate": 0.75,
-          "mean": 4.436,
-          "median": 3.132,
-          "cum": 354.9,
-          "ci_lo": 0.6452,
-          "ci_hi": 0.8319
+          "n": 69,
+          "hits": 56,
+          "hit_rate": 0.8116,
+          "mean": 5.373,
+          "median": 3.741,
+          "cum": 370.7,
+          "ci_lo": 0.7039,
+          "ci_hi": 0.8865
         }
       },
       "is": {
-        "n": 48,
-        "hits": 27,
-        "hit_rate": 0.5625,
-        "mean": -1.274,
-        "median": 1.53,
-        "cum": -61.1,
-        "ci_lo": 0.4227,
-        "ci_hi": 0.693
+        "n": 41,
+        "hits": 30,
+        "hit_rate": 0.7317,
+        "mean": 3.902,
+        "median": 3.571,
+        "cum": 160.0,
+        "ci_lo": 0.5807,
+        "ci_hi": 0.8431
       },
       "oos": {
-        "n": 32,
-        "hits": 14,
-        "hit_rate": 0.4375,
-        "mean": -1.188,
-        "median": -0.822,
-        "cum": -38.0,
-        "ci_lo": 0.2817,
-        "ci_hi": 0.6067
+        "n": 28,
+        "hits": 11,
+        "hit_rate": 0.3929,
+        "mean": -1.145,
+        "median": -1.512,
+        "cum": -32.0,
+        "ci_lo": 0.2357,
+        "ci_hi": 0.5759
       },
       "peak_is": {
-        "n": 48,
-        "hits": 36,
-        "hit_rate": 0.75,
-        "mean": 4.722,
-        "median": 2.922,
-        "cum": 226.6,
-        "ci_lo": 0.6122,
-        "ci_hi": 0.8508
+        "n": 41,
+        "hits": 35,
+        "hit_rate": 0.8537,
+        "mean": 6.104,
+        "median": 4.712,
+        "cum": 250.3,
+        "ci_lo": 0.7156,
+        "ci_hi": 0.9312
       },
       "peak_oos": {
-        "n": 32,
-        "hits": 24,
+        "n": 28,
+        "hits": 21,
         "hit_rate": 0.75,
-        "mean": 4.008,
-        "median": 3.327,
-        "cum": 128.3,
-        "ci_lo": 0.5789,
-        "ci_hi": 0.8675
+        "mean": 4.301,
+        "median": 3.377,
+        "cum": 120.4,
+        "ci_lo": 0.5664,
+        "ci_hi": 0.8732
       }
     },
     "premium_only": {
@@ -99,7 +99,7 @@
       "peak_oos": null
     }
   },
-  "n_total": 80,
+  "n_total": 69,
   "is_cutoff_date": "20260901",
   "premium_selection": {
     "masters": [
