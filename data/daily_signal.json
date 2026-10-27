@@ -1,8 +1,8 @@
 {
-  "date": "20261022",
-  "generated_at": "2026-10-26T14:59:01.176068",
+  "date": "20261027",
+  "generated_at": "2026-10-27T13:34:41.712440",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "籌碼偏向偏空 (強度-0.44, 非預測訊號) · 3 檔個股關注",
+  "headline": "籌碼偏向偏空 (強度-0.42, 非預測訊號) · 3 檔個股關注",
   "market_direction": {
     "direction": "偏空",
     "confidence_pct": 10,
@@ -36,7 +36,7 @@
       ],
       "doc": "docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md"
     },
-    "net_weight": -0.44,
+    "net_weight": -0.417,
     "contributing": [
       {
         "name": "P/C Ratio",
@@ -49,67 +49,57 @@
         "level": "extreme-bull",
         "weight": 0.083,
         "sign": "bull"
-      },
-      {
-        "name": "法人共識",
-        "level": "extreme-bear",
-        "weight": -0.056,
-        "sign": "bear"
-      },
-      {
-        "name": "結算日壓力",
-        "level": "extreme-bull",
-        "weight": 0.033,
-        "sign": "bull"
       }
     ],
     "ignored": [
       "外資現貨",
       "外資期貨",
-      "融資熱度"
+      "融資熱度",
+      "法人共識",
+      "結算日壓力"
     ]
   },
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "2468",
-      "name": "華經",
-      "change_pct": 10.0,
+      "code": "4526",
+      "name": "東台",
+      "change_pct": 9.99,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 291612,
-      "total_buy_amt_yi": 2.92,
+      "total_buy_amt_K": 758361,
+      "total_buy_amt_yi": 7.58,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 10.0%, 共淨買 2.92 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.99%, 共淨買 7.58 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "6221",
-      "name": "晉泰",
-      "change_pct": 9.97,
+      "code": "2049",
+      "name": "上銀",
+      "change_pct": 9.87,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 23860,
-      "total_buy_amt_yi": 0.24,
+      "total_buy_amt_K": 398562,
+      "total_buy_amt_yi": 3.99,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.97%, 共淨買 0.24 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.87%, 共淨買 3.99 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 3,
-      "code": "6945",
-      "name": "圓祥生技",
-      "change_pct": 9.79,
+      "code": "1569",
+      "name": "濱川",
+      "change_pct": 9.98,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 13070,
-      "total_buy_amt_yi": 0.13,
+      "total_buy_amt_K": 254796,
+      "total_buy_amt_yi": 2.55,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.79%, 共淨買 0.13 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.98%, 共淨買 2.55 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],
