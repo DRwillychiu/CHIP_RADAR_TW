@@ -1,20 +1,20 @@
 {
   "summary": {
     "baseline": {
-      "n": 778,
-      "hits": 356,
-      "hit_rate": 0.45758354755784064,
-      "mean_change": 0.17854755784061682,
-      "median_change": -0.15,
+      "n": 787,
+      "hits": 367,
+      "hit_rate": 0.4663278271918678,
+      "mean_change": 0.28337992376111826,
+      "median_change": 0.0,
       "days": 59,
       "desc": "全部共識股 (對照)"
     },
     "e_anomaly_only": {
-      "n": 773,
-      "hits": 355,
-      "hit_rate": 0.4592496765847348,
-      "mean_change": 0.2026261319534283,
-      "median_change": -0.13,
+      "n": 782,
+      "hits": 366,
+      "hit_rate": 0.4680306905370844,
+      "mean_change": 0.30785166240409223,
+      "median_change": 0.0,
       "days": 59,
       "desc": "共識 ∩ ≥1 master 異常 (vol_spike OR new_stocks)"
     },
@@ -28,10 +28,10 @@
       "desc": "共識 ∩ ≥1 master volume_spike"
     },
     "e_new_stocks_only": {
-      "n": 745,
-      "hits": 349,
-      "hit_rate": 0.4684563758389262,
-      "mean_change": 0.2971812080536917,
+      "n": 754,
+      "hits": 360,
+      "hit_rate": 0.47745358090185674,
+      "mean_change": 0.4051856763925735,
       "median_change": 0.0,
       "days": 57,
       "desc": "共識 ∩ ≥1 master new_stocks"
@@ -66,16 +66,6 @@
   },
   "best": [],
   "per_day": [
-    {
-      "date": "20260729",
-      "next": "20260730",
-      "cons": 4,
-      "next_avail": 4,
-      "q5": "中性",
-      "vol_spike_masters": 0,
-      "new_stocks_masters": 7,
-      "e_hits": 2
-    },
     {
       "date": "20260730",
       "next": "20260731",
@@ -655,9 +645,19 @@
       "vol_spike_masters": 0,
       "new_stocks_masters": 7,
       "e_hits": 7
+    },
+    {
+      "date": "20261027",
+      "next": "20261028",
+      "cons": 13,
+      "next_avail": 13,
+      "q5": "偏空",
+      "vol_spike_masters": 0,
+      "new_stocks_masters": 8,
+      "e_hits": 13
     }
   ],
-  "updated_at": "2026-10-27T14:58:24.136637",
+  "updated_at": "2026-10-28T13:39:02.919979",
   "window_days": 59,
   "thresholds": {
     "anomaly_sigma": 2.0,
