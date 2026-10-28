@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-28T21:34:24.794361+08:00",
+  "generated_at": "2026-10-28T22:53:44.982611+08:00",
   "trade_date": "20261028",
   "pump_suspicion": [
     {
@@ -575,88 +575,12 @@
       "reasoning": "9300 買 205 張 vs 7000 賣 171 張 (匹配 83%)"
     }
   ],
-  "distribution": [
-    {
-      "stock_code": "4720",
-      "stock_name": "德淵",
-      "branch_code": "9666",
-      "branch_name": "富邦-南屯",
-      "master": "民哥",
-      "sell_lot": 2947,
-      "sell_amt_wan": 9768,
-      "avg_30d_sell_lot": 61.0,
-      "sell_vs_avg_x": 48.3,
-      "recent_5d_limit_up_count": 46,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 2,947 張 (30 天均 61 張 × 48.3) + 近 5 天漲停 46 次"
-    },
-    {
-      "stock_code": "2464",
-      "stock_name": "盟立",
-      "branch_code": "920F",
-      "branch_name": "凱基-站前",
-      "master": "張濬安(航海王)",
-      "sell_lot": 132,
-      "sell_amt_wan": 2354,
-      "avg_30d_sell_lot": 26.0,
-      "sell_vs_avg_x": 5.1,
-      "recent_5d_limit_up_count": 29,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 132 張 (30 天均 26 張 × 5.1) + 近 5 天漲停 29 次"
-    },
-    {
-      "stock_code": "6213",
-      "stock_name": "聯茂",
-      "branch_code": "913Y",
-      "branch_name": "群益金鼎-館前",
-      "master": "江士勳",
-      "sell_lot": 225,
-      "sell_amt_wan": 17528,
-      "avg_30d_sell_lot": 33.4,
-      "sell_vs_avg_x": 6.7,
-      "recent_5d_limit_up_count": 68,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 225 張 (30 天均 33 張 × 6.7) + 近 5 天漲停 68 次"
-    },
-    {
-      "stock_code": "6278",
-      "stock_name": "台表科",
-      "branch_code": "585U",
-      "branch_name": "統一-南京",
-      "master": "統一南京(強勢未知)",
-      "sell_lot": 396,
-      "sell_amt_wan": 11183,
-      "avg_30d_sell_lot": 62.7,
-      "sell_vs_avg_x": 6.3,
-      "recent_5d_limit_up_count": 47,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 396 張 (30 天均 63 張 × 6.3) + 近 5 天漲停 47 次"
-    },
-    {
-      "stock_code": "4720",
-      "stock_name": "德淵",
-      "branch_code": "9229",
-      "branch_name": "凱基-中山",
-      "master": "兩年確認分點(凱基-中山)",
-      "sell_lot": 794,
-      "sell_amt_wan": 2604,
-      "avg_30d_sell_lot": 60.5,
-      "sell_vs_avg_x": 13.1,
-      "recent_5d_limit_up_count": 46,
-      "rule": "C_distribution",
-      "severity": "high",
-      "reasoning": "當日賣 794 張 (30 天均 60 張 × 13.1) + 近 5 天漲停 46 次"
-    }
-  ],
+  "distribution": [],
   "summary": {
     "pump_count": 4,
     "wash_count": 30,
-    "distribution_count": 5,
-    "total": 39
+    "distribution_count": 0,
+    "total": 34
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
