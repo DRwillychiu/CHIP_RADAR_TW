@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-29T21:32:12.512413+08:00",
+  "updated_at": "2026-10-29T22:58:51.460945+08:00",
   "actions": {
     "1516": [
       {
@@ -739,6 +739,17 @@
         "factor": 0.689103,
         "confidence": "inferred",
         "raw_move_pct": 45.12,
+        "source": "price_series",
+        "bad_data_dates": []
+      },
+      {
+        "date": "20261029",
+        "type": "detected_gap",
+        "pre_price": 12.35,
+        "post_price": 14.0,
+        "factor": 0.882143,
+        "confidence": "inferred",
+        "raw_move_pct": 13.36,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -2774,6 +2785,17 @@
         "raw_move_pct": -14.1,
         "source": "price_series",
         "bad_data_dates": []
+      },
+      {
+        "date": "20261029",
+        "type": "detected_gap",
+        "pre_price": 7.16,
+        "post_price": 8.37,
+        "factor": 0.855436,
+        "confidence": "inferred",
+        "raw_move_pct": 16.9,
+        "source": "price_series",
+        "bad_data_dates": []
       }
     ],
     "6236": [
@@ -2903,7 +2925,7 @@
   },
   "stats": {
     "official": 3,
-    "inferred": 226,
+    "inferred": 228,
     "merged_dup": 5
   }
 }
