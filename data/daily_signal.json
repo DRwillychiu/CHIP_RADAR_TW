@@ -1,11 +1,11 @@
 {
-  "date": "20261029",
-  "generated_at": "2026-10-29T15:00:35.541484",
+  "date": "20261030",
+  "generated_at": "2026-10-30T13:34:10.023668",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "籌碼偏向偏空 (強度-0.28, 非預測訊號) · 3 檔個股關注",
+  "headline": "籌碼偏向偏空 (強度-0.42, 非預測訊號) · 3 檔個股關注",
   "market_direction": {
     "direction": "偏空",
-    "confidence_pct": 22.3,
+    "confidence_pct": 10,
     "confidence_is_measured_alpha": false,
     "alpha_verdict": {
       "verdict": "no_measurable_edge",
@@ -36,7 +36,7 @@
       ],
       "doc": "docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md"
     },
-    "net_weight": -0.277,
+    "net_weight": -0.417,
     "contributing": [
       {
         "name": "P/C Ratio",
@@ -49,67 +49,57 @@
         "level": "extreme-bull",
         "weight": 0.083,
         "sign": "bull"
-      },
-      {
-        "name": "融資熱度",
-        "level": "bull",
-        "weight": 0.196,
-        "sign": "bull"
-      },
-      {
-        "name": "法人共識",
-        "level": "extreme-bear",
-        "weight": -0.056,
-        "sign": "bear"
       }
     ],
     "ignored": [
       "外資現貨",
       "外資期貨",
+      "融資熱度",
+      "法人共識",
       "結算日壓力"
     ]
   },
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "2352",
-      "name": "佳世達",
-      "change_pct": 9.88,
+      "code": "1201",
+      "name": "味全",
+      "change_pct": 9.72,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 364820,
-      "total_buy_amt_yi": 3.65,
+      "total_buy_amt_K": 19052,
+      "total_buy_amt_yi": 0.19,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.88%, 共淨買 3.65 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.72%, 共淨買 0.19 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "3105",
-      "name": "穩懋",
-      "change_pct": 10.0,
+      "code": "6697",
+      "name": "東捷資訊",
+      "change_pct": 9.92,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 17664895,
-      "total_buy_amt_yi": 176.65,
+      "total_buy_amt_K": 10249,
+      "total_buy_amt_yi": 0.1,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 10.0%, 共淨買 176.65 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.92%, 共淨買 0.1 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 3,
-      "code": "3035",
-      "name": "智原",
-      "change_pct": 9.98,
+      "code": "7704",
+      "name": "明遠精密",
+      "change_pct": 9.95,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 3986708,
-      "total_buy_amt_yi": 39.87,
+      "total_buy_amt_K": 90366,
+      "total_buy_amt_yi": 0.9,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.98%, 共淨買 39.87 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.95%, 共淨買 0.9 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],
