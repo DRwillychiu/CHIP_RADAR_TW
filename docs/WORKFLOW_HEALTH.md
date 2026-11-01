@@ -1,11 +1,12 @@
-# Workflow Health Report — 2026-10-25
+# Workflow Health Report — 2026-11-01
 
 > 自動產生 (weekly cron) 過去 7 天 12 workflows 成功率
 
 | Workflow | File | Runs | Success | Fail | Success % |
 |---|---|---|---|---|---|
+| 🔴 0. Tests (every push) | `tests.yml` | 1 | 0 | 1 | 0.0% |
 | 🔴 Workflows Health Monitor | `workflow-health.yml` | 1 | 0 | 0 | 0.0% |
-| ✅ 1. Daily Full Crawl (21:17) | `daily-full.yml` | 25 | 24 | 0 | 96.0% |
+| ✅ 1. Daily Full Crawl (21:17) | `daily-full.yml` | 25 | 25 | 0 | 100.0% |
 | ✅ Fubon Pacing Weekly Check | `fubon-pacing-weekly.yml` | 1 | 1 | 0 | 100.0% |
 | ✅ 5. Data Heartbeat (資料新鮮度告警) | `heartbeat.yml` | 14 | 14 | 0 | 100.0% |
 | ✅ 8. Intraday Settlement First Look (13:35 TW) | `intraday-settlement.yml` | 5 | 5 | 0 | 100.0% |
@@ -17,4 +18,4 @@
 | ✅ 6. TDCC Weekly Holdings (集保大戶週頻) | `tdcc-weekly.yml` | 2 | 2 | 0 | 100.0% |
 | ✅ Weekly LOOP Audit (Phase 3.4 + 3.5) | `weekly-loop-audit.yml` | 1 | 1 | 0 | 100.0% |
 | ✅ 10. Weekly Summary (本週最後交易日 14:30 TW) | `weekly-summary.yml` | 5 | 5 | 0 | 100.0% |
-| ✅ pages-build-deployment | `pages-build-deployment` | 43 | 43 | 0 | 100.0% |
+| ✅ pages-build-deployment | `pages-build-deployment` | 32 | 32 | 0 | 100.0% |
