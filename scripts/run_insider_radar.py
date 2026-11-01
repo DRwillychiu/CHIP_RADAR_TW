@@ -23,6 +23,7 @@ import os
 import re
 import statistics
 import sys
+import time                 # 2026-10-26: the write retry (time.sleep) had no import - NameError when the file was busy
 from collections import defaultdict
 from pathlib import Path
 
@@ -847,7 +848,20 @@ def main():
         pub["private"] = PRIVATE_NAME       # the page fetches the encrypted part only when it exists
         write_private(priv_path, priv, pw)
         print(f"[radar] private part (encrypted) -> {priv_path.name}")
-    Path(a.out).write_text(json.dumps(pub, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")   # compact: the page downloads it (704 KB indented -> 344 KB)
+    payload = json.dumps(pub, ensure_ascii=False, separators=(",", ":"))
+    out_path = Path(a.out)
+    tmp_path = out_path.with_name(out_path.name + ".tmp")
+    # Windows nightly jobs can briefly hold the public file while the watcher reads it.
+    # Write a complete temporary file, then replace the target with bounded retries.
+    for attempt in range(3):
+        try:
+            tmp_path.write_text(payload, encoding="utf-8")
+            os.replace(tmp_path, out_path)
+            break
+        except OSError:
+            if attempt == 2:
+                raise
+            time.sleep(1)
     print(f"[radar] data from {data_start}, people rows {len(trades)}, company-months {len(rows)}, all A {len(sig_a)}, "
           f"A_cov {len(a_cov)}, B {len(sig_b)}, sells {len(sells)}, split {split}")
     for y, p in zip(years, priv_years):
