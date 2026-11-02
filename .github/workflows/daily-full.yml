@@ -133,6 +133,7 @@ jobs:
     permissions:
       contents: write
       issues: write
+      actions: read
     env:
       # v3.80.19: 'true' for every run not on main (manual runs on dev) and for a
       # manual run with test_run=true; scheduled runs are on main -> 'false'
