@@ -1,15 +1,16 @@
 {
-  "fetched_at": "2026-10-30T23:03:29+08:00",
+  "fetched_at": "2026-11-02T22:53:17+08:00",
   "source": "attstock.tw/api/stocks/risk + /api/stocks/disposal",
-  "total_risk_count": 132,
+  "total_risk_count": 133,
   "total_disposal_rows": 16,
-  "count_in_disposal": 13,
-  "count_pending_1d": 1,
+  "count_in_disposal": 15,
+  "count_pending_1d": 2,
   "codes_in_disposal": [
     "2466",
-    "3287",
     "3354",
+    "3374",
     "3441",
+    "3691",
     "4526",
     "4542",
     "4577",
@@ -17,20 +18,15 @@
     "5475",
     "6751",
     "6925",
+    "8099",
     "8358",
     "8437"
   ],
   "codes_pending_1d": [
-    "8291"
+    "6213",
+    "7704"
   ],
   "sample": [
-    {
-      "code": "3287",
-      "name": "廣寰科",
-      "status": "in_disposal",
-      "start": "2026-10-22",
-      "end": "2026-10-30"
-    },
     {
       "code": "8358",
       "name": "金居",
@@ -67,15 +63,15 @@
       "end": "2026-11-03"
     },
     {
-      "code": "3354",
-      "name": "律勝",
+      "code": "6751",
+      "name": "智聯服務",
       "status": "in_disposal",
       "start": "2026-10-28",
       "end": "2026-11-03"
     },
     {
-      "code": "6751",
-      "name": "智聯服務",
+      "code": "3354",
+      "name": "律勝",
       "status": "in_disposal",
       "start": "2026-10-28",
       "end": "2026-11-03"
@@ -102,6 +98,20 @@
       "end": "2026-11-05"
     },
     {
+      "code": "3691",
+      "name": "碩禾",
+      "status": "in_disposal",
+      "start": "2026-11-02",
+      "end": "2026-11-06"
+    },
+    {
+      "code": "8099",
+      "name": "大世科",
+      "status": "in_disposal",
+      "start": "2026-11-02",
+      "end": "2026-11-06"
+    },
+    {
       "code": "3441",
       "name": "聯一光",
       "status": "in_disposal",
@@ -116,8 +126,22 @@
       "end": "2026-11-09"
     },
     {
-      "code": "8291",
-      "name": "尚茂",
+      "code": "3374",
+      "name": "精材",
+      "status": "in_disposal",
+      "start": "2026-11-02",
+      "end": "2026-11-10"
+    },
+    {
+      "code": "6213",
+      "name": "聯茂",
+      "type": "2分盤",
+      "status": "pending_1d",
+      "days_to_disposal": 1
+    },
+    {
+      "code": "7704",
+      "name": "明遠精密",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1
