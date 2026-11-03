@@ -1,5 +1,5 @@
 {
- "count": 49,
+ "count": 53,
  "by_code": {
   "00400A": {
    "ex_date": "20261106",
@@ -64,6 +64,13 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
+  "00731": {
+   "ex_date": "20261118",
+   "name": "復華富時高息低波",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
   "00771": {
    "ex_date": "20261120",
    "name": "元大US高息特別股",
@@ -123,6 +130,13 @@
   "00901": {
    "ex_date": "20261124",
    "name": "永豐智能車供應鏈",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "00929": {
+   "ex_date": "20261118",
+   "name": "復華台灣科技優息",
    "type": "息",
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
@@ -204,6 +218,13 @@
    "cash_dividend": 0.058,
    "stock_dividend_pct": 0.0
   },
+  "00949": {
+   "ex_date": "20261118",
+   "name": "復華日本龍頭",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
   "00951": {
    "ex_date": "20261116",
    "name": "台新日本半導體",
@@ -249,6 +270,13 @@
   "00964": {
    "ex_date": "20261117",
    "name": "中信亞太高股息",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  "009808": {
+   "ex_date": "20261117",
+   "name": "華南永昌優選50",
    "type": "息",
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
@@ -384,11 +412,18 @@
    "00961",
    "00963",
    "00964",
+   "009808",
    "00980A",
    "00981T",
    "00982A",
    "00982D",
    "00983D"
+  ],
+  "20261118": [
+   "00731",
+   "00929",
+   "00949",
+   "00991B"
   ],
   "20261116": [
    "00775B",
@@ -410,9 +445,6 @@
    "020036",
    "8467"
   ],
-  "20261118": [
-   "00991B"
-  ],
   "20261119": [
    "01007T"
   ],
@@ -421,38 +453,6 @@
   ]
  },
  "upcoming_30d": [
-  {
-   "code": "6165",
-   "ex_date": "20261102",
-   "name": "浪凡",
-   "type": "息",
-   "cash_dividend": 5.0,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "00406A",
-   "ex_date": "20261103",
-   "name": "主動中信台灣收益",
-   "type": "息",
-   "cash_dividend": 0.138,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "00939",
-   "ex_date": "20261103",
-   "name": "統一台灣高息動能",
-   "type": "息",
-   "cash_dividend": 0.15,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "00984D",
-   "ex_date": "20261103",
-   "name": "主動聯博全球非投",
-   "type": "息",
-   "cash_dividend": 0.085,
-   "stock_dividend_pct": 0.0
-  },
   {
    "code": "00946",
    "ex_date": "20261104",
@@ -710,6 +710,14 @@
    "stock_dividend_pct": 0.0
   },
   {
+   "code": "009808",
+   "ex_date": "20261117",
+   "name": "華南永昌優選50",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
    "code": "00980A",
    "ex_date": "20261117",
    "name": "主動野村臺灣優選",
@@ -745,6 +753,30 @@
    "code": "00983D",
    "ex_date": "20261117",
    "name": "主動富邦複合收益",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00731",
+   "ex_date": "20261118",
+   "name": "復華富時高息低波",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00929",
+   "ex_date": "20261118",
+   "name": "復華台灣科技優息",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00949",
+   "ex_date": "20261118",
+   "name": "復華日本龍頭",
    "type": "息",
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
@@ -814,6 +846,6 @@
    "stock_dividend_pct": 0.0
   }
  ],
- "fetched_at": "2026-11-02T23:17:22.950969+08:00",
+ "fetched_at": "2026-11-04T04:30:37.592947+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }
