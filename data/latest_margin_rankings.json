@@ -1,6 +1,6 @@
 {
  "trade_date": "20261103",
- "updated_at": "2026-11-04T04:55:05.544850+08:00",
+ "updated_at": "2026-11-04T05:31:57.608357+08:00",
  "margin_rankings": {
   "top_margin_buy": [
    {
@@ -5002,11 +5002,11 @@
   "method": "market_estimate_30d_avg_close",
   "caveat": "市場估算非個人帳戶 — 個人實際維持率需查券商系統 (整戶計算+真實成本)",
   "counts": {
-   "healthy": 828,
-   "watch": 426,
-   "high_risk": 54,
+   "healthy": 1146,
+   "watch": 543,
+   "high_risk": 57,
    "margin_call": 9,
-   "insufficient_data": 907
+   "insufficient_data": 469
   },
   "high_risk_stocks": [
    {
@@ -5113,6 +5113,18 @@
     "margin_balance": 812,
     "today_close": 376.0,
     "estimated_cost": 522.62,
+    "cost_adjusted_for_corp_action": false,
+    "is_disposal_stock": false,
+    "margin_rate_used": 0.6
+   },
+   {
+    "code": "3504",
+    "name": "揚明光",
+    "ratio": 120.6,
+    "risk_level": "high_risk",
+    "margin_balance": 3483,
+    "today_close": 57.7,
+    "estimated_cost": 79.72,
     "cost_adjusted_for_corp_action": false,
     "is_disposal_stock": false,
     "margin_rate_used": 0.6
@@ -5353,18 +5365,6 @@
     "margin_balance": 7608,
     "today_close": 250.0,
     "estimated_cost": 333.58,
-    "cost_adjusted_for_corp_action": false,
-    "is_disposal_stock": false,
-    "margin_rate_used": 0.6
-   },
-   {
-    "code": "6584",
-    "name": "南俊國際",
-    "ratio": 125.1,
-    "risk_level": "high_risk",
-    "margin_balance": 1753,
-    "today_close": 375.0,
-    "estimated_cost": 499.75,
     "cost_adjusted_for_corp_action": false,
     "is_disposal_stock": false,
     "margin_rate_used": 0.6
