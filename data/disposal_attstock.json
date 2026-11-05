@@ -1,31 +1,27 @@
 {
-  "fetched_at": "2026-11-04T22:55:18+08:00",
+  "fetched_at": "2026-11-05T21:40:58+08:00",
   "source": "attstock.tw/api/stocks/risk + /api/stocks/disposal",
-  "total_risk_count": 139,
-  "total_disposal_rows": 11,
-  "count_in_disposal": 8,
-  "count_pending_1d": 1,
+  "total_risk_count": 145,
+  "total_disposal_rows": 10,
+  "count_in_disposal": 10,
+  "count_pending_1d": 2,
   "codes_in_disposal": [
     "2466",
     "3374",
     "3441",
     "3691",
     "4526",
-    "4542",
     "4577",
+    "6213",
+    "8099",
+    "8272",
     "8291"
   ],
   "codes_pending_1d": [
-    "5013"
+    "2360",
+    "3532"
   ],
   "sample": [
-    {
-      "code": "4542",
-      "name": "科嶠",
-      "status": "in_disposal",
-      "start": "2026-10-23",
-      "end": "2026-11-04"
-    },
     {
       "code": "4577",
       "name": "達航科技",
@@ -76,8 +72,36 @@
       "end": "2026-11-10"
     },
     {
-      "code": "5013",
-      "name": "強新",
+      "code": "6213",
+      "name": "聯茂",
+      "status": "in_disposal",
+      "start": "2026-11-05",
+      "end": "2026-11-11"
+    },
+    {
+      "code": "8099",
+      "name": "大世科",
+      "status": "in_disposal",
+      "start": "2026-11-05",
+      "end": "2026-11-11"
+    },
+    {
+      "code": "8272",
+      "name": "全景軟體",
+      "status": "in_disposal",
+      "start": "2026-11-05",
+      "end": "2026-11-11"
+    },
+    {
+      "code": "2360",
+      "name": "致茂",
+      "type": "2分盤",
+      "status": "pending_1d",
+      "days_to_disposal": 1
+    },
+    {
+      "code": "3532",
+      "name": "台勝科",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1
