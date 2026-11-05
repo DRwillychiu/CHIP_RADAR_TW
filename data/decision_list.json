@@ -263,7 +263,7 @@
     {
       "code": "2383",
       "name": "台光電",
-      "tier": "觀察中",
+      "tier": "候選",
       "tracking_state": "可追蹤",
       "decision": "續抱",
       "evidence_status": "paper_order_recorded",
@@ -519,19 +519,21 @@
     {
       "code": "4919",
       "name": "新唐",
-      "tier": "觀察中",
+      "tier": "候選",
       "tracking_state": "可追蹤",
       "decision": "無動作",
       "evidence_status": "strict_double_trigger_blocked",
       "blockers": [
         "G1_missing",
         "G2_missing",
-        "warrant_not_held"
+        "warrant_not_held",
+        "no_identity_pair_passes_flow_and_quality"
       ],
       "failed_gates": [
         "資料完整性缺資料",
         "資料正確性缺資料",
-        "追蹤分點沒有持有權證"
+        "追蹤分點沒有持有權證",
+        "沒有分點同時通過囤貨與品質"
       ],
       "paper_strategy": true
     },
