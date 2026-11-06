@@ -1,5 +1,5 @@
 {
- "count": 55,
+ "count": 48,
  "by_code": {
   "00400A": {
    "ex_date": "20261106",
@@ -13,13 +13,6 @@
    "name": "主動摩根台灣鑫收",
    "type": "息",
    "cash_dividend": null,
-   "stock_dividend_pct": 0.0
-  },
-  "00406A": {
-   "ex_date": "20261103",
-   "name": "主動中信台灣收益",
-   "type": "息",
-   "cash_dividend": 0.138,
    "stock_dividend_pct": 0.0
   },
   "0051": {
@@ -176,18 +169,11 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
-  "00939": {
-   "ex_date": "20261103",
-   "name": "統一台灣高息動能",
-   "type": "息",
-   "cash_dividend": 0.15,
-   "stock_dividend_pct": 0.0
-  },
   "00940": {
    "ex_date": "20261110",
    "name": "元大台灣價值高息",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 0.06,
    "stock_dividend_pct": 0.0
   },
   "00943": {
@@ -211,13 +197,6 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
-  "00946": {
-   "ex_date": "20261104",
-   "name": "群益科技高息成長",
-   "type": "息",
-   "cash_dividend": 0.058,
-   "stock_dividend_pct": 0.0
-  },
   "00949": {
    "ex_date": "20261118",
    "name": "復華日本龍頭",
@@ -237,13 +216,6 @@
    "name": "凱基台灣AI50",
    "type": "息",
    "cash_dividend": null,
-   "stock_dividend_pct": 0.0
-  },
-  "00953B": {
-   "ex_date": "20261104",
-   "name": "群益優選非投等債",
-   "type": "息",
-   "cash_dividend": 0.067,
    "stock_dividend_pct": 0.0
   },
   "00961": {
@@ -316,20 +288,6 @@
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
-  "00984D": {
-   "ex_date": "20261103",
-   "name": "主動聯博全球非投",
-   "type": "息",
-   "cash_dividend": 0.085,
-   "stock_dividend_pct": 0.0
-  },
-  "00985B": {
-   "ex_date": "20261104",
-   "name": "群益ESG投等債0-5",
-   "type": "息",
-   "cash_dividend": 0.053,
-   "stock_dividend_pct": 0.0
-  },
   "00991B": {
    "ex_date": "20261118",
    "name": "貝萊德A級公司債",
@@ -344,13 +302,6 @@
    "cash_dividend": 0.215313,
    "stock_dividend_pct": 0.0
   },
-  "020036": {
-   "ex_date": "20261104",
-   "name": "元大金融配息N",
-   "type": "息",
-   "cash_dividend": 0.4,
-   "stock_dividend_pct": 0.0
-  },
   "2344": {
    "ex_date": "20261118",
    "name": "華邦電",
@@ -361,6 +312,13 @@
   "2414": {
    "ex_date": "20261106",
    "name": "精技",
+   "type": "權",
+   "cash_dividend": 0.0,
+   "stock_dividend_pct": 0.0
+  },
+  "4562": {
+   "ex_date": "20261120",
+   "name": "穎漢",
    "type": "權",
    "cash_dividend": 0.0,
    "stock_dividend_pct": 0.0
@@ -378,13 +336,6 @@
    "type": "權",
    "cash_dividend": 0.0,
    "stock_dividend_pct": 0.0
-  },
-  "8467": {
-   "ex_date": "20261104",
-   "name": "波力-KY",
-   "type": "息",
-   "cash_dividend": 2.0,
-   "stock_dividend_pct": 0.0
   }
  },
  "by_date": {
@@ -395,16 +346,12 @@
   "20261113": [
    "00401A"
   ],
-  "20261103": [
-   "00406A",
-   "00939",
-   "00984D"
-  ],
   "20261120": [
    "0051",
    "0055",
    "00771",
-   "00850"
+   "00850",
+   "4562"
   ],
   "20261117": [
    "006208",
@@ -454,13 +401,6 @@
   "20261110": [
    "00940"
   ],
-  "20261104": [
-   "00946",
-   "00953B",
-   "00985B",
-   "020036",
-   "8467"
-  ],
   "20261119": [
    "01007T",
    "6924"
@@ -488,7 +428,7 @@
    "ex_date": "20261110",
    "name": "元大台灣價值高息",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 0.06,
    "stock_dividend_pct": 0.0
   },
   {
@@ -828,6 +768,14 @@
    "stock_dividend_pct": 0.0
   },
   {
+   "code": "4562",
+   "ex_date": "20261120",
+   "name": "穎漢",
+   "type": "權",
+   "cash_dividend": 0.0,
+   "stock_dividend_pct": 0.0
+  },
+  {
    "code": "00901",
    "ex_date": "20261124",
    "name": "永豐智能車供應鏈",
@@ -844,6 +792,6 @@
    "stock_dividend_pct": 0.0
   }
  ],
- "fetched_at": "2026-11-05T21:40:42.463490+08:00",
+ "fetched_at": "2026-11-06T22:57:00.176127+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }
