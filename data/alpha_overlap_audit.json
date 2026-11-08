@@ -1,106 +1,61 @@
 {
-  "updated_at": "2026-11-01T18:45:17.903832",
-  "days_analyzed": 38,
+  "updated_at": "2026-11-08T18:39:13.495018",
+  "days_analyzed": 34,
   "summary": {
-    "mild_only_pct": 85.71428571428571,
-    "both_overlap_pct_of_quad": 27.536231884057973,
+    "mild_only_pct": 86.11111111111111,
+    "both_overlap_pct_of_quad": 24.193548387096776,
     "verdict": "雙層獨立 — mild_up 大部分非 quad subset, 維持雙層 sub-banner 合理"
   },
   "buckets": {
     "quad_only": {
-      "n": 50,
-      "hits": 28,
-      "hit_rate": 0.56,
-      "mean_change": 1.3860000000000001,
-      "median_change": 0.345
+      "n": 47,
+      "hits": 19,
+      "hit_rate": 0.40425531914893614,
+      "mean_change": -0.7314893617021279,
+      "median_change": -0.79
     },
     "both": {
-      "n": 19,
+      "n": 15,
       "hits": 8,
-      "hit_rate": 0.42105263157894735,
-      "mean_change": -0.7231578947368419,
-      "median_change": -0.56
+      "hit_rate": 0.5333333333333333,
+      "mean_change": -0.687333333333333,
+      "median_change": 0.21
     },
     "mild_up_only": {
-      "n": 114,
-      "hits": 48,
-      "hit_rate": 0.42105263157894735,
-      "mean_change": -0.009824561403508921,
-      "median_change": -0.355
+      "n": 93,
+      "hits": 37,
+      "hit_rate": 0.3978494623655914,
+      "mean_change": -0.3972043010752687,
+      "median_change": -0.38
     }
   },
   "per_day": [
     {
-      "date": "20260803",
-      "next_date": "20260804",
-      "quad_n": 9,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 9,
-      "mild_only": 0
-    },
-    {
-      "date": "20260804",
-      "next_date": "20260805",
-      "quad_n": 0,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 0
-    },
-    {
-      "date": "20260805",
-      "next_date": "20260806",
-      "quad_n": 0,
-      "mild_n": 0,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 0
-    },
-    {
-      "date": "20260806",
-      "next_date": "20260807",
-      "quad_n": 9,
-      "mild_n": 4,
-      "intersection": 3,
-      "quad_only": 6,
-      "mild_only": 1
-    },
-    {
-      "date": "20260807",
-      "next_date": "20260810",
-      "quad_n": 0,
-      "mild_n": 7,
-      "intersection": 0,
-      "quad_only": 0,
-      "mild_only": 7
-    },
-    {
       "date": "20260810",
       "next_date": "20260811",
       "quad_n": 6,
-      "mild_n": 2,
-      "intersection": 2,
-      "quad_only": 4,
+      "mild_n": 0,
+      "intersection": 0,
+      "quad_only": 6,
       "mild_only": 0
     },
     {
       "date": "20260811",
       "next_date": "20260812",
       "quad_n": 0,
-      "mild_n": 7,
+      "mild_n": 0,
       "intersection": 0,
       "quad_only": 0,
-      "mild_only": 7
+      "mild_only": 0
     },
     {
       "date": "20260812",
       "next_date": "20260813",
       "quad_n": 0,
-      "mild_n": 6,
+      "mild_n": 0,
       "intersection": 0,
       "quad_only": 0,
-      "mild_only": 6
+      "mild_only": 0
     },
     {
       "date": "20260813",
@@ -371,6 +326,15 @@
       "intersection": 0,
       "quad_only": 0,
       "mild_only": 1
+    },
+    {
+      "date": "20261104",
+      "next_date": "20261105",
+      "quad_n": 11,
+      "mild_n": 1,
+      "intersection": 1,
+      "quad_only": 10,
+      "mild_only": 0
     }
   ]
 }
