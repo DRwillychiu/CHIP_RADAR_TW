@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-09T21:40:27.714829+08:00",
+  "updated_at": "2026-11-09T22:53:03.346392+08:00",
   "actions": {
     "3714": [
       {
@@ -190,6 +190,19 @@
         "factor": 3.783951,
         "confidence": "inferred",
         "raw_move_pct": -73.57,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
+    "5355": [
+      {
+        "date": "20261109",
+        "type": "detected_gap",
+        "pre_price": 6.79,
+        "post_price": 13.9,
+        "factor": 0.488489,
+        "confidence": "inferred",
+        "raw_move_pct": 104.71,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -773,19 +786,6 @@
         "bad_data_dates": []
       }
     ],
-    "2509": [
-      {
-        "date": "20260827",
-        "type": "detected_gap",
-        "pre_price": 13.65,
-        "post_price": 15.35,
-        "factor": 0.889251,
-        "confidence": "inferred",
-        "raw_move_pct": 12.45,
-        "source": "price_series",
-        "bad_data_dates": []
-      }
-    ],
     "2539": [
       {
         "date": "20260820",
@@ -1333,19 +1333,6 @@
         "bad_data_dates": []
       }
     ],
-    "6005": [
-      {
-        "date": "20260811",
-        "type": "detected_gap",
-        "pre_price": 33.8,
-        "post_price": 30.0,
-        "factor": 1.126667,
-        "confidence": "inferred",
-        "raw_move_pct": -11.24,
-        "source": "price_series",
-        "bad_data_dates": []
-      }
-    ],
     "6164": [
       {
         "date": "20261005",
@@ -1659,17 +1646,6 @@
       }
     ],
     "6873": [
-      {
-        "date": "20260818",
-        "type": "detected_gap",
-        "pre_price": 79.0,
-        "post_price": 70.2,
-        "factor": 1.125356,
-        "confidence": "inferred",
-        "raw_move_pct": -11.14,
-        "source": "price_series",
-        "bad_data_dates": []
-      },
       {
         "date": "20261028",
         "type": "detected_gap",
@@ -2220,7 +2196,7 @@
   },
   "stats": {
     "official": 1,
-    "inferred": 173,
+    "inferred": 171,
     "merged_dup": 2
   }
 }

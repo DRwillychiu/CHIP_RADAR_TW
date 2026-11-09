@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T21:40:52.456024+08:00",
+  "generated_at": "2026-11-09T22:53:15.131348+08:00",
   "trade_date": "20261109",
   "pump_suspicion": [
     {
@@ -772,56 +772,26 @@
   ],
   "distribution": [
     {
-      "stock_code": "6443",
-      "stock_name": "元晶",
-      "branch_code": "9A9R",
-      "branch_name": "永豐金-信義",
-      "master": "陳律師",
-      "sell_lot": 187,
-      "sell_amt_wan": 511,
-      "avg_30d_sell_lot": 20.0,
-      "sell_vs_avg_x": 9.3,
-      "recent_5d_limit_up_count": 18,
+      "stock_code": "2368",
+      "stock_name": "金像電",
+      "branch_code": "1590",
+      "branch_name": "花旗環球",
+      "master": "花旗環球",
+      "sell_lot": 1494,
+      "sell_amt_wan": 129543,
+      "avg_30d_sell_lot": 254.7,
+      "sell_vs_avg_x": 5.9,
+      "recent_5d_limit_up_count": 46,
       "rule": "C_distribution",
       "severity": "medium",
-      "reasoning": "當日賣 187 張 (30 天均 20 張 × 9.3) + 近 5 天漲停 18 次"
-    },
-    {
-      "stock_code": "6456",
-      "stock_name": "GIS-KY",
-      "branch_code": "9B2n",
-      "branch_name": "台新-西松",
-      "master": "巨人傑",
-      "sell_lot": 318,
-      "sell_amt_wan": 2455,
-      "avg_30d_sell_lot": 63.0,
-      "sell_vs_avg_x": 5.0,
-      "recent_5d_limit_up_count": 28,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 318 張 (30 天均 63 張 × 5.0) + 近 5 天漲停 28 次"
-    },
-    {
-      "stock_code": "00715L",
-      "stock_name": "期街口布蘭特正2",
-      "branch_code": "9223",
-      "branch_name": "凱基-豐中",
-      "master": "A級內部人分點(凱基-豐中)",
-      "sell_lot": 200,
-      "sell_amt_wan": 1353,
-      "avg_30d_sell_lot": 35.0,
-      "sell_vs_avg_x": 5.7,
-      "recent_5d_limit_up_count": 3,
-      "rule": "C_distribution",
-      "severity": "medium",
-      "reasoning": "當日賣 200 張 (30 天均 35 張 × 5.7) + 近 5 天漲停 3 次"
+      "reasoning": "當日賣 1,494 張 (30 天均 255 張 × 5.9) + 近 5 天漲停 46 次"
     }
   ],
   "summary": {
     "pump_count": 17,
     "wash_count": 30,
-    "distribution_count": 3,
-    "total": 50
+    "distribution_count": 1,
+    "total": 48
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
