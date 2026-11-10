@@ -1,13 +1,6 @@
 {
- "count": 49,
+ "count": 48,
  "by_code": {
-  "00400A": {
-   "ex_date": "20261106",
-   "name": "主動國泰動能高息",
-   "type": "息",
-   "cash_dividend": 0.12,
-   "stock_dividend_pct": 0.0
-  },
   "00401A": {
    "ex_date": "20261113",
    "name": "主動摩根台灣鑫收",
@@ -40,7 +33,7 @@
    "ex_date": "20261117",
    "name": "兆豐藍籌30",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 2.0,
    "stock_dividend_pct": 0.0
   },
   "00692": {
@@ -145,7 +138,7 @@
    "ex_date": "20261117",
    "name": "兆豐永續高息等權",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 0.23,
    "stock_dividend_pct": 0.0
   },
   "00934": {
@@ -180,7 +173,7 @@
    "ex_date": "20261117",
    "name": "兆豐電子高息等權",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 0.35,
    "stock_dividend_pct": 0.0
   },
   "00944": {
@@ -316,13 +309,6 @@
    "cash_dividend": 2.0,
    "stock_dividend_pct": 0.0
   },
-  "2414": {
-   "ex_date": "20261106",
-   "name": "精技",
-   "type": "權",
-   "cash_dividend": 0.0,
-   "stock_dividend_pct": 0.0
-  },
   "4562": {
    "ex_date": "20261120",
    "name": "穎漢",
@@ -337,6 +323,13 @@
    "cash_dividend": 0.0,
    "stock_dividend_pct": 0.0
   },
+  "6655": {
+   "ex_date": "20261124",
+   "name": "科定",
+   "type": "息",
+   "cash_dividend": 2.6,
+   "stock_dividend_pct": 0.0
+  },
   "6924": {
    "ex_date": "20261119",
    "name": "榮惠-KY創",
@@ -346,10 +339,6 @@
   }
  },
  "by_date": {
-  "20261106": [
-   "00400A",
-   "2414"
-  ],
   "20261113": [
    "00401A"
   ],
@@ -403,7 +392,8 @@
   ],
   "20261124": [
    "00901",
-   "00930"
+   "00930",
+   "6655"
   ],
   "20261110": [
    "00940"
@@ -478,7 +468,7 @@
    "ex_date": "20261117",
    "name": "兆豐藍籌30",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 2.0,
    "stock_dividend_pct": 0.0
   },
   {
@@ -542,7 +532,7 @@
    "ex_date": "20261117",
    "name": "兆豐永續高息等權",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 0.23,
    "stock_dividend_pct": 0.0
   },
   {
@@ -566,7 +556,7 @@
    "ex_date": "20261117",
    "name": "兆豐電子高息等權",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 0.35,
    "stock_dividend_pct": 0.0
   },
   {
@@ -784,8 +774,16 @@
    "type": "息",
    "cash_dividend": null,
    "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "6655",
+   "ex_date": "20261124",
+   "name": "科定",
+   "type": "息",
+   "cash_dividend": 2.6,
+   "stock_dividend_pct": 0.0
   }
  ],
- "fetched_at": "2026-11-09T21:44:15.851103+08:00",
+ "fetched_at": "2026-11-10T22:57:25.005215+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }
