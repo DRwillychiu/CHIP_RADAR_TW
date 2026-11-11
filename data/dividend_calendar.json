@@ -1,11 +1,11 @@
 {
- "count": 48,
+ "count": 51,
  "by_code": {
   "00401A": {
    "ex_date": "20261113",
    "name": "主動摩根台灣鑫收",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 0.138,
    "stock_dividend_pct": 0.0
   },
   "0051": {
@@ -295,6 +295,13 @@
    "cash_dividend": 0.215313,
    "stock_dividend_pct": 0.0
   },
+  "1437": {
+   "ex_date": "20261203",
+   "name": "勤益控",
+   "type": "息",
+   "cash_dividend": 0.624652,
+   "stock_dividend_pct": 0.0
+  },
   "1707": {
    "ex_date": "20261230",
    "name": "葡萄王",
@@ -307,6 +314,13 @@
    "name": "華邦電",
    "type": "息",
    "cash_dividend": 2.0,
+   "stock_dividend_pct": 0.0
+  },
+  "2646": {
+   "ex_date": "20261207",
+   "name": "星宇航空",
+   "type": "權",
+   "cash_dividend": 0.0,
    "stock_dividend_pct": 0.0
   },
   "4562": {
@@ -335,6 +349,13 @@
    "name": "榮惠-KY創",
    "type": "權",
    "cash_dividend": 0.0,
+   "stock_dividend_pct": 0.0
+  },
+  "7780": {
+   "ex_date": "20261204",
+   "name": "大研生醫*",
+   "type": "息",
+   "cash_dividend": 0.141372,
    "stock_dividend_pct": 0.0
   }
  },
@@ -402,25 +423,26 @@
    "01007T",
    "6924"
   ],
+  "20261203": [
+   "1437"
+  ],
   "20261230": [
    "1707"
+  ],
+  "20261207": [
+   "2646"
+  ],
+  "20261204": [
+   "7780"
   ]
  },
  "upcoming_30d": [
-  {
-   "code": "00940",
-   "ex_date": "20261110",
-   "name": "元大台灣價值高息",
-   "type": "息",
-   "cash_dividend": 0.06,
-   "stock_dividend_pct": 0.0
-  },
   {
    "code": "00401A",
    "ex_date": "20261113",
    "name": "主動摩根台灣鑫收",
    "type": "息",
-   "cash_dividend": null,
+   "cash_dividend": 0.138,
    "stock_dividend_pct": 0.0
   },
   {
@@ -782,8 +804,32 @@
    "type": "息",
    "cash_dividend": 2.6,
    "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "1437",
+   "ex_date": "20261203",
+   "name": "勤益控",
+   "type": "息",
+   "cash_dividend": 0.624652,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "7780",
+   "ex_date": "20261204",
+   "name": "大研生醫*",
+   "type": "息",
+   "cash_dividend": 0.141372,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "2646",
+   "ex_date": "20261207",
+   "name": "星宇航空",
+   "type": "權",
+   "cash_dividend": 0.0,
+   "stock_dividend_pct": 0.0
   }
  ],
- "fetched_at": "2026-11-10T22:57:25.005215+08:00",
+ "fetched_at": "2026-11-11T23:02:35.664844+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }
