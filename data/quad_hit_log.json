@@ -1,164 +1,6 @@
 {
   "trigger_days": [
     {
-      "date": "20260814",
-      "next_date": "20260817",
-      "q5_direction": "偏多",
-      "q5_confidence": 95,
-      "taifex_change": 0.1,
-      "vol_spike_masters": [
-        "蔣承翰"
-      ],
-      "quad_picks": [
-        {
-          "code": "8299",
-          "name": "群聯",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": 0.24,
-          "hit": true,
-          "leader_pct": 0.183,
-          "excess_return": 0.14,
-          "failure_reasons": []
-        },
-        {
-          "code": "2303",
-          "name": "聯電",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": 0.41,
-          "hit": true,
-          "leader_pct": 0.418,
-          "excess_return": 0.31,
-          "failure_reasons": []
-        },
-        {
-          "code": "2327",
-          "name": "國巨*",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -2.25,
-          "hit": false,
-          "leader_pct": 0.351,
-          "excess_return": -2.35,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "6182",
-          "name": "合晶",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": 9.87,
-          "hit": true,
-          "leader_pct": 0.258,
-          "excess_return": 9.77,
-          "failure_reasons": []
-        },
-        {
-          "code": "2449",
-          "name": "京元電子",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": 0.61,
-          "hit": true,
-          "leader_pct": 0.258,
-          "excess_return": 0.51,
-          "failure_reasons": []
-        },
-        {
-          "code": "2492",
-          "name": "華新科",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -3.64,
-          "hit": false,
-          "leader_pct": 0.268,
-          "excess_return": -3.74,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2317",
-          "name": "鴻海",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -1.73,
-          "hit": false,
-          "leader_pct": 0.354,
-          "excess_return": -1.83,
-          "failure_reasons": [
-            "alpha noise (個股無系統性原因)"
-          ]
-        },
-        {
-          "code": "2002",
-          "name": "中鋼",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -0.79,
-          "hit": false,
-          "leader_pct": 0.567,
-          "excess_return": -0.89,
-          "failure_reasons": [
-            "假共識 (領頭獨佔 ≥50%)"
-          ]
-        },
-        {
-          "code": "8358",
-          "name": "金居",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": -2.1,
-          "hit": false,
-          "leader_pct": 0.269,
-          "excess_return": -2.2,
-          "failure_reasons": [
-            "個股弱勢 (跑輸大盤 >2pp)"
-          ]
-        },
-        {
-          "code": "2618",
-          "name": "長榮航",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": 4.76,
-          "hit": true,
-          "leader_pct": 0.186,
-          "excess_return": 4.66,
-          "failure_reasons": []
-        },
-        {
-          "code": "2330",
-          "name": "台積電",
-          "matched_masters": [
-            "蔣承翰"
-          ],
-          "next_change_pct": 0.21,
-          "hit": true,
-          "leader_pct": 0.53,
-          "excess_return": 0.11,
-          "failure_reasons": []
-        }
-      ],
-      "n": 11,
-      "hits": 6,
-      "hit_rate": 0.5455,
-      "mean_change": 0.51
-    },
-    {
       "date": "20260901",
       "next_date": "20260902",
       "q5_direction": "偏多",
@@ -673,16 +515,16 @@
     "mean_change": 0
   },
   "rolling_all": {
-    "trigger_days": 4,
-    "n": 45,
-    "hits": 24,
-    "hit_rate": 0.5333,
-    "mean_change": 0.74
+    "trigger_days": 3,
+    "n": 34,
+    "hits": 18,
+    "hit_rate": 0.5294,
+    "mean_change": 0.82
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.5333,
-    "delta_pp": -25.6
+    "actual_hit_rate": 0.5294,
+    "delta_pp": -26.0
   },
-  "updated_at": "2026-11-12T14:57:18.523330"
+  "updated_at": "2026-11-13T13:44:11.482237"
 }
