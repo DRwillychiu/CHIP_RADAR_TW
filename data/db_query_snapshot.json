@@ -271,7 +271,7 @@
     {
      "date": "20261116",
      "unique_stocks": 182,
-     "buy_k": 3091153,
+     "buy_k": 3090439,
      "pnl_wan": -1284.55
     },
     {
@@ -644,12 +644,12 @@
    "rows": [
     {
      "name": "高盛",
-     "total_buy_wan": 476218522,
+     "total_buy_wan": 476200277,
      "active_days": 110
     },
     {
      "name": "摩根士丹利",
-     "total_buy_wan": 459882989,
+     "total_buy_wan": 459874429,
      "active_days": 110
     },
     {
@@ -659,12 +659,12 @@
     },
     {
      "name": "摩根大通",
-     "total_buy_wan": 372596501,
+     "total_buy_wan": 372596100,
      "active_days": 110
     },
     {
      "name": "瑞銀",
-     "total_buy_wan": 340943956,
+     "total_buy_wan": 340942986,
      "active_days": 110
     },
     {
@@ -679,23 +679,23 @@
     },
     {
      "name": "迷你哥/松山哥",
-     "total_buy_wan": 212583677,
+     "total_buy_wan": 212582936,
      "active_days": 110
     },
     {
      "name": "張濬安(航海王)",
-     "total_buy_wan": 201896715,
+     "total_buy_wan": 201896562,
      "active_days": 110
     },
     {
      "name": "陳族元",
-     "total_buy_wan": 180188387,
+     "total_buy_wan": 180188112,
      "active_days": 110
     }
    ],
    "row_count": 10,
    "truncated": false,
-   "elapsed_s": 0.23
+   "elapsed_s": 0.21
   },
   "4": {
    "title": "鴻海 (2317) 累積被誰買最多",
@@ -998,7 +998,7 @@
    ],
    "row_count": 10,
    "truncated": false,
-   "elapsed_s": 1.15
+   "elapsed_s": 1.38
   },
   "7": {
    "title": "每天 daily_chips row 數",
@@ -1673,7 +1673,7 @@
    ],
    "row_count": 110,
    "truncated": false,
-   "elapsed_s": 0.12
+   "elapsed_s": 0.11
   },
   "8": {
    "title": "跨日聯動: 連續加碼同一檔 5+ 天的 trader×stock 對",
@@ -1790,14 +1790,6 @@
      "days": 110,
      "cum_buy_wan": 4406366,
      "cum_buy_lot": 18509
-    },
-    {
-     "trader": "張濬安(航海王)",
-     "code": "3037",
-     "stock_name": "欣興",
-     "days": 110,
-     "cum_buy_wan": 4079626,
-     "cum_buy_lot": 42525
     },
     {
      "trader": "林滄海",
@@ -1926,11 +1918,19 @@
      "days": 110,
      "cum_buy_wan": 2271139,
      "cum_buy_lot": 790746
+    },
+    {
+     "trader": "張濬安(航海王)",
+     "code": "00632R",
+     "stock_name": "元大台灣50反1",
+     "days": 110,
+     "cum_buy_wan": 2181774,
+     "cum_buy_lot": 2112540
     }
    ],
    "row_count": 30,
    "truncated": false,
-   "elapsed_s": 0.98
+   "elapsed_s": 0.9
   },
   "9": {
    "title": "派系初探: 兩 master 同檔同日買進次數 Top 20",
@@ -1945,127 +1945,127 @@
     {
      "master_a": "強森",
      "master_b": "張濬安(航海王)",
-     "co_buy_count": 146003,
+     "co_buy_count": 145983,
      "distinct_stocks": 893
     },
     {
      "master_a": "強森",
      "master_b": "陳族元",
-     "co_buy_count": 115839,
+     "co_buy_count": 115829,
      "distinct_stocks": 780
     },
     {
      "master_a": "陳族元",
      "master_b": "張濬安(航海王)",
-     "co_buy_count": 102159,
+     "co_buy_count": 102148,
      "distinct_stocks": 773
     },
     {
      "master_a": "強森",
      "master_b": "林滄海",
-     "co_buy_count": 89303,
+     "co_buy_count": 89290,
      "distinct_stocks": 720
     },
     {
      "master_a": "強森",
      "master_b": "陳律師",
-     "co_buy_count": 78961,
+     "co_buy_count": 78959,
      "distinct_stocks": 741
     },
     {
      "master_a": "林滄海",
      "master_b": "張濬安(航海王)",
-     "co_buy_count": 78497,
+     "co_buy_count": 78482,
      "distinct_stocks": 710
     },
     {
      "master_a": "強森",
      "master_b": "巨人傑",
-     "co_buy_count": 77271,
+     "co_buy_count": 77266,
      "distinct_stocks": 864
     },
     {
      "master_a": "民哥",
      "master_b": "強森",
-     "co_buy_count": 73906,
+     "co_buy_count": 73903,
      "distinct_stocks": 874
     },
     {
      "master_a": "張濬安(航海王)",
      "master_b": "陳律師",
-     "co_buy_count": 69662,
+     "co_buy_count": 69660,
      "distinct_stocks": 730
     },
     {
      "master_a": "林滄海",
      "master_b": "陳族元",
-     "co_buy_count": 69576,
+     "co_buy_count": 69566,
      "distinct_stocks": 777
     },
     {
      "master_a": "強森",
      "master_b": "蔣承翰",
-     "co_buy_count": 65928,
+     "co_buy_count": 65915,
      "distinct_stocks": 709
     },
     {
      "master_a": "張濬安(航海王)",
      "master_b": "巨人傑",
-     "co_buy_count": 61268,
+     "co_buy_count": 61262,
      "distinct_stocks": 694
     },
     {
      "master_a": "民哥",
      "master_b": "張濬安(航海王)",
-     "co_buy_count": 58748,
+     "co_buy_count": 58745,
      "distinct_stocks": 703
     },
     {
      "master_a": "強森",
      "master_b": "迷你哥/松山哥",
-     "co_buy_count": 58671,
+     "co_buy_count": 58661,
      "distinct_stocks": 614
     },
     {
      "master_a": "陳族元",
      "master_b": "陳律師",
-     "co_buy_count": 57808,
+     "co_buy_count": 57806,
      "distinct_stocks": 696
     },
     {
      "master_a": "張濬安(航海王)",
      "master_b": "蔣承翰",
-     "co_buy_count": 57263,
+     "co_buy_count": 57250,
      "distinct_stocks": 706
     },
     {
      "master_a": "強森",
      "master_b": "竹科主力分點",
-     "co_buy_count": 52269,
+     "co_buy_count": 52263,
      "distinct_stocks": 636
     },
     {
      "master_a": "強森",
      "master_b": "江士勳",
-     "co_buy_count": 51149,
+     "co_buy_count": 51143,
      "distinct_stocks": 636
     },
     {
      "master_a": "張濬安(航海王)",
      "master_b": "迷你哥/松山哥",
-     "co_buy_count": 50324,
+     "co_buy_count": 50312,
      "distinct_stocks": 621
     },
     {
      "master_a": "陳族元",
      "master_b": "巨人傑",
-     "co_buy_count": 49898,
+     "co_buy_count": 49896,
      "distinct_stocks": 660
     }
    ],
    "row_count": 20,
    "truncated": false,
-   "elapsed_s": 12.24
+   "elapsed_s": 11.71
   },
   "10": {
    "title": "隔日沖驗證: 昨日漲停買進 + 今日賣出 (T+1 flip)",
@@ -2384,7 +2384,7 @@
    ],
    "row_count": 30,
    "truncated": false,
-   "elapsed_s": 0.02
+   "elapsed_s": 0.01
   },
   "11": {
    "title": "處置股獵手: 處置中個股累積買進 Top trader",
@@ -2617,14 +2617,14 @@
     {
      "master": "蔣承翰",
      "lu_buy_wan": 18994457,
-     "normal_buy_wan": 31662041,
+     "normal_buy_wan": 31658804,
      "lu_pct": 37.5,
      "active_days": 110
     },
     {
      "master": "台新台北(緯穎台燿主力)",
      "lu_buy_wan": 1057447,
-     "normal_buy_wan": 2704740,
+     "normal_buy_wan": 2704736,
      "lu_pct": 28.1,
      "active_days": 24
     },
@@ -2645,21 +2645,21 @@
     {
      "master": "林滄海",
      "lu_buy_wan": 14067614,
-     "normal_buy_wan": 56444295,
+     "normal_buy_wan": 56438315,
      "lu_pct": 20.0,
      "active_days": 110
     },
     {
      "master": "嘉義幫",
      "lu_buy_wan": 3067349,
-     "normal_buy_wan": 14791534,
+     "normal_buy_wan": 14790825,
      "lu_pct": 17.2,
      "active_days": 110
     },
     {
      "master": "竹科強勢地緣",
      "lu_buy_wan": 2062800,
-     "normal_buy_wan": 9964376,
+     "normal_buy_wan": 9964364,
      "lu_pct": 17.2,
      "active_days": 110
     },
@@ -2673,91 +2673,91 @@
     {
      "master": "民哥",
      "lu_buy_wan": 3406929,
-     "normal_buy_wan": 17600078,
+     "normal_buy_wan": 17599911,
      "lu_pct": 16.2,
      "active_days": 110
     },
     {
      "master": "迷你哥/松山哥",
      "lu_buy_wan": 33267871,
-     "normal_buy_wan": 179299221,
+     "normal_buy_wan": 179297979,
      "lu_pct": 15.7,
      "active_days": 110
     },
     {
      "master": "張濬安(航海王)",
      "lu_buy_wan": 28473909,
-     "normal_buy_wan": 173414789,
+     "normal_buy_wan": 173405831,
      "lu_pct": 14.1,
      "active_days": 110
     },
     {
      "master": "陳族元",
      "lu_buy_wan": 24181007,
-     "normal_buy_wan": 155979974,
+     "normal_buy_wan": 155963388,
      "lu_pct": 13.4,
      "active_days": 110
     },
     {
      "master": "A級內部人分點(永豐金-敦北)",
      "lu_buy_wan": 213472,
-     "normal_buy_wan": 1557762,
+     "normal_buy_wan": 1556537,
      "lu_pct": 12.1,
      "active_days": 22
     },
     {
      "master": "統一南京(強勢未知)",
      "lu_buy_wan": 1178818,
-     "normal_buy_wan": 9221518,
+     "normal_buy_wan": 9221021,
      "lu_pct": 11.3,
      "active_days": 110
     },
     {
      "master": "陳律師",
      "lu_buy_wan": 5254052,
-     "normal_buy_wan": 41225777,
+     "normal_buy_wan": 41223830,
      "lu_pct": 11.3,
      "active_days": 110
     },
     {
      "master": "志誠資本",
      "lu_buy_wan": 609478,
-     "normal_buy_wan": 5441181,
+     "normal_buy_wan": 5440692,
      "lu_pct": 10.1,
      "active_days": 110
     },
     {
      "master": "群益大安(強勢波段)",
      "lu_buy_wan": 1130388,
-     "normal_buy_wan": 10247556,
+     "normal_buy_wan": 10247181,
      "lu_pct": 9.9,
      "active_days": 110
     },
     {
      "master": "巨人傑",
      "lu_buy_wan": 3206049,
-     "normal_buy_wan": 29459959,
+     "normal_buy_wan": 29459415,
      "lu_pct": 9.8,
      "active_days": 110
     },
     {
      "master": "江士勳",
      "lu_buy_wan": 3094759,
-     "normal_buy_wan": 29667194,
+     "normal_buy_wan": 29662402,
      "lu_pct": 9.4,
      "active_days": 110
     },
     {
      "master": "凱基台北(當沖高手聚集)",
      "lu_buy_wan": 37315299,
-     "normal_buy_wan": 389087700,
+     "normal_buy_wan": 389039148,
      "lu_pct": 8.8,
      "active_days": 110
     }
    ],
    "row_count": 20,
    "truncated": false,
-   "elapsed_s": 0.28
+   "elapsed_s": 0.26
   },
   "13": {
    "title": "每日最強 master (當日總買金額)",
@@ -2772,80 +2772,80 @@
     {
      "date": "20261116",
      "top_master": "兩年確認分點(元大證券)",
-     "day_buy_wan": 7084863,
-     "row_count": 91
-    },
-    {
-     "date": "20261116",
-     "top_master": "凱基台北(當沖高手聚集)",
-     "day_buy_wan": 3802837,
-     "row_count": 88
-    },
-    {
-     "date": "20261116",
-     "top_master": "摩根士丹利",
-     "day_buy_wan": 3726237,
-     "row_count": 89
-    },
-    {
-     "date": "20261116",
-     "top_master": "高盛",
-     "day_buy_wan": 3431462,
-     "row_count": 95
-    },
-    {
-     "date": "20261116",
-     "top_master": "瑞銀",
-     "day_buy_wan": 2867153,
+     "day_buy_wan": 6990986,
      "row_count": 90
     },
     {
      "date": "20261116",
+     "top_master": "凱基台北(當沖高手聚集)",
+     "day_buy_wan": 3754285,
+     "row_count": 87
+    },
+    {
+     "date": "20261116",
+     "top_master": "摩根士丹利",
+     "day_buy_wan": 3652038,
+     "row_count": 88
+    },
+    {
+     "date": "20261116",
+     "top_master": "高盛",
+     "day_buy_wan": 3319861,
+     "row_count": 94
+    },
+    {
+     "date": "20261116",
+     "top_master": "瑞銀",
+     "day_buy_wan": 2804068,
+     "row_count": 88
+    },
+    {
+     "date": "20261116",
      "top_master": "摩根大通",
-     "day_buy_wan": 2826445,
-     "row_count": 78
+     "day_buy_wan": 2797762,
+     "row_count": 77
     },
     {
      "date": "20261116",
      "top_master": "迷你哥/松山哥",
-     "day_buy_wan": 1513774,
-     "row_count": 252
+     "day_buy_wan": 1512532,
+     "row_count": 250
     },
     {
      "date": "20261116",
      "top_master": "國泰敦南(散戶混合)",
-     "day_buy_wan": 1419446,
+     "day_buy_wan": 1418530,
      "row_count": 93
     },
     {
      "date": "20261116",
      "top_master": "張濬安(航海王)",
-     "day_buy_wan": 1261222,
-     "row_count": 484
+     "day_buy_wan": 1252264,
+     "row_count": 477
     },
     {
      "date": "20261116",
      "top_master": "美林",
-     "day_buy_wan": 925993,
-     "row_count": 92
+     "day_buy_wan": 924824,
+     "row_count": 91
     },
     {
      "date": "20261116",
      "top_master": "陳族元",
-     "day_buy_wan": 921819,
-     "row_count": 403
+     "day_buy_wan": 905234,
+     "row_count": 399
     },
     {
      "date": "20261116",
      "top_master": "凱基證券",
-     "day_buy_wan": 805724,
-     "row_count": 90
+     "day_buy_wan": 804524,
+     "row_count": 88
     },
     {
      "date": "20261116",
      "top_master": "花旗環球",
-     "day_buy_wan": 702786,
-     "row_count": 85
+     "day_buy_wan": 702377,
+     "row_count": 84
     },
     {
      "date": "20261116",
@@ -2856,8 +2856,8 @@
     {
      "date": "20261116",
      "top_master": "臺銀證券",
-     "day_buy_wan": 516606,
-     "row_count": 73
+     "day_buy_wan": 513075,
+     "row_count": 72
     },
     {
      "date": "20261116",
@@ -2868,32 +2868,32 @@
     {
      "date": "20261116",
      "top_master": "強森",
-     "day_buy_wan": 451537,
-     "row_count": 548
+     "day_buy_wan": 448143,
+     "row_count": 541
     },
     {
      "date": "20261116",
      "top_master": "全村希望資本_村長",
-     "day_buy_wan": 327559,
-     "row_count": 396
+     "day_buy_wan": 320760,
+     "row_count": 389
     },
     {
      "date": "20261116",
      "top_master": "林滄海",
-     "day_buy_wan": 314145,
-     "row_count": 300
+     "day_buy_wan": 308165,
+     "row_count": 297
     },
     {
      "date": "20261116",
      "top_master": "蔣承翰",
-     "day_buy_wan": 309113,
-     "row_count": 240
+     "day_buy_wan": 305875,
+     "row_count": 235
     },
     {
      "date": "20261116",
      "top_master": "江士勳",
-     "day_buy_wan": 300577,
-     "row_count": 161
+     "day_buy_wan": 295784,
+     "row_count": 160
     },
     {
      "date": "20261116",
@@ -2910,61 +2910,61 @@
     {
      "date": "20261116",
      "top_master": "匯豐 HSBC",
-     "day_buy_wan": 246567,
+     "day_buy_wan": 246046,
      "row_count": 61
     },
     {
      "date": "20261116",
      "top_master": "焦家",
-     "day_buy_wan": 215840,
-     "row_count": 226
+     "day_buy_wan": 215290,
+     "row_count": 225
     },
     {
      "date": "20261116",
      "top_master": "巨人傑",
-     "day_buy_wan": 212452,
-     "row_count": 220
+     "day_buy_wan": 211909,
+     "row_count": 219
     },
     {
      "date": "20261116",
      "top_master": "陳律師",
-     "day_buy_wan": 211081,
-     "row_count": 279
+     "day_buy_wan": 209134,
+     "row_count": 276
     },
     {
      "date": "20261116",
      "top_master": "竹科主力分點",
-     "day_buy_wan": 193945,
-     "row_count": 158
-    },
-    {
-     "date": "20261116",
-     "top_master": "兩年確認分點(玉山證券)",
-     "day_buy_wan": 183596,
-     "row_count": 77
+     "day_buy_wan": 191629,
+     "row_count": 156
     },
     {
      "date": "20261116",
      "top_master": "謝孟恭(股癌)",
-     "day_buy_wan": 183465,
-     "row_count": 89
+     "day_buy_wan": 179711,
+     "row_count": 87
+    },
+    {
+     "date": "20261116",
+     "top_master": "兩年確認分點(玉山證券)",
+     "day_buy_wan": 179169,
+     "row_count": 75
     },
     {
      "date": "20261116",
      "top_master": "嘉義幫",
-     "day_buy_wan": 150373,
-     "row_count": 86
+     "day_buy_wan": 149664,
+     "row_count": 85
     },
     {
      "date": "20261116",
      "top_master": "民哥",
-     "day_buy_wan": 146506,
-     "row_count": 209
+     "day_buy_wan": 146340,
+     "row_count": 208
     },
     {
      "date": "20261116",
      "top_master": "兆豐北高雄(強勢地緣)",
-     "day_buy_wan": 133648,
+     "day_buy_wan": 133641,
      "row_count": 77
     },
     {
@@ -2976,14 +2976,8 @@
     {
      "date": "20261116",
      "top_master": "A級內部人分點(富邦-敦南)",
-     "day_buy_wan": 109443,
-     "row_count": 87
-    },
-    {
-     "date": "20261116",
-     "top_master": "大牌分析師",
-     "day_buy_wan": 105650,
-     "row_count": 78
+     "day_buy_wan": 105514,
+     "row_count": 84
     },
     {
      "date": "20261116",
@@ -2993,27 +2987,33 @@
     },
     {
      "date": "20261116",
+     "top_master": "大牌分析師",
+     "day_buy_wan": 102616,
+     "row_count": 76
+    },
+    {
+     "date": "20261116",
      "top_master": "丁凌全",
-     "day_buy_wan": 103227,
-     "row_count": 86
+     "day_buy_wan": 101230,
+     "row_count": 84
     },
     {
      "date": "20261116",
      "top_master": "華南永昌中正(未知大哥)",
-     "day_buy_wan": 93329,
-     "row_count": 75
+     "day_buy_wan": 91544,
+     "row_count": 73
     },
     {
      "date": "20261116",
      "top_master": "謝明彧大哥(華南永昌)",
-     "day_buy_wan": 80725,
-     "row_count": 148
+     "day_buy_wan": 79957,
+     "row_count": 147
     },
     {
      "date": "20261116",
      "top_master": "永豐中正(濾能內部人賣壓)",
-     "day_buy_wan": 78864,
-     "row_count": 75
+     "day_buy_wan": 77362,
+     "row_count": 74
     },
     {
      "date": "20261116",
@@ -3024,20 +3024,14 @@
     {
      "date": "20261116",
      "top_master": "竹科強勢地緣",
-     "day_buy_wan": 70849,
-     "row_count": 80
+     "day_buy_wan": 70838,
+     "row_count": 79
     },
     {
      "date": "20261116",
      "top_master": "台新台北(緯穎台燿主力)",
-     "day_buy_wan": 70821,
-     "row_count": 76
-    },
-    {
-     "date": "20261116",
-     "top_master": "永豐天母(老錢)",
-     "day_buy_wan": 70568,
-     "row_count": 77
+     "day_buy_wan": 70817,
+     "row_count": 75
     },
     {
      "date": "20261116",
@@ -3047,51 +3041,57 @@
     },
     {
      "date": "20261116",
+     "top_master": "永豐天母(老錢)",
+     "day_buy_wan": 69332,
+     "row_count": 76
+    },
+    {
+     "date": "20261116",
      "top_master": "Krenz(再多一位數本人)",
-     "day_buy_wan": 68541,
-     "row_count": 87
+     "day_buy_wan": 67857,
+     "row_count": 85
     },
     {
      "date": "20261116",
      "top_master": "A級內部人分點(永豐金-敦北)",
-     "day_buy_wan": 59518,
-     "row_count": 70
+     "day_buy_wan": 58293,
+     "row_count": 69
     },
     {
      "date": "20261116",
      "top_master": "A級內部人分點(富邦-新板)",
-     "day_buy_wan": 58391,
-     "row_count": 82
+     "day_buy_wan": 57497,
+     "row_count": 81
     },
     {
      "date": "20261116",
      "top_master": "陳泊澔",
-     "day_buy_wan": 57221,
-     "row_count": 70
-    },
-    {
-     "date": "20261116",
-     "top_master": "兩年確認分點(凱基-中山)",
-     "day_buy_wan": 55237,
-     "row_count": 75
+     "day_buy_wan": 56476,
+     "row_count": 69
     },
     {
      "date": "20261116",
      "top_master": "兩年確認分點(元大-信義)",
-     "day_buy_wan": 54850,
-     "row_count": 72
-    },
-    {
-     "date": "20261116",
-     "top_master": "東億資本",
-     "day_buy_wan": 54404,
-     "row_count": 79
+     "day_buy_wan": 54360,
+     "row_count": 71
     },
     {
      "date": "20261116",
      "top_master": "宋福祥",
-     "day_buy_wan": 54040,
-     "row_count": 65
+     "day_buy_wan": 53256,
+     "row_count": 63
+    },
+    {
+     "date": "20261116",
+     "top_master": "兩年確認分點(凱基-中山)",
+     "day_buy_wan": 53155,
+     "row_count": 73
+    },
+    {
+     "date": "20261116",
+     "top_master": "東億資本",
+     "day_buy_wan": 52820,
+     "row_count": 78
     },
     {
      "date": "20261116",
@@ -3102,7 +3102,7 @@
     {
      "date": "20261116",
      "top_master": "兩年確認分點(元大-中崙)",
-     "day_buy_wan": 48374,
+     "day_buy_wan": 48351,
      "row_count": 71
     },
     {
@@ -3114,32 +3114,32 @@
     {
      "date": "20261116",
      "top_master": "統一南京(強勢未知)",
-     "day_buy_wan": 44244,
-     "row_count": 73
+     "day_buy_wan": 43746,
+     "row_count": 72
     },
     {
      "date": "20261116",
      "top_master": "A級內部人分點(凱基-科園)",
-     "day_buy_wan": 43897,
-     "row_count": 68
-    },
-    {
-     "date": "20261116",
-     "top_master": "A級內部人分點(台新-同大)",
-     "day_buy_wan": 36382,
-     "row_count": 79
-    },
-    {
-     "date": "20261116",
-     "top_master": "A級內部人分點(元大-松山)",
-     "day_buy_wan": 36087,
-     "row_count": 72
+     "day_buy_wan": 42814,
+     "row_count": 67
     },
     {
      "date": "20261116",
      "top_master": "A級內部人分點(群益金鼎-古亭)",
-     "day_buy_wan": 35988,
-     "row_count": 72
+     "day_buy_wan": 35986,
+     "row_count": 71
+    },
+    {
+     "date": "20261116",
+     "top_master": "A級內部人分點(台新-同大)",
+     "day_buy_wan": 35584,
+     "row_count": 78
+    },
+    {
+     "date": "20261116",
+     "top_master": "A級內部人分點(元大-松山)",
+     "day_buy_wan": 35392,
+     "row_count": 71
     },
     {
      "date": "20261116",
@@ -3150,8 +3150,8 @@
     {
      "date": "20261116",
      "top_master": "A級內部人分點(兆豐-城中)",
-     "day_buy_wan": 33746,
-     "row_count": 76
+     "day_buy_wan": 33033,
+     "row_count": 75
     },
     {
      "date": "20261116",
@@ -3162,68 +3162,68 @@
     {
      "date": "20261116",
      "top_master": "A級內部人分點(凱基-豐中)",
-     "day_buy_wan": 32059,
-     "row_count": 75
-    },
-    {
-     "date": "20261116",
-     "top_master": "志誠資本",
-     "day_buy_wan": 28908,
-     "row_count": 75
-    },
-    {
-     "date": "20261116",
-     "top_master": "林適中",
-     "day_buy_wan": 27916,
-     "row_count": 69
-    },
-    {
-     "date": "20261116",
-     "top_master": "A級內部人分點(元大-竹南)",
-     "day_buy_wan": 26307,
-     "row_count": 73
-    },
-    {
-     "date": "20261116",
-     "top_master": "台新新竹(碩禾內部人賣壓)",
-     "day_buy_wan": 25958,
+     "day_buy_wan": 32011,
      "row_count": 74
     },
     {
      "date": "20261116",
-     "top_master": "何莎",
-     "day_buy_wan": 24627,
-     "row_count": 69
+     "top_master": "志誠資本",
+     "day_buy_wan": 28419,
+     "row_count": 74
     },
     {
      "date": "20261116",
-     "top_master": "群益大安(強勢波段)",
-     "day_buy_wan": 23692,
-     "row_count": 58
+     "top_master": "林適中",
+     "day_buy_wan": 26944,
+     "row_count": 68
+    },
+    {
+     "date": "20261116",
+     "top_master": "A級內部人分點(元大-竹南)",
+     "day_buy_wan": 25784,
+     "row_count": 71
+    },
+    {
+     "date": "20261116",
+     "top_master": "台新新竹(碩禾內部人賣壓)",
+     "day_buy_wan": 25260,
+     "row_count": 72
+    },
+    {
+     "date": "20261116",
+     "top_master": "何莎",
+     "day_buy_wan": 24305,
+     "row_count": 68
     },
     {
      "date": "20261116",
      "top_master": "凱基三多(波段千金股)",
-     "day_buy_wan": 23353,
-     "row_count": 69
+     "day_buy_wan": 23351,
+     "row_count": 68
+    },
+    {
+     "date": "20261116",
+     "top_master": "群益大安(強勢波段)",
+     "day_buy_wan": 23317,
+     "row_count": 57
     },
     {
      "date": "20261116",
      "top_master": "台新府城(可成主力買)",
-     "day_buy_wan": 22664,
-     "row_count": 66
+     "day_buy_wan": 22458,
+     "row_count": 65
     },
     {
      "date": "20261116",
      "top_master": "陳光裕",
-     "day_buy_wan": 22253,
-     "row_count": 69
+     "day_buy_wan": 21858,
+     "row_count": 68
     },
     {
      "date": "20261116",
      "top_master": "群益北高雄(強勢地緣)",
-     "day_buy_wan": 21248,
-     "row_count": 73
+     "day_buy_wan": 20927,
+     "row_count": 72
     },
     {
      "date": "20261116",
@@ -3240,14 +3240,14 @@
     {
      "date": "20261116",
      "top_master": "台新三重(金山電地緣賣壓)",
-     "day_buy_wan": 18258,
-     "row_count": 71
+     "day_buy_wan": 17842,
+     "row_count": 70
     },
     {
      "date": "20261116",
      "top_master": "A級內部人分點(兆豐-岡山)",
-     "day_buy_wan": 16521,
-     "row_count": 68
+     "day_buy_wan": 16073,
+     "row_count": 67
     },
     {
      "date": "20261116",
@@ -3312,7 +3312,7 @@
    ],
    "row_count": 90,
    "truncated": false,
-   "elapsed_s": 0.22
+   "elapsed_s": 0.21
   },
   "14": {
    "title": "個股觀察: 過去 30 天交易 master 數最多 Top 20",
@@ -3510,7 +3510,7 @@
    ],
    "row_count": 20,
    "truncated": false,
-   "elapsed_s": 1.25
+   "elapsed_s": 1.46
   },
   "15": {
    "title": "活躍天數分布: 每位 master 出手天數 + 平均單日金額",
@@ -3525,8 +3525,8 @@
     {
      "master": "Krenz(再多一位數本人)",
      "active_days": 110,
-     "avg_day_wan": 77537.0,
-     "total_wan": 8529092
+     "avg_day_wan": 77531.0,
+     "total_wan": 8528407
     },
     {
      "master": "Tradow",
@@ -3537,14 +3537,14 @@
     {
      "master": "丁凌全",
      "active_days": 110,
-     "avg_day_wan": 114188.0,
-     "total_wan": 12560709
+     "avg_day_wan": 114170.0,
+     "total_wan": 12558712
     },
     {
      "master": "何莎",
      "active_days": 110,
-     "avg_day_wan": 39649.0,
-     "total_wan": 4361426
+     "avg_day_wan": 39646.0,
+     "total_wan": 4361104
     },
     {
      "master": "優式資本",
@@ -3556,7 +3556,7 @@
      "master": "兆豐北高雄(強勢地緣)",
      "active_days": 110,
      "avg_day_wan": 89274.0,
-     "total_wan": 9820133
+     "total_wan": 9820126
     },
     {
      "master": "兆豐證券",
@@ -3568,19 +3568,19 @@
      "master": "凱基三多(波段千金股)",
      "active_days": 110,
      "avg_day_wan": 38006.0,
-     "total_wan": 4180680
+     "total_wan": 4180678
     },
     {
      "master": "凱基台北(當沖高手聚集)",
      "active_days": 110,
-     "avg_day_wan": 3876391.0,
-     "total_wan": 426402999
+     "avg_day_wan": 3875950.0,
+     "total_wan": 426354447
     },
     {
      "master": "凱基證券",
      "active_days": 110,
-     "avg_day_wan": 933282.0,
-     "total_wan": 102661001
+     "avg_day_wan": 933271.0,
+     "total_wan": 102659800
     },
     {
      "master": "劉子豪",
@@ -3591,8 +3591,8 @@
     {
      "master": "匯豐 HSBC",
      "active_days": 110,
-     "avg_day_wan": 294744.0,
-     "total_wan": 32421817
+     "avg_day_wan": 294739.0,
+     "total_wan": 32421296
     },
     {
      "master": "呂金發",
@@ -3603,26 +3603,26 @@
     {
      "master": "嘉義幫",
      "active_days": 110,
-     "avg_day_wan": 162353.0,
-     "total_wan": 17858884
+     "avg_day_wan": 162347.0,
+     "total_wan": 17858174
     },
     {
      "master": "國泰敦南(散戶混合)",
      "active_days": 110,
-     "avg_day_wan": 1579779.0,
-     "total_wan": 173775701
+     "avg_day_wan": 1579771.0,
+     "total_wan": 173774785
     },
     {
      "master": "大牌分析師",
      "active_days": 110,
-     "avg_day_wan": 121713.0,
-     "total_wan": 13388477
+     "avg_day_wan": 121686.0,
+     "total_wan": 13385443
     },
     {
      "master": "宋福祥",
      "active_days": 110,
-     "avg_day_wan": 47064.0,
-     "total_wan": 5177002
+     "avg_day_wan": 47057.0,
+     "total_wan": 5176218
     },
     {
      "master": "富邦證券",
@@ -3633,8 +3633,8 @@
     {
      "master": "巨人傑",
      "active_days": 110,
-     "avg_day_wan": 296964.0,
-     "total_wan": 32666008
+     "avg_day_wan": 296959.0,
+     "total_wan": 32665464
     },
     {
      "master": "布哥/n_nchang",
@@ -3645,72 +3645,72 @@
     {
      "master": "張濬安(航海王)",
      "active_days": 110,
-     "avg_day_wan": 1835352.0,
-     "total_wan": 201888698
+     "avg_day_wan": 1835270.0,
+     "total_wan": 201879740
     },
     {
      "master": "強森",
      "active_days": 110,
-     "avg_day_wan": 505089.0,
-     "total_wan": 55559775
+     "avg_day_wan": 505058.0,
+     "total_wan": 55556381
     },
     {
      "master": "志誠資本",
      "active_days": 110,
-     "avg_day_wan": 55006.0,
-     "total_wan": 6050660
+     "avg_day_wan": 55002.0,
+     "total_wan": 6050170
     },
     {
      "master": "摩根士丹利",
      "active_days": 110,
-     "avg_day_wan": 4180754.0,
-     "total_wan": 459882989
+     "avg_day_wan": 4180080.0,
+     "total_wan": 459808790
     },
     {
      "master": "摩根大通",
      "active_days": 110,
-     "avg_day_wan": 3386983.0,
-     "total_wan": 372568160
+     "avg_day_wan": 3386723.0,
+     "total_wan": 372539478
     },
     {
      "master": "東億資本",
      "active_days": 110,
-     "avg_day_wan": 73176.0,
-     "total_wan": 8049328
+     "avg_day_wan": 73161.0,
+     "total_wan": 8047744
     },
     {
      "master": "林滄海",
      "active_days": 110,
-     "avg_day_wan": 641017.0,
-     "total_wan": 70511909
+     "avg_day_wan": 640963.0,
+     "total_wan": 70505929
     },
     {
      "master": "林適中",
      "active_days": 110,
-     "avg_day_wan": 29935.0,
-     "total_wan": 3292845
+     "avg_day_wan": 29926.0,
+     "total_wan": 3291874
     },
     {
      "master": "民哥",
      "active_days": 110,
-     "avg_day_wan": 190973.0,
-     "total_wan": 21007008
+     "avg_day_wan": 190971.0,
+     "total_wan": 21006841
     },
     {
      "master": "江士勳",
      "active_days": 110,
-     "avg_day_wan": 297836.0,
-     "total_wan": 32761954
+     "avg_day_wan": 297792.0,
+     "total_wan": 32757161
     }
    ],
    "row_count": 30,
    "truncated": false,
-   "elapsed_s": 0.23
+   "elapsed_s": 0.22
   }
  },
  "count": 15,
  "failed": [],
- "db_signature": "[[\"daily_chips\", \"20261116\", 889893, -2286972565.0, 304279981.0, 328315493.0], [\"daily_records\", \"20261116\", 889893], [\"disposal_history\", \"20261116\", 6974]]",
- "elapsed_s": 17.77,
+ "db_signature": "[[\"daily_chips\", \"20261116\", 889893, -2286989886.0, 304273149.0, 328307724.0], [\"daily_records\", \"20261116\", 889893], [\"disposal_history\", \"20261116\", 6974]]",
+ "elapsed_s": 17.5,
  "generated_from": "20261116"
 }

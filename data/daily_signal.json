@@ -1,11 +1,11 @@
 {
   "date": "20261116",
-  "generated_at": "2026-11-16T13:37:31.813664",
+  "generated_at": "2026-11-16T14:59:58.693122",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "籌碼偏向偏空 (強度-0.34, 非預測訊號) · 3 檔個股關注",
+  "headline": "籌碼偏向偏多 (強度+0.16, 非預測訊號) · 3 檔個股關注",
   "market_direction": {
-    "direction": "偏空",
-    "confidence_pct": 16.3,
+    "direction": "偏多",
+    "confidence_pct": 66.3,
     "confidence_is_measured_alpha": false,
     "alpha_verdict": {
       "verdict": "no_measurable_edge",
@@ -36,14 +36,8 @@
       ],
       "doc": "docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md"
     },
-    "net_weight": -0.337,
+    "net_weight": 0.163,
     "contributing": [
-      {
-        "name": "P/C Ratio",
-        "level": "bear",
-        "weight": -0.5,
-        "sign": "bear"
-      },
       {
         "name": "分點漲停",
         "level": "extreme-bull",
@@ -66,6 +60,7 @@
     "ignored": [
       "外資現貨",
       "外資期貨",
+      "P/C Ratio",
       "融資熱度"
     ]
   },
