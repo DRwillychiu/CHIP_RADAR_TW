@@ -1,11 +1,11 @@
 {
- "count": 56,
+ "count": 58,
  "by_code": {
-  "00401A": {
-   "ex_date": "20261113",
-   "name": "主動摩根台灣鑫收",
+  "00406A": {
+   "ex_date": "20261202",
+   "name": "主動中信台灣收益",
    "type": "息",
-   "cash_dividend": 0.138,
+   "cash_dividend": null,
    "stock_dividend_pct": 0.0
   },
   "0051": {
@@ -190,6 +190,13 @@
    "cash_dividend": 0.097,
    "stock_dividend_pct": 0.0
   },
+  "00946": {
+   "ex_date": "20261203",
+   "name": "群益科技高息成長",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
   "00949": {
    "ex_date": "20261118",
    "name": "復華日本龍頭",
@@ -330,6 +337,13 @@
    "cash_dividend": 1.9,
    "stock_dividend_pct": 0.0
   },
+  "1817": {
+   "ex_date": "20261221",
+   "name": "凱撒衛",
+   "type": "息",
+   "cash_dividend": 1.8,
+   "stock_dividend_pct": 0.0
+  },
   "2344": {
    "ex_date": "20261118",
    "name": "華邦電",
@@ -395,8 +409,8 @@
   }
  },
  "by_date": {
-  "20261113": [
-   "00401A"
+  "20261202": [
+   "00406A"
   ],
   "20261120": [
    "0051",
@@ -455,6 +469,11 @@
    "00939",
    "00984D"
   ],
+  "20261203": [
+   "00946",
+   "020038",
+   "1437"
+  ],
   "20261126": [
    "009817"
   ],
@@ -462,12 +481,11 @@
    "01007T",
    "6924"
   ],
-  "20261203": [
-   "020038",
-   "1437"
-  ],
   "20261230": [
    "1707"
+  ],
+  "20261221": [
+   "1817"
   ],
   "20261130": [
    "2543"
@@ -483,38 +501,6 @@
   ]
  },
  "upcoming_30d": [
-  {
-   "code": "00775B",
-   "ex_date": "20261116",
-   "name": "台新投等債15+",
-   "type": "息",
-   "cash_dividend": 0.35,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "00936",
-   "ex_date": "20261116",
-   "name": "台新永續高息中小",
-   "type": "息",
-   "cash_dividend": 0.16,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "00951",
-   "ex_date": "20261116",
-   "name": "台新日本半導體",
-   "type": "息",
-   "cash_dividend": 2.0,
-   "stock_dividend_pct": 0.0
-  },
-  {
-   "code": "00962",
-   "ex_date": "20261116",
-   "name": "台新AI優息動能",
-   "type": "息",
-   "cash_dividend": 0.08,
-   "stock_dividend_pct": 0.0
-  },
   {
    "code": "006208",
    "ex_date": "20261117",
@@ -884,6 +870,22 @@
    "stock_dividend_pct": 0.0
   },
   {
+   "code": "00406A",
+   "ex_date": "20261202",
+   "name": "主動中信台灣收益",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
+   "code": "00946",
+   "ex_date": "20261203",
+   "name": "群益科技高息成長",
+   "type": "息",
+   "cash_dividend": null,
+   "stock_dividend_pct": 0.0
+  },
+  {
    "code": "020038",
    "ex_date": "20261203",
    "name": "元大ESG配息N",
@@ -916,6 +918,6 @@
    "stock_dividend_pct": 0.0
   }
  ],
- "fetched_at": "2026-11-16T21:38:59.501381+08:00",
+ "fetched_at": "2026-11-17T22:55:50.779208+08:00",
  "source": "https://www.twse.com.tw/exchangeReport/TWT48U?response=json"
 }
