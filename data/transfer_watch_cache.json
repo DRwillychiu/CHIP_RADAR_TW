@@ -2,57 +2,6 @@
  "about": "Fubon date-pinned branch pages (zgb0 e=f=date), only the cells of the transfer-watch Excel sheet (src/exports/transfer_watch.py). pages[bno][YYYYMMDD].rows[code]: amt = [buy, sell] thousand TWD, lots = [buy, sell]; null = stock not on that page. Never refetched.",
  "pages": {
   "585b": {
-   "20261002": {
-    "fetched_at": "2026-10-06T22:57:28+08:00",
-    "rows": {
-     "1605": {
-      "amt": null,
-      "lots": [
-       1,
-       14
-      ],
-      "region": "sell"
-     },
-     "2344": null,
-     "2492": {
-      "amt": [
-       6314,
-       13642
-      ],
-      "lots": [
-       18,
-       38
-      ],
-      "region": "sell"
-     },
-     "3049": null,
-     "4919": {
-      "amt": [
-       5532,
-       2113
-      ],
-      "lots": [
-       36,
-       13
-      ],
-      "region": "buy"
-     },
-     "5469": null,
-     "6116": null,
-     "6173": null,
-     "6191": null,
-     "6284": {
-      "amt": null,
-      "lots": [
-       0,
-       6
-      ],
-      "region": "sell"
-     },
-     "8110": null,
-     "8183": null
-    }
-   },
    "20261005": {
     "fetched_at": "2026-10-06T22:57:20+08:00",
     "rows": {
@@ -1039,86 +988,33 @@
      "8110": null,
      "8183": null
     }
-   }
-  },
-  "984K": {
-   "20261002": {
-    "fetched_at": "2026-10-06T22:57:23+08:00",
+   },
+   "20261118": {
+    "fetched_at": "2026-11-18T21:50:00+08:00",
     "rows": {
      "1605": null,
-     "2344": {
-      "amt": [
-       4790,
-       60359
-      ],
+     "2344": null,
+     "2492": null,
+     "3049": {
+      "amt": null,
       "lots": [
-       27,
-       337
-      ],
-      "region": "sell"
-     },
-     "2492": {
-      "amt": [
-       11798,
-       30792
-      ],
-      "lots": [
-       34,
-       87
-      ],
-      "region": "sell"
-     },
-     "3049": null,
-     "4919": {
-      "amt": [
-       3546,
-       11110
-      ],
-      "lots": [
-       22,
-       73
-      ],
-      "region": "sell"
-     },
-     "5469": {
-      "amt": [
-       8023,
-       298
-      ],
-      "lots": [
-       107,
-       4
+       10,
+       0
       ],
       "region": "buy"
      },
-     "6116": {
-      "amt": [
-       32428,
-       2234
-      ],
-      "lots": [
-       2019,
-       139
-      ],
-      "region": "buy"
-     },
-     "6173": {
-      "amt": [
-       13297,
-       25300
-      ],
-      "lots": [
-       43,
-       81
-      ],
-      "region": "sell"
-     },
+     "4919": null,
+     "5469": null,
+     "6116": null,
+     "6173": null,
      "6191": null,
      "6284": null,
      "8110": null,
      "8183": null
     }
-   },
+   }
+  },
+  "984K": {
    "20261005": {
     "fetched_at": "2026-10-06T22:57:15+08:00",
     "rows": {
@@ -2569,45 +2465,43 @@
      "8110": null,
      "8183": null
     }
-   }
-  },
-  "989N": {
-   "20261002": {
-    "fetched_at": "2026-10-06T22:57:26+08:00",
+   },
+   "20261118": {
+    "fetched_at": "2026-11-18T21:49:49+08:00",
     "rows": {
-     "1605": null,
-     "2344": {
+     "1605": {
       "amt": [
-       9551,
-       7411
-      ],
-      "lots": null,
-      "region": "buy"
-     },
-     "2492": {
-      "amt": [
-       9525,
-       24108
+       6401,
+       48866
       ],
       "lots": [
-       28,
-       68
+       214,
+       1605
       ],
       "region": "sell"
      },
-     "3049": null,
-     "4919": {
+     "2344": null,
+     "2492": {
       "amt": [
-       8618,
-       5354
+       10283,
+       10818
+      ],
+      "lots": null,
+      "region": "sell"
+     },
+     "3049": null,
+     "4919": null,
+     "5469": {
+      "amt": [
+       42675,
+       1050
       ],
       "lots": [
-       56,
-       34
+       620,
+       15
       ],
       "region": "buy"
      },
-     "5469": null,
      "6116": null,
      "6173": null,
      "6191": null,
@@ -2615,7 +2509,9 @@
      "8110": null,
      "8183": null
     }
-   },
+   }
+  },
+  "989N": {
    "20261005": {
     "fetched_at": "2026-10-06T22:57:18+08:00",
     "rows": {
@@ -3780,6 +3676,37 @@
       "region": "buy"
      },
      "3049": null,
+     "4919": null,
+     "5469": null,
+     "6116": null,
+     "6173": null,
+     "6191": null,
+     "6284": null,
+     "8110": null,
+     "8183": null
+    }
+   },
+   "20261118": {
+    "fetched_at": "2026-11-18T21:49:56+08:00",
+    "rows": {
+     "1605": null,
+     "2344": null,
+     "2492": {
+      "amt": [
+       3070,
+       4756
+      ],
+      "lots": null,
+      "region": "sell"
+     },
+     "3049": {
+      "amt": null,
+      "lots": [
+       27,
+       10
+      ],
+      "region": "buy"
+     },
      "4919": null,
      "5469": null,
      "6116": null,
