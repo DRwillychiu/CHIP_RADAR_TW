@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-18T21:46:06.033804+08:00",
+  "updated_at": "2026-11-18T22:53:43.269305+08:00",
   "actions": {
     "1808": [
       {
@@ -151,19 +151,6 @@
         "factor": 1.157244,
         "confidence": "inferred",
         "raw_move_pct": -13.59,
-        "source": "price_series",
-        "bad_data_dates": []
-      }
-    ],
-    "4747": [
-      {
-        "date": "20260831",
-        "type": "detected_gap",
-        "pre_price": 56.5,
-        "post_price": 27.35,
-        "factor": 2.065814,
-        "confidence": "inferred",
-        "raw_move_pct": -51.59,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -947,6 +934,19 @@
         "bad_data_dates": []
       }
     ],
+    "2911": [
+      {
+        "date": "20261118",
+        "type": "detected_gap",
+        "pre_price": 5.11,
+        "post_price": 5.8,
+        "factor": 0.881034,
+        "confidence": "inferred",
+        "raw_move_pct": 13.5,
+        "source": "price_series",
+        "bad_data_dates": []
+      }
+    ],
     "2923": [
       {
         "date": "20261103",
@@ -1124,17 +1124,6 @@
       }
     ],
     "3229": [
-      {
-        "date": "20260821",
-        "type": "detected_gap",
-        "pre_price": 51.8,
-        "post_price": 61.8,
-        "factor": 0.838188,
-        "confidence": "inferred",
-        "raw_move_pct": 19.31,
-        "source": "price_series",
-        "bad_data_dates": []
-      },
       {
         "date": "20261030",
         "type": "detected_gap",
@@ -1539,17 +1528,6 @@
       }
     ],
     "4956": [
-      {
-        "date": "20260821",
-        "type": "detected_gap",
-        "pre_price": 29.05,
-        "post_price": 33.45,
-        "factor": 0.86846,
-        "confidence": "inferred",
-        "raw_move_pct": 15.15,
-        "source": "price_series",
-        "bad_data_dates": []
-      },
       {
         "date": "20261113",
         "type": "detected_gap",
@@ -1983,19 +1961,6 @@
         "factor": 0.852482,
         "confidence": "inferred",
         "raw_move_pct": 17.3,
-        "source": "price_series",
-        "bad_data_dates": []
-      }
-    ],
-    "6691": [
-      {
-        "date": "20260820",
-        "type": "detected_gap",
-        "pre_price": 706.0,
-        "post_price": 610.0,
-        "factor": 1.157377,
-        "confidence": "inferred",
-        "raw_move_pct": -13.6,
         "source": "price_series",
         "bad_data_dates": []
       }
@@ -2753,7 +2718,7 @@
   },
   "stats": {
     "official": 1,
-    "inferred": 216,
+    "inferred": 213,
     "merged_dup": 2
   }
 }
