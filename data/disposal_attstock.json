@@ -1,13 +1,14 @@
 {
-  "fetched_at": "2026-11-18T22:56:14+08:00",
+  "fetched_at": "2026-11-19T21:44:43+08:00",
   "source": "attstock.tw/api/stocks/risk + /api/stocks/disposal",
-  "total_risk_count": 151,
-  "total_disposal_rows": 10,
-  "count_in_disposal": 9,
-  "count_pending_1d": 3,
+  "total_risk_count": 154,
+  "total_disposal_rows": 13,
+  "count_in_disposal": 10,
+  "count_pending_1d": 6,
   "codes_in_disposal": [
     "2466",
     "3441",
+    "3491",
     "4174",
     "6108",
     "6140",
@@ -17,9 +18,12 @@
     "8084"
   ],
   "codes_pending_1d": [
-    "3287",
-    "4534",
-    "7610"
+    "2305",
+    "3532",
+    "4577",
+    "6538",
+    "6933",
+    "7584"
   ],
   "sample": [
     {
@@ -86,22 +90,50 @@
       "end": "2026-11-26"
     },
     {
-      "code": "7610",
-      "name": "聯友金屬-創",
+      "code": "3491",
+      "name": "昇達科",
+      "status": "in_disposal",
+      "start": "2026-11-19",
+      "end": "2026-11-27"
+    },
+    {
+      "code": "6538",
+      "name": "倉和",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1
     },
     {
-      "code": "3287",
-      "name": "廣寰科",
+      "code": "3532",
+      "name": "台勝科",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1
     },
     {
-      "code": "4534",
-      "name": "慶騰",
+      "code": "6933",
+      "name": "AMAX-KY",
+      "type": "2分盤",
+      "status": "pending_1d",
+      "days_to_disposal": 1
+    },
+    {
+      "code": "4577",
+      "name": "達航科技",
+      "type": "2分盤",
+      "status": "pending_1d",
+      "days_to_disposal": 1
+    },
+    {
+      "code": "2305",
+      "name": "全友",
+      "type": "2分盤",
+      "status": "pending_1d",
+      "days_to_disposal": 1
+    },
+    {
+      "code": "7584",
+      "name": "樂意",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1
