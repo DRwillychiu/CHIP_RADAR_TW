@@ -505,26 +505,162 @@
       "hits": 9,
       "hit_rate": 0.5294,
       "mean_change": 0.07
+    },
+    {
+      "date": "20261123",
+      "next_date": "20261124",
+      "q5_direction": "偏多",
+      "q5_confidence": 95,
+      "taifex_change": 8.99,
+      "vol_spike_masters": [
+        "蔣承翰"
+      ],
+      "quad_picks": [
+        {
+          "code": "2330",
+          "name": "台積電",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.85,
+          "hit": true,
+          "leader_pct": 0.292,
+          "excess_return": 0.86,
+          "failure_reasons": []
+        },
+        {
+          "code": "3105",
+          "name": "穩懋",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.91,
+          "hit": true,
+          "leader_pct": 0.45,
+          "excess_return": 0.92,
+          "failure_reasons": []
+        },
+        {
+          "code": "2317",
+          "name": "鴻海",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.95,
+          "hit": true,
+          "leader_pct": 0.181,
+          "excess_return": 0.96,
+          "failure_reasons": []
+        },
+        {
+          "code": "2327",
+          "name": "國巨*",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 10.0,
+          "hit": true,
+          "leader_pct": 0.173,
+          "excess_return": 1.01,
+          "failure_reasons": []
+        },
+        {
+          "code": "3189",
+          "name": "景碩",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.95,
+          "hit": true,
+          "leader_pct": 0.471,
+          "excess_return": 0.96,
+          "failure_reasons": []
+        },
+        {
+          "code": "2891",
+          "name": "中信金",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.56,
+          "hit": true,
+          "leader_pct": 0.292,
+          "excess_return": 0.57,
+          "failure_reasons": []
+        },
+        {
+          "code": "3711",
+          "name": "日月光投控",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.96,
+          "hit": true,
+          "leader_pct": 0.186,
+          "excess_return": 0.97,
+          "failure_reasons": []
+        },
+        {
+          "code": "2383",
+          "name": "台光電",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.87,
+          "hit": true,
+          "leader_pct": 0.513,
+          "excess_return": 0.88,
+          "failure_reasons": []
+        },
+        {
+          "code": "2002",
+          "name": "中鋼",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 4.15,
+          "hit": true,
+          "leader_pct": 0.284,
+          "excess_return": -4.84,
+          "failure_reasons": []
+        },
+        {
+          "code": "1802",
+          "name": "台玻",
+          "matched_masters": [
+            "蔣承翰"
+          ],
+          "next_change_pct": 9.98,
+          "hit": true,
+          "leader_pct": 0.472,
+          "excess_return": 0.99,
+          "failure_reasons": []
+        }
+      ],
+      "n": 10,
+      "hits": 10,
+      "hit_rate": 1.0,
+      "mean_change": 9.32
     }
   ],
   "rolling_30d": {
-    "trigger_days": 0,
-    "n": 0,
-    "hits": 0,
-    "hit_rate": 0,
-    "mean_change": 0
+    "trigger_days": 1,
+    "n": 10,
+    "hits": 10,
+    "hit_rate": 1.0,
+    "mean_change": 9.32
   },
   "rolling_all": {
-    "trigger_days": 3,
-    "n": 34,
-    "hits": 18,
-    "hit_rate": 0.5294,
-    "mean_change": 0.82
+    "trigger_days": 4,
+    "n": 44,
+    "hits": 28,
+    "hit_rate": 0.6364,
+    "mean_change": 2.75
   },
   "vs_expected": {
     "expected_hit_rate": 0.789,
-    "actual_hit_rate": 0.5294,
-    "delta_pp": -26.0
+    "actual_hit_rate": 0.6364,
+    "delta_pp": -15.3
   },
-  "updated_at": "2026-11-23T14:57:30.439812"
+  "updated_at": "2026-11-24T13:41:59.956563"
 }

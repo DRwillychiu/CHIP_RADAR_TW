@@ -1,71 +1,45 @@
 {
-  "fetched_at": "2026-11-23T22:55:50+08:00",
+  "fetched_at": "2026-11-24T21:40:15+08:00",
   "source": "attstock.tw/api/stocks/risk + /api/stocks/disposal",
-  "total_risk_count": 159,
-  "total_disposal_rows": 32,
-  "count_in_disposal": 18,
-  "count_pending_1d": 17,
+  "total_risk_count": 156,
+  "total_disposal_rows": 33,
+  "count_in_disposal": 28,
+  "count_pending_1d": 2,
   "codes_in_disposal": [
+    "1569",
     "2305",
-    "2466",
-    "3287",
+    "3081",
+    "3162",
+    "3354",
+    "3363",
     "3441",
     "3491",
     "3532",
+    "3653",
     "4174",
+    "4526",
     "4534",
     "4577",
-    "6108",
+    "4927",
     "6140",
+    "6451",
     "6538",
     "6697",
-    "6751",
+    "6715",
     "7584",
     "7610",
     "7717",
-    "8084"
+    "7856",
+    "8021",
+    "8042",
+    "8084",
+    "8996"
   ],
   "codes_pending_1d": [
-    "1528",
-    "1809",
-    "2243",
-    "2360",
-    "2426",
-    "2486",
-    "3443",
-    "3498",
-    "3691",
-    "3693",
-    "4556",
-    "4716",
-    "6141",
-    "6456",
-    "6472",
-    "6609",
-    "6830"
+    "3593",
+    "4542"
   ],
   "sample": [
-    {
-      "code": "2466",
-      "name": "冠西電",
-      "status": "in_disposal",
-      "start": "2026-11-17",
-      "end": "2026-11-23"
-    },
-    {
-      "code": "6108",
-      "name": "競國",
-      "status": "in_disposal",
-      "start": "2026-11-17",
-      "end": "2026-11-23"
-    },
-    {
-      "code": "6751",
-      "name": "智聯服務",
-      "status": "in_disposal",
-      "start": "2026-11-17",
-      "end": "2026-11-23"
-    },
     {
       "code": "7717",
       "name": "萊德光電-KY",
@@ -102,13 +76,6 @@
       "end": "2026-11-25"
     },
     {
-      "code": "7610",
-      "name": "聯友金屬-創",
-      "status": "in_disposal",
-      "start": "2026-11-20",
-      "end": "2026-11-26"
-    },
-    {
       "code": "6697",
       "name": "東捷資訊",
       "status": "in_disposal",
@@ -116,8 +83,8 @@
       "end": "2026-11-26"
     },
     {
-      "code": "3287",
-      "name": "廣寰科",
+      "code": "7610",
+      "name": "聯友金屬-創",
       "status": "in_disposal",
       "start": "2026-11-20",
       "end": "2026-11-26"
@@ -151,8 +118,8 @@
       "end": "2026-11-27"
     },
     {
-      "code": "2305",
-      "name": "全友",
+      "code": "7584",
+      "name": "樂意",
       "status": "in_disposal",
       "start": "2026-11-23",
       "end": "2026-11-27"
@@ -165,127 +132,120 @@
       "end": "2026-11-27"
     },
     {
-      "code": "7584",
-      "name": "樂意",
+      "code": "2305",
+      "name": "全友",
       "status": "in_disposal",
       "start": "2026-11-23",
       "end": "2026-11-27"
     },
     {
-      "code": "3443",
-      "name": "創意",
+      "code": "7856",
+      "name": "漢測",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "3081",
+      "name": "聯亞",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "3653",
+      "name": "健策",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "3363",
+      "name": "上詮",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "8996",
+      "name": "高力",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "8021",
+      "name": "尖點",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "3162",
+      "name": "精確",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "8042",
+      "name": "金山電",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "4526",
+      "name": "東台",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "6451",
+      "name": "訊芯-KY",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "4927",
+      "name": "泰鼎-KY",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "6715",
+      "name": "嘉基",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "1569",
+      "name": "濱川",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "3354",
+      "name": "律勝",
+      "status": "in_disposal",
+      "start": "2026-11-24",
+      "end": "2026-11-30"
+    },
+    {
+      "code": "4542",
+      "name": "科嶠",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1
     },
     {
-      "code": "2360",
-      "name": "致茂",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "6456",
-      "name": "GIS-KY",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "3693",
-      "name": "營邦",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "2486",
-      "name": "一詮",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "3498",
-      "name": "陽程",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "6830",
-      "name": "汎銓",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "2426",
-      "name": "鼎元",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "6472",
-      "name": "保瑞",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "3691",
-      "name": "碩禾",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "1809",
-      "name": "中釉",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "1528",
-      "name": "恩德",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "4556",
-      "name": "旭然",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "6609",
-      "name": "瀧澤科",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "6141",
-      "name": "柏承",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "4716",
-      "name": "大立",
-      "type": "2分盤",
-      "status": "pending_1d",
-      "days_to_disposal": 1
-    },
-    {
-      "code": "2243",
-      "name": "宏旭-KY",
+      "code": "3593",
+      "name": "力銘",
       "type": "2分盤",
       "status": "pending_1d",
       "days_to_disposal": 1

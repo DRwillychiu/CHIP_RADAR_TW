@@ -1,11 +1,11 @@
 {
-  "date": "20261123",
-  "generated_at": "2026-11-23T14:54:35.822190",
+  "date": "20261124",
+  "generated_at": "2026-11-24T13:38:41.869374",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "籌碼偏向偏多 (強度+0.48, 非預測訊號) · 3 檔個股關注",
+  "headline": "籌碼偏向中性 (強度+0.08, 非預測訊號) · 3 檔個股關注",
   "market_direction": {
-    "direction": "偏多",
-    "confidence_pct": 95,
+    "direction": "中性",
+    "confidence_pct": 58.3,
     "confidence_is_measured_alpha": false,
     "alpha_verdict": {
       "verdict": "no_measurable_edge",
@@ -36,30 +36,20 @@
       ],
       "doc": "docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md"
     },
-    "net_weight": 0.481,
+    "net_weight": 0.083,
     "contributing": [
-      {
-        "name": "外資現貨",
-        "level": "extreme-bull",
-        "weight": 0.202,
-        "sign": "bull"
-      },
       {
         "name": "分點漲停",
         "level": "extreme-bull",
         "weight": 0.083,
         "sign": "bull"
-      },
-      {
-        "name": "融資熱度",
-        "level": "bull",
-        "weight": 0.196,
-        "sign": "bull"
       }
     ],
     "ignored": [
+      "外資現貨",
       "外資期貨",
       "P/C Ratio",
+      "融資熱度",
       "法人共識",
       "結算日壓力"
     ]
@@ -67,44 +57,44 @@
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "2383",
-      "name": "台光電",
-      "change_pct": 9.96,
+      "code": "00403A",
+      "name": "主動統一升級50",
+      "change_pct": 9.99,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 8034242,
-      "total_buy_amt_yi": 80.34,
+      "total_buy_amt_K": 4748702,
+      "total_buy_amt_yi": 47.49,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.96%, 共淨買 80.34 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.99%, 共淨買 47.49 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "00991A",
-      "name": "主動復華未來50",
-      "change_pct": 9.44,
+      "code": "00981A",
+      "name": "主動統一台股增長",
+      "change_pct": 9.98,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 340645,
-      "total_buy_amt_yi": 3.41,
+      "total_buy_amt_K": 15114190,
+      "total_buy_amt_yi": 151.14,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.44%, 共淨買 3.41 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.98%, 共淨買 151.14 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 3,
-      "code": "2308",
-      "name": "台達電",
-      "change_pct": 10.0,
+      "code": "00991A",
+      "name": "主動復華未來50",
+      "change_pct": 9.96,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 16949012,
-      "total_buy_amt_yi": 169.49,
+      "total_buy_amt_K": 7658233,
+      "total_buy_amt_yi": 76.58,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 10.0%, 共淨買 169.49 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.96%, 共淨買 76.58 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],

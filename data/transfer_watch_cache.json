@@ -2,53 +2,6 @@
  "about": "Fubon date-pinned branch pages (zgb0 e=f=date), only the cells of the transfer-watch Excel sheet (src/exports/transfer_watch.py). pages[bno][YYYYMMDD].rows[code]: amt = [buy, sell] thousand TWD, lots = [buy, sell]; null = stock not on that page. Never refetched.",
  "pages": {
   "585b": {
-   "20261008": {
-    "fetched_at": "2026-10-08T21:41:25+08:00",
-    "rows": {
-     "1605": null,
-     "2344": {
-      "amt": [
-       10428,
-       979
-      ],
-      "lots": [
-       58,
-       6
-      ],
-      "region": "buy"
-     },
-     "2492": {
-      "amt": [
-       6648,
-       10685
-      ],
-      "lots": [
-       16,
-       26
-      ],
-      "region": "sell"
-     },
-     "3049": null,
-     "4919": {
-      "amt": [
-       159,
-       7132
-      ],
-      "lots": [
-       1,
-       46
-      ],
-      "region": "sell"
-     },
-     "5469": null,
-     "6116": null,
-     "6173": null,
-     "6191": null,
-     "6284": null,
-     "8110": null,
-     "8183": null
-    }
-   },
    "20261012": {
     "fetched_at": "2026-10-12T23:06:20+08:00",
     "rows": {
@@ -951,48 +904,16 @@
      "8110": null,
      "8183": null
     }
-   }
-  },
-  "984K": {
-   "20261008": {
-    "fetched_at": "2026-10-08T21:41:20+08:00",
+   },
+   "20261124": {
+    "fetched_at": "2026-11-24T21:38:40+08:00",
     "rows": {
      "1605": null,
-     "2344": {
-      "amt": [
-       69265,
-       24330
-      ],
-      "lots": [
-       385,
-       135
-      ],
-      "region": "buy"
-     },
-     "2492": {
-      "amt": [
-       70568,
-       888790
-      ],
-      "lots": [
-       170,
-       2145
-      ],
-      "region": "sell"
-     },
+     "2344": null,
+     "2492": null,
      "3049": null,
      "4919": null,
-     "5469": {
-      "amt": [
-       40461,
-       0
-      ],
-      "lots": [
-       504,
-       0
-      ],
-      "region": "buy"
-     },
+     "5469": null,
      "6116": null,
      "6173": null,
      "6191": null,
@@ -1000,7 +921,9 @@
      "8110": null,
      "8183": null
     }
-   },
+   }
+  },
+  "984K": {
    "20261012": {
     "fetched_at": "2026-10-12T23:06:13+08:00",
     "rows": {
@@ -2487,53 +2410,36 @@
      "8110": null,
      "8183": null
     }
-   }
-  },
-  "989N": {
-   "20261008": {
-    "fetched_at": "2026-10-08T21:41:23+08:00",
+   },
+   "20261124": {
+    "fetched_at": "2026-11-24T21:38:32+08:00",
     "rows": {
      "1605": null,
-     "2344": {
-      "amt": [
-       18123,
-       12364
-      ],
-      "lots": [
-       101,
-       69
-      ],
-      "region": "buy"
-     },
-     "2492": {
-      "amt": [
-       34646,
-       21916
-      ],
-      "lots": [
-       83,
-       52
-      ],
-      "region": "buy"
-     },
+     "2344": null,
+     "2492": null,
      "3049": null,
      "4919": null,
-     "5469": null,
-     "6116": {
-      "amt": null,
+     "5469": {
+      "amt": [
+       44059,
+       816
+      ],
       "lots": [
-       26,
-       0
+       610,
+       11
       ],
       "region": "buy"
      },
+     "6116": null,
      "6173": null,
      "6191": null,
      "6284": null,
      "8110": null,
      "8183": null
     }
-   },
+   }
+  },
+  "989N": {
    "20261012": {
     "fetched_at": "2026-10-12T23:06:16+08:00",
     "rows": {
@@ -3620,6 +3526,50 @@
       ],
       "region": "sell"
      },
+     "6284": null,
+     "8110": null,
+     "8183": null
+    }
+   },
+   "20261124": {
+    "fetched_at": "2026-11-24T21:38:36+08:00",
+    "rows": {
+     "1605": null,
+     "2344": null,
+     "2492": null,
+     "3049": null,
+     "4919": {
+      "amt": [
+       0,
+       1907
+      ],
+      "lots": [
+       0,
+       21
+      ],
+      "region": "sell"
+     },
+     "5469": {
+      "amt": [
+       3514,
+       1082
+      ],
+      "lots": [
+       48,
+       15
+      ],
+      "region": "buy"
+     },
+     "6116": {
+      "amt": null,
+      "lots": [
+       0,
+       11
+      ],
+      "region": "sell"
+     },
+     "6173": null,
+     "6191": null,
      "6284": null,
      "8110": null,
      "8183": null
