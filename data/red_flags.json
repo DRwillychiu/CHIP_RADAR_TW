@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-24T22:54:22.879574+08:00",
+  "generated_at": "2026-11-25T07:18:53.958542+08:00",
   "trade_date": "20261124",
   "pump_suspicion": [
     {
@@ -256,6 +256,21 @@
       "rule": "A_pump",
       "severity": "medium",
       "reasoning": "當沖比 83% (> 70%) + 漲停 + 買金額 84,963 萬 (中位數 2,958 萬 × 28.7)"
+    },
+    {
+      "stock_code": "2882",
+      "stock_name": "國泰金",
+      "branch_code": "8440",
+      "branch_name": "摩根大通",
+      "master": "摩根大通",
+      "buy_lot": 2178,
+      "sell_lot": 1781,
+      "buy_amt_wan": 22530,
+      "daytrade_ratio": 0.82,
+      "amt_vs_median_x": 8.6,
+      "rule": "A_pump",
+      "severity": "medium",
+      "reasoning": "當沖比 82% (> 70%) + 漲停 + 買金額 22,530 萬 (中位數 2,610 萬 × 8.6)"
     },
     {
       "stock_code": "00403A",
@@ -998,10 +1013,10 @@
     }
   ],
   "summary": {
-    "pump_count": 21,
+    "pump_count": 22,
     "wash_count": 30,
     "distribution_count": 11,
-    "total": 62
+    "total": 63
   },
   "disclaimer": "本模組僅標嫌疑 flag, 非定罪. 結果不代表實際違法行為 (合法策略也可能觸發). 任何後續行動由用戶自負."
 }
