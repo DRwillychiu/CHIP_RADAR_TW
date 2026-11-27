@@ -1,11 +1,11 @@
 {
-  "date": "20261126",
-  "generated_at": "2026-11-26T14:54:43.003660",
+  "date": "20261127",
+  "generated_at": "2026-11-27T13:42:22.067642",
   "generator": "signal_engine v3.29 MVP (Phase A backtest based)",
-  "headline": "籌碼偏向偏多 (強度+0.63, 非預測訊號) · 3 檔個股關注",
+  "headline": "籌碼偏向中性 (強度+0.08, 非預測訊號) · 3 檔個股關注",
   "market_direction": {
-    "direction": "偏多",
-    "confidence_pct": 95,
+    "direction": "中性",
+    "confidence_pct": 58.3,
     "confidence_is_measured_alpha": false,
     "alpha_verdict": {
       "verdict": "no_measurable_edge",
@@ -36,80 +36,65 @@
       ],
       "doc": "docs/TEMPERATURE_GAUGE_FINAL_VERDICT.md"
     },
-    "net_weight": 0.631,
+    "net_weight": 0.083,
     "contributing": [
-      {
-        "name": "外資現貨",
-        "level": "extreme-bull",
-        "weight": 0.202,
-        "sign": "bull"
-      },
       {
         "name": "分點漲停",
         "level": "extreme-bull",
         "weight": 0.083,
         "sign": "bull"
-      },
-      {
-        "name": "融資熱度",
-        "level": "bull",
-        "weight": 0.196,
-        "sign": "bull"
-      },
-      {
-        "name": "法人共識",
-        "level": "extreme-bull",
-        "weight": 0.15,
-        "sign": "bull"
       }
     ],
     "ignored": [
+      "外資現貨",
       "外資期貨",
       "P/C Ratio",
+      "融資熱度",
+      "法人共識",
       "結算日壓力"
     ]
   },
   "top_focus_stocks": [
     {
       "rank": 1,
-      "code": "6213",
-      "name": "聯茂",
-      "change_pct": 10.0,
+      "code": "2313",
+      "name": "華通",
+      "change_pct": 9.82,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 1634707,
-      "total_buy_amt_yi": 16.35,
+      "total_buy_amt_K": 4886217,
+      "total_buy_amt_yi": 48.86,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 10.0%, 共淨買 16.35 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.82%, 共淨買 48.86 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 2,
-      "code": "2368",
-      "name": "金像電",
-      "change_pct": 9.94,
+      "code": "6152",
+      "name": "百一",
+      "change_pct": 9.9,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 3683363,
-      "total_buy_amt_yi": 36.83,
+      "total_buy_amt_K": 6988,
+      "total_buy_amt_yi": 0.07,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.94%, 共淨買 36.83 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.9%, 共淨買 0.07 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     },
     {
       "rank": 3,
-      "code": "6669",
-      "name": "緯穎",
-      "change_pct": 9.79,
+      "code": "2413",
+      "name": "環科",
+      "change_pct": 9.98,
       "tier": "consensus",
       "master_count": 0,
       "masters": [],
-      "total_buy_amt_K": 2389261,
-      "total_buy_amt_yi": 23.89,
+      "total_buy_amt_K": 125582,
+      "total_buy_amt_yi": 1.26,
       "confidence_pct": 52,
-      "reason": "0 位 sniper 共識買 (), 漲幅 9.79%, 共淨買 23.89 億",
+      "reason": "0 位 sniper 共識買 (), 漲幅 9.98%, 共淨買 1.26 億",
       "action": "明早開盤關注強勢續攻,若沒開高可分批進場"
     }
   ],
